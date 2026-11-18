@@ -289,6 +289,15 @@
     ctx.fillStyle = D.WIN8.gold; ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(0, 1); ctx.closePath(); ctx.fill(); ctx.restore();
   };
   H16.LINES = { opened:'{y}In your JOURNAL:{/} {name}.', pinned: '{g}Pinned: the gold arrow marks the next step. M, then JOURNAL, to read it again.{/}', more: '{g}And: {names}.{/}' };
+  // THE JOURNAL'S LESSON ON FINDING WORK (RULED 2026-11-18, Griz: "re: 3 - Winters taking the quest marker was the original introduction to the log, if we make 'finding work'
+  // going into the journal the journal tutorial we don't need to ever take the quest marker from what was pinned by player"): the first time Finding Work goes into the JOURNAL,
+  // its card carries the lesson Winters' errand gave (counter.js C.LINES.journalGrid, 09-25: the JOURNAL by M, the pin, the gold arrow, the NEXT line) and how to pin another --
+  // and from then no mission takes the pin from one that is live: a new one is pinned only when nothing live is (here, H16.keyCard, Winters' errand, Ned's page and wand, Swann).
+  // The words the small-fixes seat's (fixes-1118), invented.json journal-lesson-1118
+  H16.LINES.lesson = ['{g}Your JOURNAL keeps your missions: M, then JOURNAL. The pinned one\'s NEXT line says what comes next, and a gold arrow marks it when it has a place.{/}',
+    '{g}To follow another, pick it there and press E to pin it. Nothing else moves your pin.{/}'];
+  H16.LINES.pinnedShort = '{g}Pinned.{/}';
+  H16.lesson = function (f, ids) { if (f.journalTaught || ids.indexOf('work') < 0) return []; f.journalTaught = 1; return H16.LINES.lesson.map(function (l) { return D.keys ? D.keys(l) : l; }); };
   H16.missionCard = function* (B) {
     var R = D.roam, st = C.state(B), f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
     nu.forEach(function (q) { f['q:' + q.id] = 1; if (q.step && q.step.key) f['k:' + q.id + ':' + q.step.key] = 1; }); // (a mission opening on a key step: its own card says it, not a second -- H16.keyCard)
@@ -300,16 +309,22 @@
       open.sort(function (a, b) { return at(a) - at(b); }); if (!pinId || !open.some(function (q) { return q.id === pinId; })) pinId = open[open.length - 1].id;
       for (var k = 0; k < open.length; k++) {
         var q1 = open[k], ls = [H16.LINES.opened.replace('{name}', q1.name), q1.text];
-        if (q1.id === pinId) { f.pin = q1.id; ls.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned); }
+        var lsn = H16.lesson(f, [q1.id]); // (Finding Work's first card: the JOURNAL's lesson, 11-18 -- with it, the pin's own line short)
+        if (q1.id === pinId && !live) { f.pin = q1.id; ls.push(lsn.length ? H16.LINES.pinnedShort : D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned); } // (`!live`: never over a live pin, 11-18)
+        ls = ls.concat(lsn);
         B.card(R.wrap(ls), 480); B.cards.pop(); yield* H16.fly(B, R.wrap(ls));
       }
       return;
     }
-    if (f.pinWant) { var pw = f.pinWant; delete f.pinWant; open.sort(function (a, b) { return (b.id === pw) - (a.id === pw); }); if (open[0].id === pw) live = null; } // (a mission given to be pinned -- the council's ask, H16.COUNCIL.looks -- pinned over what was)
+    // (a mission given to be pinned -- the council's ask, H16.COUNCIL.looks; the runner's summons; a paper off the board; the true word -- leads the card, and is pinned when
+    // nothing live is. Till 11-18 it was pinned over what was: RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player")
+    if (f.pinWant) { var pw = f.pinWant; delete f.pinWant; open.sort(function (a, b) { return (b.id === pw) - (a.id === pw); }); }
     if (!live) { f.pin = open[0].id; pinned = true; }
     lines.push(H16.LINES.opened.replace('{name}', open[0].name), open[0].text);
     if (open.length > 1) lines.push(H16.LINES.more.replace('{names}', open.slice(1).map(function (q) { return q.name; }).join(', ')));
-    if (pinned) lines.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned);
+    var lsn2 = H16.lesson(f, open.map(function (q) { return q.id; })); // (Finding Work's first card: the JOURNAL's lesson, 11-18 -- with it, the pin's own line short)
+    if (pinned) lines.push(lsn2.length ? H16.LINES.pinnedShort : D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned);
+    lines = lines.concat(lsn2);
     B.card(R.wrap(lines), 480); // (no sound as it appears since 10-29 night, his "remove first sound on appearance and keep the tucked away in journal sound": the 10-28 ding,
     // H16.DING, is no longer played; the chime as the words go into the JOURNAL is the fly-in's, below)
     // ... and into the JOURNAL (10-29, below): the card kept in the log, its words on the fly-in instead of the floor's card

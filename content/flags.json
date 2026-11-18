@@ -130,6 +130,7 @@
     "workAll": "set: deep16/js/hours.js H16.workSync (all four of Finding Work's ways found, 11-18); read: the mission's done words, Gull's (C.TALK16.gull)",
     "gullAsked": "set: deep16/js/hours.js C.TALK16.gull (Barley in the party, Gull's ask: Finding Work renamed Gull's Reward, 11-18); read: H16.MISSIONS work",
     "gullPaid": "set: deep16/js/hours.js C.TALK16.gull (all four found, Gull's rusty scale given, 11-18); read: H16.MISSIONS work (Gull's Reward done)",
+    "journalTaught": "set: deep16/js/hours.js H16.lesson (the JOURNAL's lesson given on Finding Work's first card, 11-18); read: H16.lesson",
     "heirAsked": "set: js/deep.js; read: content/quests.json, js/deep.js",
     "heirDone": "set: js/deep.js; read: content/quests.json, js/deep.js, maps/silverton.json",
     "heirFound": "set: js/deep.js; read: content/quests.json, js/deep.js",

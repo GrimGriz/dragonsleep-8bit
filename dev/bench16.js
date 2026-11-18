@@ -1911,7 +1911,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         P.alone === 'Alone?' && !!atA && atA.beat >= CN.OPEN.pause && atA.bl > 0 && atA.justP === '' && atA.mid === '' && atA.typedMid === false && atA.after.length > 0 && P.friends.indexOf(atA.after) === 0);
       HN.playing = false; HN.cur = null; D.scenes.length = 0;
       // C. WINTERS' PAPERS OVER FINDING WORK: Lymen leading as he played it, Finding Work pinned, at Winters' -- WORK taken (TAKE IT); then the ring's card as the floor would
-      // (since 11-18 Finding Work is a collection of four and the papers leave it open -- js/hours.js H16.WORK -- and the errand is pinned over it all the same)
+      // (since 11-18 Finding Work is a collection of four and the papers leave it open -- js/hours.js H16.WORK; and RULED 11-18, his "we don't need to ever take the quest marker from
+      // what was pinned by player": Finding Work stays pinned, and When You're Ready's card takes it no more than the errand does -- his 11-15 note C's wrong pin can't happen)
       // play it on the way out
       var BC = newN('lymen'), stC = CN.state(BC), fC = stC.flags;
       fC.qSeen = 1; Object.assign(fC, { papaLymen: 1, heardWork: 1, 'work:winters': 1, 'q:company': 1, 'q:work': 1, kSeen: 1 }); fC.pin = 'work';
@@ -1922,8 +1923,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       while (kC++ < 200) { sC = gC.next(vC); vC = undefined; if (sC.done) break; if (sC.value && sC.value.opts) { asked.push(sC.value.opts.join('/')); vC = 0; } }
       var pinC1 = fC.pin, workDone = CN.quests(stC).filter(function (q) { return q.id === 'work'; })[0], freshC = H6N.fresh(stC).map(function (q) { return q.id; });
       driveN(H6N.missionCard(BC), null, 2000); var pinC2 = fC.pin;
-      okN('C. Winters\' WORK taken (' + asked.join(', ') + ') with Finding Work pinned (live ' + liveC0 + ', done after: ' + !!(workDone && workDone.done) + '): pinned ' + pinC1 + '; the card after for ' + freshC.join(',') + ', pinned ' + pinC2 + ' (When You\'re Ready not pinned)',
-        liveC0 === 1 && !!workDone && !workDone.done && !!fC.wErrA && pinC1 === 'errands' && freshC.indexOf('ring') >= 0 && pinC2 === 'errands');
+      okN('C. Winters\' WORK taken (' + asked.join(', ') + ') with Finding Work pinned (live ' + liveC0 + ', done after: ' + !!(workDone && workDone.done) + '): pinned ' + pinC1 + '; the card after for ' + freshC.join(',') + ', pinned ' + pinC2 + ' (Finding Work kept; When You\'re Ready not pinned)',
+        liveC0 === 1 && !!workDone && !workDone.done && !!fC.wErrA && pinC1 === 'work' && freshC.indexOf('ring') >= 0 && pinC2 === 'work');
       // and a pin still live is kept: Fight Night pinned, the papers taken -- Fight Night stays (his note's ask is the one just given over a done pin; a live pin is the player's)
       var BC2 = newN('lymen'), stC2 = CN.state(BC2), fC2 = stC2.flags; fC2.qSeen = 1; Object.assign(fC2, { heardHex: 1, wintersMet: 1, kSeen: 1 }); fC2.pin = 'hex';
       var gC2 = CN.wintersWork({ st: stC2, say: scC.say, ask: scC.ask }), vC2, sC2, kC2 = 0; while (kC2++ < 200) { sC2 = gC2.next(vC2); vC2 = undefined; if (sC2.done) break; if (sC2.value && sC2.value.opts) vC2 = 0; }
@@ -14481,6 +14482,57 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         on0 === 2 && hS.hp <= 0 && offs === 2 && lets === 1 && lgS.indexOf('lets go, swollen') < lgS.lastIndexOf('drops off') && dS === 1 && dS1 === 1 && !sS[0].riding && !sS[1].riding);
       } catch (eS) { repFX.errors.push('S: ' + String(eS && eS.stack || eS).slice(0, 600)); }
       try {
+      // J THE JOURNAL'S LESSON ON FINDING WORK, AND NO PIN TAKEN (RULED 11-18, his "re: 3 - Winters taking the quest marker was the original introduction to the log, if we make
+      // 'finding work' going into the journal the journal tutorial we don't need to ever take the quest marker from what was pinned by player"): Finding Work's first card carries the
+      // lesson, once; nothing after takes a live pin -- a mission given to be pinned, Winters' errand, Papa's two cards
+      var HJ = D.hours, cardsJ = function (B) { var out = []; var c0 = B.card; B.card = function (ls) { out.push(window.DS.stripCodes([].concat(ls).join(' '))); return c0.apply(this, arguments); }; return out; };
+      var driveJ = function (B, g) { var k = 0, st, v; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return; if (typeof st.value === 'number') B.t += st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } };
+      var BJ = newFX('vivian'), fJ = BJ.roam.flags, stJ = CFX.state(BJ); fJ.qSeen = 1; var cJ = cardsJ(BJ);
+      CFX.words(BJ, 'marta'); driveJ(BJ, HJ.missionCard(BJ)); var c1J = cJ.join(' | '), pin1J = fJ.pin;
+      CFX.words(BJ, 'kess'); driveJ(BJ, HJ.missionCard(BJ)); var c2J = cJ.slice(1).join(' | '), pin2J = fJ.pin;
+      fJ.heardHex = 1; fJ.pinWant = 'hex'; driveJ(BJ, HJ.missionCard(BJ)); var c3J = cJ.slice(2).join(' | '), pin3J = fJ.pin;
+      okFX('J1 Vivian, her mother\'s word: "' + c1J.slice(0, 420) + '" -- pinned ' + pin1J + '; Kess: "' + c2J.slice(0, 120) + '" (pinned ' + pin2J + '); a mission given to be pinned (Fight Night): "' + c3J.slice(0, 80) + '" (pinned ' + pin3J + ')',
+        /In your JOURNAL: Finding Work/.test(c1J) && /Your JOURNAL keeps your missions: M, then JOURNAL/.test(c1J) && /press E to pin it\. Nothing else moves your pin\./.test(c1J) && fJ.journalTaught === 1 && pin1J === 'work' &&
+        /In your JOURNAL: The Cradles/.test(c2J) && !/Your JOURNAL keeps/.test(c2J) && pin2J === 'work' && /In your JOURNAL: Fight Night/.test(c3J) && !/Pinned/.test(c3J) && pin3J === 'work');
+      // J2 WINTERS' PAPERS: with Finding Work pinned the pin stays and his line says how to follow the errand; with nothing live pinned, the errand is pinned as before
+      var scJ = function (st, said) { return { st: st, say: function (l) { said.push([].concat(l).join(' ')); return { say: [].concat(l) }; }, ask: function (p, o) { said.push([].concat(p).join(' ')); return { ask: [].concat(p), opts: o }; } }; };
+      var runJ = function (g) { var k = 0, st, v; while (k++ < 200) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.opts) v = 0; } };
+      // (a game of its own, Finding Work open with one way found and pinned: by J1's end all four were found, and the papers rightly pin the errand over a done one)
+      var BJa = newFX('vivian'), fJa = BJa.roam.flags, stJa = CFX.state(BJa); fJa.qSeen = 1; CFX.words(BJa, 'marta'); driveJ(BJa, HJ.missionCard(BJa)); var pin0W = fJa.pin;
+      var sdJ = []; runJ(CFX.wintersWork(scJ(stJa, sdJ))); var pinW = fJa.pin, wJ = sdJ.join(' / '), wkJa = CFX.quests(stJa).filter(function (q) { return q.id === 'work'; })[0];
+      var BJ2 = newFX('lymen'), stJ2 = CFX.state(BJ2), fJ2 = BJ2.roam.flags; fJ2.wintersMet = 1; var sdJ2 = []; runJ(CFX.wintersWork(scJ(stJ2, sdJ2))); var wJ2 = sdJ2.join(' / ');
+      okFX('J2 Winters\' papers with Finding Work pinned (' + pin0W + ', ' + String(wkJa && wkJa.text).slice(-60) + '): pinned ' + pinW + ', "' + wJ.slice(-150) + '"; with nothing pinned: pinned ' + fJ2.pin + ', "' + wJ2.slice(-120) + '"',
+        pin0W === 'work' && !!fJa.wErrA && !!wkJa && !wkJa.done && pinW === 'work' && /Your pin stays where it is: pick the errand there and press E/.test(wJ) && !!fJ2.wErrA && fJ2.pin === 'errands' && /and pinned: the gold arrow/.test(wJ2));
+      // J3 PAPA'S TWO CARDS over a live pin (Warrens Pete's Missing Five pinned first): the pin stays; Finding Work's card the lesson, the first time
+      var BJ3 = newFX('barley'), fJ3 = BJ3.roam.flags; fJ3.qSeen = 1; var cJ3 = cardsJ(BJ3); CFX.words(BJ3, 'pete'); driveJ(BJ3, HJ.missionCard(BJ3)); var pin3a = fJ3.pin;
+      fJ3.papaLymen = 1; fJ3.heardWork = 1; fJ3.cardEach = ['company', 'work']; fJ3.pinWant = 'work'; driveJ(BJ3, HJ.missionCard(BJ3)); var c3J3 = cJ3.slice(1).join(' | ');
+      okFX('J3 Papa\'s two cards with the Missing Five pinned (' + pin3a + '): "' + c3J3.slice(0, 300) + '" -- pinned ' + fJ3.pin,
+        pin3a === 'warrens' && fJ3.pin === 'warrens' && /In your JOURNAL: Company/.test(c3J3) && /In your JOURNAL: Finding Work/.test(c3J3) && !/Pinned/.test(c3J3) && /Your JOURNAL keeps your missions/.test(c3J3) && fJ3.journalTaught === 1);
+      // L1 THE DOOR (deep16/?at=lesson16): Vivian beside her mother, nothing in the JOURNAL -- her word, Finding Work's card with the lesson, pinned; Winters' papers, the pin kept --
+      // and the squares the eyes row walks
+      HFX.playing = false; HFX.cur = null; while (D.scenes.length) D.pop(); D.sit16.open('lesson16'); var BL = topFX(); D.battle = BL; var cL = cardsJ(BL), fL = BL.roam.flags, stL = CFX.state(BL);
+      var j0L = CFX.journal(BL).quests.filter(function (q) { return !q.done; }).length, mL = BL.units.filter(function (u) { return u.npc === 'marta'; })[0], wdL = ((D.town.floor('', fL).marks || {}).doors || {})['warp:winters'];
+      CFX.words(BL, 'marta'); driveJ(BL, HJ.missionCard(BL)); var c1L = cL.join(' | '), p1L = fL.pin;
+      var sdL = []; runJ(CFX.wintersWork(scJ(stL, sdL))); var p2L = fL.pin;
+      okFX('L1 ?at=lesson16 (' + (D.roam.def && D.roam.def.key) + ', the party at ' + BL.roam.token.x + ',' + BL.roam.token.y + '; Marta at ' + (mL ? mL.x + ',' + mL.y : 'none') + ', Winters\' door ' + JSON.stringify(wdL) + '): the JOURNAL\'s open missions ' + j0L + ' at the door; her word: "' + c1L.slice(0, 160) + '..." pinned ' + p1L + '; Winters\' papers: pinned ' + p2L + ', "' + sdL.join(' / ').slice(-90) + '"',
+        D.roam.def && D.roam.def.key === 'silverton' && j0L === 0 && /In your JOURNAL: Finding Work/.test(c1L) && /Your JOURNAL keeps your missions/.test(c1L) && p1L === 'work' && p2L === 'work' && /Your pin stays where it is/.test(sdL.join(' ')));
+      HFX.playing = false; HFX.cur = null; while (D.scenes.length) D.pop();
+      } catch (eS) { repFX.errors.push('J: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      HFX.playing = false; HFX.cur = null; while (D.scenes.length) D.pop();
+      try {
+      // W A FOE'S WALK IN THE RECORD ONLY (RULED 11-18, his "1-3 leans can stand"; the beetles of 2026-11-16T22:18:00Z): a goblin too far to reach walks; its turn is a line of the
+      // play record's transcript, "Goblin's turn: x,y to x,y (n ft).", and not of the battle's log on the screen
+      var BW = D.npcFight('?npc=goblin&lvl=1&vs=fighter:1&watch', {}); D.battle = BW; BW.enter(); var kW = 0; while (!BW.order.length && kW++ < 400) BW.co.next();
+      var gW = BW.units.filter(function (u) { return u.kind === 'goblin'; })[0], hW = BW.units.filter(function (u) { return u.side === 'party' && !u.familiar; })[0];
+      BW.units.forEach(function (u) { if (u !== gW && u !== hW) u.away = true; }); gW.x = 1; gW.y = 5; hW.x = 14; hW.y = 5; GFX.setup(BW.map, BW.units);
+      BW.rec = null; D.rec.start(BW, { fight: 'fixes1118', name: 'the bench: a foe\'s walk', level: 1, simple: false }); D.rec.snap(BW);
+      var g0W = [gW.x, gW.y], stW, vW, nW = 0; while (nW++ < 3000 && BW.round < 2 && !BW.over()) { stW = BW.co.next(vW); vW = undefined; if (stW.done) break; if (typeof stW.value === 'number') BW.t += stW.value; if (stW.value && stW.value.prompt) vW = stW.value.prompt.opts[0].value; }
+      var rW = BW.rec, allW = (rW.opening || []).concat.apply(rW.opening || [], (rW.steps || []).map(function (s) { return s.then || []; })), lineW = allW.filter(function (l) { return /Goblin's turn: /.test(l); })[0] || '';
+      var logW = (BW.log || []).join(' / ');
+      okFX('W1 a goblin out of reach (' + g0W.join(',') + ', the fighter at 14,5), round ' + BW.round + ': the record "' + lineW + '"; on the screen\'s log: ' + (/'s turn: /.test(logW) ? 'IT IS' : 'not there'),
+        /^R1 Goblin's turn: 1,5 to \d+,\d+ \(\d+ ft\)\.$/.test(lineW) && !/'s turn: /.test(logW));
+      } catch (eS) { repFX.errors.push('W: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
       // R1 THE ROAD'S GRID FIELD 16 DEEP (his "grid seemed 6 wide"): a road fight and a camp fight on the grid -- the field 16 by 13 + the gap, the lineup's rows in its middle (5 to 9),
       // every one on open ground, the fronts 6 to 12 squares apart, the camp's fire two behind the four in the middle row, a flier among the foes on the middle rows too
       HFX.worldDoor('?world&noenc'); var ws = D.top(); if (ws && ws.baking) { ws.baking = false; ws.enter(); }
@@ -14617,8 +14669,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // its card long since (taken as seen, Finding Work pinned), so the paper taken down off the board gave no card, no fly-in and no pin -- the paper is the new thing in the JOURNAL
       var BE = newHw('vivian'); beatHw(BE); talkHw(BE, 'marta'); var cardE0 = beatHw(BE), tailE = qHw(BE, 'tail'), pinE0 = CHw.journal(BE).pin, seenE = !!BE.roam.flags['q:tail'], fresh0E = HWw.fresh(CHw.state(BE)).length;
       var rE = boardRunHw(BE), flyE = rE.cards.length ? rE.cards[0] : '';
-      okHw('the board with the Tail already in the JOURNAL (Marta\'s word opened it, its card played, seen ' + seenE + ', nothing fresh ' + (fresh0E === 0) + ', pinned ' + pinE0 + '): the paper taken, the screen closed -- the card by itself (' + rE.saw + '), "' + flyE.slice(0, 44) + '", ' + rE.cards.length + ' card and ' + rE.flew + ' fly-in, pinned ' + CHw.journal(BE).pin + ' (the paper\'s mission, as the board says)',
-        /In your JOURNAL/.test(cardE0 || '') && !!tailE && seenE && fresh0E === 0 && pinE0 !== 'tail' && !!rE.un && rE.screen && rE.took && rE.saw && rE.flying && rE.cards.length === 1 && rE.flew === 1 && /The Forty-Gold Tail/.test(flyE) && CHw.journal(BE).pin === 'tail');
+      okHw('the board with the Tail already in the JOURNAL (Marta\'s word opened it, its card played, seen ' + seenE + ', nothing fresh ' + (fresh0E === 0) + ', pinned ' + pinE0 + '): the paper taken, the screen closed -- the card by itself (' + rE.saw + '), "' + flyE.slice(0, 44) + '", ' + rE.cards.length + ' card and ' + rE.flew + ' fly-in, pinned ' + CHw.journal(BE).pin + ' (the pin kept, 11-18)',
+        /In your JOURNAL/.test(cardE0 || '') && !!tailE && seenE && fresh0E === 0 && pinE0 !== 'tail' && !!rE.un && rE.screen && rE.took && rE.saw && rE.flying && rE.cards.length === 1 && rE.flew === 1 && /The Forty-Gold Tail/.test(flyE) && CHw.journal(BE).pin === pinE0 && !/Pinned/.test(flyE)); // (the pin kept (RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player"))
       // 6d. NED'S PAGE, THE SAME (10-30, the same report of him): Ned's own word said the JOURNAL and marked the page as seen, so no card and no fly-in came when his counter closed.
       // Aurdin at Percy's, Ned's story told and the Insight made on an earlier visit: the Insight's choice, "Deal.", out -- the card and the fly-in as the screen closes, once
       var BN = newHw('aurdin'); beatHw(BN); BN.roam.flags.nedWandGot = 1; /* (Ned's wand already had: nothing of it on the way in -- 11-16, mode=items1116) */ driveHw(THw.fire(BN, trigHw('warp:percy')), null, 2000); var inNP = RHw.def.room === 'warp:percy'; Object.assign(BN.roam.flags, { nedStory: 1, nedSaw: 1 });
@@ -18566,11 +18618,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         /board's on the wall outside my door/.test(sH[0] || '') && !qBd(B1, 'ettercap') && !qBd(B1, 'tail') && !B1.roam.flags.boardRead && !B1.roam.flags.heardEttercap);
       // 3. THE BOARD'S SCREEN: the board in the portrait's place, a TAKE for each paper; the ettercap's taken down -- its mission, the board read (Finding Work), pinned at its card
       var c3 = '', c03 = B1.card; B1.card = function (ls) { c3 = window.DS.stripCodes([].concat(ls).join(' ')); return c03.apply(this, arguments); }; /* (the card plays as the screen closes, in boardPlay, since 10-30) */
-      var b3 = boardBd(B1, [/ETTERCAP/]), f3 = B1.roam.flags, q3 = qBd(B1, 'ettercap'), ask3 = b3.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
+      var pin3pre = B1.roam.flags.pin, b3 = boardBd(B1, [/ETTERCAP/]), f3 = B1.roam.flags, q3 = qBd(B1, 'ettercap'), ask3 = b3.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
       okBd('the board\'s screen (' + (b3.sc && b3.sc.o.name) + ', its picture ' + !!(b3.sc && b3.sc.o.pic) + ', a room ' + !!(b3.sc && b3.sc.o.room) + '): "' + (b3.seen[0] || '').slice(0, 50) + '...", ' + ask3.slice(ask3.indexOf('['), ask3.indexOf(']') + 1) + '; the ettercap taken: ' + (q3 && q3.name) + ', paper down (' + f3['paper:ettercap'] + '), the board read (' + f3.boardRead + ')',
         !!b3.sc && b3.sc.o.name === 'Hessle\'s board' && !!b3.sc.o.pic && !!b3.sc.o.room && /town's bounties/.test(b3.seen[0] || '') && /\[TAKE: FORTY GOLD: THE WEB GULCH ETTERCAP\|TAKE: FORTY GOLD: THE CLOAKER IN THE GUANO MINE\|LEAVE\]/.test(ask3) && !!q3 && f3['paper:ettercap'] === 1 && f3.boardRead === 1 && f3.heardEttercap === 1 && !qBd(B1, 'tail'));
       B1.card = c03; var due3 = H6Bd.missionDue(B1); /* (nothing left for the beat: the card came with the screen's closing) */
-      okBd('back on the street, its card: "' + c3.slice(0, 70) + '...", pinned ' + f3.pin + ', nothing left for the floor\'s beat (' + !due3 + ')', /In your JOURNAL: The Braiding Ettercap/.test(c3) && /Pinned/.test(c3) && f3.pin === 'ettercap' && !due3);
+      okBd('back on the street, its card: "' + c3.slice(0, 70) + '...", pinned ' + f3.pin + ', nothing left for the floor\'s beat (' + !due3 + ')', /In your JOURNAL: The Braiding Ettercap/.test(c3) && !!pin3pre && !/Pinned/.test(c3) && f3.pin === pin3pre && !due3); // (the pin kept (RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player"))
       var b3b = boardBd(B1, []), ask3b = b3b.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
       okBd('the board again: the ettercap\'s paper gone, the cloaker\'s left ("' + ask3b.slice(ask3b.indexOf('[')) + '"), ' + H6Bd.papers(f3).length + ' nailed up', /\[TAKE: FORTY GOLD: THE CLOAKER IN THE GUANO MINE\|LEAVE\]/.test(ask3b) && H6Bd.papers(f3).length === 1);
       // 4. THE SNOOT'S PAPER, once the council has posted it: said, and left up -- not a TAKE; with the rest taken, the nail holes
@@ -18636,9 +18688,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (D.top() instanceof CSn.Counter) readSn(D.top()); driveSn(g3, null, 2000);
       var f3 = B3.roam.flags, c3 = '', cd3 = B3.card; B3.card = function (ls) { c3 = window.DS.stripCodes([].concat(ls).join(' ')); return cd3.apply(this, arguments); };
       var due3 = H6Sn.missionDue(B3); if (due3) driveSn(H6Sn.missionCard(B3), null, 400); B3.card = cd3;
+      var pinK3 = f3.pin, cK3 = c3; CSn.journal(B3).setPin('council'); // (the summons in unpinned with the Company pinned (RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player"); pinned here by hand, E in the JOURNAL)
       var q3 = questSn(B3, 'council'), m3 = markSn(B3), hf3 = (RSn.def.marks.hexFront || [])[0];
-      okSn('Papa\'s runner at the party\'s own pace (' + dur3 + ' frames a square, the floor\'s step ' + RSn.def.step + ', was 6); after him the card "' + c3.slice(0, 70) + '...", pinned ' + f3.pin + '; NEXT "' + String(q3 && q3.where).slice(0, 60) + '..."; the marker on the Hex\'s front doors (' + m3 + ' / ' + hf3 + ')',
-        dur3 === RSn.def.step && /In your JOURNAL: The Council Sends for You/.test(c3) && /Pinned/.test(c3) && f3.pin === 'council' && !!q3 && !q3.done && /up the spiral stair to the third floor/.test(q3.where) && !!m3 && !!hf3 && m3[0] === hf3[0] && m3[1] === hf3[1]);
+      okSn('Papa\'s runner at the party\'s own pace (' + dur3 + ' frames a square, the floor\'s step ' + RSn.def.step + ', was 6); after him the card "' + c3.slice(0, 70) + '...", pinned ' + pinK3 + ' (kept), then council by hand; NEXT "' + String(q3 && q3.where).slice(0, 60) + '..."; the marker on the Hex\'s front doors (' + m3 + ' / ' + hf3 + ')',
+        dur3 === RSn.def.step && /In your JOURNAL: The Council Sends for You/.test(c3) && !/Pinned/.test(cK3) && !!pinK3 && pinK3 !== 'council' && f3.pin === 'council' && !!q3 && !q3.done && /up the spiral stair to the third floor/.test(q3.where) && !!m3 && !!hf3 && m3[0] === hf3[0] && m3[1] === hf3[1]);
       var tr3 = (RSn.def.src8.triggers || []).filter(function (t) { return t.id === 'hex:front'; })[0]; if (tr3) driveSn(TSn.fire(B3, tr3), null, 2000);
       var hx3 = RSn.def.hexIn, m3b = markSn(B3), sp3 = D.hex.spiralSq().map(String);
       var HXn = D.hex, spn = HXn.spiralSq()[0], rown = HXn.rows(3), atn = HXn.near(rown, [spn[0], spn[1] + 1]) || HXn.near(rown, spn); HXn.lay(B3, 3, atn, [0, 1]);
@@ -18772,7 +18825,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var fR = BR.roam.flags; fR.heardPete = 1; fR['q:warrens'] = 1; fR.pin = 'warrens'; var scL = H6Sb.sitting(BR, ['looks'], [fR, HSb.cur.flags]), sL = readSb(scL), cL = '';
       var nCard = BR.cards ? BR.cards.length : 0, c0L = BR.card; BR.card = function (ls) { cL = window.DS.stripCodes([].concat(ls).join(' ')); return c0L.apply(this, arguments); }; if (H6Sb.missionDue(BR)) driveSb(H6Sb.missionCard(BR), null, 200); BR.card = c0L;
       okSb('C2: ' + sL.length + ' pages, its card then Warda and Papa ("' + (sL[2] || '').split('|')[3].slice(0, 30) + '..."), the gnolls named ("' + ((sL.filter(function (l) { return /gnolls/.test(l); })[0] || '').split('|')[3] || '').slice(0, 40) + '..."), no counter or purse (room ' + !!scL.o.room + '); then the card "' + cL.slice(0, 60) + '...", pinned ' + fR.pin,
-        sL.length === 8 && /^The council\|-\|-\|The council sits at the long table/.test(sL[0]) && /^Warda\|pt_warda\|-\|"This is the group you asked about, Papa/.test(sL[1]) && /That's them/.test(sL[2]) && /Web Gulch/.test(sL[3]) && sL.some(function (l) { return /coming north up that same road/.test(l); }) && !sL.some(function (l) { return /My seal makes paper true/.test(l); }) && !!scL.o.room && /In your JOURNAL: The Braiding Ettercap/.test(cL) && /Pinned/.test(cL) && fR.pin === 'ettercap');
+        sL.length === 8 && /^The council\|-\|-\|The council sits at the long table/.test(sL[0]) && /^Warda\|pt_warda\|-\|"This is the group you asked about, Papa/.test(sL[1]) && /That's them/.test(sL[2]) && /Web Gulch/.test(sL[3]) && sL.some(function (l) { return /coming north up that same road/.test(l); }) && !sL.some(function (l) { return /My seal makes paper true/.test(l); }) && !!scL.o.room && /In your JOURNAL: The Braiding Ettercap/.test(cL) && !/Pinned/.test(cL) && fR.pin === 'warrens'); // (the Missing Five kept (RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player"))
       // 9. THE NIGHT'S CUTSCENE (his "the first cutscene has redundancy - explainer line replaced by shots. The background of the scene vs background in the portrait window"):
       // every shot gone past by hand, the sitting opens on its first speaker; X (no shots seen), its card; the arrival's caption its title; one background; the stock dead, the
       // east side's man standing at the table's end
@@ -19954,7 +20007,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         winters2: { party: four, lvl: 2, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }, // (Winters' ring at the lead's 3rd, 11-05: mode=winters1105)
         winters3: { party: four, lvl: 3, open: ['ring'], done: ['company', 'work', 'errands'], pin: 'ring', step: 'winters', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 154, site: 'silverton', give: [], silver: 30 }
       };
-      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116', nedwand16: 'items1116', gull16: 'fixes1118' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
+      var elseSt = { camp16: 'campage1116', book16: 'book1116', merrick16: 'merrick1116', merrickmet16: 'merrick1116', nedwand16: 'items1116', gull16: 'fixes1118', lesson16: 'fixes1118' }, idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).filter(function (k) { return !elseSt[k]; }).sort().join(',') : '(no deep16/js/situations16.js)'; // (elseSt: a situation another mode holds -- the camp page's door on THE WORLD itself, 11-16)
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
       idsSt.forEach(function (id) {
         var e = EXP[id]; HSt.playing = false; HSt.cur = null; while (D.scenes.length) D.pop();

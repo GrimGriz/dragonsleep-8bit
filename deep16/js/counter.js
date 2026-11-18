@@ -192,6 +192,7 @@
   // on the JOURNAL and its marker: "should function the same as the 8-bit unless we add a feature"); and Winters' word when his work is put off (invented.json
   // winters-not-now: the first game has no NOT NOW -- his 10-21 "Need to 'not now' option the work/mission 'offers'")
   C.LINES = { journalGrid: 'Winters\' errand is in your JOURNAL now (M, then JOURNAL), and pinned: the gold arrow marks who is next, and the NEXT line says it in words.',
+    journalKept: 'Winters\' errand is in your JOURNAL now (M, then JOURNAL). Your pin stays where it is: pick the errand there and press E to follow it instead.', // (11-18: nothing takes a live pin -- js/hours.js H16.LINES.lesson)
     notNow: '"The dead keep. Come back when your hands are free."' };
   function L(k, o) { var r = (DS.DATA.text || {})[k], s = r ? r.t : k; var sub = function (x) { Object.keys(o || {}).forEach(function (n) { x = x.split('{' + n + '}').join(o[n]); }); return x; }; return Array.isArray(s) ? s.map(sub) : sub(s); }
   C.L = L;
@@ -1001,9 +1002,9 @@
       if (!(yield* C.offerWork(sc, L('winters.errandA'), 'attentive'))) { yield sc.say(C.LINES.notNow, 'attentive'); return; }
       f.wErrA = 1; give(st, 'estatepapers', 1); D.sfx('chest');
       yield sc.say(L('g.got', { item: items.estatepapers.name }));
-      if (!C.quests(st).some(function (q) { return q.id === f.pin && !q.done && q.id !== 'work'; })) f.pin = 'errands'; // (over Finding Work too, live or not: since 11-18 the papers no longer finish it -- a collection of four, js/hours.js H16.WORK -- and his 11-15 note C wants the errand pinned, as a paper off the board pins its own) (the first errand teaches the journal: the first game's playtest 09-25; and since 11-15 over a pin these papers just finished -- Finding Work, done on wErrA -- his playthrough NOTES at Winters': "'when your ready' ended up pinned instead of the one he just gave you to carry papers")
+      var keptW = C.quests(st).some(function (q) { return q.id === f.pin && !q.done; }); if (!keptW) f.pin = 'errands'; // (pinned only when nothing live is -- RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player": Finding Work's first card is the JOURNAL's lesson now, js/hours.js H16.LINES.lesson; his 11-15 note C's When You're Ready can no more take it than the errand can) (the first errand teaches the journal: the first game's playtest 09-25; and since 11-15 over a pin these papers just finished -- Finding Work, done on wErrA -- his playthrough NOTES at Winters': "'when your ready' ended up pinned instead of the one he just gave you to carry papers")
       f['q:errands'] = 1; // (his own word on the JOURNAL below: no card of its opening besides -- js/hours.js H16.missionDue)
-      yield sc.say(D.keys(C.LINES.journalGrid));
+      yield sc.say(D.keys(keptW ? C.LINES.journalKept : C.LINES.journalGrid));
       return 'leave';
     }
     if (!f.wErrADone) {

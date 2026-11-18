@@ -22,6 +22,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE SMALL FIXES (fixes-1118), 11-18, on the desk's relay of his answers (Opus): the JOURNAL's lesson on Finding Work's first card, and no pin taken
+    'eyes-journal-lesson-1118': { pri: 2, group: G2, title: 'THE JOURNAL\'S LESSON ON FINDING WORK: its first card teaches the JOURNAL and the pin, and nothing moves your pin after (11-18)', pt: 'Silverton\'s hours and words, 2026-11-18 his answers on the desk\'s relay (deep16/js/hours.js H16.LINES.lesson, H16.missionCard; deep16/js/counter.js C.wintersWork, C.LINES.journalKept; deep16/js/situations16.js lesson16; bench fixes1118 J1-J3, L1)',
+      obj: 'Talk to Vivian\'s mother, then take Winters\' papers — does Finding Work\'s card teach the JOURNAL, and your pin stay put?',
+      url: 'deep16/?at=lesson16&fresh=1118j',
+      steps: [['silverton', 44, 42, 'Marta at her stall: Finding Work\'s first card'], ['silverton', 44, 10, 'Winters\' door: his errand, the pin kept']],
+      look: 'A STORY DOOR (level 3, Vivian leading, day 1 at nine, nothing open in the JOURNAL, beside her mother). E on Marta: Finding Work flies into the JOURNAL, pinned, and its card carries the lesson Winters\' errand used to give: "Your JOURNAL keeps your missions: M, then JOURNAL. The pinned one\'s NEXT line says what comes next, and a gold arrow marks it when it has a place." / "To follow another, pick it there and press E to pin it. Nothing else moves your pin." -- once, never again. Then Winters on Fountain Street, TAKE IT: his errand goes into the JOURNAL and the pin stays on Finding Work, his line saying how to follow the errand instead. No card after (the board\'s paper, the council, the Hex boy\'s summons, the true word) takes a pin you have; with nothing pinned, the new one is pinned as before.' },
     // THE CUTTER (cutter-1118), 11-18, its second brief (Opus; tools/folk-costume-sheet.py drivespear; deep16/art/folk{man,woman}_drivespear_p1): the drive spear, the first to come
     'eyes-folk-drivespear-1118': { pri: 2, group: G2, title: 'THE DRIVE SPEAR: the Galleries\' bat-drive hands in the art desk\'s illustrated figures, a short spear upright (11-18)', pt: 'the bestiary lane, 2026-11-18 (the cutter, cutter-1118; tools/folk-costume-sheet.py; deep16/art/folk{man,woman}_drivespear_p1)',
       obj: 'In the gallery, look over the drive spear pair, spear upright and one shoulder guard — do they read as bat-drive hands?',
