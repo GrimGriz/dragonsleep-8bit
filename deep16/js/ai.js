@@ -1423,8 +1423,13 @@
         var dn = ra.dice ? D.roll(ra.dice).total + (ra.mod || 0) : 5;
         u.drained = (u.drained || 0) + dn; // (counted with this drink: the line read "7 piercing ... (5 of 10 so far)" before it, then "lets go" -- his fight of 11-03, read that night)
         B.card(['{r}' + the(B, u) + '{/} drinks: ' + dn + ' piercing from ' + host.name + '.  {g}(' + Math.min(10, u.drained) + ' of 10' + (u.drained >= 10 ? ': full' : ' so far') + '){/}'], 120); FX.sparkle(host, 'red', 8); D.sfx('poison');
-        B.hurt(host, dn, ra.type || 'piercing', {}); yield 20;
-        if (u.drained >= 10 || !G.standing(host)) { B.card(['{g}' + the(B, u) + ' lets go, swollen.{/}'], 160); B.dismount(u); }
+        // (full, it lets go with its own line, once: a drink that drops its host runs the battle's rideSync inside B.hurt, which took every rider off with "drops off" -- and then
+        // this said "lets go, swollen" and dismounted it again, a square further: his fight of 2026-11-16T22:24:59Z, Vivian down under two stirges. Now the full one is left to
+        // its line here (u.lettingGo, battle.js rideSync); one only off because she fell has had its "drops off" there, and is not dismounted twice)
+        var full = u.drained >= 10; if (full) u.lettingGo = true;
+        try { B.hurt(host, dn, ra.type || 'piercing', {}); } finally { delete u.lettingGo; }
+        if (u.riding && u.master === host && (full || !G.standing(host))) { B.card(['{g}' + the(B, u) + ' lets go, swollen.{/}'], 160); B.dismount(u); }
+        yield 20;
         return;
       }
       if (host && G.standing(host) && T.action && ra) { T.action = 0; yield* B.attack(u, host, ra); }

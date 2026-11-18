@@ -531,7 +531,7 @@
   // Griz: "only when he's Medium or smaller"; then "treat if 'victim enlarge' = pull it off to nearby square")
   Battle.prototype.rideSync = function () {
     for (var i = 0; i < this.units.length; i++) {
-      var u = this.units[i]; if (!u.attached || !u.riding) continue;
+      var u = this.units[i]; if (!u.attached || !u.riding || u.lettingGo) continue; // (lettingGo: a stirge full on this drink says its own going -- js/ai.js brute, 11-18)
       var h = u.master, at = h && Battle.attOf(h, u);
       if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || h.ethereal || u.ethereal || h.conds.banished || u.conds.banished || u.conds.prone || !G.hostile(u, h)) { this.dismount(u); continue; }
       if (!at.big && Battle.overMedium(h)) { this.card(['{g}' + nameOf(h) + ' swells past it: ' + Battle.theWord(u) + ' is thrown off.{/}'], 240); this.dismount(u); }

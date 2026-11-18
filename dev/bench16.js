@@ -14152,6 +14152,115 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   }
   // SILVERTON'S HOURS AND WORDS, 10-28 (mode=hours1028; the story window, its lane they live\handoff-2026-10-28-silvertons-hours-and-words.md, RULED whole with him 10-28 --
   // deep16/js/hours.js): the JOURNAL opened by words, each check one of his rulings
+  // THE SMALL FIXES OF 11-18 (mode=fixes1118; the small-fixes seat, on the lanes desk's brief from his playthrough of 11-16 night and his fight records): G -- Finding Work a
+  // collection of four, Papa's line finding none, Gull's Reward with Barley along and the rusty scale (js/hours.js H16.WORK H16.GULL C.TALK16.gull, RULED 11-16); T -- one article on a
+  // foe's name, "The thing in the lake" (js/battle.js Battle.nm, Battle.prototype.theOf); S -- a stirge's letting go once (js/ai.js brute); R -- the road's and the camp's grid field 16 deep, the lineup in its middle (js/world.js W.deep)
+  if (get('mode', '') === 'fixes1118') {
+    var repFX = { checks: [], errors: [] }, memFX = {}, stGFX = D.store.get, stSFX = D.store.set, apFX = window.DS.autoPicks, muFX = D.music, CFX = D.counter, HFX = D.house, HWFX = D.hours, WFX = D.world, GFX = D.grid;
+    function okFX(what, v) { repFX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topFX() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam && s.co) { for (var k = 0; k < 2; k++) s.co.next(); } return s; }
+    function newFX(lead, flags, hired) { HFX.playing = false; HFX.cur = null; var rec = HFX.fresh(lead); Object.assign(rec.flags, flags || {}); if (hired) rec.hired = hired.slice(); HFX.begin(rec, 0); var B = topFX(); D.battle = B; return B; }
+    function workFX(B) { return CFX.journal(B).quests.filter(function (q) { return q.id === 'work'; })[0] || null; }
+    D.store.get = function (k) { return memFX[k] ? JSON.parse(memFX[k]) : null; }; D.store.set = function (k, v) { memFX[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1118);
+      try {
+      // G1 BARLEY'S GAME, a word with Gull: his ask (his words), the mission renamed Gull's Reward, none of the four found -- its next step the town's people, no marker
+      var B1 = newFX('barley'), g1 = CFX.words(B1, 'gull'), w1 = workFX(B1), f1 = B1.roam.flags;
+      okFX('G1 Barley leading, Gull: "' + g1.join(' / ').slice(0, 260) + '" -- ' + (w1 && w1.name) + ': "' + String(w1 && w1.text).slice(0, 200) + '", NEXT "' + String(w1 && w1.where) + '" (marker ' + !!(w1 && w1.step && (w1.step.npc || w1.step.door)) + '); the Cull heard ' + !!f1['heard:r-guanowages'],
+        /^The guano mine's taking cull hands/.test(g1[0]) && g1.indexOf('Saw your fight, kid. You remind me of me.') >= 0 && g1.some(function (l) { return /If you prove to me you've found them all, I got something for ya\./.test(l); }) &&
+        !!w1 && w1.name === 'Gull\'s Reward' && !w1.done && /\(0 of 4\): nothing yet\. Talk to people in Silverton\./.test(w1.text) && /^Talk to people in Silverton/.test(w1.where) && !(w1.step.npc || w1.step.door) && f1.gullAsked === 1 && !!f1['heard:r-guanowages']);
+      // G2 the four found one way each -- Aldwin's word (Winters), a paper off the board, the Hand's rumour (the cradles), a bout won -- and the next step is Gull, marked
+      var g2a = CFX.words(B1, 'aldwin'); f1.boardRead = 1; f1.heardCradles = 1; f1['hex:brawl'] = 1; var w2 = workFX(B1);
+      okFX('G2 found by Aldwin\'s word ("' + String(g2a[g2a.length - 1] || '').slice(0, 50) + '..."), the board, the cradles, a bout: "' + String(w2 && w2.text).slice(-150) + '", NEXT "' + String(w2 && w2.where) + '" (npc ' + (w2 && w2.step && w2.step.npc) + '); workAll ' + f1.workAll,
+        !!f1['work:winters'] && !!w2 && !w2.done && w2.name === 'Gull\'s Reward' && /\(4 of 4\)/.test(w2.text) && /Go and show Gull\./.test(w2.text) && w2.step && w2.step.npc === 'gull' && f1.workAll === 1);
+      // G3 back to Gull: his reward -- the rusty scale in the pack, the mission done with its own words; and a word after is his old one
+      var g3 = CFX.words(B1, 'gull'), w3 = workFX(B1), inv3 = CFX.count(CFX.state(B1), 'rustyscale'), g3b = CFX.words(B1, 'gull');
+      okFX('G3 Gull again: "' + g3.join(' / ').slice(0, 300) + '" -- rusty scale ' + inv3 + '; ' + (w3 && w3.name) + ' done ' + !!(w3 && w3.done) + ': "' + (w3 && w3.doneText) + '"; and after: "' + String(g3b[0]).slice(0, 50) + '"',
+        /You found every one, kid/.test(g3.join(' ')) && /Received: Rusty Scale/.test(g3.join(' ')) && inv3 === 1 && !!w3 && w3.done && w3.name === 'Gull\'s Reward' && /rusty scale/.test(w3.doneText) && f1.gullPaid === 1 && !/rust/i.test(g3b.join(' ')));
+      // G4 NO BARLEY (Vivian, Aurdin hired): Gull says his own word; the four found -- Finding Work done by itself, no reward, its name Finding Work
+      var B4 = newFX('vivian', null, ['aurdin']), g4 = CFX.words(B4, 'gull'), f4 = B4.roam.flags; f4.heardWork = 1; f4['work:winters'] = 1; f4['work:board'] = 1; f4.tallyMet = 1; var w4a = workFX(B4); f4.heardHex = 1; var w4 = workFX(B4);
+      okFX('G4 no Barley: Gull "' + g4.join(' / ').slice(0, 120) + '" (asked ' + !!f4.gullAsked + '); three found: done ' + !!(w4a && w4a.done) + '; four: ' + (w4 && w4.name) + ' done ' + !!(w4 && w4.done) + ' "' + (w4 && w4.doneText) + '"; the pack\'s scale ' + CFX.count(CFX.state(B4), 'rustyscale'),
+        /Two silver a laborer/.test(g4.join(' ')) && !f4.gullAsked && !!w4a && !w4a.done && /\(3 of 4\)/.test(w4a.text) && !!w4 && w4.done && w4.name === 'Finding Work' && /every way Silverton turns a coin/.test(w4.doneText) && !CFX.count(CFX.state(B4), 'rustyscale'));
+      // G5 Barley hired, all four found before he ever asks: one word with Gull is the ask and the reward together
+      var B5 = newFX('lymen', { heardWork: 1, 'work:winters': 1, 'work:board': 1, 'work:cradles': 1, 'hex:freeman': 1, 'heard:r-guanowages': 1 }, ['barley']), g5 = CFX.words(B5, 'gull'), w5 = workFX(B5);
+      okFX('G5 Barley hired, the four found first: Gull "' + g5.join(' / ').slice(0, 200) + '..." -- ' + (w5 && w5.name) + ' done ' + !!(w5 && w5.done) + ', the scale ' + CFX.count(CFX.state(B5), 'rustyscale'),
+        /^Saw your fight, kid/.test(g5[0]) && /You found every one/.test(g5.join(' ')) && !!w5 && w5.done && w5.name === 'Gull\'s Reward' && CFX.count(CFX.state(B5), 'rustyscale') === 1);
+      // G6 the rusty scale (his "scale -1 so viv can't wear it?"): AC 13 + DEX (max 2), medium -- Barley the fighter and Lymen the paladin may wear it; Vivian the rogue (light armour only) and Aurdin may not, rusty or not
+      var RFX = window.DS.R, IFX = window.DS.DATA.items, rs = IFX.rustyscale, hB = RFX.makeHero('barley'), hV = RFX.makeHero('vivian'), hL = RFX.makeHero('lymen'), hA = RFX.makeHero('aurdin');
+      var ac0 = RFX.ac(hB); hB.equip.armor = 'rustyscale'; var ac1 = RFX.ac(hB), dexB = window.DS.mod(hB.abil.dex);
+      okFX('G6 the rusty scale ' + JSON.stringify(rs && rs.armor) + ': Barley ' + RFX.canEquip(hB, rs) + ' (AC ' + ac0 + ' -> ' + ac1 + ', DEX ' + dexB + '), Lymen ' + RFX.canEquip(hL, rs) + ', Vivian ' + RFX.canEquip(hV, rs) + ' (scale mail ' + RFX.canEquip(hV, IFX.scalemail) + '), Aurdin ' + RFX.canEquip(hA, rs),
+        !!rs && rs.armor.base === 13 && rs.armor.type === 'medium' && rs.armor.dexMax === 2 && RFX.canEquip(hB, rs) && RFX.canEquip(hL, rs) && !RFX.canEquip(hV, rs) && !RFX.canEquip(hV, IFX.scalemail) && !RFX.canEquip(hA, rs) && ac1 === 13 + Math.min(2, dexB));
+      // G7 after Papa's scene (his four kinds named, none found), Aldwin, Marta and Kess each still say their own word, and it finds their one
+      var B7 = newFX('lymen', { papaLymen: 1, heardWork: 1 }), a7 = CFX.words(B7, 'kess'), w7 = workFX(B7);
+      okFX('G7 after Papa: Kess "' + a7.join(' / ').slice(0, 120) + '" -- ' + String(w7 && w7.text).slice(-90),
+        /The Warrens take anyone with two hands/.test(a7.join(' ')) && !!w7 && /\(1 of 4\): the Warrens' cradles/.test(w7.text));
+      // G8 THE DOOR (deep16/?at=gull16): Barley's party beside Gull, three found; Gull's ask, then Kess's word the fourth, then Gull's reward -- the squares the eyes row walks
+      HFX.playing = false; HFX.cur = null; while (D.scenes.length) D.pop(); D.sit16.open('gull16'); var B8 = topFX(); D.battle = B8;
+      var R8 = D.roam, ppl8 = function (id) { var u = B8.units.filter(function (w) { return w.npc === id; })[0]; return u ? u.x + ',' + u.y : 'none'; }, tk8 = B8.roam.token, w8a = workFX(B8);
+      var g8a = CFX.words(B8, 'gull'), w8b = workFX(B8), k8 = CFX.words(B8, 'kess'), w8c = workFX(B8), g8b = CFX.words(B8, 'gull'), w8d = workFX(B8);
+      okFX('G8 ?at=gull16 (' + (R8.def && R8.def.key) + ', the party at ' + tk8.x + ',' + tk8.y + '; Gull at ' + ppl8('gull') + ', Kess\'s door ' + JSON.stringify(((D.town.floor('', B8.roam.flags).marks || {}).doors || {})['keeper:kess']) + '): ' + (w8a && w8a.name) + ' "' + String(w8a && w8a.text).slice(-80) + '" > Gull: ' + (w8b && w8b.name) + ' > Kess: "' + String(w8c && w8c.where) + '" > Gull: done ' + !!(w8d && w8d.done) + ', the scale ' + CFX.count(CFX.state(B8), 'rustyscale'),
+        R8.def && R8.def.key === 'silverton' && !!w8a && w8a.name === 'Finding Work' && /\(3 of 4\)/.test(w8a.text) && !!w8b && w8b.name === 'Gull\'s Reward' && /Saw your fight, kid/.test(g8a.join(' ')) &&
+        /The Warrens take anyone/.test(k8.join(' ')) && !!w8c && w8c.step && w8c.step.npc === 'gull' && /You found every one/.test(g8b.join(' ')) && !!w8d && w8d.done && CFX.count(CFX.state(B8), 'rustyscale') === 1);
+      HFX.playing = false; HFX.cur = null; while (D.scenes.length) D.pop();
+      } catch (eS) { repFX.errors.push('G: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      HFX.playing = false; HFX.cur = null;
+      try {
+      // T1 ONE ARTICLE ON A FOE'S NAME (his records of 11-12: "REFUSED: The The thing in the lake is 10 ft away"): the thing in the lake, the webbing on a hero, a goblin, a named one
+      var BT = D.npcFight('?npc=chuul,goblin&lvl=4&vs=fighter:4,wizard:4', {}); D.battle = BT; BT.enter(); var kT = 0; while (!BT.order.length && kT++ < 400) BT.co.next();
+      var ch = BT.units.filter(function (u) { return u.kind === 'chuul'; })[0], gb = BT.units.filter(function (u) { return u.kind === 'goblin'; })[0], ft = BT.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0];
+      ch.name = 'The thing in the lake'; ch.x = 3; ch.y = 3; ft.x = 6; ft.y = 3; BT.units.forEach(function (u) { if (u !== ch && u !== ft) { u.x = 12; u.y = 10 + BT.units.indexOf(u); } }); GFX.setup(BT.map, BT.units);
+      var BA = D.Battle, why = BA.helpWhyNot(ft, null, ch), web = { side: 'foe', name: 'the webbing on Vivian', named: false }, nmd = { side: 'foe', name: 'Talmok', named: true };
+      var got = [BA.nm(ch, true), BA.nm(ch), BT.theOf(ch, true), BT.theOf(ch), BA.theWord(ch), BA.theName(ch), BA.nm(gb, true), BT.theOf(gb), BA.nm(web, true), BT.theOf(web), BT.theOf(nmd, true), BT.theOf(ft)];
+      okFX('T1 the articles: ' + JSON.stringify(got) + '; HELP at it from 10 ft: "' + why + '"',
+        JSON.stringify(got) === JSON.stringify(['The thing in the lake', 'the thing in the lake', 'The thing in the lake', 'the thing in the lake', 'the thing in the lake', 'The thing in the lake', 'The ' + gb.name, 'the ' + gb.name, 'The webbing on Vivian', 'the webbing on Vivian', 'Talmok', ft.name]) &&
+        /^The thing in the lake is 10 ft away/.test(why) && !/The The|the the/i.test(why));
+      } catch (eS) { repFX.errors.push('T: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // S1 TWO STIRGES ON VIVIAN AND THE DRINK THAT DROPS HER (his fight of 2026-11-16T22:24:59Z: "drops off" twice, then "lets go, swollen", the drinker set down twice): the full one
+      // lets go once with its line and drops off beside her, the other drops off once -- a "drops off" for each, one "lets go", and the drinker one square from her
+      var BS = D.npcFight('?npc=stirge,stirge&lvl=2&vs=rogue:2', {}); D.battle = BS; BS.enter(); var kS = 0; while (!BS.order.length && kS++ < 400) BS.co.next();
+      var hS = BS.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0], sS = BS.units.filter(function (u) { return u.kind === 'stirge'; }), d0S = D.d;
+      BS.units.forEach(function (u) { if (u !== hS && sS.indexOf(u) < 0) { u.x = 14; u.y = 2 + BS.units.indexOf(u); } });
+      hS.x = 8; hS.y = 8; sS[0].x = 7; sS[0].y = 8; sS[1].x = 9; sS[1].y = 8; hS.hp = hS.maxhp = 60; GFX.setup(BS.map, BS.units);
+      D.d = function (s) { return s === 20 ? 15 : s === 4 ? 4 : d0S(s); };
+      var runS = function (g) { var k = 0, st, v; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } };
+      try {
+        runS(BS.attack(sS[0], hS, sS[0].attacks.drain)); runS(BS.attack(sS[1], hS, sS[1].attacks.drain));
+        var on0 = sS.filter(function (u) { return u.riding && u.master === hS; }).length; hS.hp = 3; sS[0].drained = 6; var nS = (BS.log || []).length;
+        BS.active = sS[0]; D.rules.startTurn(sS[0]);
+        var gS = D.ai.brute(BS, sS[0]), kk = 0, stS; while (kk++ < 4000) { stS = gS.next(); BS.rideSync(); if (stS.done) break; } // (rideSync each step, as the coroutine's own step runs it)
+      } finally { D.d = d0S; }
+      var lgS = (BS.log || []).slice(nS).join(' / ').replace(/\{.\}|\{\/\}/g, ''), offs = (lgS.match(/drops off/g) || []).length, lets = (lgS.match(/lets go, swollen/g) || []).length;
+      var dS = Math.max(Math.abs(sS[0].x - hS.x), Math.abs(sS[0].y - hS.y)), dS1 = Math.max(Math.abs(sS[1].x - hS.x), Math.abs(sS[1].y - hS.y));
+      okFX('S1 two stirges on ' + hS.name + ' (' + on0 + ' on), the drink that drops her: "' + lgS.slice(0, 420) + '" -- "drops off" ' + offs + ', "lets go" ' + lets + '; the drinker ' + dS + ' square(s) from her, the other ' + dS1,
+        on0 === 2 && hS.hp <= 0 && offs === 2 && lets === 1 && lgS.indexOf('lets go, swollen') < lgS.lastIndexOf('drops off') && dS === 1 && dS1 === 1 && !sS[0].riding && !sS[1].riding);
+      } catch (eS) { repFX.errors.push('S: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+      try {
+      // R1 THE ROAD'S GRID FIELD 16 DEEP (his "grid seemed 6 wide"): a road fight and a camp fight on the grid -- the field 16 by 13 + the gap, the lineup's rows in its middle (5 to 9),
+      // every one on open ground, the fronts 6 to 12 squares apart, the camp's fire two behind the four in the middle row, a flier among the foes on the middle rows too
+      HFX.worldDoor('?world&noenc'); var ws = D.top(); if (ws && ws.baking) { ws.baking = false; ws.enter(); }
+      var stR = WFX.state(), eR = WFX.M().hex[WFX.K(stR.at[0], stR.at[1])], outR = [];
+      for (var kR = 0; kR < 3; kR++) {
+        D.seed = 1180 + kR; ws.fight({ list: kR === 1 ? ['stirge', 'stirge', 'wolf'] : ['wolf', 'wolf', 'ogre'], zone: 'north', camp: kR === 2 }, eR, { simple: false }); var bR = D.top();
+        if (bR !== ws) { if (bR.baking) { bR.baking = false; bR.enter(); }
+          var us = bR.units.filter(function (u) { return u.side === 'party' || u.side === 'foe'; }), ys = us.map(function (u) { return u.y; }), gp = bR.map.def.gap, P = bR.map.def.entry[0][0];
+          var open = us.every(function (u) { var q = bR.map.at(u.x, u.y); return q && q.walk; }), fire = bR.fight.camp, fq = fire ? bR.map.at(fire[0], fire[1]) : null;
+          var nearR = 1e9; us.filter(function (u) { return u.side === 'party' && !u.familiar; }).forEach(function (p) { us.filter(function (u) { return u.side === 'foe'; }).forEach(function (f) { nearR = Math.min(nearR, GFX.dist(p, f)); }); });
+          outR.push({ w: bR.map.w, h: bR.map.h, rows: bR.map.def.rows.length, gap: gp, P: P, ymin: Math.min.apply(null, ys), ymax: Math.max.apply(null, ys), open: open, ft: nearR, fire: fire ? fire.join(',') : null, fireOK: fire ? !!fq && fire[0] === P + 2 && fire[1] === 7 : null, road: (bR.map.def.rows[7] || '').indexOf(',') >= 0, flier: us.some(function (u) { return u.kind === 'stirge'; }) });
+          if (D.top() === bR) D.pop(); }
+      }
+      HFX.playing = false; HFX.cur = null;
+      okFX('R1 the road\'s grid fields: ' + outR.map(function (o) { return o.w + ' x ' + o.h + ' (' + o.rows + ' rows), the gap ' + o.gap + ' (' + o.ft + ' ft), the lineup on rows ' + o.ymin + '-' + o.ymax + ', open ' + o.open + (o.flier ? ', stirges among them' : '') + (o.fire ? ', the fire at ' + o.fire + ' ' + o.fireOK : ''); }).join('; '),
+        outR.length === 3 && outR.every(function (o) { return o.h === 16 && o.rows === 16 && o.w === 13 + o.gap && o.gap >= 6 && o.gap <= 12 && o.ymin >= 5 && o.ymax <= 9 && o.open && o.ft === o.gap * 5; }) && outR[1].flier && outR[2].fireOK === true && outR[0].fire === null);
+      } catch (eS) { repFX.errors.push('R: ' + String(eS && eS.stack || eS).slice(0, 600)); }
+    } catch (eFX) { repFX.errors.push(String(eFX && eFX.stack || eFX).slice(0, 900)); }
+    D.store.get = stGFX; D.store.set = stSFX; window.DS.autoPicks = apFX; D.music = muFX; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preFX = document.createElement('pre'); preFX.id = 'out'; preFX.textContent = 'BENCH16 ' + JSON.stringify(repFX);
+    document.body.appendChild(preFX);
+    return;
+  }
   if (get('mode', '') === 'hours1028') {
     var repHw = { checks: [], errors: [] }, memHw = {}, stGHw = D.store.get, stSHw = D.store.set, CHw = D.counter, THw = D.town, HHw = D.house, RHw = D.roam, WHw = D.world, HWw = D.hours, apHw = window.DS.autoPicks, IHw = D.input;
     function okHw(what, v) { repHw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
