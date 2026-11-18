@@ -5264,12 +5264,12 @@
 "source": "drawn by the art desk (ART-WANTED-74 GAMBLER ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_guard_p1": {
-"image": "art/folkman_guard_p1.png?v=8b0a29163e",
+"image": "art/folkman_guard_p1.png?v=f038bae5b8",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 59,
+"top": 55,
 "anims": {
 "idle": {
 "y": 0,
@@ -5290,7 +5290,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-77 GUARD, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-77 GUARD ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkman_hired_p1": {
 "image": "art/folkman_hired_p1.png?v=b4bc7b7ff0",
@@ -5583,12 +5583,12 @@
 "source": "drawn by the art desk (ART-WANTED-74 GAMBLER ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_guard_p1": {
-"image": "art/folkwoman_guard_p1.png?v=05f6adaae4",
+"image": "art/folkwoman_guard_p1.png?v=d6e2f9df10",
 "fw": 72,
 "fh": 64,
 "ax": 36,
 "ay": 60,
-"top": 59,
+"top": 51,
 "anims": {
 "idle": {
 "y": 0,
@@ -5609,7 +5609,7 @@
 "fps": 12
 }
 },
-"source": "drawn by the art desk (ART-WANTED-77 GUARD, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-77 GUARD ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_hired_p1": {
 "image": "art/folkwoman_hired_p1.png?v=926685ed8c",
@@ -8065,6 +8065,138 @@
 "fps": 12
 }
 }
+},
+"guard_p2": {
+"image": "art/guard_p2.png?v=2ba71c1584",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"top": 55,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"hurt": {
+"y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 3072,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 4,
+"fps": 12
+},
+"prone": {
+"y": 3840,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 1,
+"fps": 1
+}
+},
+"source": "drawn by the art desk (ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"guardwoman_p1": {
+"image": "art/guardwoman_p1.png?v=4f92d49145",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"hurt": {
+"y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 3072,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 4,
+"fps": 12
+},
+"prone": {
+"y": 3840,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 76,
+"frames": 1,
+"fps": 1
+}
+},
+"source": "drawn by the art desk (ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "gull_p1": {
 "image": "art/gull_p1.png?v=2f96c528be",

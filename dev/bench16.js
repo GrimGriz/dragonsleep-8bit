@@ -2064,6 +2064,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var gPA = (BPA.sheetGate && BPA.sheetGate.names) || [], needPA = crPA.show.map(function (k) { return D.FOES[k].sheet; }).concat(fkPA.map(function (f) { return f.sheet; })).concat([D.FOES.crewboss.sheet]), lackPA = needPA.filter(function (s) { return gPA.indexOf(s) < 0; });
         okPA('8 the figures first: the door holds for ' + gPA.length + ' sheets, every one the show wears among them (' + needPA.length + ' wanted' + (lackPA.length ? ', NOT GATED: ' + lackPA.join(', ') : '') + ')', needPA.length >= 5 && !lackPA.length);
         repPA.notes.push('rings: ' + rpPA.map(function (r) { return r.id + ' ' + (r.ring * 5) + ' ft'; }).join(', '));
+        // 9. the 11-18 cutter's door for the day's new art (the eyes rows' looks): the Line Guard in his own figure fourth, the hired hand and the guard walking in round
+        // him; the cockatrice with the crew boss's and the clerk's; the green hag; the crew boss on his sheet at each
+        var D8 = runPA('?parade&fast&only=wyvern,frostgiant,winterwolf,guard,cockatrice,greenhag&from=4'), rp8 = D8.paradeReport || [];
+        var g8 = rp8.filter(function (r) { return r.id === 'guard'; })[0];
+        okPA('9 the day\'s door (11-18): ' + rp8.map(function (r) { return r.id + (r.ok ? '' : ' NOT OK') + ' [' + (r.folk || []).join(',') + ']'; }).join(' | '),
+          rp8.length === 3 && rp8.every(function (r) { return r.ok; }) && rp8.map(function (r) { return r.id; }).join() === 'guard,cockatrice,greenhag' && !!g8 &&
+          (g8.folk || []).join() === 'folkman_hired_p1,folkwoman_hired_p1,folkman_guard_p1,folkwoman_guard_p1' && (rp8[1].folk || []).join().indexOf('folkman_crewboss_p1') === 0 && !D8.ranOut);
       }
     } catch (ePA) { repPA.errors.push(String(ePA && ePA.stack || ePA).slice(0, 900)); }
     if (errs.length) repPA.errors = repPA.errors.concat(errs);
@@ -20742,7 +20749,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function topK() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
     function floorK(q) { var B = D.roam.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topK(); }
     function folkK(B) { return B.units.filter(function (u) { return typeof u.npc === 'string' && CK.GENERIC[u.npc]; }); }
-    var FIGHTK = ['brawler_p1', 'crewman_p1', 'guard_p1', 'bandit_p1'];
+    var FIGHTK = ['brawler_p1', 'crewman_p1', 'guard_p1', 'bandit_p1', 'guard_p2', 'guardwoman_p1'];   // (the guard's fight figures, 11-18: never on a street)
     D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1115);
@@ -20753,6 +20760,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okK('the crew boss fights in his own figure (' + (FB && FB.sheet) + ': ' + (aB ? Object.keys(aB).map(function (k) { return k + ' ' + aB[k].frames + (aB[k].release != null ? ' release ' + aB[k].release : ''); }).join(', ') : 'NONE') + '), leading the night crew down the daytime way (' + D.roam.HOLD_CREW.join(', ') + ')',
         !!SB && FB.sheet === 'crewboss_p1' && SB.fw === 96 && SB.fh === 96 && SB.ax === 48 && SB.ay === 76 && aB.idle.frames === 4 && aB.walk.frames === 8 && aB.attack.frames === 6 && aB.attack.release === 3 &&
         aB.flinch.frames === 4 && aB.hurt.frames === 6 && aB.prone.frames === 1 && !aB.idle.drawn && D.roam.HOLD_CREW[0] === 'crewboss');
+      // the guard's fight figures (the art desk's 77 combat, 11-18): the Line Guard fights in the man (guard_p2, off the KayKit guard_p1, which the Hired Sword
+      // and the Hired Blade keep); the woman (guardwoman_p1) cut on the same cell and rows, worn by no foe till his word; the Spear landing on its frame 4
+      var GSH = ['guard_p2', 'guardwoman_p1'], gBad = GSH.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 96 && s.fh === 96 && s.ax === 48 && s.ay === 76 && a.idle.frames === 4 && a.walk.frames === 8 &&
+        a.attack.frames === 6 && a.attack.release === 3 && a.flinch.frames === 4 && a.hurt.frames === 6 && a.prone.frames === 1 && !a.idle.drawn); });
+      var gWear = Object.keys(D.FOES).filter(function (k) { return D.FOES[k].sheet === 'guardwoman_p1'; });
+      okK('the Line Guard fights in his own figure (' + D.FOES.guard.sheet + '), the woman cut beside him and worn by no foe yet (' + (gWear.join(', ') || 'none') + ')' + (gBad.length ? ' -- off: ' + gBad.join(', ') : '') + '; the Hired Sword keeps ' + D.FOES.hiredsword.sheet,
+        !gBad.length && D.FOES.guard.sheet === 'guard_p2' && !gWear.length && D.FOES.hiredsword.sheet === 'guard_p1');
+      // the Line Guard's own show, alone (in the gate's shared line-up he reshuffled eight others' dice: the roper's bite, the green hag's claw among them)
+      var seedG = D.seed; D.seed = 1118 * 7919;
+      var BG = D.show.fight('?show=guard&lvl=3', { bench: true }); D.battle = BG; BG.enter();
+      var resG = drive(BG), tG = (BG.showTally || {}).guard_p2 || {}, wG = D.show.wanted('guard_p2', 'guard'), lowG = wG.filter(function (r) { return (tG[r] || 0) < 2; });
+      okK('the Line Guard\'s show, alone: every row twice (' + wG.map(function (r) { return r + ' ' + (tG[r] || 0); }).join(', ') + '), the show ' + resG, wG.length >= 6 && !lowG.length && resG === 'won');
+      D.battle = null; D.scenes.length = 0; D.seed = seedG;
       COSTK.forEach(function (c) {
         var ns = ['folkman_' + c + '_p1', 'folkwoman_' + c + '_p1'], bad = ns.filter(function (n) { var s = D.SHEETS[n], a = s && s.anims; return !(s && s.fw === 72 && s.fh === 64 && s.ax === 36 && s.ay === 60 && Object.keys(a).join() === 'idle,walk' && a.idle.frames === 4 && a.walk.frames === 8 && !a.idle.drawn && a.walk.y === 8 * 64); });
         var who = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][1] === c; }), off = who.filter(function (id) { return !CK.folkFig || CK.folkFig(id) !== 'folk' + CK.GENERIC[id][0] + '_' + c + '_p1'; });

@@ -85,8 +85,19 @@ PIECES = {
     # cut as drawn on his "use what's there", on the dream list)
     'hired': dict(folder='2026-11-16-ART-WANTED-76-HIRED-HAND-REDRAW', name='ART-WANTED-76 HIRED-HAND ILLUSTRATED REDRAW, 11-16: five views, Idle 4 and Walk 8, image-generated on the navy',
                   illus={'HIRED-HAND-WOMAN-SOUTH-IDLE-IMAGEGEN.png': (35, 62)}, stand=False),
-    'guard': dict(folder='2026-11-15-ART-WANTED-77-GUARD', name='ART-WANTED-77 GUARD, 11-15: five views, Idle 4 and Walk 8, native 3x on folkman_p1\'s cell',
-                  navy=(16, 18, 40), stand=False),
+    # (the guard's first, code-drawn pages -- 2026-11-15-ART-WANTED-77-GUARD, native 3x, navy (16, 18, 40) -- replaced by its redraw, 11-18: image-generated
+    # on the navy with the art desk's own native cut on the 64 (CUTS-1X, a 72 x 64 strip a row), taken as drawn but for the red and fire on the faces
+    # and hands, `unred` everywhere -- neither wears red cloth (a padded jack, an iron cap; her tunic indigo); five walks the art desk held for a
+    # repeated lead (both SE and rear NE, the man's E), cut as drawn, its "use what's there")
+    'guard': dict(folder='2026-11-18-ART-WANTED-77-GUARD-REDRAW', name='ART-WANTED-77 GUARD ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                  navy=None, stand=False, unred=0),
+    # the guard's fight figures (the art desk's own, sent with the redraw, 11-18; nobody asked for them in art-wanted 65): the man worn by the Line Guard
+    # (foes.js guard, off the KayKit guard_p1), the woman cut and held for his word on where she fights; the crew boss's cell and rows, the Spear's
+    # blow on its frame 4 (`release` 3); `unred` everywhere as the town pair
+    'guardfight': dict(folder='2026-11-18-ART-WANTED-77-GUARD-COMBAT', name='ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell',
+                       navy=None, stand=False, unred=0, cell=(96, 96, 48, 76), targets={'man': 'guard_p2', 'woman': 'guardwoman_p1'},
+                       rows=[('idle', 'idle', 4, 4, None), ('walk', 'walk', 8, 9, None), ('spear', 'attack', 6, 12, 3), ('flinch', 'flinch', 4, 12, None),
+                             ('fall', 'hurt', 6, 8, None), ('prone', 'prone', 1, 1, None)]),
     'crewboss': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-WORLD', name='ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                      navy=(17, 24, 45), stand=False),
     'clerk': dict(folder='2026-11-15-ART-WANTED-79-CLERK', name='ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
@@ -114,6 +125,11 @@ def frames_of(d):
     """the piece's frame map, whichever shape the art desk sent -> [(sheet, view, row, index, page, (x, y, w, h))]"""
     if os.path.exists(os.path.join(d, 'FRAME-MAP.json')):
         fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
+        if isinstance(fm, list):                # (the guard's redraw and its fight figures, 11-18: a list, a frame an entry, each naming its cell in the art
+            # desk's own native strip -- the town pair's `native_file` at `native_xywh`, the fight pair's `native_png` at `native_crop_xywh`, by `person`)
+            g = lambda e, *ks: next(e[k] for k in ks if e.get(k) not in (None, ''))
+            return [(g(e, 'runtime_target', 'person'), e['facing'], g(e, 'action', 'row'), int(e['index']), g(e, 'native_file', 'native_png'),
+                     tuple(int(v) for v in g(e, 'native_xywh', 'native_crop_xywh'))) for e in fm]
         if 'sheets' in fm and 'source_png' in fm['sheets'][0]:   # (the gambler's and barkeep's redraws, 11-16: `sheets` map each row to its
             # illustrated source; the art desk's own native cut of that row is 02-native-rows/<the source's name>-1X.png, a transparent strip of cells)
             return [(s['target'], s['facing'], s['action'], f['frame_index'], '02-native-rows/' + os.path.basename(s['source_png'])[:-4] + '-1X.png',
