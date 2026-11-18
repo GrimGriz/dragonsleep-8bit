@@ -568,6 +568,7 @@
     var C = D.counter; if (!C || !C.VENDORS) return;
     Object.keys(SK.DWARF).forEach(function (id) { if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_dwarf', look: SK.DWARF[id], wait: '' }; if (SK.JOB[id]) C.VENDORS[id].name = SK.JOB[id]; }); // (his job on the screen: SK.JOB, 11-18)
     C.VENDORS.quartermaster.shop = 'qm'; // (his counter open, the garrison stores' shelf: 11-15, Griz on the counters' list, "leans")
+    C.VENDORS.smith.shop = 'copperbottom'; // (the Copperbottom at the forge, the garrison's smith, his shelves: 11-18, Griz: "It's not the shop-smith it's the garrison smith", then "one to make the copperbottom at the forge the vendor" -- the first game's shop, its stock and its buying; the store front by the ramp, storeW, stays shut)
     if (C.FACES_LEFT) C.FACES_LEFT.pt_dwarf = 1;
     var words0 = C.words; // (a dwarf with a standing line of the floor's own says it on the counter's screen, as on his card)
     C.words = function (B, id) { return SK.DWARF[id] && SK.WORDS[id] ? SK.WORDS[id]() : words0.apply(this, arguments); };

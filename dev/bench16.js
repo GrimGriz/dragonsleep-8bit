@@ -5232,6 +5232,63 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preQ);
     return;
   }
+  // THE COPPERBOTTOM AT THE FORGE, A VENDOR, 11-18 (mode=smith1118; the forge-smith seat, on Griz's "It's not the shop-smith it's the garrison smith", then "one to make the
+  // copperbottom at the forge the vendor"): E on the smith at the forge on the cart level opens his counter on the generic dwarf in the smith's costume, his word and THE
+  // SHELVES; the first game's stock (content/shops.json copperbottom), each item in the second game's items at its SRD price; a buy and a sell at half; the trade store by
+  // the cart ramp (storeW, on the street) still shut
+  if (get('mode', '') === 'smith1118') {
+    var repM = { checks: [], errors: [] }, memM = {}, stGM = D.store.get, stSM = D.store.set, muM = D.music, CM = D.counter, RM = D.roam, SKm = D.solskaft;
+    function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveM(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topM() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveM(s.co, null, 2); return s; }
+    function floorM(q) { var B = RM.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topM(); }
+    // E on the square `at` (the floor's own squares) from the first square beside it the token can stand on: the screen it opens, or the cards it says
+    function useM(B, at) {
+      var side = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(function (o) { return [at[0] + o[0], at[1] + o[1]]; }).filter(function (q) { return D.grid.canStand(B.roam.token, q[0], q[1]) && !B.units.some(function (v) { return v !== B.roam.token && v.x === q[0] && v.y === q[1]; }); })[0];
+      if (!side) return { side: null };
+      var t = B.roam.token; t.x = side[0]; t.y = side[1]; t.tween = null; B.roam.fw = [at[0] - side[0], at[1] - side[1]]; B.roam.path = null; D.grid.setup(B.map, B.units);
+      B.cards = []; B.roam.keys.push('use'); driveM(B.co, function () { return (B.cards || []).length > 0 || D.top() !== B; }, 400);
+      return { side: side, sc: D.top() !== B ? D.top() : null, cards: window.DS.stripCodes(((B.cards || []).map(function (c) { return c.lines.join(' '); })).join(' / ')) };
+    }
+    D.store.get = function (k) { return memM[k]; }; D.store.set = function (k, v) { memM[k] = v; }; D.music = function () {};
+    try {
+      var SH = window.DS.DATA.shops.copperbottom, IT = window.DS.DATA.items, Y = function (r) { return SKm.H - 1 - r; };
+      // 1. HIS STOCK: the first game's shelf, every item in the second game's items at the SRD's price (gp x 10 in silver)
+      var SRD = { handaxe: 50, lighthammer: 20, battleaxe: 100, warhammer: 150, chainmail: 750, splint: 2000, shield: 100 }, badP = [];
+      Object.keys(SRD).forEach(function (id) { if (!IT[id] || IT[id].price !== SRD[id]) badP.push(id + ' ' + (IT[id] ? IT[id].price : 'MISSING')); });
+      okM('his stock: ' + SH.items.join(', ') + ' -- SRD-priced' + (badP.length ? '; WRONG: ' + badP.join('; ') : ''), SH.items.join() === Object.keys(SRD).join() && !badP.length);
+      // 2. E ON THE SMITH AT THE FORGE: the counter's screen, the generic dwarf in the smith's costume, his word, THE SHELVES / LEAVE
+      var B = floorM('?roam=solskaft_cart&hour=10&lvl=3'), p = SKm.folkOf('smith'), u = B.units.filter(function (x) { return x.npc === 'smith'; })[0];
+      okM('the smith stands at the forge, ' + (u ? u.x + ',' + u.y : 'NOT STOOD') + ' on ' + RM.def.key + ' (the folk\'s ' + p.at.join(',') + ')', !!u && RM.def.key === 'solskaft_cart' && u.x === p.at[0] && u.y === Y(p.at[1]));
+      var r1 = useM(B, [u.x, u.y]), sc = r1.sc, w1 = sc && sc.wait || {};
+      okM('E on him (from ' + r1.side + '): ' + (sc ? (sc instanceof CM.Counter ? 'the counter, ' : 'NOT the counter, ') + sc.id + ' [' + sc.sheet + ':' + sc.look + '] "' + [].concat(w1.ask || w1.say || []).join(' ') + '" ' + JSON.stringify(w1.opts || null) : 'no screen; cards ' + r1.cards),
+        !!sc && sc instanceof CM.Counter && sc.id === 'smith' && sc.sheet === 'pt_dwarf' && sc.look === 'smith' && [].concat(w1.ask || []).join(' ').indexOf(SH.greeting) >= 0 && (w1.opts || []).join() === 'THE SHELVES,LEAVE');
+      // 3. THE SHELVES: his shop, BUY the seven at their prices
+      var bOpt = sc.buttons().filter(function (b) { return b.go === 'opt' && b.label === 'THE SHELVES'; })[0]; sc.press(bOpt);
+      var rowsB = sc.shop ? sc.rows().map(function (r) { return r.label + ' ' + r.right; }) : [];
+      okM('THE SHELVES: ' + sc.shopId + ', BUY -- ' + rowsB.join('; ') + '; SELL ' + (sc.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0] || {}).off,
+        sc.shopId === 'copperbottom' && sc.tab === 'buy' && rowsB.join() === 'Handaxe 50 sp,Light Hammer 20 sp,Battleaxe 100 sp,Warhammer 150 sp,Chain Mail 750 sp,Splint 2000 sp,Shield 100 sp' && !(sc.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0] || {}).off);
+      // 4. A BUY: the handaxe, 50 sp out, one more in the pack, his thanks
+      var st = sc.st, cnt = function (id) { return st.inv.filter(function (s) { return s.id === id; }).reduce(function (a, s) { return a + s.n; }, 0); };
+      if (st.silver() < 200) st.silver(200 - st.silver());
+      var s0 = st.silver(), h0 = cnt('handaxe'); sc.press(sc.buttons().filter(function (b) { return b.row && b.label === 'Handaxe'; })[0]); sc.sub = null;
+      okM('a buy: the handaxe, silver ' + s0 + ' > ' + st.silver() + ', handaxes ' + h0 + ' > ' + cnt('handaxe') + ', "' + sc.msg + '"', st.silver() === s0 - 50 && cnt('handaxe') === h0 + 1 && SH.thanks.indexOf(sc.msg) >= 0);
+      // 5. A SELL: the handaxe back at half (25 sp), by the house's rule for a keeper (the first game's: he buys what any shop buys)
+      sc.press(sc.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0]);
+      var rowS = sc.rows().filter(function (r) { return r.id === 'handaxe'; })[0], s1 = st.silver(), h1 = cnt('handaxe');
+      if (rowS) { sc.scroll = sc.rows().map(function (r) { return r.id; }).indexOf('handaxe'); sc.press(sc.buttons().filter(function (b) { return b.row && b.label === rowS.label; })[0]); if (sc.sub && sc.sub.kind === 'qty') { sc.sub.n = 1; sc.press({ go: 'qok' }); } } // (more than one in the pack: his how-many, one)
+      okM('a sell: the handaxe offered at ' + (rowS ? rowS.right : 'NOT TAKEN') + ', silver ' + s1 + ' > ' + st.silver() + ', handaxes ' + h1 + ' > ' + cnt('handaxe'), !!rowS && rowS.right === '25 sp' && st.silver() === s1 + 25 && cnt('handaxe') === h1 - 1);
+      sc.close();
+      // 6. THE TRADE STORE BY THE RAMP STILL SHUT: E on its door on the street says so, and no counter opens there
+      var Bs = floorM('?roam=solskaft&hour=10&lvl=3'), sw = (RM.def.src8.triggers || []).filter(function (t) { return /storeW/.test(t.id || ''); })[0];
+      var r2 = sw ? useM(Bs, [sw.rect[0], sw.rect[1]]) : { cards: '' };
+      okM('the trade store by the ramp: ' + (sw ? 'its door at ' + sw.rect[0] + ',' + sw.rect[1] + ', E says "' + r2.cards + '"' + (r2.sc ? ', a screen ' + (r2.sc.id || r2.sc.kind) : '') : 'NO DOOR FOUND'), !!sw && /shut/.test(r2.cards) && !(r2.sc && r2.sc instanceof CM.Counter));
+    } catch (eM) { repM.errors.push(String(eM && eM.stack || eM).slice(0, 900)); }
+    D.store.get = stGM; D.store.set = stSM; D.music = muM;
+    var preM = document.createElement('pre'); preM.id = 'out'; preM.textContent = 'BENCH16 ' + JSON.stringify(repM);
+    document.body.appendChild(preM);
+    return;
+  }
   // BARLEY'S FIVE, 11-16 (mode=barley1116; the bug seat of 11-16, on Griz's "Barley's 4 is 'you spot him 5', he bouts to join party, 4 is payout after he wins"):
   // FRONT 5 SP at the Hex, his bout at once, won -- "Five in, ten out. He presses your five back into your hand.": the purse after is the purse before, on the simple
   // screen and on the grid (his record of 11-15 0300Z: the bout on the grid)
