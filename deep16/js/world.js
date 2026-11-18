@@ -1225,12 +1225,23 @@
       lane: function (x, y) { return x >= 1 && x <= P + 2 && y >= 1 && y <= 5; }, grid: true };
   };
   W.seat = function (list, gap) { return W.lineup(list, gap).foes; }; // the foes' line facing the four (W.lineup)
+  // THE ROAD'S GRID FIELD AS DEEP AS THE SIMPLE FIGHT'S (11-18, his NOTES of 11-16 night: "pretty sure 'grid' random encounters on the road are still 8 tiles wide, which makes them look
+  // weird compared to the simple fights that have full width"; then "It's not about the positioning of the people, it's that what I think are grid fights are narrow / see last fight
+  // just added to play records, grid seemed 6 wide"): W.lineup's 7 rows laid in the middle of a field 16 deep, the simple fight's 16 (js/simple.js S.fieldOpts), as the floors' field
+  // fights have it since 11-05 (js/mines.js M.GRID: the same 4 rows down) -- the four, the foes, the entry, the camp's fire and the road's row moved down with them, the ground above
+  // and below the lineup's lane the hex's own, edges rough; the fronts' W.GAP (6 to 12, RULED 11-05) and the field's length as they were
+  W.DEEP = { h: 16, dy: 4 };
+  W.deep = function (LU) {
+    var dy = W.DEEP.dy, sh = function (q) { return [q[0], q[1] + dy]; };
+    return Object.assign({}, LU, { h: W.DEEP.h, dy: dy, foes: LU.foes.map(function (f) { return Object.assign({}, f, { at: sh(f.at) }); }), entry: LU.entry.map(sh), camp: sh(LU.camp),
+      lane: function (x, y) { return LU.lane(x, y - dy); }, road: function (x, y) { return y === 3 + dy; } });
+  };
   // THE CAMP'S FIRE (RULED 10-21, Griz: "add a campfire when the party encounters during a camp"): a fight in the night's watches (o.camp, js/house.js H.runNight) has the
   // camp's fire on the field behind the party -- a light as a torch's (bright 20 ft, dim 20 more: the SRD names no campfire), drawn by js/campfire.js CF.fieldFire
-  W.CAMP = [10, 3]; // (the grid's road field: behind the party's squares)
+  W.CAMP = [10, 3]; // (the grid's road field before 11-05: behind the party's squares -- since then the fire is the lineup's own, W.lineup's camp, two behind the four, and since 11-18 W.deep's, in the field's middle)
   World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, camp, after(res, b) } -- the night's watches, js/house.js; o.simple: this fight's way, else OPTIONS')
     var self = this, camp = !!((o && o.camp) || p.camp), night = W.timeOfDay() === 'night' || !!(o && o.dark), simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
-    var LU = simple ? null : W.lineup(p.list); // (the grid's: W.GAP squares between the fronts, 11-05)
+    var LU = simple ? null : W.deep(W.lineup(p.list)); // (the grid's: W.GAP squares between the fronts, 11-05, on a field 16 deep, 11-18: W.deep)
     W.field(e, simple ? D.simple.fieldOpts() : LU); D.MAPS['world-field'].gap = LU ? LU.gap : null;
     var fire = camp ? (simple ? D.simple.CAMP : LU.camp).slice() : null;
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: camp ? 'The camp' : 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night, camp: fire, lights: fire ? [[fire[0], fire[1], 20, 'fire']] : null,
