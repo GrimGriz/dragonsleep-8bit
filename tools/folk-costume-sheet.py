@@ -98,16 +98,20 @@ PIECES = {
                        navy=None, stand=False, unred=0, cell=(96, 96, 48, 76), targets={'man': 'guard_p2', 'woman': 'guardwoman_p1'},
                        rows=[('idle', 'idle', 4, 4, None), ('walk', 'walk', 8, 9, None), ('spear', 'attack', 6, 12, 3), ('flinch', 'flinch', 4, 12, None),
                              ('fall', 'hurt', 6, 8, None), ('prone', 'prone', 1, 1, None)]),
-    'crewboss': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-WORLD', name='ART-WANTED-78 CREW-BOSS-WORLD, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
-                     navy=(17, 24, 45), stand=False),
+    # (the crew boss's first, code-drawn pages -- 2026-11-15-ART-WANTED-78-CREW-BOSS-WORLD and -MALE-FIGHT, native 4x, navy (17, 24, 45) -- replaced by its
+    # redraw, 11-18: image-generated on the navy, the world pair and his fight figure in one delivery with one map, each with the art desk's own native cut
+    # on the 64, taken as drawn but for the red and fire on faces and hands, `unred` everywhere (a brown bib, cream sleeves, the lamp dark metal: no red
+    # cloth); `shared`: the map's frames for the other piece's figures passed over)
+    'crewboss': dict(folder='2026-11-18-ART-WANTED-78-CREW-BOSS-REDRAW', name='ART-WANTED-78 CREW-BOSS ILLUSTRATED REDRAW, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                     navy=None, stand=False, unred=0, shared=True),
     'clerk': dict(folder='2026-11-15-ART-WANTED-79-CLERK', name='ART-WANTED-79 CLERK, 11-15: five views, Idle 4 and Walk 8, native 4x on folkman_p1\'s cell',
                   navy=(17, 24, 45), stand=False),
     # the crew boss man's fight sheet (the art desk's 78, on his "pasted to the art desk re Crew Boss"): foes.js crewboss wears it, off Hask's
     # hask_p1; its own 96 x 96 cell, the trooper's fight rows (trooper_p2's fps), the Mace's blow landing on its frame 4 (`release` 3)
-    'crewbossfight': dict(folder='2026-11-15-ART-WANTED-78-CREW-BOSS-MALE-FIGHT', name='ART-WANTED-78 CREW-BOSS-MALE-FIGHT, 11-15: five views, Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, native 4x on its 96 x 96 cell',
-                          navy=(17, 24, 45), stand=False, cell=(96, 96, 48, 76), targets={'proposed crewboss_p1': 'crewboss_p1'},
-                          rows=[('idle', 'idle', 4, 4, None), ('walk', 'walk', 8, 9, None), ('mace', 'attack', 6, 12, 3), ('flinch', 'flinch', 4, 12, None),
-                                ('fall', 'hurt', 6, 8, None), ('prone', 'prone', 1, 1, None)]),
+    'crewbossfight': dict(folder='2026-11-18-ART-WANTED-78-CREW-BOSS-REDRAW', name='ART-WANTED-78 CREW-BOSS ILLUSTRATED REDRAW, 11-18: his fight figure, five views, Ready Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell',
+                          navy=None, stand=False, unred=0, shared=True, cell=(96, 96, 48, 76), targets={'crewboss_p1': 'crewboss_p1'},
+                          rows=[('idle', 'idle', 4, 4, None), ('walk', 'walk', 8, 9, None), ('attack', 'attack', 6, 12, 3), ('flinch', 'flinch', 4, 12, None),
+                                ('hurt', 'hurt', 6, 8, None), ('prone', 'prone', 1, 1, None)]),
 }
 
 
@@ -141,6 +145,14 @@ def frames_of(d):
         return [(p['target'], p['facing'], p['row'], f['frame'] - 1, p['png'], tuple(f['source_rect_xywh'])) for p in fm['pages'] for f in p['frames']]   # (the scraper's: `pages`)
     out = []
     for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8')):   # (a row a frame; its columns named four ways so far)
+        if r.get('native_offset_xy'):   # (the crew boss's redraw, 11-18: one map for its three figures; the art desk's native cut of a row is
+            # <its folder>/NATIVE-PREVIEWS/<view>-<its row>-1X.png, a transparent strip of cells -- its folder the illustrated source's (WORLD-MAN,
+            # WORLD-WOMAN, FIGHT-MAN), its row the art desk's name (the Mace, the Fall; Prone its own one-cell strip, the Fall's last pose)
+            w, h = int(r['cell_width']), int(r['cell_height'])
+            row = {'attack': 'mace', 'hurt': 'fall'}.get(r['action'], r['action'])
+            out.append((r['target'], r['facing'], r['action'], int(r['frame_index']), '%s/NATIVE-PREVIEWS/%s-%s-1X.png' % (r['source_png'].split('/')[0], r['facing'], row),
+                        (int(r['frame_index']) * w, 0, w, h)))
+            continue
         g = lambda *ks: next(r[k] for k in ks if r.get(k) not in (None, ''))
         idx = int(g('frame_index', 'index')) if any(r.get(k) not in (None, '') for k in ('frame_index', 'index')) else int(g('frame_1based', 'frame', 'frame_number')) - 1
         out.append((g('target', 'runtime_target', 'runtime'), r['facing'], g('action', 'row', 'runtime_row'), idx, g('source_page', 'source_png', 'png', 'cut_sheet'),
@@ -278,6 +290,8 @@ def cut(costume):
                 raise SystemExit('%s %s %s %d: %d colours off the 64' % (name, v, an, idx + 1, len(off)))
             got.setdefault(names[name], {}).setdefault(v, {}).setdefault(rowmap[an][0], {})[idx] = fr
     for name, v, an, idx, page, (x, y, w, h) in ([] if P.get('lime') or P.get('illus') else frames_of(d)):
+        if name not in names and P.get('shared'):
+            continue
         if name not in names:
             raise SystemExit('%s: a frame for %s, not %s' % (page, name, costume))
         if an not in rowmap:
