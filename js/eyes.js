@@ -22,6 +22,11 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE POPUP-RING SEAT'S SECOND PIECE, 11-18 (Opus; deep16/js/battle.js readySpring; js/ui.js UI.readyShow; dev/bench16.js mode=ready1113 6c): READY! at the ask
+    'eyes-readyword-1118': { pri: 2, group: G2, title: 'READY! AT THE ASK: the word and the gold ring over the one who readied, as the choice to use it comes up (11-18)', pt: 'READY on the ring, 2026-11-18 (the popup-ring seat\'s second piece; deep16/js/battle.js readySpring, js/ui.js UI.readyShow)',
+      obj: 'Watch the goblin walk into the fighter\'s readied swing, then the readied Dodge — does READY! pop as you\'re asked?',
+      url: 'deep16/?readyshow&fresh=1118r',
+      look: 'Your "I\'m aiming to have it go every time the popup where the player has to choose to use it or not fires, so they realize the decision suddenly before them is the \'ready\' from that character", after your NOTES of 11-16 at the Glowseep, "the ready word popup lands after the readied action?". READY! in gold over the one holding it and the gold ring at their feet now come up with the ping as the ask does -- the aim at the one who set it off (a click swings, X holds), or the NOW / HOLD popup -- not after the pick; once, used or held. The AI\'s, never asked, still floats as it fires. Two beats, E between: the fighter\'s readied blade (the aim), then a readied Dodge (the popup). Should: the word is up the moment the choice is.' },
     // THE POPUP-RING SEAT, 11-18 (Opus; deep16/js/ui.js promptRing, UI.ringShow; js/icons.js; js/sprites.js S.figIcon; dev/bench16.js mode=popupring1118): THE POPUP RULE, the fourteen on the ring
     'eyes-popupring-1118': { pri: 2, group: G2, title: 'THE POPUP RULE: every choice on your own turn on the hero\'s ring -- fourteen of them, the long ones eight a page (11-18)', pt: 'READY on the ring, 2026-11-16 evening later and the popup-ring seat 2026-11-18 (deep16/js/ui.js promptRing, promptAsk, ringInView, UI.ringShow; js/icons.js; js/sprites.js S.figIcon)',
       obj: 'Answer the fourteen choices on your heroes\' rings by keys, mouse or pad — do picks, MORE and X feel right?',

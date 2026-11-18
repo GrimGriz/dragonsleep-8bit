@@ -2150,6 +2150,39 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.sfx = sfx0P; D.d = d0Q;
       okQ('the ping at the ask: asked ' + askedP + ', `ready` heard ' + nAsk + ' before any answer (fired yet ' + firedAsk + ', the fight\'s mark ' + JSON.stringify(oP.B.readyAsked && oP.B.readyAsked.n) + '); held: still ' + nHeld + ', nothing fired ' + heldP + '; asked again and used: ' + nUsed + ' ping, fired ' + usedP + '; the AI\'s as it fires: ' + nAI,
         askedP && nAsk === 1 && !firedAsk && nHeld === 1 && heldP && nUsed === 1 && usedP && nAI === 1);
+      // 6c THE WORD AT THE ASK (11-18, Griz: "I'm aiming to have it go every time the popup where the player has to choose to use it or not fires, so they realize the decision
+      // suddenly before them is the 'ready' from that character"; his NOTES of 11-16, the Glowseep: "the ready word popup lands after the readied action?"): READY! floats over the
+      // readier as the ask comes up, with the ping, before any answer; held, it was still the once; asked again and used, once at that ask and none at the firing; the readied
+      // Dodge's NOW / HOLD popup the same; the AI's, never asked, as it fires; and the show door (?readyshow) stages both asks with the word
+      var fl0W = D.fx.float, saidW = [], sfx0W = D.sfx, heardW = [];
+      D.fx.float = function (t, u) { saidW.push({ t: t, u: u, ping: heardW.indexOf('ready') >= 0 }); return fl0W.apply(this, arguments); }; D.sfx = function (id) { heardW.push(id); };
+      var wordsW = function (u) { return saidW.filter(function (s) { return s.t === 'READY!' && s.u === u; }); };
+      try {
+        var oW = mkQ('strike'); oW.B.active = oW.c; D.rules.startTurn(oW.c); hitQ();
+        var gW = oW.B.attack(oW.c, oW.g, oW.c.weapon), stW = gW.next(), kW = 0; while (!stW.done && kW++ < 4000 && !(stW.value && stW.value.aim)) stW = gW.next(stW.value && stW.value.prompt ? stW.value.prompt.opts[0].value : undefined);
+        var aimW = !stW.done && !!stW.value.aim, atAskW = wordsW(oW.f), firedAtAskW = !!oW.B.readyFired;
+        stW = gW.next(null); kW = 0; while (!stW.done && kW++ < 4000) stW = gW.next();
+        var heldW = wordsW(oW.f).length, stillW = heldQ(oW) && !oW.B.readyFired;
+        saidW = []; heardW = []; hitQ(); runQ(oW.B.attack(oW.c, oW.g, oW.c.weapon)); var usedW = wordsW(oW.f).length, firedW = !oW.f.ready && !!oW.B.readyFired;
+        // (the readied Dodge: its ask is the NOW / HOLD popup)
+        saidW = []; heardW = []; var oN = mkQ(null); oN.B.active = oN.f; D.rules.startTurn(oN.f); runQ(oN.B.exec(oN.f, { do: 'ready', trigger: 'strike', what: 'cmd', cmd: 'dodge' })); oN.B.active = oN.c; D.rules.startTurn(oN.c); hitQ();
+        var gN = oN.B.attack(oN.c, oN.g, oN.c.weapon), stN = gN.next(), kN = 0; while (!stN.done && kN++ < 4000 && !(stN.value && stN.value.prompt && /READIED/.test(stN.value.prompt.title))) stN = gN.next(stN.value && stN.value.prompt ? stN.value.prompt.opts[0].value : undefined);
+        var popN = !stN.done && stN.value.prompt, atPopN = wordsW(oN.f), readiedN = !!(oN.f.ready || popN);
+        saidW = []; heardW = []; var oA2 = mkQ('strike'); oA2.f.guest = true; oA2.f.classAI = true; EV.strike(oA2); var aiW = wordsW(oA2.f).length, aiFired = !!oA2.B.readyFired;
+        D.d = d0Q;
+        okQ('the word at the ask: the aim up ' + aimW + ', READY! over the readier ' + atAskW.length + ' with the ping ' + (atAskW[0] && atAskW[0].ping) + ', nothing fired yet ' + !firedAtAskW + '; held: still ' + heldW + ' (held ' + stillW + '); asked again and used: ' + usedW + ' (fired ' + firedW + '); the Dodge\'s popup "' + (popN && popN.title) + '" with READY! ' + atPopN.length + ' (ping ' + (atPopN[0] && atPopN[0].ping) + '); the AI\'s as it fires ' + aiW,
+          aimW && atAskW.length === 1 && atAskW[0].ping && !firedAtAskW && heldW === 1 && stillW && usedW === 1 && firedW && !!popN && /DODGE/.test(popN.title) && atPopN.length === 1 && atPopN[0].ping && readiedN && aiW === 1 && aiFired);
+        // the show door: each of its two staged asks comes up with the word over the fighter
+        var um0W = D.ui.urlMenu; D.ui.urlMenu = 'ring';
+        var shownW = (D.ui.READY_SHOW || []).map(function (c, i) {
+          saidW = []; heardW = []; var Bs = D.ui.readyShow('', i), er = ''; D.battle = Bs;
+          try { Bs.enter(); for (var kS = 0; kS < 600 && Bs.co && !Bs.req; kS++) Bs.step(); } catch (eS) { er = String(eS && eS.message || eS).slice(0, 90); }
+          var fS = Bs.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rq = Bs.req || {}, w = wordsW(fS).length;
+          return c.t + ': ' + (er ? 'ERR ' + er : (rq.aim ? 'the aim' : rq.prompt ? '"' + rq.prompt.title + '"' : 'nothing asked') + ', READY! ' + w + ', the ping ' + (heardW.indexOf('ready') >= 0));
+        });
+        D.ui.urlMenu = um0W;
+        okQ('the show door (?readyshow): ' + shownW.join('; '), shownW.length === 2 && /THE READIED BLADE: the aim, READY! 1, the ping true/.test(shownW[0]) && /THE READIED DODGE: ".*DODGE\?", READY! 1, the ping true/.test(shownW[1]));
+      } finally { D.fx.float = fl0W; D.sfx = sfx0W; D.d = d0Q; }
       // 7 the old four keep to their own: a readied blade for A FOE ATTACKS US, A FOE CASTS and ONE OF US DOWN sits through a friend's hit, spell, shove and turn's end
       var old = ['ally', 'cast', 'down'].map(function (t) { var o = mkQ(t); ['strike', 'fcast', 'prone', 'turn'].forEach(function (e) { EV[e](o); }); return t + ' ' + (heldQ(o) ? 'held' : 'SPRUNG'); });
       okQ('the old triggers through a friend\'s hit, spell, shove and turn\'s end: ' + old.join(', '), old.every(function (x) { return / held$/.test(x); }));

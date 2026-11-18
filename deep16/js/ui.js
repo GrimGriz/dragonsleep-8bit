@@ -1801,6 +1801,43 @@
     };
     return B;
   };
+  // READY! AT THE ASK, SHOWN (deep16/?readyshow, 11-18, the popup-ring seat's second piece; an eyes row's door -- Griz: "I'm aiming to have it go every time the popup where
+  // the player has to choose to use it or not fires, so they realize the decision suddenly before them is the 'ready' from that character"): the fighter readies, the goblin
+  // walks up into reach, and the ask comes with READY!, the gold ring and the ping over the fighter -- 1 the readied blade's aim (a click on the goblin swings, X holds),
+  // 2 the readied Dodge's NOW / HOLD. E after each goes on to the other (&p=1 or 2)
+  var READY_SHOW = [
+    { t: 'THE READIED BLADE', c: { what: 'weapon' }, say: 'The fighter holds a swing for a foe that comes in reach, and the goblin walks up: swing (a click on it), or X to hold.' },
+    { t: 'THE READIED DODGE', c: { what: 'cmd', cmd: 'dodge' }, say: 'The fighter holds a Dodge for a foe that comes in reach, and the goblin walks up: NOW, or HOLD.' }
+  ];
+  UI.READY_SHOW = READY_SHOW;
+  UI.readyShow = function (q, k) {
+    var n = READY_SHOW.length, pm = /[?&]p=(\d+)/.exec(q || ''), i = k != null ? k : pm ? Math.max(0, Math.min(n - 1, +pm[1] - 1)) : 0, c = READY_SHOW[i];
+    var B = D.npcFight('?npc=goblin&lvl=5&vs=fighter,cleric', {}), en = B.enter;
+    B.enter = function () {
+      en.apply(this, arguments); while (!this.order.length) this.co.next(); this.dark = false;
+      var m = G.map, at = null, us = this.units;
+      for (var y = 1; y + 8 < m.h && !at; y++) for (var x = 1; x + 9 < m.w && !at; x++) { var z = m.gz(x, y), ok = true; for (var j = 0; j < 8 && ok; j++) for (var ii = 0; ii < 9 && ok; ii++) { var s = m.at(x + ii, y + j); if (!s || !s.walk || m.gz(x + ii, y + j) !== z) ok = false; } if (ok) at = [x, y]; }
+      if (!at) at = [2, 2];
+      var X = at[0], Y = at[1], of = function (side, k2) { return us.filter(function (u) { return u.side === side && (u.cls === k2 || side === 'foe'); })[0]; };
+      var f = of('party', 'fighter'), cl = of('party', 'cleric'), g = of('foe');
+      f.x = X + 4; f.y = Y + 1; if (cl) { cl.x = X + 1; cl.y = Y + 1; } g.x = X + 4; g.y = Y + 7; g.hp = g.maxhp = 60;
+      us.forEach(function (u) { D.rules.startTurn(u); u.reaction = 1; });
+      this.cache = null; G.setup(m, us);
+      var self = this, path = [1, 2, 3, 4, 5].map(function (d) { return [X + 4, Y + 7 - d]; });
+      this.co = (function* () {
+        self.focus(f); self.clearCards();
+        self.card(['{y}READY! AT THE ASK, ' + (i + 1) + ' of ' + n + ': ' + c.t + '{/}', c.say], 100000);
+        self.active = f; D.rules.startTurn(f); yield* self.exec(f, Object.assign({ do: 'ready', trigger: 'near' }, c.c)); self.active = null;
+        yield 50;
+        self.active = g; D.rules.startTurn(g); yield* self.moveAlong(g, path, { spend: true }); self.active = null;
+        yield 30;
+        self.card([D.keys('{g}' + (i + 1) + ' of ' + n + ' done -- E for ' + READY_SHOW[(i + 1) % n].t + '{/}')], 100000);
+        for (;;) { if (D.input.pressed('a') || D.input.mouse.click) break; yield 1; }
+        D.pop(); D.push(UI.readyShow(q, (i + 1) % n));
+      })();
+    };
+    return B;
+  };
   UI.unitObj = function (B, u) { return unitObj(B, u); }; // (the figure as the next frame draws it -- .shown holds the row and frame it drew: dev/bench16.js mode=goblinhide1007, 10-07)
   // IN ITS CLAWS (battle.js clawIn, 11-06, Griz: "Can we make a successful grab look like a lunge-return to actual position?"): one a claw holds is drawn at the claw's point by the holder's
   // facing (D.Battle.clawPoint), lifted off the ground, in front of the holder or behind it as the claw is; while the lunge goes out (its first two fifths) it still stands where it stood,
