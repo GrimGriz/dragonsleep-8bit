@@ -1058,6 +1058,36 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4 the Wet's floor carries no key: its steps say 'wet'
       D.scenes.length = 0; D.roam.make('?roam=wet'); var kW = D.eyeswalk.key(D.roam.def); D.roam.make('?roam=solskaft'); var kS = D.eyeswalk.key(D.roam.def);
       okSP('4 the walk\'s floor key: the Wet ' + kW + ' (its def ' + D.roam.def.key + ' after Sólskaft: ' + kS + ')', kW === 'wet' && kS === 'solskaft');
+      // 5 the cards re-doored on his 11-18 "need to see what it wants to me to look at or why bother": each door puts the thing its card judges on screen
+      var drSP = function (g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); };
+      var topSP = function () { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam && s.co) drSP(s.co, null, 2); return s; };
+      // 5a Pyro at the vault doors: the king at his post on his own town figure, the four beside him at 3
+      var o5a = openSP('?solskaft&beat=doors&lvl=3'), B5a = topSP(), py5 = B5a && (B5a.units || []).filter(function (u) { return u.id === 'pyro' || u.npc === 'pyro' || /^Pyro/.test(u.name || ''); })[0], tk5 = B5a && B5a.roam && B5a.roam.token;
+      var d5a = py5 && tk5 ? Math.max(Math.abs(py5.x - tk5.x), Math.abs(py5.y - tk5.y)) : -1;
+      okSP('5a Pyro at the vault doors: on ' + (py5 && py5.sheet) + ' at ' + (py5 && [py5.x, py5.y]) + ', the party at ' + (tk5 && [tk5.x, tk5.y]) + ' (' + d5a + ' apart), the four at ' + (o5a ? o5a.lvls.join(',') : '?'),
+        !!py5 && py5.sheet === 'pyro_p1' && d5a >= 0 && d5a <= 2 && !!o5a && o5a.lvls.length === 4 && o5a.lvls.every(function (l) { return l === 3; }));
+      // 5b the Skylights' troll beat at level 3: Pyro's flask beside Barley, on his fight figure, the beat's own check
+      D.scenes.length = 0; var BSk = D.skyshow.make('?skyshow&fast&only=troll&lvl=3'); D.push(BSk); D.battle = BSk; BSk.enter(); drSP(BSk.co, null, 400000);
+      var r5b = (BSk.skyReport || [])[0], py5b = (BSk.units || []).filter(function (u) { return /^Pyro/.test(u.name || ''); })[0], lv5b = (BSk.units || []).filter(function (u) { return u.side === 'party' && !/^Pyro/.test(u.name || ''); }).map(function (u) { return u.lvl; });
+      okSP('5b the Skylights\' troll beat at level 3: ' + (r5b && (r5b.ok ? 'ok ' : 'FAIL ') + r5b.why) + '; Pyro on ' + (py5b && py5b.sheet) + ', the party at ' + lv5b.join(','), !!r5b && r5b.ok && !!py5b && py5b.sheet === 'pyro_p2');
+      // 5c Katarina against two goblins, watched: on her own sheet, and the Mace Up row as she casts
+      var kat5 = function (seed) {
+        D.scenes.length = 0; var Bk = D.npcFight('?npc=goblin,goblin&vs=katarina:3&lvl=3&watch&seed=' + seed, {}); D.push(Bk); D.battle = Bk; Bk.enter();
+        var ka = null, seen = {}; drSP(Bk.co, function () { ka = ka || (Bk.units || []).filter(function (u) { return u.side === 'party' && /^Katarina/.test(u.name || ''); })[0]; if (ka && ka.anim) seen[ka.anim] = 1; return false; }, 30000);
+        return { sheet: ka && ka.sheet, anims: Object.keys(seen), cast: !!(seen.cast || seen.castup) };
+      };
+      var SEEDK = 1118, k5 = kat5(SEEDK), scan5 = [];
+      if (get('scan', '')) for (var sd5 = 1; sd5 <= 12; sd5++) { var ks = kat5(sd5); scan5.push(sd5 + ':' + (ks.cast ? 'cast' : '-')); }
+      okSP('5c Katarina watched against two goblins (seed ' + SEEDK + '): on ' + k5.sheet + ', her rows ' + k5.anims.join(',') + (scan5.length ? ' [scan ' + scan5.join(' ') + ']' : ''), k5.sheet === 'katarina_p2' && k5.cast);
+      // 5d Dace in the cloaker's fight, pulled from the beat two steps from the cavern: on his own fight sheet
+      var o5d = openSP('?isoshow&beat=cloaker&lvl=3'), B5d = topSP(), co5 = B5d && B5d.co, b5d = null;
+      if (B5d && co5) { B5d.co = (function* () { yield* D.mines.cloaker(B5d, null, [12, 8]); yield* co5; })(); drSP(B5d.co, function () { var s = D.top(); return s !== B5d && s instanceof D.Battle; }, 2000); b5d = D.top(); if (b5d && b5d.baking) { b5d.baking = false; b5d.enter(); } }
+      var da5 = b5d && b5d !== B5d && (b5d.units || []).filter(function (u) { return u.side === 'party' && /Dace/.test(u.name || ''); })[0];
+      okSP('5d Dace in the cloaker\'s fight: ' + (b5d && b5d.fight && b5d.fight.name) + ', ' + (da5 && da5.name) + ' on ' + (da5 && da5.sheet), !!da5 && da5.sheet === 'dace_p2');
+      // 5e the mirror wisp's feeding in the made things' show: its beat's own check
+      D.scenes.length = 0; var BMw = D.madeshow.make('?madeshow&fast&only=mirrorwisp'); D.push(BMw); D.battle = BMw; BMw.enter(); drSP(BMw.co, null, 400000);
+      var r5e = (BMw.madeReport || [])[0];
+      okSP('5e the mirror wisp feeding, shown: ' + (r5e && ((r5e.ok ? 'ok ' : 'FAIL ') + (r5e.name || '') + ' -- ' + (r5e.why || ''))), !!r5e && !!r5e.ok);
     } catch (eSP) { repSP.errors.push(String(eSP && eSP.stack || eSP).slice(0, 900)); }
     try { if (TSP) { TSP.unmount(); TSP.nav = navSP; TSP.navDelay = dlSP; } } catch (eU) { /* (no bar) */ }
     D.text = dtSP; HSP.freshLvl = 0;
