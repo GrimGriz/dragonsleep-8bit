@@ -42,7 +42,7 @@
 
   function S0() { return W.house() && W.state ? W.state() : null; }
   function flags() { return H.cur ? (H.cur.flags = H.cur.flags || {}) : null; }
-  BE.from = function () { var V = W.VESSEL; return (V.day0 - 1) * 24 + V.dawn; }; // (dawn of day 2: he sets out)
+  BE.from = function () { var V = W.VESSEL; return W.tAt(V.day0) + V.dawn; }; // (dawn of day 2: he sets out)
   BE.dawn3 = function (tp) { var d = Math.floor(tp / 24) * 24 + BE.DAWN; if (d <= tp) d += 24; return d + (BE.DAWNS - 1) * 24; }; // (the third 06:00 after the pass)
   BE.rec = function () { var S = S0(); return S ? (S.stars = S.stars || {}) : null; };
   BE.shut = function (st) { var f = flags(); return !st || st.paid != null || st.met != null || !!(f && f.eggStars); }; // (paid, or met, or found in this save already: nothing more is looked for)
@@ -53,7 +53,7 @@
     var v = W.vesselAt(t); if (!v) return;
     if (BE.hexD(W.worldHexOf(p[0], p[1]), v.hex) !== BE.RING) return; // (a neighbour of his hex; his own is not a pass)
     var d = Math.hypot(p[0] - v.pt[0], p[1] - v.pt[1]); // (the miles: which moment of the pass was the closest)
-    var ps = st.pass, at = { t: t, d: Math.round(d * 100) / 100, day: Math.floor(t / 24) + 1, hour: Math.round((t % 24) * 100) / 100 };
+    var ps = st.pass, at = { t: t, d: Math.round(d * 100) / 100, day: W.dayAt(t), hour: Math.round((t % 24) * 100) / 100 };
     if (!ps || d < ps.d - BE.TIE) st.pass = at; // (the closest so far)
     else if (d <= ps.d + BE.TIE) { at.d = Math.min(ps.d, at.d); st.pass = at; } // (as close: the later hour)
   };

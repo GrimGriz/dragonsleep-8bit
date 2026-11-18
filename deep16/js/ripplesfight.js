@@ -256,7 +256,7 @@
   if (W && W.pick && W.World) {
     RF.here = function (pt, t) { // (is the party where he stands this hour: his point on his hidden road, from the dawn he sets out)
       var S = W.state && W.state(); if (t == null) t = S ? S.t : 0; pt = pt || (W.partyPt && W.partyPt()); if (!pt || !W.vesselAt) return false;
-      var V = W.VESSEL, v = W.vesselAt(t); if (!v || t < (V.day0 - 1) * 24 + V.dawn) return false;
+      var V = W.VESSEL, v = W.vesselAt(t); if (!v || t < W.tAt(V.day0) + V.dawn) return false;
       return Math.hypot(pt[0] - v.pt[0], pt[1] - v.pt[1]) <= RF.NEAR;
     };
     // THE CAMP (RULED 11-13, Griz, on the seat's "camp night fights can roll him too": "they'd have to be camping on his path"; then "as long as the encounter happens
@@ -264,7 +264,7 @@
     // He comes to a camp (RF.comes) when he is WALKING -- dawn to dusk from day 2, not held at the Warded Fort: js/world.js THE VESSEL'S ROAD -- and his walk has him in
     // the camp's hex at some hour of that watch; then the watch's fight is him, for certain, whatever the count (js/house.js H.runNight asks RF.campPick first). By his
     // road's hours a camp in the dark never meets him: it is the one lying on his path when he sets out at dawn, or a rest taken by day where he walks
-    RF.walking = function (t) { var V = W.VESSEL, d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24, v = W.vesselAt(t); return !!v && !v.held && d >= V.day0 && h >= V.dawn && h < V.dusk; };
+    RF.walking = function (t) { var V = W.VESSEL, d = W.dayAt(t), h = t - W.tAt(d), v = W.vesselAt(t); return !!v && !v.held && d >= V.day0 && h >= V.dawn && h < V.dusk; };
     RF.comes = function (t0, t1, pt) { // (does his walk bring him into the party's hex between t0 and t1: looked at every half hour)
       if (!D.FOES || !D.FOES[RF.KIND] || !(RF.ODDS > 0)) return false;
       for (var t = t0; t <= t1 + 1e-9; t += 0.5) if (RF.walking(t) && RF.here(pt, t)) return true;

@@ -159,7 +159,7 @@
     var S = W.state(), MW = W.Mworld(); if (!HG.on || !S || !MW) return null; if (t == null) t = S.t;
     var at = MW.sites.filter(function (s) { return s.id === site; })[0], best = null; if (!at) return null;
     HG.sim(t).ref.forEach(function (r) { var h = r.arrive + (r.to === site ? 0 : Math.hypot(at.x - r.toPt[0], at.y - r.toPt[1]) / HG.CART * 24); if (best == null || h < best) best = h; });
-    return best == null ? null : Math.floor(best / 24) + 1;
+    return best == null ? null : W.dayAt(best);
   };
   var step0 = W.onStep;
   W.onStep = function (scene, st) {

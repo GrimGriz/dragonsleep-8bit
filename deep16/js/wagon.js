@@ -89,14 +89,14 @@
   Wg.day = function (k) { var c = Wg.cal(); return c.first + k * c.every; }; // (cycle k's WAGON DAY, the day's number)
   Wg.legs = function (k) { // (cycle k's two legs on the clock: the Pit to the inn, the inn to Silverton)
     var R = Wg.route(); if (!R) return null;
-    var d0 = Wg.day(k), pace = Wg.pace(), arriveInn = (d0 - 1) * 24 + Wg.INN_HOUR, departInn = d0 * 24 + Wg.LEAVE_HOUR;
+    var d0 = Wg.day(k), pace = Wg.pace(), arriveInn = W.tAt(d0) + Wg.INN_HOUR, departInn = W.tAt(d0 + 1) + Wg.LEAVE_HOUR;
     return { k: k, day: d0, departPit: Wg.back(arriveInn, R.inn / pace), arriveInn: arriveInn, departInn: departInn, arriveSil: Wg.advance(departInn, (R.end - R.inn) / pace) };
   };
   Wg.stopped = function (f, k) { return !!f && f.wagonStopped === 'c' + k; };
   // where the wagon is at clock time t: { k, leg: 'south' | 'inn' | 'north', s, pt, moving }, or null between cycles (and after a cycle's wagon was stopped)
   Wg.at = function (t, f) {
     var R = Wg.route(); if (!R || t == null) return null;
-    var c = Wg.cal(), pace = Wg.pace(), day = Math.floor(t / 24) + 1, k0 = Math.round((day - c.first) / c.every);
+    var c = Wg.cal(), pace = Wg.pace(), day = W.dayAt(t), k0 = Math.round((day - c.first) / c.every);
     for (var i = -1; i <= 1; i++) {
       var k = k0 + i; if (k < 0 || Wg.stopped(f, k)) continue;
       var Lg = Wg.legs(k); if (!Lg) return null;
@@ -327,7 +327,7 @@
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, bt.flags || {}); rec.silver = Math.max(rec.silver || 0, 60);
     var wm = W.map && W.index && W.index() && W.map('world'), inn = wm && (wm.sites || []).filter(function (s) { return s.id === 'inn'; })[0];
     H.begin(rec, 0, inn ? '?world&at=' + inn.hex[0] + ',' + inn.hex[1] : '?world');
-    var S = W.state(), t = (bt.day - 1) * 24 + bt.hour; S.t = t; S.today = 0; S.todayHex = 0;
+    var S = W.state(), t = W.tAt(bt.day) + bt.hour; S.t = t; S.today = 0; S.todayHex = 0;
     In.pinned = bt.dice ? bt.dice.slice() : null;
     var R = Wg.route(), w = Wg.at(t, rec.flags), hw = w && w.pt ? W.worldHexOf(w.pt[0], w.pt[1]) : null, mw = hw && W.nearOn() && W.inArea(hw[0], hw[1]) && W.map('near') ? W.map('near').w : 5; // (a hex of the map that covers the wagon)
     var s = bt.atInn || !w ? (R ? R.inn : 0) : w.s + (bt.off || 0) * mw * 0.95, pt = Wg.pt(Math.max(0, s));

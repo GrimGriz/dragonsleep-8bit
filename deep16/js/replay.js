@@ -94,7 +94,7 @@
   // ---------------------------------------------------------------- the file, indexed
   function hexPt(q, r) { var w = RP.w || 5; return [w * (q + r / 2), w * SQ3 / 2 * r]; }
   function clockOf(t) { var h = ((t % 24) + 24) % 24, hh = Math.floor(h + 1e-6), mm = Math.round((h - hh) * 60); if (mm === 60) { hh++; mm = 0; } return ('0' + (hh % 24)).slice(-2) + ':' + ('0' + mm).slice(-2); }
-  function dayOf(t) { return Math.floor(t / 24) + 1; }
+  function dayOf(t) { return W.dayAt(t); }
   function stamp(t) { return 'D' + dayOf(t) + ' ' + clockOf(t); }
   RP.stamp = stamp;
   function hexS(h) { return h ? h[0] + ',' + h[1] : '?'; }
@@ -137,7 +137,7 @@
     d.meets.forEach(function (m) { if (m.lost != null && m.k !== 'lost') return; var mk = MK[m.k] || [m.k, C.fight, 0]; if (m.k === 'fight') return; ev.push({ t: m.t, c: mk[1], look: mk[2], s: m.k === 'lost' ? 'THE GAME LOST at ' + hexS(m.hex) + ', ' + RP.place(String(m.s).replace(/^THE GAME IS LOST on /, '').replace(/^THE WORLD .*/, 'THE WORLD')) + ': the last save loaded' : mk[0] + ' at ' + hexS(m.hex) + ': ' + m.s + (m.res ? ' -> ' + String(m.res).toUpperCase() : '') }); });
     (d.log || []).forEach(function (l, i) {
       var mm = /^D(\d+) (\d\d):(\d\d) (.*)$/.exec(l) || /^DAY (\d+) -- D\d+ (\d\d):(\d\d)(.*)$/.exec(l); if (!mm) return;
-      var t = (+mm[1] - 1) * 24 + +mm[2] + +mm[3] / 60, rest = mm[4];
+      var t = W.tAt(+mm[1]) + +mm[2] + +mm[3] / 60, rest = mm[4];
       if (d.rewinds.some(function (rw) { return i < rw.ql && t > rw.t + 1e-6; })) return; // (a lost try's line)
       if (/^(MET on THE WORLD|SURVIVORS met|A SNOOTING BAND|FIGHT|THE GAME IS LOST)/.test(rest.trim())) return; // (the meetings above say these)
       ev.push({ t: t, c: '#a8a4b8', look: -1, s: (/^DAY /.test(l) ? 'DAY ' + mm[1] + ':' : '') + rest.trim() });
@@ -347,7 +347,7 @@
     // the timeline: the days, the meetings, the hour
     var tx = 8, tw = D.W - 16, ty = D.H - 26, span = Math.max(1e-6, d.t1 - d.t0), X = function (tt) { return tx + (tt - d.t0) / span * tw; };
     g.fillStyle = '#20223a'; g.fillRect(tx, ty, tw, 5); g.fillStyle = 'rgba(248,216,120,.55)'; g.fillRect(tx, ty, Math.max(0, X(t) - tx), 5);
-    for (var dd = dayOf(d.t0); (dd - 1) * 24 <= d.t1; dd++) { var x = Math.round(X((dd - 1) * 24 + 6)); if (x < tx || x > tx + tw) continue; g.fillStyle = '#8888a8'; g.fillRect(x, ty - 2, 1, 9); if (dd % 2 === 0 || span < 24 * 9) D.text(g, '' + dd, x - 2, ty - 10, '#8888a8'); }
+    for (var dd = dayOf(d.t0); W.tAt(dd) <= d.t1; dd++) { var x = Math.round(X(W.tAt(dd) + 6)); if (x < tx || x > tx + tw) continue; g.fillStyle = '#8888a8'; g.fillRect(x, ty - 2, 1, 9); if (dd % 2 === 0 || span < 24 * 9) D.text(g, '' + dd, x - 2, ty - 10, '#8888a8'); }
     d.meets.forEach(function (mm) { if (mm.k === 'fight' || (mm.lost != null && mm.k !== 'lost')) return; var x = Math.round(X(mm.t)); g.fillStyle = { road: C.road, mirror: C.mirror, survivors: C.sv, snoot: C.snoot, lost: C.lost }[mm.k] || C.fight; g.fillRect(x, ty + 1, 1, 3); });
     var cx = Math.round(X(t)); g.fillStyle = C.party; g.beginPath(); g.moveTo(cx - 3, ty + 8); g.lineTo(cx + 3, ty + 8); g.lineTo(cx, ty + 5); g.closePath(); g.fill();
     RP.ui.push({ x: tx, y: ty - 3, w: tw, h: 11, go: function (mo) { RP.play = false; RP.scrub = { x: tx, w: tw }; RP.seek(d.t0 + span * Math.max(0, Math.min(1, (mo.x - tx) / tw))); } });

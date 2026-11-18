@@ -163,8 +163,8 @@
   // the house's day (THE WORLD's clock), or a test door's &day=
   In.day = function (q) { // (a test door's &day= holds across its floors -- up the stair and down -- till another door names one; the house's own clock always wins)
     var m = /[?&]day=(\d+)/.exec(q || ''); if (m) return (In.testDay = +m[1]);
-    var S = W.state && W.state(), house = D.house && D.house.playing; if (house && S && S.t != null) return Math.floor(S.t / 24) + 1;
-    if (In.testDay) return In.testDay; return S && S.t != null ? Math.floor(S.t / 24) + 1 : 1;
+    var S = W.state && W.state(), house = D.house && D.house.playing; if (house && S && S.t != null) return W.dayAt(S.t);
+    if (In.testDay) return In.testDay; return S && S.t != null ? W.dayAt(S.t) : W.START_DAY;
   };
   In.INDOORS = { doranYard: 1, orrin: 1, pell: 1, adoptedKid: 1 }; // (the yard's own, in while the wagon stands in the yard)
   In.snootOn = function (q) { return In.day(q) >= In.SNOOT_DAY; };
@@ -927,7 +927,7 @@
   In.REST = { dayFrom: 6, dinnerFrom: 15, dinnerTo: 22, dinnerAt: 20, dinnerHours: 11, lateHours: 8, shortHours: 1 };
   In.restKind = function (h) { h = ((h % 24) + 24) % 24; return h >= In.REST.dinnerFrom && h < In.REST.dinnerTo ? 'dinner' : h >= In.REST.dayFrom && h < In.REST.dinnerFrom ? 'day' : 'late'; };
   In.hourOf = function (B) { return M.hourNow(D.roam.q, B); };
-  In.clock = function (B) { var W = D.world, S = W.state && W.state(); return D.roam.house() && D.house.playing && S ? S.t : (In.day(D.roam.q) - 1) * 24 + In.hourOf(B); }; // (the house's clock; a test door's its day and hour)
+  In.clock = function (B) { var W = D.world, S = W.state && W.state(); return D.roam.house() && D.house.playing && S ? S.t : W.tAt(In.day(D.roam.q)) + In.hourOf(B); }; // (the house's clock; a test door's its day and hour)
   // the clock on to an hour later this day (the house's, or the test door's own), the floor laid for it
   In.waitTo = function (B, hour) {
     var W = D.world, S = W.state && W.state(), now = In.hourOf(B); if (hour <= now) return;
@@ -2799,7 +2799,7 @@
     (bt.inv || []).forEach(function (id) { H.add(rec.inv, id, 1); }); // (what the beat's pack holds: the traveler's ink, 11-05)
     var site = bt.world ? ((W.map && W.index && W.index() && W.map('world')) || { sites: [] }).sites.filter(function (s) { return s.id === (bt.site || In.SITE); })[0] : null; // (bt.site: another place on THE WORLD -- the Pit, 11-12)
     H.begin(rec, 0, site ? '?world&at=' + site.hex[0] + ',' + site.hex[1] : null);
-    var S = W.state && W.state(); if (S && bt.hour != null) S.t = (bt.day ? (bt.day - 1) * 24 : Math.floor((S.t || 0) / 24) * 24) + bt.hour;
+    var S = W.state && W.state(); if (S && bt.hour != null) S.t = (bt.day ? W.tAt(bt.day) : Math.floor((S.t || 0) / 24) * 24) + bt.hour;
     if (bt.world) { if (bt.run && W.scene) bt.run(W.scene); return; } // (bt.run: a scene staged on THE WORLD and run at once -- the child's road, 11-12)
     In.pinned = bt.dice ? bt.dice.slice() : null; In.beatRun = bt.floorRun || null; // (floorRun: a scene run on the beat's floor once its own script is done -- the Bucket List, 11-13)
     In.carryFresh = false; In.duePlay = bt.due ? Object.assign({}, bt.due) : In.duePlay && bt.key ? null : In.duePlay; // (bt.due: a beat that opens inside the due's played night -- the rite at the window, 11-12; any other floor beat starts clean)

@@ -13,7 +13,7 @@
   // ---------------------------------------------------------------- the day (THE WORLD's clock: js/world.js S.t; counted as W.day and In.day count it -- DAY 1 EVERYWHERE, RULED 2026-11-16,
   // Griz: "Day 1 starts the sunrise after the gnoll king dies, gnoll kings death day is day 0, 1 is first day of player control"; and 11-18, "Day 1 is just clarifying the moot
   // death and release of the mane is day 0 and characters start on day 1": S.t 0 is the morning of Day 1, the moot the night before play; a test door's &day= is Day 1-based too)
-  H16.day = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; if (S && S.t != null) return Math.floor(S.t / 24) + 1; var m = /[?&]day=(\d+)/.exec((window.location && location.search) || ''); return m ? +m[1] : 1; };
+  H16.day = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; if (S && S.t != null) return D.world.dayAt(S.t); var m = /[?&]day=(\d+)/.exec((window.location && location.search) || ''); return m ? +m[1] : D.world.START_DAY; };
   // the day the Pit's news is in town: the second day of play (RULED 2026-11-16, Griz, told that with the moot before play the news would reach town the first morning: "Let the news
   // continue to get there on the second day, they don't have cell phones.")
   H16.NEWS_DAY = 2;
@@ -646,8 +646,8 @@
     place: 'The Hex, the third floor', what: 'the council'
   };
   H16.HESSLE = { before: 'The board. Read it. The scales pay what\'s posted, sworn before notary.', five: 'Five names off the book\'s dead side. The town noticed.' }; // (his word at the Weigh-House before the notice; after the five with no herd thinned)
-  H16.NOTICE_AT = 24 + 17; // (the council's night: Day 2, from dusk -- THE WORLD's S.t in hours)
-  H16.NOTICE_END = 48 + 5; // (and its end: Day 3's dawn -- the lamp burns past the fourth bell, the council at the table all that night)
+  H16.NOTICE_AT = D.world.tAt(2, 17); // (the council's night: Day 2, from dusk -- THE WORLD's S.t in hours)
+  H16.NOTICE_END = D.world.tAt(3, 5); // (and its end: Day 3's dawn -- the lamp burns past the fourth bell, the council at the table all that night)
   H16.clockT = function () { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; return S && S.t != null ? S.t : null; };
   H16.noticeNight = function () { var t = H16.clockT(); return t != null && t >= H16.NOTICE_AT && t < H16.NOTICE_END; };
   H16.councilsDue = function (flags) {

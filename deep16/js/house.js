@@ -576,7 +576,7 @@
   };
   Morning.prototype.box = function (n) { var vis = Math.min(12, Math.max(2, n)), w = 340; return { x: (D.W - w) / 2, y: 18, w: w, h: 30 + vis * 12, vis: vis }; };
   Morning.prototype.dawnLines = function () {
-    var W = D.world, when = W && W.house && W.house() && W.state ? 'day ' + (Math.floor(W.state().t / 24) + 1) + ', ' + W.timeOfDay() : '';
+    var W = D.world, when = W && W.house && W.house() && W.state ? 'day ' + (D.world.dayAt(W.state().t)) + ', ' + W.timeOfDay() : '';
     var out = ['{y}' + (this.o.title || 'MORNING') + '{/}' + (when ? ' -- ' + when + '.' : '')].concat(this.o.line ? [this.o.line] : [], [say('g.rested')], this.o.lines || []), w = 320, ls = [];
     out.forEach(function (l, k) { if (k) ls.push(''); ls = ls.concat(D.wrap(l, w - 20)); });
     return ls;
@@ -692,7 +692,7 @@
   };
   H.line = function (n, rec) {
     if (!rec) return { n: n, l: 'SLOT ' + n + '   -- empty --', r: '' };
-    var lead = rec.party[0] || {}, d = rec.world && rec.world.t != null ? Math.floor(rec.world.t / 24) + 1 : 1, when = rec.saved ? new Date(rec.saved) : null;
+    var lead = rec.party[0] || {}, d = rec.world && rec.world.t != null ? D.world.dayAt(rec.world.t) : D.world.START_DAY, when = rec.saved ? new Date(rec.saved) : null;
     return { n: n, l: 'SLOT ' + n + '   ' + lead.name + ' L' + lead.lvl + '   ' + H.where(rec), r: 'day ' + d + (when ? '  ' + (when.getMonth() + 1) + '/' + when.getDate() + ' ' + ('0' + when.getHours()).slice(-2) + ':' + ('0' + when.getMinutes()).slice(-2) : '') };
   };
 
@@ -984,7 +984,7 @@
   // inside the second game, so a note is written where it happened. The draft keeps across slots and loads (H.NKEY); each opening stamps a line with the day, the hour
   // and the place; SAVE writes hero_situations_feedback-<UTC>.json with the game as it stands -- a summary on top, the whole save under it (the trail in it)
   H.NKEY = 'deep16.game.notes';
-  H.day = function (rec) { var t = H.clock(rec); return t != null ? Math.floor(t / 24) + 1 : 1; };
+  H.day = function (rec) { var t = H.clock(rec); return t != null ? D.world.dayAt(t) : D.world.START_DAY; };
   H.atNow = function (rec) { var B = D.scenes.filter(function (s) { return s.roam && s.roam.token; })[0]; try { return B && D.roam.def ? H.atOf(B) : rec.at || {}; } catch (e) { return rec.at || {}; } }; // (where they stand now: the floor's token, else the save's)
   H.stamp = function () {
     var rec = H.cur, W = D.world, at = H.atNow(rec), sq = at.town && at.sq ? ' ' + at.sq.join(',') : '', hx = !at.town && rec.world && rec.world.at ? ' hex ' + rec.world.at.join(',') : '';

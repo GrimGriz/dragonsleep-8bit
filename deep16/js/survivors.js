@@ -155,7 +155,7 @@
     return SV.dirOf(c1[0] - c0[0], c1[1] - c0[1]);
   };
   SV.when = function (r) { // (the day and the hour it happened: a made thing's at first light, the Snoot's at the hour of its step -- js/snootroad.js SR.HOURS)
-    var d = W.day() - (Math.floor(r.t0 / 24) + 1), h = ((r.t0 % 24) + 24) % 24, part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+    var d = W.day() - (W.dayAt(r.t0)), h = ((r.t0 % 24) + 24) % 24, part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
     if (h <= HG.DAWN) return d <= 0 ? 'this morning, at first light' : d === 1 ? 'yesterday, at first light' : d + ' mornings back, at first light';
     return d <= 0 ? 'this ' + part : d === 1 ? 'yesterday ' + part : d + ' days back, in the ' + part;
   };
@@ -273,7 +273,7 @@
   ];
   SV.LVL = 3;
   SV.find = function (zone, kinds, S) { // (a save's seed with a band of that ground and kind on the road: the first of 400)
-    for (var sd = 1; sd <= 400; sd++) { S.seed = sd; var tF = (40 - 1) * 24 + 12, R = { ref: HG.sim(tF).ref.concat(HG.more ? HG.more(tF) : []) }, r = R.ref.filter(function (x) { return x.zone === zone && kinds.indexOf(x.kind) >= 0 && x.arrive - x.t0 > 6; })[0]; if (r) return { seed: sd, r: r }; }
+    for (var sd = 1; sd <= 400; sd++) { S.seed = sd; var tF = W.tAt(40) + 12, R = { ref: HG.sim(tF).ref.concat(HG.more ? HG.more(tF) : []) }, r = R.ref.filter(function (x) { return x.zone === zone && kinds.indexOf(x.kind) >= 0 && x.arrive - x.t0 > 6; })[0]; if (r) return { seed: sd, r: r }; }
     return null;
   };
   SV.play = function (bt) {
@@ -353,7 +353,7 @@
     var H = D.house, In = D.inn, C = D.counter, rec = H.fresh(); rec.at = { town: null }; H.begin(rec, 0, '?world');
     var S0 = W.state(), f = SV.findArrive(bt.arrive, S0); if (!f) { if (W.scene) W.scene.say('No band bound there in 400 saves.'); return; }
     var t = f.r.arrive + (bt.arrive === 'inn' ? 1 : 0.5);
-    if (bt.arrive === 'inn') In.play({ key: In.KEY, at: [24, 17], day: Math.floor(t / 24) + 1, hour: t % 24, inside: true, lvl: SV.LVL, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } });
+    if (bt.arrive === 'inn') In.play({ key: In.KEY, at: [24, 17], day: W.dayAt(t), hour: t % 24, inside: true, lvl: SV.LVL, flags: { reachedInn: 1, gennetNamed: 1, mealHad: 1 } });
     else { C.servicePlay({ hours: 1, door: 'inn:cassia', t: t, flags: { councilNotice: 1, councilSeen: 1 } }); if (H.cur) SV.raise(H.cur.party); }
     var S = W.state(); S.seed = f.seed; S.metRef = []; S.madeFed = {}; S.t = t; S.svAt = { site: bt.arrive, since: f.r.arrive - 1 }; W.save();
     if (In) In.pinned = bt.dice ? bt.dice.slice() : null;

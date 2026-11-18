@@ -58,7 +58,7 @@
     var MW = W.Mworld(), m = site(MW, 'moot');
     if (b.from === 'moot') return m ? m.hex.slice() : null;
     if (b.from === 'wall') return SR.SEATS.wall.slice();
-    var v = W.vesselAt((3 - 1) * 24 + W.VESSEL.makeHour); return v ? v.hex.slice() : null; // ('made': where the Harbinger was made, noon of day 3)
+    var v = W.vesselAt(W.tAt(3) + W.VESSEL.makeHour); return v ? v.hex.slice() : null; // ('made': where the Harbinger was made, noon of day 3)
   };
   SR.left = function (b, t) { // (a band's own, after what the party has killed of it by the hour)
     var S = W.state(), c = Object.assign({}, b.comp); ((S && S.snootLoss && S.snootLoss[b.id]) || []).forEach(function (l) { if (l.t > t) return; Object.keys(l.k).forEach(function (k) { c[k] = Math.max(0, (c[k] || 0) - l.k[k]); }); });
@@ -70,14 +70,14 @@
   SR.sim = function (t) { // (every band's road, every farm burned and every band of survivors by the hour t)
     var S = W.state(), MW = W.Mworld(), none = { by: {}, burned: {}, ref: [], rolls: 0, found: 0 }; if (!SR.on || !S || !MW) return none;
     if (t == null) t = S.t;
-    var seed = (S.seed >>> 0) || 1, tEnd = Math.min(t, (SR.BOARD - 1) * 24), key = seed + '|' + Math.floor(tEnd) + '|' + JSON.stringify(S.snootLoss || {});
+    var seed = (S.seed >>> 0) || 1, tEnd = Math.min(t, W.tAt(SR.BOARD)), key = seed + '|' + Math.floor(tEnd) + '|' + JSON.stringify(S.snootLoss || {});
     if (CACHE.key === key && CACHE.src === MW) return CACHE.res;
     var w = MW.w, FM = HG.farms(), pit = site(MW, 'pit'), goal = pit ? [pit.x, pit.y] : [0, 0], keep = {}, burned = {}, ref = [], by = {}, rolls = 0, found = 0;
     HG.REFUGES.forEach(function (id) { var s = site(MW, id); if (s) keep[K(s.hex[0], s.hex[1])] = id; });
     var ok = function (h) { var e = MW.hex[K(h[0], h[1])], T = e && MW.terr[e.t]; return !!(T && +T.cost > 0) && !keep[K(h[0], h[1])]; };
-    SR.BANDS.forEach(function (b, bi) { var s0 = SR.start(b); by[b.id] = { b: b, hex: s0, out: (b.out[0] - 1) * 24 + b.out[1], hold: -1, gone: SR.goneAt(b), trail: [], burned: 0 }; });
-    for (var d = 1; (d - 1) * 24 <= tEnd; d++) SR.HOURS.forEach(function (h, hi) {
-      var T = (d - 1) * 24 + h; if (T > tEnd) return;
+    SR.BANDS.forEach(function (b, bi) { var s0 = SR.start(b); by[b.id] = { b: b, hex: s0, out: W.tAt(b.out[0]) + b.out[1], hold: -1, gone: SR.goneAt(b), trail: [], burned: 0 }; });
+    for (var d = 1; W.tAt(d) <= tEnd; d++) SR.HOURS.forEach(function (h, hi) {
+      var T = W.tAt(d) + h; if (T > tEnd) return;
       SR.BANDS.forEach(function (b, bi) {
         var x = by[b.id]; if (!x.hex || T < x.out || T < x.hold || (x.gone != null && T >= x.gone)) return;
         var here = hcw(x.hex[0], x.hex[1], w), nb = DIRS.map(function (dd) { return [x.hex[0] + dd[0], x.hex[1] + dd[1]]; }).filter(ok); if (!nb.length) return;
@@ -101,7 +101,7 @@
     SR.BANDS.forEach(function (b) {
       var x = R.by[b.id]; if (!x || !x.hex || t < x.out) return;
       var tr = x.trail.filter(function (s) { return s.T <= t; }), last = tr[tr.length - 1], hex = last ? last.hex : SR.start(b), left = SR.left(b, t), gone = x.gone != null && t >= x.gone;
-      var busy = !!last && last.found > 0 && t < last.T + SR.HOLD, moved = !!last && !busy && t - last.T < 4 && t < (SR.BOARD - 1) * 24;
+      var busy = !!last && last.found > 0 && t < last.T + SR.HOLD, moved = !!last && !busy && t - last.T < 4 && t < W.tAt(SR.BOARD);
       out.push({ id: b.id, tribe: b.tribe, name: b.name, of: total(b.comp), hex: hex, pt: hcw(hex[0], hex[1], MW.w), left: left, n: total(left), gone: gone, busy: busy, moving: moved, burned: tr.reduce(function (n, s) { return n + s.found; }, 0), trail: tr });
     });
     return out;
@@ -112,13 +112,13 @@
     var S = W.state(), MW = W.Mworld(); if (!SR.on || !S || !MW) return null; if (t == null) t = S.t;
     var at = site(MW, siteId), best = null; if (!at) return null;
     SR.refugees(t).forEach(function (r) { var h = r.arrive + (r.to === siteId ? 0 : Math.hypot(at.x - r.toPt[0], at.y - r.toPt[1]) / HG.CART * 24); if (best == null || h < best) best = h; });
-    return best == null ? null : Math.floor(best / 24) + 1;
+    return best == null ? null : W.dayAt(best);
   };
   SR.board = function (t) { // (for the Snoot's board as it opens: each band's hex in the board's own offset columns too, what is left of it, the farms burned)
     var S = W.state(); if (!S) return null; if (t == null) t = S.t; var R = SR.sim(t);
-    return { day: Math.floor(t / 24) + 1, boardDay: SR.BOARD, bands: SR.bands(t).map(function (x) { return { id: x.id, tribe: x.tribe, hex: x.hex, offset: [x.hex[0] + (x.hex[1] - (x.hex[1] & 1)) / 2, x.hex[1]], of: x.of, left: x.left, gone: x.gone, busy: x.busy, burned: x.burned }; }), burned: Object.keys(R.burned).filter(function (id) { return R.burned[id] <= t; }) };
+    return { day: W.dayAt(t), boardDay: SR.BOARD, bands: SR.bands(t).map(function (x) { return { id: x.id, tribe: x.tribe, hex: x.hex, offset: [x.hex[0] + (x.hex[1] - (x.hex[1] & 1)) / 2, x.hex[1]], of: x.of, left: x.left, gone: x.gone, busy: x.busy, burned: x.burned }; }), burned: Object.keys(R.burned).filter(function (id) { return R.burned[id] <= t; }) };
   };
-  var save0 = W.save; W.save = function () { try { if (W.house() && D.house.cur) { var sr = SR.board(); sr.atBoard = SR.board((SR.BOARD - 1) * 24); D.house.cur.snootRoad = sr; } /* (atBoard: the bands as they will stand at the dawn of SR.BOARD with what the party has killed by now, so a save kept days before it still opens the board right -- the Snoot seat's ask, 11-15; `of`: a band's whole size) */ } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
+  var save0 = W.save; W.save = function () { try { if (W.house() && D.house.cur) { var sr = SR.board(); sr.atBoard = SR.board(W.tAt(SR.BOARD)); D.house.cur.snootRoad = sr; } /* (atBoard: the bands as they will stand at the dawn of SR.BOARD with what the party has killed by now, so a save kept days before it still opens the board right -- the Snoot seat's ask, 11-15; `of`: a band's whole size) */ } catch (e) { /* (the clock must never stop the walk) */ } return save0.apply(this, arguments); };
 
   // ---------------------------------------------------------------- the run-in
   SR.LINES = { // (the clock seat's drafts, his to cut)
@@ -129,12 +129,12 @@
   };
   SR.party = function () { return (W.house() && D.house.cur && D.house.living ? D.house.living(D.house.cur) : null) || SR.testParty || null; };
   SR.here = function (scene) { // (the band in the party's hex, not yet run into today)
-    var S = W.state(), MW = W.Mworld(); if (!SR.on || !S || !MW || /[?&]noenc\b/.test((scene && scene.q) || '') || S.t >= (SR.BOARD - 1) * 24) return null;
+    var S = W.state(), MW = W.Mworld(); if (!SR.on || !S || !MW || /[?&]noenc\b/.test((scene && scene.q) || '') || S.t >= W.tAt(SR.BOARD)) return null;
     var pt = W.partyPt(); if (!pt) return null; var ph = hexOf(pt[0], pt[1], MW.w), met = S.snootMet || {};
     return SR.bands().filter(function (x) { return !x.gone && x.n > 0 && x.hex[0] === ph[0] && x.hex[1] === ph[1] && met[x.id] !== W.day(); })[0] || null;
   };
   SR.signs = function (scene) { // (dust, smoke or a glow from the hexes beside the party: once a band a day)
-    var S = W.state(), MW = W.Mworld(); if (!SR.on || !S || !MW || S.t >= (SR.BOARD - 1) * 24) return null;
+    var S = W.state(), MW = W.Mworld(); if (!SR.on || !S || !MW || S.t >= W.tAt(SR.BOARD)) return null;
     var pt = W.partyPt(); if (!pt) return null; var ph = hexOf(pt[0], pt[1], MW.w), seen = S.snootSign = S.snootSign || {}, night = W.isNight(), line = null;
     SR.bands().forEach(function (x) {
       if (line || x.gone || !x.n || seen[x.id] === W.day()) return; var di = -1; DIRS.forEach(function (d, i) { if (ph[0] + d[0] === x.hex[0] && ph[1] + d[1] === x.hex[1]) di = i; }); if (di < 0) return;

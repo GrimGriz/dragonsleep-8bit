@@ -303,7 +303,15 @@
   };
   W.save = function () { if (W.house()) { D.house.cur.world = S; return; } try { localStorage.setItem(W.KEY, JSON.stringify(S)); } catch (e) { /* (the walk goes on unkept) */ } }; // (in the house the walk is kept by SAVE, js/house.js)
   W.state = function () { return S; };
-  W.day = function () { return Math.floor(S.t / 24) + 1; };
+  // THE PARTY'S START DAY, ONE NUMBER (11-18, the clock-road seat, on the lanes desk's relay of his lean -- "Keeping day 0 as relative to the Snoot and letting the party form two
+  // weeks earlier is what feels like the way to go at present", NOT ruled -- and his ruled Day 1, "Day 1 is just clarifying the moot death and release of the mane is day 0 and
+  // characters start on day 1"): every day is counted from the moot (Day 0); W.START_DAY is the day the party's first morning falls on, and S.t 0 is that day's midnight. Every
+  // clock gate that names a day -- the makings and the Vessel, the wagon and the due, the news, the Snoot's road and its board, the council's night -- goes through W.dayAt / W.tAt,
+  // so moving the party's start is this one edit and the moot's calendar stays where it is
+  W.START_DAY = 1;
+  W.dayAt = function (t) { return Math.floor(t / 24) + W.START_DAY; }; // (the day S.t falls on)
+  W.tAt = function (d, h) { return (d - W.START_DAY) * 24 + (h || 0); }; // (S.t at hour h of day d)
+  W.day = function () { return W.dayAt(S.t); };
   W.hour = function () { return S.t % 24; };
   W.todAt = function (h) { return h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17 ? 'afternoon' : h < 20 ? 'dusk' : 'night'; };
   W.timeOfDay = function () { return W.todAt(W.hour()); };
@@ -334,7 +342,7 @@
     else if (/[?&]glowseep\b/.test(this.q) && M.near && M.pathById.mile) { S.at = M.pathById.mile.hexes[0].slice(); S.rv = ['mile', 0]; S.pos = W.passPt(S.rv); W.closeIn(); } // (&glowseep: the party at the fork on the mile, the Glowseep's door a hex up the road -- its door on the road since 11-05, tools/hexmap.js seedGlowseepRoad; js/eyes.js eyes-glowseep-road-1105)
     else if (/[?&]close\b/.test(this.q)) W.closeIn(); // (&close: open at the area's closest zoom, the built squares' show door -- js/eyes.js eyes-edifice-1103)
     var vq = /[?&]vessel(?:=(\d+))?\b/.exec(this.q); W.VESSEL.show = vq ? { play: !vq[1] } : null; // (&vessel: THE VESSEL'S ROAD's show, above -- the clock his, the camera on the junction)
-    if (vq) { if (vq[1]) S.t = (+vq[1] - 1) * 24 + 12; var vj = MS.world.sites.filter(function (s) { return s.id === W.VESSEL.to; })[0]; if (vj && !M.near) { this.cam = { cx: vj.x - 15, cy: vj.y + 12 }; this.zi = 1; this.zBasePx = this.zooms()[this.zi]; } }
+    if (vq) { if (vq[1]) S.t = W.tAt(+vq[1]) + 12; var vj = MS.world.sites.filter(function (s) { return s.id === W.VESSEL.to; })[0]; if (vj && !M.near) { this.cam = { cx: vj.x - 15, cy: vj.y + 12 }; this.zi = 1; this.zBasePx = this.zooms()[this.zi]; } }
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
   World.prototype.exit = function () { W.active = false; };
@@ -1032,11 +1040,11 @@
     if (fs) for (var k = 1; k < pts.length; k++) { var p0 = pts[k - 1], p1 = pts[k], vx = p1[0] - p0[0], vy = p1[1] - p0[1], L2 = vx * vx + vy * vy, u = L2 ? Math.max(0, Math.min(1, ((fs.x - p0[0]) * vx + (fs.y - p0[1]) * vy) / L2)) : 0, dk = Math.hypot(fs.x - p0[0] - u * vx, fs.y - p0[1] - u * vy); if (dk < hd) { hd = dk; hE = p0[2] + (p1[2] - p0[2]) * u; } }
     VR.src = MW; VR.pts = pts; VR.holdE = hE; VR.holdOff = hd; return pts;
   };
-  W.vesselPause = function () { var V = W.VESSEL, k = V.taking; if (!k || !(k.hours > 0)) return null; var p0 = (k.day - 1) * 24 + V.makeHour; return [p0, p0 + k.hours]; }; // (THE STONE GIANTS' DAY: the hours he stands)
+  W.vesselPause = function () { var V = W.VESSEL, k = V.taking; if (!k || !(k.hours > 0)) return null; var p0 = W.tAt(k.day) + V.makeHour; return [p0, p0 + k.hours]; }; // (THE STONE GIANTS' DAY: the hours he stands)
   W.vesselTaking = function (t) { var P = W.vesselPause(); if (t == null) t = S ? S.t : 0; if (!P || t < P[0]) return null; var at = W.vesselAt(P[0]); return at ? { day: W.VESSEL.taking.day, t: P[0], until: P[1], pt: at.pt, hex: at.hex, over: t >= P[1] } : null; }; // (the taking, once it has begun: where, and whether he has walked on)
   W.vesselMiles = function (t) { var P = W.vesselPause(); if (!P || t <= P[0]) return W.vesselWalked(t); return W.vesselWalked(Math.max(t, P[1])) - (W.vesselWalked(P[1]) - W.vesselWalked(P[0])); }; // (the walk with the stone giants' day out of it)
   W.vesselWalked = function (t) { // (the walk's miles by S.t: none before dawn of day 2, 12 a day dawn to dusk; vesselAt holds him at the Warded Fort)
-    var V = W.VESSEL, d = Math.floor(t / 24) + 1, h = t - (d - 1) * 24;
+    var V = W.VESSEL, d = W.dayAt(t), h = t - W.tAt(d);
     if (d < V.day0) return 0; // (no cap here: vesselAt holds him at the Warded Fort -- RULED 11-12, "1 - he's supposed to hold at the warded fort")
     return (d - V.day0) * V.mpd + V.mpd * Math.max(0, Math.min(1, (h - V.dawn) / (V.dusk - V.dawn)));
   };
@@ -1046,10 +1054,10 @@
     for (var i = 1; i < pts.length; i++) if (pts[i][2] >= e) { var a = pts[i - 1], b = pts[i], f = b[2] > a[2] ? (e - a[2]) / (b[2] - a[2]) : 0; p = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; break; }
     return { pt: [p[0], p[1]], hex: atw(p[0], p[1], MS.world.w), mi: e, held: e >= VR.holdE, end: VR.holdE, fortOff: VR.holdOff };
   };
-  W.vesselArrives = function () { var pts = W.vesselRoad(), V = W.VESSEL; if (!pts) return Infinity; var when = function (E) { var n = Math.floor(E / V.mpd); return (V.day0 + n - 1) * 24 + V.dawn + (E - n * V.mpd) / V.mpd * (V.dusk - V.dawn); }, P = W.vesselPause(), t0 = when(VR.holdE); return P && t0 > P[0] ? when(VR.holdE + W.vesselWalked(P[1]) - W.vesselWalked(P[0])) : t0; }; // (S.t at the Warded Fort: he is held from it)
+  W.vesselArrives = function () { var pts = W.vesselRoad(), V = W.VESSEL; if (!pts) return Infinity; var when = function (E) { var n = Math.floor(E / V.mpd); return W.tAt(V.day0 + n) + V.dawn + (E - n * V.mpd) / V.mpd * (V.dusk - V.dawn); }, P = W.vesselPause(), t0 = when(VR.holdE); return P && t0 > P[0] ? when(VR.holdE + W.vesselWalked(P[1]) - W.vesselWalked(P[0])) : t0; }; // (S.t at the Warded Fort: he is held from it)
   W.makings = function (t) { // (the makings made by S.t: each its day, its place, its reach now)
     if (t == null) t = S ? S.t : 0; var V = W.VESSEL, tA = W.vesselArrives(), tg = Math.min(t, tA);
-    return V.makings.map(function (d) { var tm = (d - 1) * 24 + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean)
+    return V.makings.map(function (d) { var tm = W.tAt(d) + V.makeHour, at = W.vesselAt(tm); return at && t >= tm && tm <= tA ? { day: d, t: tm, pt: at.pt, hex: at.hex, reach: Math.min(V.reach[2], V.reach[0] + V.reach[1] * Math.max(0, tg - tm) / 24) } : null; }).filter(Boolean)
       .map(function (m) { m.fed = W.madeFedAt(m, t); m.state = W.madeStateAt(m, t); return m; }); // (THE MADE THINGS' CLOCK, below: 'normal', 'withered' or 'gone' -- a gone making is still listed here, and weighs nothing)
   };
   // THE MADE THINGS' CLOCK (RULED 11-14, Griz to the lanes desk: "2 - more than 3 days without feeding they poof out of existence. Approved." -- to the desk's lean that
@@ -1108,7 +1116,7 @@
     if (sv.play) { S.t = 24 + (Math.floor(t * 12 / 120) % (13 * 12)) * 2; } // (from 00:00 of day 2, two hours a frame-tick of 10)
     var gp = function (x, y) { return W.groundAt(cam, x, y); };
     g.strokeStyle = 'rgba(200,120,255,.55)'; g.lineWidth = 2; g.beginPath(); pts.forEach(function (p, i) { var q = gp(p[0], p[1]); if (!i) g.moveTo(q[0], q[1]); else g.lineTo(q[0], q[1]); }); g.stroke(); g.lineWidth = 1;
-    for (var d = W.VESSEL.day0; d <= 13; d++) { var a = W.vesselAt((d - 1) * 24 + W.VESSEL.dusk), q = gp(a.pt[0], a.pt[1]); g.fillStyle = '#c890ff'; g.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 3, 3); D.text(g, '' + d, Math.round(q[0]) + 3, Math.round(q[1]) - 9, '#e0c8ff'); }
+    for (var d = W.VESSEL.day0; d <= 13; d++) { var a = W.vesselAt(W.tAt(d) + W.VESSEL.dusk), q = gp(a.pt[0], a.pt[1]); g.fillStyle = '#c890ff'; g.fillRect(Math.round(q[0]) - 1, Math.round(q[1]) - 1, 3, 3); D.text(g, '' + d, Math.round(q[0]) + 3, Math.round(q[1]) - 9, '#e0c8ff'); }
     W.makings().forEach(function (m) {
       if (m.state === 'gone') return; // (THE MADE THINGS' CLOCK: nothing left to ring)
       g.strokeStyle = 'rgba(232,80,200,.8)'; g.fillStyle = 'rgba(232,80,200,.12)'; g.beginPath();
