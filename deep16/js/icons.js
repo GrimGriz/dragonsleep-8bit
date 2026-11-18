@@ -86,6 +86,9 @@
     lightning: { V: ['gold', 3], v: ['gold', 2], w: ['gold', 4] }, acid: { V: ['moss', 2], v: ['moss', 1], w: ['orc', 3] },
     thunder: { V: ['silver', 5], v: ['silver', 3], w: ['bone', 2] }, force: {}, radiant: { V: ['gold', 4], v: ['gold', 3], w: ['bone', 2] },
     heal: { V: ['moss', 2], v: ['moss', 1], w: ['bone', 2] }, buff: { V: ['glow', 2], v: ['glow', 1], w: ['bone', 2] },
+    // (DISPEL WHICH?'s grounds and clouds in their spell's own colours -- js/grimoire.js dispelGlyph, 11-18: the slick's leathers, the cloud's silvers)
+    vines: { L: ['moss', 2], l: ['moss', 1] }, thorns: { L: ['red', 3], l: ['leather', 1] }, shadow: { L: ['violet', 3], l: ['violet', 2] }, frost: { L: ['glow', 1], l: ['blue', 2], S: ['glow', 2], s: ['glow', 1] },
+    poison: { S: ['moss', 2], s: ['moss', 1], L: ['moss', 2], l: ['orc', 3] }, stone: { L: ['silver', 4], l: ['silver', 3] }, gilt: { L: ['gold', 3], l: ['gold', 2] }, sulphur: { S: ['gold', 3], s: ['gold', 2] }, swarm: { L: ['fire', 0], l: ['leather', 1] },
     antitoxin: { r: ['moss', 1], R: ['moss', 2] }, damage: { r: ['fire', 0], R: ['fire', 1] }, revive: { r: ['bone', 0], R: ['bone', 1] }, cure: { r: ['glow', 0], R: ['glow', 1] }
   };
   var cache = {};

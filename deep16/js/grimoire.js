@@ -1321,13 +1321,16 @@
     if (k === 'zones') return z.id === 'moonbeam' ? zoneSq(z) : z.id === 'gustofwind' ? gustSq(B, z) : G.sphere(z.x, z.y, 5);
     var c = B.units.filter(function (w) { return w.id === z.by; })[0];
     if (k === 'auras' || k === 'shells') { if (!c) return []; var r = k === 'shells' ? 10 : (z.r || 15), out = []; for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) if (G.dist(c, { x: x, y: y, size: 1 }) <= r) out.push([x, y]); return out; }
+    if (k === 'globes') { var og = []; for (var gy = z.y - 2; gy <= z.y + 2; gy++) for (var gx = z.x - 2; gx <= z.x + 2; gx++) if (sqIn(z, gx, gy)) og.push([gx, gy]); return og; } // (the Globe of Invulnerability: the squares inside it -- 11-18, sqIn below)
     if (k === 'lights') { var rr = Math.max(0, Math.floor((z.bright || 0) / 5)), o2 = []; for (var dy = -rr; dy <= rr; dy++) for (var dx = -rr; dx <= rr; dx++) o2.push([z.x + dx, z.y + dy]); return o2; }
     return z.x != null ? [[z.x, z.y]] : [];
   }
   M.effectSq = effectSq;
   M.effectsAt = function (B, x, y) {
     var out = [];
-    ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'].forEach(function (k) {
+    // (globes: 11-18, the popup-ring seat, on his "confirm other spells dispelled also and not just grease and web" -- every spell the engine lays was listed but the Globe of
+    // Invulnerability, whose record named no spell and was not looked at; a square inside it lists it now, Dispel Magic's check at DC 16 to end it)
+    ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells', 'globes'].forEach(function (k) {
       (B[k] || []).forEach(function (z) {
         if (!z || !z.castId || !effectSq(B, k, z).some(function (q) { return q[0] === x && q[1] === y; })) return;
         if (out.some(function (o) { return o.id === z.castId && o.by === z.by; })) return; // (one spell, one entry: a web's squares and its fog are the one Web)
@@ -1382,7 +1385,14 @@
   // DISPEL WHICH?'s glyphs (11-18, the popup-ring seat; the lanes desk's demo of 11-16 showed Grease and Web the one star, told apart only by the label -- and both are
   // conjuration with no element, so neither the school nor the element would part them): a spell by what it lays on the floor -- a ground (Grease, Spike Growth,
   // Entangle), a web, a cloud (a zone: Fog Cloud, Moonbeam, Silence), a dark, a wall -- and the rest (an aura, a ward, a light) the star in its element's colours
-  var DISPEL_GLYPH = { grounds: 'slick', webs: 'web', zones: 'cloud', darks: 'dark', walls: 'wall' };
+  // (11-18, the second pass, on his check: every kind its own glyph -- a cloud for an obscuring one, the dark orb for Darkness alone, rings for an aura, a bubble for a globe or
+  // a shell, a lantern for a light, the sword for a spiritual weapon, the guardian's blade for a ward, a bead for Delayed Blast Fireball; a zone (Moonbeam, a Flaming Sphere) the
+  // star in its element's colours -- and a ground or a cloud in the spell's own colours, so two on one square part: Entangle's vines green, Spike Growth's thorns red, Black
+  // Tentacles' shadow, the ice of Ice Storm and Sleet Storm, Stinking Cloud's yellow, Cloudkill's green, Insect Plague's swarm)
+  var DISPEL_GLYPH = { grounds: 'slick', webs: 'web', darks: 'cloud', walls: 'wall', auras: 'distancing', wards: 'sacred', beads: 'cannonball', lights: 'lantern', spirits: 'attack', shells: 'bubble', globes: 'bubble' };
+  var DISPEL_TINT = { entangle: 'vines', spikegrowth: 'thorns', blacktentacles: 'shadow', icestorm: 'frost', sleetstorm: 'frost', stinkingcloud: 'sulphur', cloudkill: 'poison', insectplague: 'swarm', earthquake: 'stone', symbol: 'gilt', antilifeshell: 'heal' };
+  function dispelGlyph(e) { if (e.id === 'darkness') return { icon: 'dark', tint: '' }; var gl = DISPEL_GLYPH[e.k]; return gl ? { icon: gl, tint: DISPEL_TINT[e.id] || '' } : { icon: 'spell', tint: elTint(e.id) }; }
+  M.dispelGlyph = dispelGlyph; // (dev/bench16.js popupring1118)
   function elTint(id) { var sp = M.data(id) || {}; return { fire: 'fire', cold: 'cold', lightning: 'lightning', acid: 'acid', thunder: 'thunder', bludgeoning: 'cold', radiant: 'radiant' }[sp.el] || (sp.kind === 'heal' || sp.kind === 'cure' ? 'heal' : sp.kind === 'buff' ? 'buff' : 'force'); }
   E.dispelmagic = {
     summary: function (e) { return 'a creature within 120 ft, or a spell\'s area (an empty square in it) · its spells end: a hold, a web, a blessing, a haste, a ward, a darkness; ' + ordinal(Math.max(3, e.slot || 3)) + ' level and lower at once, a held spell above that needs your spellcasting check, DC 10 + its level'; },
@@ -1391,7 +1401,7 @@
       // a square of a spell's area: that spell (one of them, where two lie on the square: a player's caster is asked which)
       if (t && t.x != null && t.hp == null) {
         var efs = M.effectsAt(B, t.x, t.y), ef = efs[0];
-        if (efs.length > 1 && u.side === 'party' && !u.guest) ef = yield { prompt: { who: u, ring: true, title: u.name + ': DISPEL WHICH?', lines: ['Two spells lie on that square.'], opts: efs.map(function (e) { var gl = DISPEL_GLYPH[e.k]; return { label: e.name.toUpperCase() + ' (' + ordinal(e.lv) + ')', value: e, icon: gl || 'spell', tint: gl ? '' : elTint(e.id), note: e.name + ', cast at ' + ordinal(e.lv) + ' level, lies on that square: dispel it.' }; }) } }; // (ring, icons, notes: THE POPUP RULE -- js/ui.js promptRing; the lanes desk's demo of 11-16, the game's since 11-18)
+        if (efs.length > 1 && u.side === 'party' && !u.guest) ef = yield { prompt: { who: u, ring: true, title: u.name + ': DISPEL WHICH?', lines: [(efs.length === 2 ? 'Two' : efs.length === 3 ? 'Three' : efs.length === 4 ? 'Four' : efs.length) + ' spells lie on that square.'], opts: efs.map(function (e) { var gl = dispelGlyph(e); return { label: e.name.toUpperCase() + ' (' + ordinal(e.lv) + ')', value: e, icon: gl.icon, tint: gl.tint, note: e.name + ', cast at ' + ordinal(e.lv) + ' level, lies on that square: dispel it.' }; }) } }; // (ring, icons, notes: THE POPUP RULE -- js/ui.js promptRing; the lanes desk's demo of 11-16, the game's since 11-18)
         if (!ef) { B.card([head + ': no spell lies on that square.']); yield 16; return; }
         var ok = ef.lv <= top, r0 = 0, tot0 = 0;
         if (!ok) { r0 = D.d(20); tot0 = r0 + M.mod(u); ok = tot0 >= 10 + ef.lv; }
@@ -1427,6 +1437,11 @@
         mine.forEach(function (k) { delete t.conds[k]; }); if (mine.indexOf('feared') >= 0) delete t.conds.frightened; if (mine.indexOf('confused') >= 0 && t.hp > 0) t.reaction = 1;
         ended[ended.length - 1] += ' (on ' + nm(B, t) + ' alone: ' + c.name + ' holds it on the rest)';
       });
+      // WHAT A SPELL MADE OF IT, OR CALLED UP AS IT (11-18, the popup-ring seat, on his "confirm other spells dispelled also and not just grease and web"; SRD 5.1, "any spell
+      // of 3rd level or lower on the target ends"): a creature a caster's Conjure Animals, Conjure Woodland Beings or Giant Insect called (`summon`), or one their Polymorph
+      // turned into a beast (`beast.morph`), is that spell on it, and it ends whole -- the summons all go, the shape falls away (before, nothing on it named the caster)
+      var mkBy = t.summon ? t.summon.by : t.beast && t.beast.morph ? t.beast.morph.by : null, mk = mkBy != null && B.units.filter(function (w) { return w.id === mkBy; })[0];
+      if (mk && mk !== t && mk.conc && (t.summon ? mk.conc.id === t.summon.id : mk.conc.id === 'polymorph' && (!mk.conc.t || mk.conc.t === t)) && asks(mk.conc)) M.endConc(B, mk, 'dispelled');
       if (t.conc) {
         var tc = t.conc.id, gt = M.geo(tc) || {};
         var onIt = gt.shape === 'self' || (B.auras || []).some(function (a) { return a.by === t.id; }) || (B.shells || []).some(function (s) { return s.by === t.id; }) || marks(t, t, tc).length > 0;
@@ -1437,6 +1452,9 @@
       var UNDO = { longstrider: function () { t.speed -= 10; }, blink: function () { if (t.ethereal) t.ethereal = false; }, shillelagh: function () { if (t.beast && t.beast.keep) t.beast.keep.weapon = t.conds.shillelagh.base; else t.weapon = t.conds.shillelagh.base; } }; // (a druid in a beast's shape keeps the bite: the plain wood goes back to the shape it comes out of -- as the expiry, 10-01c)
       ['mageArmor', 'sanctuary', 'wardingBond', 'longstrider', 'guided', 'noHeal', 'frosted', 'acid', 'blindedBy', 'blinded', 'commanded', 'marked', 'branded', 'poisonWard', 'resistance', 'blink', 'shillelagh'].forEach(function (k) { if (t.conds[k]) { if (k === 'blindedBy' || k === 'blinded') { if (!(t.conds.blinded && t.conds.blinded.held)) { delete t.conds.blinded; delete t.conds.blindedBy; ended.push('blindness'); } return; } if (k === 'mageArmor') t.baseAC = t.conds.mageArmor && t.conds.mageArmor.base != null ? t.conds.mageArmor.base : t.src ? window.DS.R.ac(Object.assign({}, t.src, { conds: {} })) : t.baseAC; if (UNDO[k]) UNDO[k](); delete t.conds[k]; ended.push(k); } }); // (Mage Armor's own record keeps the AC it was cast over -- magic.js; a monster's has no 8-bit sheet to ask)
       if (t.images) { t.images = 0; delete t.conds.mirrorImage; ended.push('the images'); }
+      // (Aid, no concentration and none of its own clock on the grid -- 11-18, the same check: its hit points go, the maximum and as much of the current, the bat-wing pie's
+      // share back where it was given way to (js/rules.js R.pieAid); `aidDispelled` takes it off the sheet at the fight's end too, js/house.js H.takeBack)
+      var aidN = +(t.conds.aid || 0); if (aidN && asks({ id: 'aid', name: 'Aid' })) { t.maxhp = Math.max(1, t.maxhp - aidN); if (t.hp > t.maxhp) t.hp = t.maxhp; delete t.conds.aid; t.aidDispelled = true; if (window.DS && window.DS.R && window.DS.R.pieAid) window.DS.R.pieAid(t); }
       if (t.conds.falseLife) { if (t.temp && t.temp <= t.conds.falseLife.temp) t.temp = 0; delete t.conds.falseLife; ended.push('false life'); } // (its temporary HP go with it -- unless more came since from something else)
       // and any other mark a spell with no concentration left on it (Sleep, Command's word, a Bestow Curse past concentration): by the spell the Globe's stamp names
       // (castId), its level asked as the rest; one with a clock of its own (M.expire) is undone by that clock's undo
@@ -2421,7 +2439,7 @@
     // number (B.castFrom.gin, the M.cast wrapper below) and is "cast from inside" that globe wherever its target goes after
     cast: function* (B, u, t, slot, head) {
       B.globeN = (B.globeN || 0) + 1;
-      var rec = { by: u.id, x: u.x, y: u.y, max: 5 + up({ level: 6 }, slot), n: B.globeN, grow: 0 };
+      var rec = { by: u.id, x: u.x, y: u.y, max: 5 + up({ level: 6 }, slot), n: B.globeN, grow: 0, castId: 'globeofinvulnerability', lv: slot || 6 }; // (castId, lv: Dispel Magic's square pick, M.effectsAt -- 11-18)
       B.globes = (B.globes || []).concat([rec]);
       M.concentrate(B, u, 'globeofinvulnerability', 'Globe of Invulnerability', function () { B.globes = (B.globes || []).filter(function (g) { return g !== rec; }); (B.globesGone = B.globesGone || []).push({ x: rec.x, y: rec.y, t0: B.t }); }); // (globesGone: the pop it goes out with -- looks.js)
       B.card([head + ': a shimmering globe swells out from where ' + u.name + ' stands (concentration).']);

@@ -2090,6 +2090,35 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           okR(c.id + ': the right button nothing either (' + rb + '); a click on the second icon takes "' + (e5 && e5.label) + '" -- ' + JSON.stringify(shown(got5.v)), rb === 0 && !!bt && got5.n === 1 && !!e5 && got5.v === e5.value && !B5.list);
         }
       });
+      // DISPEL WHICH? HOLDS EVERY SPELL LAID THERE (11-18, his check: "confirm other spells dispelled also and not just grease and web (i suspect by SRD spike growth would be
+      // eligible, for example)"): seventeen spells the engine lays, each really cast on one square (the casters' concentration let go of between casts, so each stays), and
+      // Dispel Magic at that square: every one on the pick, past ten in pages of eight, no two with the same glyph; the Globe of Invulnerability among them (its record named
+      // no spell and was not looked at before 11-18); and the pick's Spike Growth ends it
+      var LAIDR = ['globeofinvulnerability', 'grease', 'web', 'spikegrowth', 'entangle', 'blacktentacles', 'icestorm', 'insectplague', 'fogcloud', 'darkness', 'stinkingcloud', 'sleetstorm', 'cloudkill', 'moonbeam', 'flamingsphere', 'guardianoffaith', 'spiritguardians']; // (no Daylight: a Darkness cast into it burns away as it forms, the engine's way, magic.js; the Globe first: an area cast from outside it, or before it rose, is cut out of its inside -- the SRD's "excluded from the areas" -- so the rest are cast from within it)
+      var oL = mkR(), BL = oL.B, PL = { x: 14, y: 10 }; oL.w.x = 14; oL.w.y = 11; oL.c.x = 13; oL.c.y = 11; D.d = function (s) { return s === 20 ? 20 : 1; }; // (every save made, every hurt the least: the two casters stand in it)
+      oL.w.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9]; oL.c.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9];
+      LAIDR.forEach(function (id) { var self = id === 'spiritguardians' || id === 'globeofinvulnerability', cs = id === 'spiritguardians' ? oL.c : oL.w, sp = D.magic.data(id); BL.active = cs; cs.turn.action = 1; cs.turn.bonus = 1; runR(D.magic.cast(BL, cs, id, (sp && sp.level) || 1, self ? cs : { x: PL.x, y: PL.y })); cs.conc = null; }); // (no turn started between: Cloudkill drifts 10 ft off at its caster's)
+      D.d = d0R;
+      var efL = D.magic.effectsAt(BL, PL.x, PL.y), haveL = efL.map(function (e) { return e.id; }), missL = LAIDR.filter(function (id) { return haveL.indexOf(id) < 0; });
+      BL.active = oL.w; D.rules.startTurn(oL.w); var gL = D.magic.cast(BL, oL.w, 'dispelmagic', 3, { x: PL.x, y: PL.y }), stL = gL.next(), kL = 0; while (!stL.done && kL++ < 400 && !(stL.value && stL.value.prompt)) stL = gL.next();
+      var pL = !stL.done && stL.value.prompt, optIds = pL ? pL.opts.map(function (o) { return o.value && o.value.id; }) : [], glyphs = pL ? pL.opts.map(function (o) { return o.icon + (o.tint ? '/' + o.tint : ''); }) : [];
+      var dupL = glyphs.filter(function (g, i) { return glyphs.indexOf(g) !== i; });
+      D.ui.urlMenu = 'ring'; BL.req = stL.value; var gotL = { n: 0, v: undefined }; BL.answer = function (v) { gotL.n++; gotL.v = v; }; D.ui.onRequest(BL, BL.req); var LL = BL.list || {};
+      okR('DISPEL WHICH? holds every spell laid there: ' + haveL.length + ' of ' + LAIDR.length + ' on the square' + (missL.length ? ' (MISSING ' + missL.join(', ') + ')' : '') + '; the pick ' + optIds.length + ', its ring "' + LL.title + '" ' + (LL.items || []).length + ' on the first page; the glyphs ' + glyphs.join(' ') + (dupL.length ? ' -- SHARED: ' + dupL.join(' ') : ', each its own'),
+        !missL.length && !!pL && optIds.length === LAIDR.length && LAIDR.every(function (id) { return optIds.indexOf(id) >= 0; }) && !dupL.length && LL.kind === 'prompt' && LL.pages === 3 && (LL.items || []).length === 9 && optIds.indexOf('globeofinvulnerability') >= 0);
+      var iSG = optIds.indexOf('spikegrowth'); delete BL.answer; runR(gL, pL.opts[iSG].value);
+      var sgLeft = D.magic.effectsAt(BL, PL.x, PL.y).map(function (e) { return e.id; });
+      okR('the pick\'s Spike Growth (2nd) ends it: gone from the square ' + (sgLeft.indexOf('spikegrowth') < 0) + ', the other ' + (sgLeft.length) + ' stay', sgLeft.indexOf('spikegrowth') < 0 && sgLeft.length === LAIDR.length - 1);
+      // and a creature: what a spell put on it or made of it ends with no pick -- Aid's hit points (no concentration), a conjured creature (Conjure Animals: they all go), a foe
+      // turned into a beast by Polymorph (4th: the check, pinned high) -- the three Dispel Magic missed before 11-18
+      var oA1 = mkR(); D.d = function () { return 1; }; oA1.B.active = oA1.c; runR(D.magic.cast(oA1.B, oA1.c, 'aid', 2, { units: [oA1.f] })); D.d = d0R;
+      var mx0 = oA1.f.maxhp, aid0 = oA1.f.conds.aid; oA1.B.active = oA1.w; D.rules.startTurn(oA1.w); runR(D.magic.cast(oA1.B, oA1.w, 'dispelmagic', 3, oA1.f));
+      var oC1 = mkR(); oC1.B.active = oC1.d; runR(D.magic.cast(oC1.B, oC1.d, 'conjureanimals', 3, { x: 8, y: 13 })); var sumC = oC1.B.units.filter(function (u) { return u.summon && !u.dead; });
+      oC1.B.active = oC1.w; D.rules.startTurn(oC1.w); if (sumC[0]) runR(D.magic.cast(oC1.B, oC1.w, 'dispelmagic', 3, sumC[0])); var sumC1 = oC1.B.units.filter(function (u) { return u.summon && !u.dead; }).length;
+      var oP1 = mkR(); oP1.g.abil.wis = 1; D.d = function () { return 1; }; oP1.B.active = oP1.w; runR(D.magic.cast(oP1.B, oP1.w, 'polymorph', 4, oP1.g)); var beP = !!oP1.g.beast;
+      oP1.B.active = oP1.c; D.rules.startTurn(oP1.c); D.d = function (s) { return s === 20 ? 20 : 1; }; runR(D.magic.cast(oP1.B, oP1.c, 'dispelmagic', 3, oP1.g)); D.d = d0R;
+      okR('a creature\'s: Aid (+' + aid0 + ', max ' + mx0 + ') -> max ' + oA1.f.maxhp + ', gone ' + !oA1.f.conds.aid + ', marked for the sheet ' + !!oA1.f.aidDispelled + '; a conjured creature of ' + sumC.length + ' -> ' + sumC1 + ' left, the druid\'s concentration ' + (oC1.d.conc ? oC1.d.conc.id : 'none') + '; a polymorphed goblin ' + beP + ' -> its own shape ' + !oP1.g.beast,
+        aid0 > 0 && oA1.f.maxhp === mx0 - aid0 && !oA1.f.conds.aid && !!oA1.f.aidDispelled && sumC.length > 0 && sumC1 === 0 && !oC1.d.conc && beP && !oP1.g.beast);
       // the show door (deep16/?ringshow, the eyes row's): each of its fourteen staged in a fight of its own raises its prompt on the ring; &p=7 starts at the seventh
       D.ui.urlMenu = 'ring';
       var stageR = function (q, i) { var Bs = D.ui.ringShow(q, i), er = ''; D.battle = Bs; try { Bs.enter(); for (var kS = 0; kS < 400 && Bs.co && !Bs.req; kS++) Bs.step(); } catch (eS) { er = String(eS && eS.message || eS).slice(0, 90); } var pq = Bs.req && Bs.req.prompt; return { er: er, p: pq, ring: !!(pq && pq.ring && Bs.list && Bs.list.kind === 'prompt' && Bs.list.prompt === pq) }; };

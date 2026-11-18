@@ -122,6 +122,7 @@
       var h = JSON.parse(JSON.stringify(u.src));
       h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
       h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor; ['light', 'daylight'].forEach(function (k) { if (!(u.conds && u.conds[k])) delete h.conds[k]; }); if (D.roam && D.roam.flameBack) D.roam.flameBack(h, u); // (a Light that ended in the fight -- cast again on another -- off the sheet too: 10-28; a Continual Flame back as its weapon, 10-28 night)
+      if (u.aidDispelled && h.conds.aid) { h.maxhp = Math.max(1, h.maxhp - h.conds.aid); delete h.conds.aid; if (h.hp > h.maxhp) h.hp = h.maxhp; if (DS.R && DS.R.pieAid) DS.R.pieAid(h); } // (Aid ended by a Dispel Magic in the fight: off the sheet too -- js/grimoire.js, 11-18)
       if (u.slain) { h.dead = true; h.hp = 0; h.ko = true; } // (dead for good in the fight -- battle.js lostForGood, 11-13: the sheet says so; before, one killed outright came back merely down, and the next rest healed them)
       var ue = (u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; if (ue > exh(h)) H.exhaust(h, ue - exh(h)); // (a level the fight laid on, kept on the sheet: js/rules.js RU.exhaust)
       byId[h.key || h.id] = h;
