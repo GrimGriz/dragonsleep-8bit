@@ -3082,7 +3082,7 @@
 "face": 41
 },
 "cockatrice_p1": {
-"image": "art/cockatrice_p1.png?v=5ca5dde6ff",
+"image": "art/cockatrice_p1.png?v=7a5d29c262",
 "fw": 40,
 "fh": 35,
 "ax": 20,
@@ -3164,7 +3164,7 @@
 }
 },
 "name": "Cockatrice",
-"source": "drawn by the art desk (COCKATRICE-DEEP16-SOURCES, 11-15), cut by tools/cockatrice-sheet.py; SW W NW mirrored -- the SRD 5.1 Cockatrice: deep16/data/foes.js cockatrice"
+"source": "drawn by the art desk (ART-WANTED-67 COCKATRICE ILLUSTRATED REDRAW, 11-18: image-generated, 35 pages), cut by tools/cockatrice-sheet.py redraw() by its own recipe on the installed cells; SW W NW mirrored -- the SRD 5.1 Cockatrice: deep16/data/foes.js cockatrice"
 },
 "crawler_p1": {
 "image": "art/crawler_p1.png?v=86d551e726",
