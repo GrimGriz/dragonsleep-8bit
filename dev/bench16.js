@@ -21429,7 +21429,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1115);
       // the costumes cut, a line each as it lands (tools/folk-costume-sheet.py PIECES; art-wanted 65): both sheets on folkman_p1's cell, every unnamed of that costume in it
-      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss', 'clerk', 'drivespear'];
+      var COSTK = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss', 'clerk', 'drivespear', 'agent'];
+      // the factor's agent woman (the art desk's 81, sent beside the man asked): cut, worn by no one -- towns7, the factor's man, is the man
+      var agW = Object.keys(CK.GENERIC).filter(function (id) { return CK.GENERIC[id][0] === 'woman' && CK.GENERIC[id][1] === 'agent'; });
+      okK('the factor\'s agent: towns7 in the man (' + (CK.folkFig && CK.folkFig('towns7')) + '), the woman cut beside him and worn by no one yet (' + (agW.join(', ') || 'none') + ')',
+        !!CK.folkFig && CK.folkFig('towns7') === 'folkman_agent_p1' && !agW.length && !!D.SHEETS.folkwoman_agent_p1);
       // the crew boss man fights in his own figure (the art desk's 78; foes.js crewboss off Hask's hask_p1): its rows, the Mace landing on its frame 4, the night crew's lead
       var FB = D.FOES.crewboss, SB = FB && D.SHEETS[FB.sheet], aB = SB && SB.anims;
       okK('the crew boss fights in his own figure (' + (FB && FB.sheet) + ': ' + (aB ? Object.keys(aB).map(function (k) { return k + ' ' + aB[k].frames + (aB[k].release != null ? ' release ' + aB[k].release : ''); }).join(', ') : 'NONE') + '), leading the night crew down the daytime way (' + D.roam.HOLD_CREW.join(', ') + ')',

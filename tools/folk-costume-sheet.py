@@ -115,6 +115,13 @@ PIECES = {
     # the man as it lands; four walks the art desk held for LOOK (both SE and rear NE), cut as drawn
     'drivespear': dict(folder='2026-11-18-ART-WANTED-80-DRIVE-SPEAR', name='ART-WANTED-80 DRIVE SPEAR ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
                        navy=None, stand=False, unred=0),
+    # the factor's agent (art-wanted 65's piece 5, the art desk's 81, 11-18 night; the cutter seat cutter-1118b): the man asked (Silverton's towns7, the factor's
+    # man, a dark well-cut coat, gloved, a sealed letter in his right hand), the woman sent beside him on the art desk's checkpoint (her South Idle approved
+    # there) -- worn by no one yet. Its own cut atlas taken as drawn (CUTS/, our grid). `unred` on the face only: the man's waistcoat under the coat is an
+    # oxblood red, 15 rows below his crown and down, and her letter's wax seal is red at the hand (30 and down); the snap's red cheeks and ears above them
+    # (his 13 rows, hers 14) moved off red
+    'agent': dict(folder='2026-11-18-ART-WANTED-81-FACTOR-AGENT', name='ART-WANTED-81 FACTOR-AGENT ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1\'s cell',
+                  navy=None, stand=False, unred={'folkman_agent_p1': 13, 'folkwoman_agent_p1': 14}),
     # the crew boss man's fight sheet (the art desk's 78, on his "pasted to the art desk re Crew Boss"): foes.js crewboss wears it, off Hask's
     # hask_p1; its own 96 x 96 cell, the trooper's fight rows (trooper_p2's fps), the Mace's blow landing on its frame 4 (`release` 3)
     'crewbossfight': dict(folder='2026-11-18-ART-WANTED-78-CREW-BOSS-REDRAW', name='ART-WANTED-78 CREW-BOSS ILLUSTRATED REDRAW, 11-18: his fight figure, five views, Ready Idle 4, Walk 8, Mace 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell',
@@ -147,6 +154,10 @@ def frames_of(d):
                          ((int(e['frame']) - 1) * e['cell'][0], 0, e['cell'][0], e['cell'][1])) for e in fm]
             return [(g(e, 'runtime_target', 'person'), e['facing'], g(e, 'action', 'row'), int(e['index']), g(e, 'native_file', 'native_png'),
                      tuple(int(v) for v in g(e, 'native_xywh', 'native_crop_xywh'))) for e in fm]
+        if 'sheets' in fm and 'destination_atlas_xywh' in fm['sheets'][0]['frames'][0]:   # (the factor's agent, 11-18: `sheets` by runtime_target, each
+            # frame's cell in the art desk's own cut atlas CUTS/<target>.png, our town atlas grid -- S SW W NW N NE E SE, idle rows then walk 8 below)
+            return [(s['runtime_target'], s['facing'], s['action'], int(f['frame']) - 1, 'CUTS/%s.png' % s['runtime_target'], tuple(int(v) for v in f['destination_atlas_xywh']))
+                    for s in fm['sheets'] for f in s['frames']]
         if 'sheets' in fm and 'source_png' in fm['sheets'][0]:   # (the gambler's and barkeep's redraws, 11-16: `sheets` map each row to its
             # illustrated source; the art desk's own native cut of that row is 02-native-rows/<the source's name>-1X.png, a transparent strip of cells)
             return [(s['target'], s['facing'], s['action'], f['frame_index'], '02-native-rows/' + os.path.basename(s['source_png'])[:-4] + '-1X.png',

@@ -5118,6 +5118,35 @@
 ],
 "source": "drawn by the art desk (ART-141-DWARF-TOWN, 11-12: art-wanted section 54, the generic dwarf's town figure in five views), cut by tools/folkdwarf-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"folkman_agent_p1": {
+"image": "art/folkman_agent_p1.png?v=c4db13fa89",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-81 FACTOR-AGENT ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
 "folkman_barkeep_p1": {
 "image": "art/folkman_barkeep_p1.png?v=b8a022f782",
 "fw": 72,
@@ -5465,6 +5494,35 @@
 }
 },
 "source": "drawn by the art desk (ART-WANTED-71 SHAFT-HAND ILLUSTRATED REDRAW, 11-15: five views, Idle 4 and Walk 8, image-generated, its native cut 3x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"folkwoman_agent_p1": {
+"image": "art/folkwoman_agent_p1.png?v=136282cdf1",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 47,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-WANTED-81 FACTOR-AGENT ILLUSTRATED, 11-18: five views, Idle 4 and Walk 8, image-generated, its native cut 1x on folkman_p1's cell), cut by tools/folk-costume-sheet.py (11-15)"
 },
 "folkwoman_barkeep_p1": {
 "image": "art/folkwoman_barkeep_p1.png?v=216c1c40d9",

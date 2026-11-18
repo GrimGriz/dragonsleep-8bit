@@ -6,6 +6,7 @@
    costumes, the crew boss.
 
      deep16/?parade              every creature cut today whose sheet is on main, in P.CREATURES' order · &only=wyvern,frostgiant keeps to those · &from=N starts at the Nth ·
+                                 &folk=agent,crawlerhand keeps the townsfolk to those costumes (11-18 night: the day's new pairs round the day's creature) ·
                                  &fast no pauses (the bench: dev/bench16.js mode=parade1115)
 
    A creature at a time, on a plain floor in good light (D.MAPS.paradefloor), the camera on it:
@@ -57,22 +58,23 @@
   // the animated armor, the pegasus and the green hag as their foes land in data/foes.js -- an id here that is not a foe yet, or whose sheet is not cut, is passed over)
   P.CREATURES = ['wyvern', 'frostgiant', 'winterwolf', 'hellhound', 'violetfungus', 'icemephit', 'cockatrice', 'animatedarmor', 'pegasus', 'greenhag'];
   // the costumes of art-wanted 65 (js/counter.js C.GENERIC's), in the order they are cut today; any other folk<man|woman>_<costume>_p1 cut comes after, by name
-  P.COSTUMES = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss', 'clerk'];
+  P.COSTUMES = ['lightcrew', 'shaft', 'scraper', 'drinker', 'gambler', 'barkeep', 'hired', 'guard', 'crewboss', 'clerk', 'drivespear', 'agent', 'crawlerhand'];
   P.BOSS = 'crewboss';
   P.landed = function (k) { var f = D.FOES && D.FOES[k]; return !!(f && f.sheet && D.SHEETS && D.SHEETS[f.sheet]); };
   P.creatures = function (only) {
     var asked = only ? String(only).split(',').filter(Boolean) : P.CREATURES;
     return { show: asked.filter(P.landed), skipped: asked.filter(function (k) { return !P.landed(k); }) };
   };
-  P.folk = function () {
-    var sh = D.SHEETS || {}, cut = {}, out = [];
-    Object.keys(sh).forEach(function (k) { var m = /^folk(man|woman)_([a-z]+)_p1$/.exec(k); if (m) cut[m[2]] = true; });
+  P.folk = function (only) { // (only: &folk=agent,crawlerhand keeps to those costumes -- the day's new pairs round the day's creature, 11-18 night)
+    var sh = D.SHEETS || {}, cut = {}, out = [], keep = only ? String(only).split(',').filter(Boolean) : null;
+    Object.keys(sh).forEach(function (k) { var m = /^folk(man|woman)_([a-z]+)_p1$/.exec(k); if (m && (!keep || keep.indexOf(m[2]) >= 0)) cut[m[2]] = true; });
     var order = P.COSTUMES.filter(function (c) { return cut[c]; }).concat(Object.keys(cut).filter(function (c) { return P.COSTUMES.indexOf(c) < 0; }).sort());
     order.forEach(function (c) { ['man', 'woman'].forEach(function (w) { var s = 'folk' + w + '_' + c + '_p1'; if (sh[s]) out.push({ sheet: s, costume: c, who: w }); }); });
     if (!out.length) ['man', 'woman'].forEach(function (w) { if (sh['folk' + w + '_p1']) out.push({ sheet: 'folk' + w + '_p1', costume: null, who: w }); }); // (none cut: the townsfolk's own)
     return out;
   };
-  var WORD = { lightcrew: 'light crew', shaft: 'shaft hand', scraper: 'guano scraper', drinker: 'drinker', gambler: 'gambler', barkeep: 'barkeep', hired: 'hired hand', guard: 'guard', crewboss: 'crew boss', clerk: 'clerk' };
+  var WORD = { lightcrew: 'light crew', shaft: 'shaft hand', scraper: 'guano scraper', drinker: 'drinker', gambler: 'gambler', barkeep: 'barkeep', hired: 'hired hand', guard: 'guard', crewboss: 'crew boss', clerk: 'clerk',
+    drivespear: 'drive spear', agent: 'factor\'s agent', crawlerhand: 'crawler hand' };
   P.folkName = function (f) { return f.costume ? 'the ' + (WORD[f.costume] || f.costume) + ' (' + f.who + ')' : 'the towns' + f.who; };
 
   // the compass as the figures are drawn (js/sprites.js S.FACINGS): N up the screen is the grid's (-1,-1), NE (0,-1), E (1,-1), SE (1,0), S (1,1), SW (0,1), W (-1,1), NW (-1,0)
@@ -106,7 +108,7 @@
     q = q || '';
     P.floor();
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    var FAST = /[?&]fast\b/.test(q), cr = P.creatures(get('only')), folk = P.folk();
+    var FAST = /[?&]fast\b/.test(q), cr = P.creatures(get('only')), folk = P.folk(get('folk'));
     var foes = cr.show.concat(['commoner', 'commoner', 'commoner', 'commoner']).concat(D.FOES[P.BOSS] && P.landed(P.BOSS) ? [P.BOSS] : []);
     var B = new D.Battle({ npc: { foes: foes, party: ['fighter:3:human'] },
       fightDef: D.classFight(3, { map: 'paradefloor', name: 'The Parade', sub: 'the day\'s new art: the creatures, the townsfolk, the crew boss', what: 'the parade', intro: 'A creature at a time. ENTER for the next.' }) });
