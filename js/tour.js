@@ -52,7 +52,8 @@
     fxgallery: 'the one gallery', mpgallery: 'the one gallery', innshow: 'the Halfway Inn', fight: 'the fights', rulesshow: 'the rules, shown', hoursshow: 'Silverton\'s hours',
     restshow: 'the rests and the waits', world: 'the world map', at: 'the second game\'s situations', houseshow: 'the house\'s keepers', company: 'the Company', wetshow: 'the Wet', cradle: 'the Cradle',
     ladder: 'the ladders', runes: 'the runes', gameshow: 'the Game Show', nedshow: 'Ned\'s counter', services: 'Silverton\'s services', victoryshow: 'the victory panel', wagonshow: 'the wagon',
-    skyshow: 'the Skylights', mpshow: 'the Mascots', broke: 'the broken card', keeperfight: 'the Keeper', isoshow: 'the floors on the diamonds', fresh: 'the title' };
+    skyshow: 'the Skylights', mpshow: 'the Mascots', broke: 'the broken card', keeperfight: 'the Keeper', isoshow: 'the floors on the diamonds', fresh: 'the title',
+    solskaft: 'Sólskaft', survivorsshow: 'the survivors\' talk', trueshow: 'the road south', grimshow: 'General Grimlock Grim', starsshow: 'the black egg' }; // (the shows a card opens on one beat: the split seat, 11-18)
   var GALLERY = { gallery: 1, rows: 1, fxgallery: 1, mpgallery: 1 };
   var ROAMS = { silverton: 'Silverton', warrens: 'the Warrens', glowseep: 'the Glowseep', galleries: 'the Guano Galleries', hex: 'the Hex', wet: 'the Wet' };
   T.place = function (url) {
@@ -129,6 +130,10 @@
   T.walkTakeEarned = function () { var a = T.walkAll(), f = a._from; if (!f || !f.cards) return null; var r = { cards: f.cards, each: f.earned || 0 }; f.cards = 0; f.earned = 0; put(WKEY, JSON.stringify(a)); return r; };
   T.setWalkFrom = function (slot) { var a = T.walkAll(); if (slot == null) delete a._from; else a._from = { slot: slot, at: Date.now() }; put(WKEY, JSON.stringify(a)); };
   T.walked = function () { var B = T.bar; if (!B) return; B.walked = true; if (B.el) raise(B); }; // (every step seen: her card up, E the next card)
+  // THE ONE GALLERY OPENED FROM A CARD (the split seat, 11-18, on his 11-17 "wasn't sure what pressing 'n' inthe one gallery would do with regard to the card interface i was
+  // trying to test"): the gallery's own N, V and T answer on her card, not on its own list -- N and T bring the card up with its note line open, V brings it up for 1-5
+  // (deep16/js/onegallery.js); false with no card on this page
+  T.cardUp = function (note) { var B = T.bar; if (!B || B.leaving || !B.row() || !B.row().r) return false; if (note) act(B, 'note'); else raise(B); return true; };
   // ------------------------------------------------------------------ the doors
   T.cardHref = function (row, k) { var u = String(row && row.url || ''); return T.root + u + (u.indexOf('?') >= 0 ? '&' : '?') + 'tour=' + (k + 1); };
   T.tableHref = function () { return T.root + 'deep16/?cards'; };

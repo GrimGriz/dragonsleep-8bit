@@ -14,7 +14,13 @@ write one (in the map, or in the row itself: `harvest` takes rows' own obj lines
   python tools/eyes-obj.py dump <out.json>     every live row as JSON (id, pri, group, title, pt, url, look, obj) for a writer
   python tools/eyes-obj.py apply [--map M]     the map's lines into js/eyes.js; lists rows with no line
   python tools/eyes-obj.py harvest [--map M]   rows' own obj lines that the map lacks, into the map
-  python tools/eyes-obj.py check               every row has an obj within the cap (dev/eyes-probe.py runs the same check)
+  python tools/eyes-obj.py check               every row has an obj within the cap (dev/eyes-probe.py runs the same check), and no row's door is a
+                                               show's list of beats without its beat (list_shows below)
+
+A CARD A BEAT (11-18, the split seat; his words: "I stopped working through Sylvia's cards when I got to another one that opened a page of beats, weren't
+those supposed to be separated?", then "start the split seat"): a row whose door is a show that lists its beats to pick from (deep16/js/roam.js WetShow and
+the shows like it) opens on its beat, `&beat=<id>` -- never on the list. list_shows() finds those shows in the code itself, so a new one is held too: a
+constructor that takes `&beat=<id>` into `this.pending`, a function that returns one, and the switch in deep16/js/main.js that calls it.
 """
 import os, re, sys, json, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
@@ -95,6 +101,42 @@ def rows(src):
 
 def words(s): return len(s.split())
 
+def list_shows(root=ROOT):
+    """the switches whose door is a show's LIST of beats to pick from (11-18, the split seat): { switch: 'D.<module>.<fn>' } -- found in deep16/js, not listed by hand.
+    A list constructor: `function Name(q...)` whose first lines take `&beat=<id>` (letters, not a number) into this.pending. A factory: `X.fn = function (q...) {
+    return new [..]Name(`, X the file's `var X = D.<module> =`. A switch: deep16/js/main.js's `/[?&]<switch>\b/.test(q) ... D.push(D.<module>.<fn>(q))`."""
+    js = os.path.join(root, 'deep16', 'js'); ctors, facts = {}, {}
+    files = {f: open(os.path.join(js, f), encoding='utf-8').read() for f in os.listdir(js) if f.endswith('.js')}
+    for f, src in files.items():
+        for m in re.finditer(r'function (\w+)\(q\b[^)]*\) \{', src):
+            head = src[m.end():m.end() + 900]
+            if re.search(r'beat=\(\[a-z', head) and 'this.pending' in head: ctors.setdefault(m.group(1), set()).add(f)
+    for f, src in files.items():
+        alias = dict((a, mod) for a, mod in re.findall(r'\b(\w+) = D\.(\w+) =', src)) # (`var SK = D.solskaft = {}`, or `var D = window.D16, SK = D.solskaft = {}`)
+        for m in re.finditer(r'\b(\w+)\.(\w+) = function \(q\b[^)]*\) \{ return new ([\w.]+)\(', src):
+            a, fn, ctor = m.group(1), m.group(2), m.group(3).split('.')[-1]
+            if ctor in ctors and (ctor != 'Show' or f in ctors[ctor]) and a in alias: facts['D.%s.%s' % (alias[a], fn)] = ctor
+    out = {}
+    for line in files.get('main.js', '').split('\n'):
+        sw = re.search(r"/\[\?&\]([a-z0-9]+(?:=[a-z0-9]+)?)(?:\\b|=)/\.test\(q\)", line); call = re.search(r'D\.push\((D\.\w+\.\w+)\(q\)\)', line)
+        if sw and call and call.group(1) in facts: out[sw.group(1)] = call.group(1)
+    return out
+
+def beatless(rs, shows=None):
+    """rows whose door is a show's list of beats with no `&beat=` (the split seat, 11-18)"""
+    shows = list_shows() if shows is None else shows; bad = []
+    for r in rs:
+        u = str(r['f'].get('url') or '')
+        if not u.startswith('deep16/?'): continue
+        q = u[len('deep16/'):]
+        hit = [sw for sw in shows if re.search(r'[?&]' + re.escape(sw) + r'\b', q)]
+        if hit and not re.search(r'[?&]beat=[a-z0-9]', q): bad.append('%s: its door opens the list of beats (%s) -- give it &beat=<id>' % (r['id'], hit[0]))
+        # a card whose door is the one gallery says so (his 11-17 "Passed on the first set of cards as they were misleading (said watch a fight, said down by the
+        # carts - loaded the one gallery)"): its obj names the gallery, not a fight or a place it is not
+        if re.search(r'^\?(gallery|fxgallery|mpgallery)\b|[?&]rows=', q) and not re.search(r'[?&]keeper\b', q) and 'gallery' not in str(r['f'].get('obj') or '').lower():
+            bad.append('%s: its door opens the one gallery, and its obj does not say so' % r['id'])
+    return bad
+
 def problems(rs):
     """the check: every row an obj, within the cap, nothing of a file in it"""
     bad = []
@@ -162,7 +204,7 @@ def main(a):
             if o and M['rows'].get(r['id'], {}).get('obj') != o: M['rows'][r['id']] = {'obj': o, 'from': 'harvested from js/eyes.js'}; n += 1
         save_map(mp, M); print('harvest: %d lines into %s' % (n, mp)); return 0
     if cmd == 'check':
-        bad = problems(rs)
+        shows = list_shows(); bad = problems(rs) + beatless(rs, shows) + ([] if len(shows) >= 15 and 'wetshow' in shows else ['the list shows were not found in deep16/js (%d: %s)' % (len(shows), ' '.join(sorted(shows)))])
         for b in bad: print('FAIL ' + b)
         print('EYESOBJ %d rows, %s' % (len(rs), 'all ok' if not bad else '%d FAILED' % len(bad)))
         return 1 if bad else 0

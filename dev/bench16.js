@@ -993,6 +993,81 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // KATARINA'S BOOK ON ITS OWN PAGE, 11-16 (mode=book1116; deep16/js/book.js, js/house.js FD.item, js/roam.js R.fieldLeft and R.menuAct, js/situations16.js book16 -- the
   // book-hedge seat, on Griz's "Kat's book screen needs done."): every page of content/text.json kat.book, paged as the first game's book scene, drawn as a book lying open;
   // turned by E, the arrows and the mouse, closed by X and a right-click; opened by the pack's READ on THE WORLD and on a floor with no card after; his door ?at=book16
+  // THE SPLIT SEAT, 11-18 (mode=split1118; js/eyes.js the show rows a card a beat; deep16/js/roam.js WetShow.run and &lvl=, deep16/js/house.js H.raise; deep16/js/onegallery.js
+  // from a card, js/tour.js T.cardUp; deep16/js/eyeswalk.js EW.key -- on Griz: "I stopped working through Sylvia's cards when I got to another one that opened a page of
+  // beats, weren't those supposed to be separated?", then "start the split seat"): 1 every split row's door opens ON its beat -- the show steps aside for the beat -- and a
+  // door with &lvl=3 stages its four at 3; 2 the level is the door's alone (H.freshLvl back to 0; the same beat with no &lvl and a NEW GAME at the start's level); 3 the one
+  // gallery opened from a card: N and T her card up with its note line, V her card up, X once says "again" and twice goes to her table, none of them walking off her deck,
+  // the column saying so; with no card on the page N is the gallery's own again; 4 the Wet's floor (no key) walks as 'wet'
+  if (get('mode', '') === 'split1118') {
+    var repSP = { checks: [], errors: [] }, memSP = {}, stGSP = D.store.get, stSSP = D.store.set, TSP = window.DS.TOUR, lsSP = {}, navSP = TSP && TSP.nav, dlSP = TSP && TSP.navDelay, HSP = D.house, dtSP = D.text;
+    function okSP(what, v) { repSP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memSP[k] ? JSON.parse(memSP[k]) : null; }; D.store.set = function (k, v) { memSP[k] = JSON.stringify(v); return true; };
+    ['dsl-eyeswalk:v1', 'dsl-situations-feedback:v1', 'dsl-swann-deck:v1'].forEach(function (k) { try { lsSP[k] = window.localStorage.getItem(k); window.localStorage.removeItem(k); } catch (eL) { /* (no store) */ } });
+    try {
+      var FAC = { wetshow: function (q) { return D.roam.wetShow(q); }, solskaft: function (q) { return D.solskaft.show(q); }, 'show=secondact': function (q) { return D.secondact.show(q); },
+        wagonshow: function (q) { return D.wagon.show(q); }, survivorsshow: function (q) { return D.survivors.show(q); }, isoshow: function (q) { return D.mines.isoShow(q); }, nedshow: function (q) { return D.counter.nedShow(q); } };
+      var ESP = window.DS.EYES, idsSP = Object.keys(ESP).filter(function (id) { return /-1118$/.test(id) && /^Split 11-18/.test(String(ESP[id].look || '')); });
+      var out1 = [], bad1 = [];
+      var openSP = function (q) { // the door's show built and stepped once: the beat played from its &beat= (the show's own update), or null
+        var sw = Object.keys(FAC).filter(function (k) { return new RegExp('[?&]' + k.replace('=', '\\=') + '\\b').test(q); })[0]; if (!sw) return null;
+        D.scenes.length = 0; var sh = FAC[sw](q), had = !!sh.pending; D.push(sh); sh.update();
+        var lvls = sw === 'nedshow' || !HSP.cur ? [] : HSP.cur.party.map(function (h) { return h.lvl; });
+        return { sw: sw, sh: sh, had: had, left: D.top() !== sh || !!sh.cur, pend: sh.pending || null, lvls: lvls };
+      };
+      idsSP.forEach(function (id) {
+        var u = String(ESP[id].url), q = u.slice(u.indexOf('?')), bt = (/[?&]beat=([a-z0-9]+)/.exec(q) || [])[1], lv = /[?&]lvl=(\d+)/.exec(q);
+        HSP.cur = null; var o;
+        var hgSP = D.hunger && D.hunger.on; if (D.hunger && /survivorsshow/.test(q)) D.hunger.on = true; // (the bands on THE WORLD: the benches turn the hunger off at the page's load, this file's head)
+        try { o = openSP(q); } catch (eO) { bad1.push(id + ': ' + String(eO && eO.message || eO).slice(0, 160)); return; } finally { if (D.hunger) D.hunger.on = hgSP; }
+        if (!o) { bad1.push(id + ': no show of beats at its door'); return; }
+        var beats = o.sh.beats || (o.sw === 'nedshow' ? D.counter.NED_BEATS : []), known = beats.some(function (b) { return b.id === bt; });
+        var want = lv ? +lv[1] : o.sw === 'survivorsshow' ? 3 : null, lvOk = want == null || (o.lvls.length === 4 && o.lvls.every(function (l) { return l === want; }));
+        out1.push(id.replace(/^eyes-|-1118$/g, '') + ':' + bt + (o.lvls.length ? '@' + o.lvls.join('') : ''));
+        if (!known || !o.had || !o.left || o.pend || !lvOk || HSP.freshLvl) bad1.push(id + ' (beat ' + bt + ' known ' + known + ', taken ' + o.had + ', the show stepped aside ' + o.left + ', levels ' + o.lvls.join(',') + ' want ' + want + ', freshLvl ' + HSP.freshLvl + ')');
+      });
+      okSP('1 every split row (' + idsSP.length + ') opens ON its beat, the show stepped aside, its four at its level: ' + out1.join(' ') + (bad1.length ? ' -- ' + bad1.join('; ') : ''), idsSP.length >= 24 && !bad1.length);
+      // 2 the level is the door's: the wand's beat with no &lvl stages the start's level; a NEW GAME's four after it the same; freshLvl 0
+      var start = window.DS.R.makeHero('lymen').lvl, o2 = openSP('?show=secondact&beat=wand'), l2 = o2 ? o2.lvls : [], f2 = HSP.fresh().party.map(function (h) { return h.lvl; });
+      okSP('2 the level is the door\'s alone: the wand\'s beat with no &lvl at ' + l2.join(',') + ', a NEW GAME after it ' + f2.join(',') + ' (want the start\'s, ' + start + '), freshLvl ' + HSP.freshLvl,
+        l2.length === 4 && l2.every(function (l) { return l === start; }) && f2.every(function (l) { return l === start; }) && HSP.freshLvl === 0);
+      // 3 the one gallery opened from a card
+      var OGs = D.oneGallery, IS = D.input, wentSP = [], gid = Object.keys(ESP).filter(function (id) { return /^deep16\/\?gallery&shelf=creatures&rows=grick\b/.test(String(ESP[id].url)); })[0] ||
+        Object.keys(ESP).filter(function (id) { return /^deep16\/\?gallery&shelf=creatures&rows=/.test(String(ESP[id].url)); })[0];
+      TSP.navDelay = 0; TSP.nav = function (h) { wentSP.push(h); };
+      var runG = function (B) { for (var k = 0, v; B.co && k < 400000; k++) { var r = B.co.next(v); v = undefined; if (r.done) return null; var y = r.value; if (y && y.prompt) { v = y.prompt.opts[0].value; continue; } if (y && (y.gallery || y.mpgallery || y.rows)) { B.req = y; return y; } } return null; };
+      var gq = String(ESP[gid].url).slice(String(ESP[gid].url).indexOf('?')) + '&tour=1';
+      TSP.mount(0, { deck: { ids: [gid], no: 1, shown: [] } }); TSP.bar.up = false;
+      D.scenes.length = 0; var BG = OGs.door(gq); D.push(BG); D.battle = BG; BG.enter(); runG(BG);
+      var pressSP = function (b) { OGs.pending = null; IS.edge[b] = true; BG.update(); var p = OGs.pending; OGs.pending = null; IS.clear(); return p; };
+      var downSP = function () { TSP.bar.noting = null; TSP.bar.up = false; };
+      var pN = pressSP('eyesnext'), upN = TSP.bar.up, noteN = !!TSP.bar.noting; downSP();
+      var pT = pressSP('note'), upT = TSP.bar.up, noteT = !!TSP.bar.noting; downSP();
+      var pV = pressSP('verdict'), upV = TSP.bar.up, noteV = !!TSP.bar.noting; downSP();
+      // (the column's words, as drawn: the head's line and the eyes block)
+      var said = []; D.text = function (c, s) { said.push(window.DS.stripCodes ? window.DS.stripCodes(String(s)) : String(s)); return dtSP.apply(this, arguments); };
+      var cvG = document.createElement('canvas'); cvG.width = D.W; cvG.height = D.H; try { BG.paint(cvG.getContext('2d')); } finally { D.text = dtSP; }
+      var headSaid = said.filter(function (s) { return /HER CARD|CARD: H|H card/.test(s); })[0] || '', blockSaid = said.filter(function (s) { return /V her card/.test(s); })[0] || '';
+      var pX1 = pressSP('b'), went1 = wentSP.length, xSaid = []; D.text = function (c, s) { xSaid.push(String(s)); return dtSP.apply(this, arguments); }; try { BG.paint(cvG.getContext('2d')); } finally { D.text = dtSP; }
+      var again = xSaid.some(function (s) { return /again/.test(s); }), pX2 = pressSP('b');
+      okSP('3 the gallery from a card (' + gid + '): N her card up ' + upN + ' with its note line ' + noteN + ', T the same ' + upT + '/' + noteT + ', V up ' + upV + ' with no note line ' + !noteV +
+        '; none walked off her deck (' + [pN, pT, pV].map(String).join(',') + '); the column says "' + headSaid + '" and "' + blockSaid + '"; X once stays (' + went1 + ' gone, "again" said ' + again + '), X twice to ' + wentSP[0],
+        upN && noteN && upT && noteT && upV && !noteV && !pN && !pT && !pV && !!headSaid && !!blockSaid && !pX1 && went1 === 0 && again && !pX2 && wentSP.length === 1 && /deep16\/\?cards$/.test(String(wentSP[0])));
+      TSP.unmount(); var pN0 = pressSP('eyesnext');
+      okSP('3b with no card on the page N is the gallery\'s own again: the next row waiting (' + pN0 + ')', !!pN0 && /^\?/.test(String(pN0)));
+      // 4 the Wet's floor carries no key: its steps say 'wet'
+      D.scenes.length = 0; D.roam.make('?roam=wet'); var kW = D.eyeswalk.key(D.roam.def); D.roam.make('?roam=solskaft'); var kS = D.eyeswalk.key(D.roam.def);
+      okSP('4 the walk\'s floor key: the Wet ' + kW + ' (its def ' + D.roam.def.key + ' after Sólskaft: ' + kS + ')', kW === 'wet' && kS === 'solskaft');
+    } catch (eSP) { repSP.errors.push(String(eSP && eSP.stack || eSP).slice(0, 900)); }
+    try { if (TSP) { TSP.unmount(); TSP.nav = navSP; TSP.navDelay = dlSP; } } catch (eU) { /* (no bar) */ }
+    D.text = dtSP; HSP.freshLvl = 0;
+    Object.keys(lsSP).forEach(function (k) { try { if (lsSP[k] == null) window.localStorage.removeItem(k); else window.localStorage.setItem(k, lsSP[k]); } catch (eL) { /* (no store) */ } });
+    D.store.get = stGSP; D.store.set = stSSP;
+    if (errs.length) repSP.errors = repSP.errors.concat(errs.slice(0, 5));
+    var preSP = document.createElement('pre'); preSP.id = 'out'; preSP.textContent = 'BENCH16 ' + JSON.stringify(repSP);
+    document.body.appendChild(preSP);
+    return;
+  }
   // THE EYES ROWS WALKED, 11-16 night (mode=eyeswalk1116; deep16/js/eyeswalk.js, js/tour.js T.walk / T.walked / T.mountRow -- the lanes desk, on Griz: "2 - card takes you to
   // place, you complete all the arrows, 50 xp and next card", "50 xp per card completed, for people who interface through sylvia's booth"): 0 the file; 1 a row's steps on
   // her bar, the arrow over the first not seen on this floor; 2 a member beside the other step: seen, nothing paid; 3 every step seen: 50 XP to each one standing, once, her

@@ -2311,7 +2311,9 @@
   function WetShow(q, o) { // (o: another floor's show on this one's page -- its beats, its title, its staging: js/mines.js's ?isoshow, 10-29)
     o = o || {}; this.kind = o.kind || 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = o.beats || R.WET_BEATS; this.title = o.title || null; this.play = o.play || R.wetPlay;
     var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
+    var lv = /[?&]lvl=(\d+)/.exec(String(q || '')); this.lvl = lv ? Math.max(1, Math.min(20, +lv[1])) : 0; // (&lvl=N: the beat's NEW GAME at level N -- an eyes card's door at 3, js/house.js H.raise; the split seat, 11-18)
   }
+  WetShow.prototype.run = function (bt) { var H = D.house, lv = this.lvl; if (H && lv) H.freshLvl = lv; try { this.play(bt); } finally { if (H) H.freshLvl = 0; } };
   // (11-12, his screenshot of Solskaft's twenty-seven beats drawn eight pixels apiece, "this is how list of beats ends up looking...": a list past nine is PAGED, nine a page --
   //  up/down walk every beat and the page follows, left/right or a click on the foot's arrows turns it; each button carries its own place in the list, k)
   WetShow.prototype.per = function () { var n = this.beats.length; return n <= Math.floor((D.H - 40) / 24) ? Math.max(1, n) : Math.floor((D.H - 54) / 24); };
@@ -2322,14 +2324,14 @@
   WetShow.prototype.foot = function () { return { y: D.H - 28, h: 12, lx: D.W / 2 - 125, rx: D.W / 2 + 90, w: 40 }; };
   WetShow.prototype.update = function () {
     this.t++; var m = I.mouse;
-    if (this.pending) { var p0 = this.pending; this.pending = null; this.play(p0); return; }
+    if (this.pending) { var p0 = this.pending; this.pending = null; this.run(p0); return; }
     var bs = this.buttons(), hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
     if (m.moved || m.click) this.hov = hit ? hit.k : this.hov;
     var n = this.beats.length; if (I.repeat('down')) this.hov = (this.hov + 1) % n; if (I.repeat('up')) this.hov = (this.hov - 1 + n) % n;
     if (this.pages() > 1) { var f = this.foot(), inF = m.inside && m.y >= f.y - 2 && m.y < f.y + f.h;
       if (I.repeat('right') || (m.click && inF && m.x >= f.rx && m.x < f.rx + f.w)) { D.sfx('cursor'); this.turn(1); return; }
       if (I.repeat('left') || (m.click && inF && m.x >= f.lx && m.x < f.lx + f.w)) { D.sfx('cursor'); this.turn(-1); return; } }
-    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); this.play(hit ? hit.bt : this.beats[this.hov]); return; }
+    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); this.run(hit ? hit.bt : this.beats[this.hov]); return; }
     if (I.pressed('b') || m.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); }
   };
   WetShow.prototype.draw = function (ctx) {

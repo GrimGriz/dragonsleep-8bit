@@ -41,8 +41,18 @@
   // (made: the lead's sheet as CHOOSE WHO YOU ARE left it, its first choices made -- js/company.js Pick's begin, 11-03)
   H.fresh = function (lead, made) {
     var R = DS.R, C = DS.DATA.config || {}, ids = lead && H.HEROES.indexOf(lead) >= 0 ? [lead] : H.HEROES.slice();
-    return { v: H.V, lead: ids[0], hired: ids.slice(), party: ids.map(function (id) { return made && made.id === id ? made : H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
+    var rec = { v: H.V, lead: ids[0], hired: ids.slice(), party: ids.map(function (id) { return made && made.id === id ? made : H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
       silver: C.startSilver || 10, renown: 0, steps: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
+    if (H.freshLvl && !lead) H.raise(rec, H.freshLvl); // (a show's door that names its level: js/roam.js WetShow, &lvl=)
+    return rec;
+  };
+  // A LEVEL 3 PARTY ON EVERY STORY DOOR (RULED 11-12, Griz: "please make future doors with a lvl 3 party"; the split seat, 11-18): a show's door with &lvl=N stages
+  // its four at N as the inn's show does (js/inn.js In.play) -- a max hit die a level, the first archetype, the defaults (js/rules.js R.levelUp, R.autoPicks), whole and
+  // rested. H.freshLvl is set only while a show plays a beat (js/roam.js WetShow.run), so a NEW GAME, a bench and every other door keep the start's level
+  H.freshLvl = 0;
+  H.raise = function (rec, lv) {
+    var RL = DS.R; (rec.party || []).forEach(function (h) { for (var g = 0; g < 20 && h.lvl < lv; g++) { RL.levelUp(h); RL.autoPicks(h); } if (RL.XP_LEVEL && RL.XP_LEVEL[h.lvl] != null) h.xp = Math.max(h.xp || 0, RL.XP_LEVEL[h.lvl]); h.hp = h.maxhp; if (h.slotsMax) h.slots = h.slotsMax.slice(); });
+    return rec;
   };
   // a hero as the second game starts them: the first game's (content/heroes.json, untouched -- the first game keeps it) less what the second game makes a page found in
   // the world -- Aurdin's Find Familiar, Ned's page (RULED 10-21 night, the house lane's "Ned and Find Familiar" item 11; his 10-06: "Aurdin has it for familiar testing

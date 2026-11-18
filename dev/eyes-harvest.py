@@ -70,7 +70,7 @@ HARVEST = r"""() => {
   var top = D.top && D.top(), B = D.battle, R0 = B && B.roam, def = D.roam && D.roam.def;
   out.top = kind(top); out.scenes = (D.scenes || []).map(kind); out.onTop = !!B && top === B;
   if (!B || !R0 || !def) return out;
-  out.key = def.key; out.name = def.name || null; out.room = def.room || null;
+  out.key = (D.eyeswalk && D.eyeswalk.key ? D.eyeswalk.key(def) : def.key); out.name = def.name || null; out.room = def.room || null;
   var W = def.w || (def.rows && def.rows[0] && def.rows[0].length) || 0, H = def.h || (def.rows && def.rows.length) || 0; out.w = W; out.h = H;
   out.mode = R0.mode; out.menu = !!B.menu; var t = R0.token; out.token = t && t.x != null ? [t.x, t.y] : null;
   var mem = R0.members || []; out.members = mem.filter(function (u) { return u && u.x != null; }).map(function (u) { return [u.name, u.x, u.y]; });
@@ -104,8 +104,9 @@ CHECK = r"""(steps) => {
   var ux = u.x, uy = u.y;
   while (q.length) { var c = q.shift(); for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) { var nx = c[0] + dx, ny = c[1] + dy, k = nx + ',' + ny; if ((!dx && !dy) || seen[k] || nx < 0 || ny < 0 || nx >= W || ny >= H) continue; var ok = false; try { ok = G.canPass(u, nx, ny); } catch (e) { ok = false; } if (ok) { seen[k] = 1; q.push([nx, ny]); } } }
   var reach = Object.keys(seen).length;
-  return { key: def.key, w: W, h: H, start: [sx, sy], reach: reach, steps: steps.map(function (s) {
-    if (s[0] !== def.key) return { s: s, here: false };
+  var KEY = (D.eyeswalk && D.eyeswalk.key ? D.eyeswalk.key(def) : def.key); // (the Wet's floor has no key: its steps say 'wet', deep16/js/eyeswalk.js EW.key -- the split seat, 11-18)
+  return { key: KEY, w: W, h: H, start: [sx, sy], reach: reach, steps: steps.map(function (s) {
+    if (s[0] !== KEY) return { s: s, here: false };
     var inb = s[1] >= 0 && s[2] >= 0 && s[1] < W && s[2] < H, near = [], stand = 0;
     for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) { var x = s[1] + dx, y = s[2] + dy; if (seen[x + ',' + y]) near.push([x, y]); if (x >= 0 && y >= 0 && x < W && y < H) { try { if (G.canStand(u, x, y) || (x === u.x && y === u.y)) stand++; } catch (e) { } } }
     return { s: s, here: true, inBounds: inb, reached: near.length > 0, near: near.length, stand: stand };
@@ -241,7 +242,8 @@ WALK = r"""(a) => {
   var prev = null;
   for (var i = 0; i < steps.length; i++) {
     var s = steps[i], def = (D.roam && D.roam.def && D.battle && D.battle.roam) ? D.roam.def : {}; // (a door on THE WORLD or a show's list: the first step's floor opened)
-    if (s[0] !== def.key) {
+    var KEY = (D.eyeswalk && D.eyeswalk.key ? D.eyeswalk.key(def) : def.key);
+    if (s[0] !== KEY) {
       if (s[0] === 'room' && D.town && def.town) {
         var tr = ((def.src8 && def.src8.triggers) || []).filter(function (t0) { return t0.town === 'door'; }).sort(function (p, q) { var px = prev || [0, 0]; return Math.max(Math.abs(p.rect[0] - px[1]), Math.abs(p.rect[1] - px[2])) - Math.max(Math.abs(q.rect[0] - px[1]), Math.abs(q.rect[1] - px[2])); })[0];
         if (tr) { var dn = drive(D.town.goIn(B(), tr)); log.push('in at ' + tr.id + (dn ? '' : ' (its scene did not end)')); }
@@ -249,7 +251,8 @@ WALK = r"""(a) => {
         var nb = D.roam.make('?roam=' + s[0] + '&at=' + s[1] + ',' + s[2] + '&lvl=3'); D.scenes.push(nb); if (nb.bakes && nb.bakes()) { } nb.enter(); D.battle = nb; for (var k = 0; k < 8 && nb.co; k++) nb.co.next(); log.push('onto ' + D.roam.def.key);
       }
     }
-    if (!D.roam.def || D.roam.def.key !== s[0]) { log.push('step ' + (i + 1) + ': not on ' + s[0] + ' (on ' + D.roam.def.key + ')'); break; }
+    var KEY2 = D.roam.def ? (D.eyeswalk && D.eyeswalk.key ? D.eyeswalk.key(D.roam.def) : D.roam.def.key) : null;
+    if (!D.roam.def || KEY2 !== s[0]) { log.push('step ' + (i + 1) + ': not on ' + s[0] + ' (on ' + KEY2 + ')'); break; }
     put(s[1], s[2]); var w = T.walk(id); log.push('step ' + (i + 1) + ' ' + s[0] + ' ' + s[1] + ',' + s[2] + ': seen ' + JSON.stringify(w.done)); prev = s;
   }
   var w2 = T.walk(id); return { done: w2.done, of: steps.length, xp: !!w2.xp, walked: !!(T.bar && T.bar.walked), unreached: unreached, log: log };

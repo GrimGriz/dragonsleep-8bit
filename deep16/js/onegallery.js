@@ -107,7 +107,17 @@
     var s = OG.SHELVES[k]; if (!s || s.id === B.one.shelf) { D.sfx('error'); return; }
     D.sfx('confirm'); OG.pending = '?gallery&shelf=' + s.id + (s.id === 'creatures' && OG.lastRows ? '&rows=' + OG.lastRows : '') + carry(B);
   }
-  function carry(B) { var q = B.one.q, out = ''; ['lvl', 'from'].forEach(function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); if (m) out += '&' + k + '=' + m[1]; }); return out; }
+  function carry(B) { var q = B.one.q, out = ''; ['lvl', 'from', 'tour', 'tourrow'].forEach(function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); if (m) out += '&' + k + '=' + m[1]; }); return out; } // (tour, tourrow: her card on the address, so a reload keeps it -- the split seat, 11-18)
+  // FROM A CARD (the split seat, 11-18, on his 11-17 "wasn't sure what pressing 'n' inthe one gallery would do with regard to the card interface i was trying to test" and
+  // 11-18 "this opened a gallery i have to click up top to return to cards"): with Sylvia's bar on the page (../../js/tour.js, &tour= or &tourrow=) the gallery answers on
+  // her card -- N and T bring her card up with its note line open, V brings it up for 1-5 (T.cardUp), and X (or Esc) twice goes to her table; S still saves the ear file.
+  // The gallery's own N (the next row waiting, off her deck) and V (a verdict by the gallery) are for the gallery opened alone
+  OG.card = function () { var T = window.DS && window.DS.TOUR; return T && T.bar ? T : null; };
+  function cardKey(B, what) {
+    var T = OG.card(); if (!T) return false;
+    if (what === 'table') { var o = B.one; if (o.leaveAt && B.t - o.leaveAt < 150) { D.sfx('confirm'); T.nav(T.tableHref()); } else { o.leaveAt = B.t; D.sfx('cursor'); } return true; }
+    if (!T.cardUp(what === 'note')) D.sfx('error'); return true;
+  }
   OG.go = function (q2) { // a shelf for another: the scene stack emptied, the new door pushed, the address kept in step (a reload lands where you are)
     var old = D.battle;
     if (old && old.mpgallery && old.mpgallery.teardown) old.mpgallery.teardown();
@@ -159,7 +169,8 @@
       var obj = String(E[id].obj || '').trim();
       D.wrap('{o}YOUR EYE' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + (obj || E[id].title), COL - 12).forEach(function (l) { out.push(l); });
       D.wrap(obj ? String(E[id].title || '') : String(E[id].look || ''), COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); });
-      out.push((k === k0 ? '{y}V{/}: ' : '   ') + (v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 ? '  {y}T{/} note' : '') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''));
+      if (OG.card()) out.push((v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 ? '  {y}V{/} her card  {y}N{/} note' : '')); // (from a card: answered on her card -- cardKey)
+      else out.push((k === k0 ? '{y}V{/}: ' : '   ') + (v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 ? '  {y}T{/} note' : '') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''));
       if (f.note) D.wrap('note: ' + f.note, COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); }); // (his words with it, 10-28)
       out.push('');
     });
@@ -284,7 +295,7 @@
   function handle(B) {
     var o = B.one, m = I.mouse, over = !!(m.inside && m.x < COL), sh = o.shelf;
     if (over && m.click) {
-      if (m.y < STRIP) { m.click = false; if (m.y >= 2 + 2 * LH) { if (m.x >= COL - SAVEW - 4) saveEar(B); else nextEyes(B); } else shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
+      if (m.y < STRIP) { m.click = false; if (m.y >= 2 + 2 * LH) { if (m.x >= COL - SAVEW - 4) saveEar(B); else if (!cardKey(B, 'up')) nextEyes(B); } else shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
       if (o.list && m.y < D.H - FOOT) { m.click = false; pick(B, Math.floor((m.y - STRIP - 2) / LH) + o.listP.scroll); return; }
       var lad = ladderAt(B, m.y); if (lad) { m.click = false; jumpLevel(B, lad); return; }
       // (a click on the little triangles, the top or the foot of the text, scrolls it a page; anywhere else on the column, nothing)
@@ -295,12 +306,13 @@
     if (over && m.wheel && (o.list || sh !== 'mascots')) { var P2 = o.list ? o.listP : o.panel; P2.scroll += m.wheel > 0 ? 3 : -3; m.wheel = 0; }
     for (var n = 1; n <= OG.SHELVES.length; n++) if (I.pressed('n' + n)) { shelf(B, n - 1); return; }
     if (I.pressed('list')) { if (o.list) { o.list = false; D.sfx('cursor'); } else openList(B); return; }
-    if (I.pressed('b')) { if (o.list) { o.list = false; D.sfx('cursor'); } else if (o.from === 'pocket') location.href = location.pathname + '?pocket'; return; }
+    if (I.pressed('b')) { if (o.list) { o.list = false; D.sfx('cursor'); } else if (o.from === 'pocket') location.href = location.pathname + '?pocket'; else cardKey(B, 'table'); return; }
     if (I.pressed('end')) { o.paused = !o.paused; D.sfx('cursor'); return; }
     if (o.paused) { if (I.repeat('bracketr')) frameStep(B, 1); else if (I.repeat('bracketl')) frameStep(B, -1); return; }
-    if (I.pressed('verdict')) { verdict(B, !!I.held.shift); return; }
-    if (I.pressed('eyesnext')) { nextEyes(B); return; }
+    if (I.pressed('verdict')) { if (!cardKey(B, 'up')) verdict(B, !!I.held.shift); return; }
+    if (I.pressed('eyesnext')) { if (!cardKey(B, 'note')) nextEyes(B); return; }
     if (I.pressed('save')) { saveEar(B); return; }
+    if (I.pressed('note') && cardKey(B, 'note')) return;
     if (I.pressed('note')) { var rsN = OG.eyesFor(B); if (!rsN.length) { D.sfx('error'); return; } noteField(B, rsN[(o.eyeK || 0) % rsN.length]); return; } // (T: a note on any verdict, 10-28) // (S: SAVE -- WASD's down too, so the level below waits while it is held)
     if (I.pressed('dice') && (sh === 'creatures' || sh === 'spells')) { var SD = st(B); SD.real = !SD.real; D.sfx('confirm'); restart(B); return; }
     var shift = !!I.held.shift, d = I.repeat('right') ? 1 : I.repeat('left') ? -1 : 0;
@@ -353,7 +365,7 @@
     OG.SHELVES.forEach(function (s, k) { D.text(ctx, (s.id === o.shelf ? '{y}' : '{g}') + (k + 1) + ' ' + s.name + '{/}', 5 + (k % 2) * (COL / 2), 2 + Math.floor(k / 2) * LH, bone); });
     if (OG.note) OG.note.place(); // (the note's line kept over the column as the window moves)
     var wt = waiting(B).length, all = OG.galleryRows().length, sv = o.saved && B.t - o.saved.t < 240 ? o.saved : null, ey = 2 + 2 * LH;
-    var room = COL - SAVEW - 12, says = sv ? [sv.text] : all ? (wt ? ['{o}YOUR EYE{/}: ' + wt + ' left  {y}N{/} next', '{o}YOUR EYE{/}: ' + wt + '  {y}N{/} next', '{o}EYE{/}: ' + wt + ' left  {y}N{/}'] : ['{g}YOUR EYE: all ' + all + ' marked{/}', '{g}all ' + all + ' marked{/}']) : ['{g}YOUR EYE: none waiting{/}', '{g}none waiting{/}'];
+    var room = COL - SAVEW - 12, leaving = o.leaveAt && B.t - o.leaveAt < 150, says = sv ? [sv.text] : OG.card() ? (leaving ? ['{y}X{/} again: her table', '{y}X{/} again'] : ['{o}HER CARD{/}: {y}H{/} up  {y}X{/} table', '{o}CARD{/}: {y}H{/}  {y}X{/} table', '{y}H{/} card {y}X{/} table']) : all ?(wt ? ['{o}YOUR EYE{/}: ' + wt + ' left  {y}N{/} next', '{o}YOUR EYE{/}: ' + wt + '  {y}N{/} next', '{o}EYE{/}: ' + wt + ' left  {y}N{/}'] : ['{g}YOUR EYE: all ' + all + ' marked{/}', '{g}all ' + all + ' marked{/}']) : ['{g}YOUR EYE: none waiting{/}', '{g}none waiting{/}'];
     D.text(ctx, says.filter(function (t) { return D.textWidth(t) <= room; })[0] || says[says.length - 1], 5, ey, bone); // (the longest that clears the SAVE box)
     // SAVE (his ear file, as situations.html's Save): a box at the line's right, lit once anything is marked -- S the same
     var sx = COL - SAVEW - 4, lit = all > wt; ctx.fillStyle = lit ? 'rgba(60,38,8,.95)' : 'rgba(20,16,30,.92)'; ctx.fillRect(sx, ey - 2, SAVEW, LH + 1);
@@ -381,7 +393,8 @@
     if (id === 'creatures') { var rk = /[?&]rows=([a-z0-9,]+)/.exec(q); if (rk) OG.lastRows = rk[1]; }
     // the page's line under the screen says the gallery's keys, not a fight's (10-08, Griz: "Note the menu below the visible gallery")
     var hint = document.getElementById('hint');
-    if (hint) hint.innerHTML = 'THE GALLERY &middot; LEFT/RIGHT the entry (SHIFT ten) &middot; UP/DOWN the slot or level, or click a BY line &middot; , . turn &middot; E again &middot; SPACE pause, [ ] a frame &middot; L list &middot; N your eye &middot; V verdict &middot; T note &middot; S or SAVE your ear file &middot; F dice &middot; 1-4 or click a shelf &middot; WHEEL zoom &middot; X back';
+    var byCard = /[?&]tour(row)?=/.test(q + (window.location.search || '')); // (her bar on this page: the keys answer on her card -- cardKey above)
+    if (hint) hint.innerHTML = 'THE GALLERY &middot; LEFT/RIGHT the entry (SHIFT ten) &middot; UP/DOWN the slot or level, or click a BY line &middot; , . turn &middot; E again &middot; SPACE pause, [ ] a frame &middot; L list &middot; ' + (byCard ? 'H, V or a click on HER CARD: Sylvia\'s card up &middot; N or T a note on her card &middot; X twice her table' : 'N your eye &middot; V verdict &middot; T note') + ' &middot; S or SAVE your ear file &middot; F dice &middot; 1-4 or click a shelf &middot; WHEEL zoom' + (byCard ? '' : ' &middot; X back');
     var paint0 = B.paint, update0 = B.update;
     B.paint = function (ctx) {
       if (o.shelf === 'mascots') { paint0.apply(this, arguments); column(ctx, this, this.mpgallery.panel); return; } // (its own cards drawn right of the column already)

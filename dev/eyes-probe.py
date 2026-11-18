@@ -38,7 +38,15 @@ def main():
     longest = max([EO.words(o) for o in objs.values() if isinstance(o, str)] or [0])
     ok(not objBad and len(rs) == len(heads), 'every row leads with an obj, %d words at most (the cap %d words, %d characters; no file, switch or bench name)%s' % (
         longest, EO.CAP_WORDS, EO.CAP_CHARS, '' if not objBad else ': ' + '; '.join(objBad[:12]) + (' and %d more' % (len(objBad) - 12) if len(objBad) > 12 else '')))
-    sits = len(re.findall(r"^ {4}[a-z0-9]+: \{ group:", open(os.path.join(ROOT, 'first', 'js', 'situations.js'), encoding='utf-8').read(), re.M))
+    # A CARD A BEAT (11-18, the split seat; his "I stopped working through Sylvia's cards when I got to another one that opened a page of beats, weren't those supposed
+    # to be separated?"): no row's door is a show's list of beats without its &beat= -- the shows found in deep16/js by tools/eyes-obj.py list_shows, at least 15
+    try:
+        shows = EO.list_shows(ROOT); beatBad = EO.beatless(rs, shows)
+    except Exception as e:
+        shows, beatBad = {}, ['the shows did not parse: %s' % e]
+    ok(not beatBad and len(shows) >= 15, 'every row whose door is a show\'s list of beats opens on its beat, &beat= (%d list shows found in deep16/js), and a gallery door\'s obj says gallery%s' % (
+        len(shows), '' if not beatBad else ': ' + '; '.join(beatBad[:12]) + (' and %d more' % (len(beatBad) - 12) if len(beatBad) > 12 else '')))
+    sits =len(re.findall(r"^ {4}[a-z0-9]+: \{ group:", open(os.path.join(ROOT, 'first', 'js', 'situations.js'), encoding='utf-8').read(), re.M))
     # (and the second game's, from a link -- deep16/js/situations16.js DS.SIT16, story rows on the same page since 10-30)
     s16 = os.path.join(ROOT, 'deep16', 'js', 'situations16.js')
     if os.path.exists(s16): sits += len(re.findall(r"^ {4}[a-z0-9]+: \{ group:", open(s16, encoding='utf-8').read(), re.M))

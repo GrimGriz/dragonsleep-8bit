@@ -22,6 +22,8 @@
     var R0 = B && B.roam, t = R0 && R0.token; if (t && t.x != null) return [t];
     return ((R0 && R0.members) || []).filter(function (u) { return u && u.x != null && !u.dead && !(u.hp <= 0); });
   }
+  // the floor's key as a step names it: the Wet's floor carries none (js/roam.js R.wholeWet), so its steps say 'wet' (the split seat, 11-18; the eyes-steps seat's find 2)
+  EW.key = function (def) { return def ? def.key || (def.wet ? 'wet' : null) : null; };
   EW.near = function (B, s) { return members(B).some(function (u) { return Math.max(Math.abs(u.x - s[1]), Math.abs(u.y - s[2])) <= 1; }); };
   // the step the arrow points at on this floor: the first not yet seen, in the row's order, that lies here
   EW.here = function (h, key) { var w = T.walk(h.id); for (var i = 0; i < h.r.steps.length; i++) if (w.done.indexOf(i) < 0 && h.r.steps[i][0] === key) return i; return -1; };
@@ -43,7 +45,7 @@
   EW.tick = function (B) {
     var h = EW.row(), def = D.roam && D.roam.def; if (!h || !def || !B) return null;
     var w = T.walk(h.id), steps = h.r.steps, hit = [];
-    steps.forEach(function (s, i) { if (w.done.indexOf(i) < 0 && s[0] === def.key && EW.near(B, s)) { w.done.push(i); hit.push(s); } });
+    var key = EW.key(def); steps.forEach(function (s, i) { if (w.done.indexOf(i) < 0 && s[0] === key && EW.near(B, s)) { w.done.push(i); hit.push(s); } });
     if (!hit.length && !(w.done.length >= steps.length && !w.xp)) return null;
     var lines = hit.map(function (s) { return '{y}SEEN{/}: ' + s[3] + '.'; });
     if (w.done.length >= steps.length && !w.xp) {
@@ -90,7 +92,7 @@
     EW.marked = null;
     var R0 = B && B.roam, def = D.roam && D.roam.def; if (!R0 || !def || B.menu || R0.mode !== 'walk' || !EW.row()) return;
     EW.tick(B);
-    var h = EW.row(), i = h ? EW.here(h, def.key) : -1; if (i < 0) return;
+    var h = EW.row(), i = h ? EW.here(h, EW.key(def)) : -1; if (i < 0) return;
     var s = h.r.steps[i]; arrow(ctx, B, s[1], s[2]);
   };
 })();
