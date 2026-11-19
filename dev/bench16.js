@@ -8085,7 +8085,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         D.scenes.length = 0; SKa.play({ key: 'solskaft_asdis', at: [4, 2], hour: 18, flags: had ? { asdisMeals: had, asdisIdx: had } : {} });
         var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } AA.pinned = pins.slice(); if (setup) setup(B);
         var t = B.roam.token; t.x = 4; t.y = 2; t.tween = null; B.roam.fw = [-1, 0]; B.roam.path = null; D.grid.setup(B.map, B.units); B.cards = []; B.roam.keys.push('use');
-        var seen = [], flips = [], q = picks.slice(), offer = '', v, end = 'cap', trail0 = (HAs.cur.trail || []).length;
+        var seen = [], flips = [], q = picks.slice(), offer = '', ask = '', v, end = 'cap', trail0 = (HAs.cur.trail || []).length;
         for (var k = 0; k < 9000; k++) {
           var s = D.top();
           if (s instanceof CAs.Counter) {
@@ -8106,11 +8106,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           if (s !== B) { end = s instanceof HAs.Morning ? 'morning' : 'other'; break; }
           var st = B.co.next(v); v = undefined; if (st.done) { end = 'done'; break; }
           if (typeof st.value === 'number') B.t += Math.max(1, st.value);
-          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return o.label; }).join('|'); v = pick == null ? 0 : pick; }
+          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return o.label; }).join('|'); ask = window.DS.stripCodes(st.value.prompt.lines.join(' ')); v = pick == null ? 0 : pick; }
           if ((B.cards || []).some(function (c) { return /an hour by her hearth/.test(c.lines.join(' ')); })) { end = 'hot'; break; } // (HAVE A HOT MEAL: the hour's short rest on its card)
         }
         var tr = (HAs.cur.trail || []).slice(trail0).filter(function (x) { return /ASDIS'S TABLE/.test(x.s); }).map(function (x) { return x.s; });
-        return { B: B, f: B.roam.flags, seen: window.DS.stripCodes(seen.join(' / ')), flips: flips, offer: offer, end: end, trail: tr, cards: ((B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' ')) };
+        return { B: B, f: B.roam.flags, seen: window.DS.stripCodes(seen.join(' / ')), flips: flips, offer: offer, ask: ask, end: end, trail: tr, cards: ((B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' ')) };
       };
       var hi = [18, 18, 18, 18, 18, 18], lo = [1, 1, 1, 1, 1, 1], dull = function (B) { B.roam.members.forEach(function (u) { if (u.src && u.src.abil) u.src.abil.wis = 6; }); };
       var noDieAs = function (s) { return !/(History|Insight|Perception) \d+ ?[+-]|vs DC|\bd20\b|\d+ ?[+-] ?\d+ ?=/.test(s); };
@@ -8156,18 +8156,27 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okAs('after the third meal: offered "' + g7.offer + '", ' + g7.flips.length + ' openings, ' + (faceAs.length - n7) + ' lines at a table, ended in the ' + g7.end + ', meals ' + g7.f.asdisMeals + ', rested ' + g7.f.asdisRested,
         g7.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && !g7.flips.length && faceAs.length === n7 && g7.end === 'morning' && g7.f.asdisMeals === 3 && g7.f.asdisRested === 1 && !AA.due(g7.f));
       // 7b. HAVE A HOT MEAL (11-19, Griz: "I intended she offer 'eat and sleep'(long rest available) and also 'have a hot meal' (short rest), which also triggers the
-      // conversations (available whether long rest is available or not)"): offered beside EAT AND SLEEP, and alone inside the 24 hours of a long rest; it plays the next
-      // conversation and then is an hour's short rest, no night; ONE conversation in 24 hours -- a hot meal or a night inside them is the rest alone (RED: no such offer)
-      var hrAs = function (B) { return D.mines.hourNow(D.roam.q, B); }, hurt = function (B) { var u = B.roam.members[0]; u.hp = Math.max(1, u.maxhp - 5); if (u.src) u.src.hp = u.hp; };
-      var h1 = mealAs(0, hi, ['bed'], hurt, 2), hot1 = hrAs(h1.B);
-      var h2 = mealAs(1, hi, ['bed'], function (B) { HAs.cur.restEnd = D.world.state().t - 2; }, 2);
-      var h3 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealT = D.world.state().t - 2; }, 2);
-      var h4 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealT = D.world.state().t - 2; });
-      var h5 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealT = D.world.state().t - 25; }, 2);
-      okAs('HAVE A HOT MEAL: fresh, offered "' + h1.offer + '" -- taken, meal ' + h1.f.asdisMeals + ' played over ' + h1.flips.length + ' opening, then "' + window.DS.stripCodes(h1.cards).slice(0, 150) + '", the hour ' + hot1 + ' (from 18), ended ' + h1.end + ', hot ' + h1.f.asdisHot + ', rested ' + h1.f.asdisRested + '; two hours after a long rest, offered "' + h2.offer + '", meal ' + h2.f.asdisMeals + ' played (' + h2.flips.length + '), ended ' + h2.end + '; two hours after a conversation: a hot meal plays none (' + h3.flips.length + ', meals ' + h3.f.asdisMeals + ', ended ' + h3.end + '), nor a night (' + h4.flips.length + ', ended ' + h4.end + '); 25 hours after, the next (' + h5.flips.length + ', meals ' + h5.f.asdisMeals + ')',
-        h1.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h1.flips.length === 1 && h1.f.asdisMeals === 1 && h1.f.asdisStreet === 1 && /A bowl of soup, the heel of the loaf/.test(h1.cards) && hot1 === 19 && h1.end === 'hot' && h1.f.asdisHot === 1 && !h1.f.asdisRested && h1.f.asdisMealT != null &&
+      // conversations (available whether long rest is available or not)"; then "give the hot meal a 6 hour cool down once taken and allow 2 pieces of conversation per day total
+      // (both short, one short one long). Also have her food do the Marta food thing for exhaustion if the party has it."): offered beside EAT AND SLEEP, and alone inside the
+      // 24 hours of a long rest; it plays the next conversation and then is an hour's short rest, no night; not offered for six hours after one is taken, the hour said; TWO
+      // conversations in 24 hours, a meal past them the rest alone; her food takes a level of exhaustion off each one worn, as Marta's does (RED: no such offer)
+      var hrAs = function (B) { return D.mines.hourNow(D.roam.q, B); }, tAs = function () { return D.world.state().t; }, exhAs = function (B) { return B.roam.members.map(function (u) { return HAs.exh(u.src); }).join(''); };
+      var worn = function (B) { HAs.exhaust(B.roam.members[0].src, 2); HAs.exhaust(B.roam.members[1].src, 1); };
+      var fedAs = function (g) { return g.trail.filter(function (x) { return /her food:/.test(x); }).join(' ').replace(/^.*her food: /, ''); };
+      var h1 = mealAs(0, hi, ['bed'], worn, 2), hot1 = hrAs(h1.B), ex1 = exhAs(h1.B);
+      var h2 = mealAs(1, hi, ['bed'], function (B) { HAs.cur.restEnd = tAs() - 2; }, 2);
+      var h3 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisHotT = tAs() - 2; }), h3b = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisHotT = tAs() - 7; }, 2);
+      var h4 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealTs = [tAs() - 2]; }, 2);
+      var h5 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealTs = [tAs() - 8, tAs() - 2]; }, 2), h6 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealTs = [tAs() - 8, tAs() - 2]; });
+      var h7 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealTs = [tAs() - 30, tAs() - 25]; }, 2);
+      var h8 = mealAs(3, hi, [], worn), ex8 = HAs.cur.party.map(function (h) { return HAs.exh(h); }).join('') + '/' + h8.B.roam.members.map(function (u) { return HAs.exh(u.src); }).join(''), h9 = mealAs(3, hi, [], null, 2);
+      okAs('HAVE A HOT MEAL: fresh, offered "' + h1.offer + '" -- taken with two worn (2 and 1), meal ' + h1.f.asdisMeals + ' played over ' + h1.flips.length + ' opening, her food "' + fedAs(h1) + '" (exhaustion now ' + ex1 + '), the hour ' + hot1 + ' (from 18), ended ' + h1.end + ', hot ' + h1.f.asdisHot + ', rested ' + h1.f.asdisRested + '; two hours after a long rest, offered "' + h2.offer + '", meal ' + h2.f.asdisMeals + ' played, ended ' + h2.end +
+        '; SIX HOURS: two after a hot meal offered "' + h3.offer + '" with "' + (h3.ask.match(/A hot meal again from[^.]*\./) || ['no line'])[0] + '" (the night still plays meal ' + h3.f.asdisMeals + '), seven after "' + h3b.offer + '"; TWO A DAY: one conversation two hours back, the hot meal plays the second (' + h4.flips.length + ', meals ' + h4.f.asdisMeals + '); two in the day, a hot meal plays none (' + h5.flips.length + ', ended ' + h5.end + ') nor a night (' + h6.flips.length + ', ended ' + h6.end + '); both past 24 hours, the next (' + h7.flips.length + ', meals ' + h7.f.asdisMeals + '); EAT AND SLEEP with two worn, no meal left: her food "' + fedAs(h8) + '", on the save after the night ' + ex8.split('/')[0] + '; nobody worn, a hot meal with no meal left: her food "' + fedAs(h9) + '", ended ' + h9.end,
+        h1.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h1.flips.length === 1 && h1.f.asdisMeals === 1 && h1.f.asdisStreet === 1 && /A bowl of soup, the heel of the loaf/.test(h1.cards) && /is less worn \(exhausted 1\)/.test(h1.cards) && /eats the weariness off/.test(h1.cards) && ex1 === '1000' && hot1 === 19 && h1.end === 'hot' && h1.f.asdisHot === 1 && !h1.f.asdisRested && h1.f.asdisHotT != null && (h1.f.asdisMealTs || []).length === 1 && noDieAs(window.DS.stripCodes(h1.cards)) &&
         h2.offer === 'HAVE A HOT MEAL|NOT NOW' && h2.flips.length === 1 && h2.f.asdisMeals === 2 && h2.end === 'hot' &&
-        h3.flips.length === 0 && h3.f.asdisMeals === 1 && h3.end === 'hot' && h3.f.asdisHot === 1 && h4.flips.length === 0 && h4.f.asdisMeals === 1 && h4.end === 'morning' && h5.flips.length === 1 && h5.f.asdisMeals === 2 && h5.end === 'hot');
+        h3.offer === 'EAT AND SLEEP|NOT NOW' && /A hot meal again from 22:00/.test(h3.ask) && h3.flips.length === 1 && h3.f.asdisMeals === 2 && h3.end === 'morning' && h3b.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h3b.end === 'hot' &&
+        h4.flips.length === 1 && h4.f.asdisMeals === 2 && h4.f.asdisMealTs.length === 2 && h5.flips.length === 0 && h5.f.asdisMeals === 1 && h5.end === 'hot' && h5.f.asdisHot === 1 && h6.flips.length === 0 && h6.f.asdisMeals === 1 && h6.end === 'morning' && h7.flips.length === 1 && h7.f.asdisMeals === 2 && h7.end === 'hot' &&
+        /less worn \(exhausted 1\)/.test(fedAs(h8)) && /eats the weariness off/.test(fedAs(h8)) && ex8.indexOf('0000/') === 0 && h8.end === 'morning' && fedAs(h9) === '' && h9.end === 'hot');
       // 8. THE VIGIL'S CEILING, read off the meals as written: no line of any layer holds a word of A.CEILING; "vigil" only in meal one's Insight answer and the question after it
       var srcAs = [], vigAt = [];
       AA.MEALS.forEach(function (ML) {

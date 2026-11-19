@@ -32,11 +32,27 @@
   A.had = function (f) { return (f && f.asdisMeals) || 0; };
   A.due = function (f) { return A.had(f) < A.MEALS.length; };
   // HAVE A HOT MEAL (2026-11-19, Griz to the lanes desk: "I intended she offer 'eat and sleep'(long rest available) and also 'have a hot meal' (short rest), which also triggers
-  // the conversations (available whether long rest is available or not)"): either offer plays the next of the three (js/solskaft.js SK.asdisTalk). The hot meal can be had hour
-  // after hour, so the conversations keep to ONE IN 24 HOURS by the house's clock (f.asdisMealT) -- the seat's call, his to move: a meal inside them is the rest alone
-  A.GAP = 24; A.HOT = 'A bowl of soup, the heel of the loaf, an hour by her hearth with your boots off.';
+  // the conversations (available whether long rest is available or not)"): either offer plays the next of the three (js/solskaft.js SK.asdisTalk).
+  // HIS RULES FOR IT (11-19, to the lanes desk, relayed): "give the hot meal a 6 hour cool down once taken and allow 2 pieces of conversation per day total (both short, one
+  // short one long). Also have her food do the Marta food thing for exhaustion if the party has it." So: the hot meal is not offered for A.COOL hours after one is taken
+  // (f.asdisHotT), her ask saying the hour it is offered again; TWO conversations in a day, whichever offers bring them (f.asdisMealTs: the house's clock at the last two; a
+  // day read as the 24 hours past, as the house reads the long rest's "one a day" -- the seat's reading); and her food, either offer's, is Marta's hot meal's own rule
+  // (js/counter.js C.mealOne: each one who eats with a level of exhaustion sheds one), on a card, only when someone has a level. On a test door with no house clock none of
+  // the hours bind
+  A.DAY = 24; A.PER_DAY = 2; A.COOL = 6; A.HOT = 'A bowl of soup, the heel of the loaf, an hour by her hearth with your boots off.';
   A.now = function () { var W = D.world, S = W && W.state && W.state(); return S && S.t != null && D.house && D.house.playing ? S.t : null; };
-  A.dueNow = function (f) { var now = A.now(); return A.due(f) && (now == null || f.asdisMealT == null || now - f.asdisMealT >= A.GAP); };
+  A.recent = function (f, now) { return (f.asdisMealTs || []).filter(function (t) { return now - t < A.DAY; }); };
+  A.dueNow = function (f) { var now = A.now(); return A.due(f) && (now == null || A.recent(f, now).length < A.PER_DAY); };
+  A.hotFrom = function (f) { var now = A.now(); return now == null || f.asdisHotT == null || now - f.asdisHotT >= A.COOL ? null : f.asdisHotT + A.COOL; }; // (the clock a hot meal is offered again at; null: now)
+  A.hotWhy = function (f) { var at = A.hotFrom(f); return at == null ? '' : 'A hot meal again from ' + D.house.clockAt(at) + '.'; };
+  A.hotTaken = function (f) { f.asdisHot = (f.asdisHot || 0) + 1; var now = A.now(); if (now != null) f.asdisHotT = now; };
+  // her food, eaten: Marta's rule and Marta's words for it (js/counter.js C.MEAL.less, .clear) -- the lines, none when nobody is worn
+  A.fed = function (B) {
+    var C = D.counter, H = D.house, out = []; if (!C || !C.mealOne || !H || !H.exh) return out;
+    C.mealEaters(B).forEach(function (u) { if (!C.mealOne(u)) return; var n = H.exh(u.src); out.push((n ? C.MEAL.less : C.MEAL.clear).split('{name}').join(u.name).split('{n}').join(n)); });
+    if (out.length) A.trail('her food: ' + out.join(' '));
+    return out;
+  };
   var QUIET = [`Spoons. The fire ticks.`, `Nobody talks for a while. The bread goes round.`, `Asdis fills a bowl that had not asked.`];
   var eat = { id: 'eat', all: true, again: true, last: true, say: function () { return `(Eat quietly.)`; }, run: function (S) { S.narr(QUIET[(S.quiet = (S.quiet || 0) + 1) % QUIET.length]); } };
   // a meal's filler, one a hero: `f` the hero's key to [the question, her answer]; one not of the four thanks her
@@ -175,7 +191,7 @@
       prompt = last || { by: 1, line: more[fillN++ % more.length] };
     }
     sc.echo = null; sc.hero = null;
-    f.asdisMeals = n + 1; var now = A.now(); if (now != null) f.asdisMealT = now;
+    f.asdisMeals = n + 1; var now = A.now(); if (now != null) f.asdisMealTs = A.recent(f, now).concat([now]).slice(-A.PER_DAY);
     yield sc.narr([ML.close]);
   };
   // between the yes and the sleep (js/solskaft.js SK.asdisTalk): tonight's meal, if one of the three is still to come
