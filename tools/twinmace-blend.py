@@ -65,6 +65,18 @@ LYMEN'S SLASH (11-13, Griz to the lanes desk: "default lymen is shield and longs
                         bigger than the garrison's. RE-POSED the same day to his gist (rows_slash, the SWSH frames): the hips twist
                         and the shield goes forward as the sword arm rises; the hips swing back the other way as the sword comes down;
                         the hit opens the target's torso from its left shoulder to its right hip.
+
+TALMOK'S GREATAXE (11-19, Griz to the lanes desk: "confirm we need the attack, then have a blender seat do a human great-axe overhand chop
+attack row to send to the art desk with a talmok request"):
+    ... -- build kit=greataxe             THE OVERHAND CHOP, both hands on one haft (deep16/_src/greataxe/; the human build, sized to
+                        talmok_p2's idle unless hero= says otherwise). Then `python tools/twinmace-sheet.py greataxe`.
+    CHOP 6      kit=greataxe    1 the guard (the axe at port across his chest, its head up by the right shoulder), 2 the lift up his right
+                side, 3 THE TOP (the hands over his brow, the axe laid back over his head, the left foot coming off the floor and forward),
+                4 THE CHOP (the foot down, the arms thrown out level, the blade down through the target's collar), 5 through and low (the
+                blade by the floor in front, the knees deep), 6 the foot drawn back, the axe coming up to guard.
+What it adds: a frame is THE HAFT -- where the right fist is (metres: across, forward, above the floor) and which way the haft points -- and
+the left fist is SPACE down the haft from the right on every frame; each wrist is then walked in till its fist is on its mark (rows_greataxe).
+The edge leads the swing: square to the haft, in the plane the haft swings in.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -92,7 +104,7 @@ if KIT == 'sword':
 SWSH = KIT == 'sword+shield'              # Lymen's (11-13): the same slash, a round shield on the left forearm
 if SWSH:
     WORK = os.path.join(ROOT, 'deep16', '_src', 'slashshield'); LOG = '[slashshield]'
-GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot'), 'longbow': ('longbow', 'shoot'), 'stab': ('stab', 'stab')}     # the garrison's kits (11-12): the folder and the row
+GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot'), 'longbow': ('longbow', 'shoot'), 'stab': ('stab', 'stab'), 'greataxe': ('greataxe', 'chop')}     # the garrison's kits (11-12): the folder and the row
 if KIT in GARR:
     WORK = os.path.join(ROOT, 'deep16', '_src', GARR[KIT][0]); ROW = GARR[KIT][1]; LOG = '[%s]' % GARR[KIT][0]
 DWARF = MQ.OPT.get('build', 'human') == 'dwarf'
@@ -101,6 +113,8 @@ if DWARF:
     WORK += '-dwarf'
     if 'hero' not in MQ.OPT:
         MQ.HERO = 'gatewatch_p2' if KIT in GARR else 'pyro_p0'     # (the garrison's troopers wear the gate watch's fight figure)
+elif KIT == 'greataxe' and 'hero' not in MQ.OPT:
+    MQ.HERO = 'talmok_p2'              # (Talmok's: the human build, as tall as his own idle stands)
 # a dwarf on the same bones: the legs much shorter, the trunk a little shorter and a good deal wider and deeper, the limbs thick, the head big
 LEGK, TRUNK, XK, YK, RK, HEADK, HK = (0.56, 0.90, 1.24, 1.18, 1.30, 1.14, 0.74) if DWARF else (1, 1, 1, 1, 1, 1, 1)
 
@@ -202,10 +216,16 @@ BOWPARTS = {'srest': _string(-BOWZ), 'shalf': _string(DHALF), 'sfull': _string(D
 # thing and not a piece of the body: it stands above his crown, and the figure is sized by the body alone.
 SLUNG = [('rod', 'haft', (-0.24, -0.50, -0.185), (0.0, 0.10, -0.215), 0.020), ('rod', 'haft', (0.0, 0.10, -0.215), (0.24, 0.72, -0.185), 0.020),
          ('rod', 'string', (-0.24, -0.50, -0.185), (0.24, 0.72, -0.185), 0.010)]
-HELD = {'axe+shield': AXE, 'handaxe': HATCHET, 'crossbow': XBOW, 'stab': SHORT}
+# the greataxe (11-19), in the RIGHT hand bone's frame: the right fist the upper hand, the left SPACE toward the butt. A plain heavy head, one
+# broad blade and a poll behind it; 1.32 m butt to top (three quarters of his height).
+SPACE = 0.34             # (the left fist from the right, down the haft: the same on every frame)
+GAXE = [('rod', 'grip', (0, -0.50, 0), (0, -0.455, 0), 0.034), ('rod', 'haft', (0, -0.455, 0), (0, 0.80, 0), 0.024), ('rod', 'grip', (0, 0.80, 0), (0, 0.82, 0), 0.030),
+        ('slab', 'blade', [(0.560, 0.0), (0.770, 0.0), (0.850, 0.250), (0.700, 0.300), (0.540, 0.275), (0.455, 0.215), (0.575, 0.090)], 0.040),   # the blade: its edge 0.40 long, 0.30 off the haft
+        ('slab', 'tip', [(0.600, -0.02), (0.730, -0.02), (0.705, -0.085), (0.625, -0.085)], 0.040)]                                           # the poll
+HELD = {'axe+shield': AXE, 'handaxe': HATCHET, 'crossbow': XBOW, 'stab': SHORT, 'greataxe': GAXE}
 GONE = {'handaxe': {'R': (4, 5)}, 'crossbow': {'span': (3, 4, 5), 'bolt': (3, 4, 5), 'loose': (0, 1, 2)},     # the row's frames (from 0) a held thing is NOT there on
         'longbow': {'srest': (1, 2), 'shalf': (0, 2, 3, 4, 5), 'sfull': (0, 1, 3, 4, 5), 'anock': (1, 2, 3, 4, 5), 'ahalf': (0, 2, 3, 4, 5), 'afull': (0, 1, 3, 4, 5)}}
-EDGE = {'axe+shield': (0.30, 0.210), 'handaxe': (0.24, 0.135), 'crossbow': (0.50, 0.0), 'longbow': (BOWH, 0.0), 'stab': (0.50, 0.0)}
+EDGE = {'axe+shield': (0.30, 0.210), 'handaxe': (0.24, 0.135), 'crossbow': (0.50, 0.0), 'longbow': (BOWH, 0.0), 'stab': (0.50, 0.0), 'greataxe': (0.66, 0.27)}
 BELLY = (-0.03, 0.98)    # the stab's mark on the target: its belly, a little to its left of the middle, x and z                        # the edge's middle (y, z): what the points file calls the head
 FORE = 0.27              # the crossbow's fore-stock, from the right fist: where the left hand holds it
 BELT = (-0.15, 0.95)     # the battleaxe's mark on the target: its hip on its LEFT side (the striker's right), x and z -- as high as a dwarf's cut comes down on a grown man
@@ -614,8 +634,66 @@ def rows_garrison(R):
     return [('idle', 1, False, mk('idle', IDLE), 'ik'), (ROW, 6, False, mk(ROW, F), 'ik')]
 
 
+def rows_greataxe(R):
+    """Talmok's greataxe (11-19): THE OVERHAND CHOP, both hands on one haft. The rig's laws are the rows' above -- the hips' turn (`yaw`: - puts
+    his LEFT side forward), the waist's twist, the lean, the knees' drop, the shoulders raised (`sh`) -- but the arms are not angles here: a
+    frame names THE HAFT. `fr` is where the right fist is, in metres on the floor's own axes (across: + his left; forward: -; above the floor);
+    `haft` is which way the haft points from the fists to the head. The left fist is SPACE down the haft from the right, on every frame; each
+    wrist is walked in until its fist sits on its mark (the fist rides the forearm's line, so the wrist is found, not placed). The edge is
+    square to the haft in the plane it swings in, leading the swing. Each wrist's angle to the haft and how far each fist is off its mark are
+    printed: a fist more than a centimetre off is an arm that could not reach, and the frame wants moving.
+    The left foot STEPS: off the floor on 3, down ahead on 4 and 5, drawn back on 6 (`step`: forward, up, the toes' pitch)."""
+    za, zb = R.ANK0['a'].z, R.ANK0['b'].z
+    X = Vector((1, 0, 0))
+    OUT_, DOWN, HIGH = (0.55, 0.45, -0.60), (0.45, 0.20, -1.0), (0.9, 0.1, 0.35)      # an elbow out and back (the guard), under the arm (the follow-through), and out and a little up (the blow: the forearms come down onto the haft)
+
+    def P(fr, haft, lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, sh=0, fw=0, heel=0, step=(0, 0, 0), eL=DOWN, eR=DOWN):
+        return dict(lift=lift * U, shift=shift * U, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
+                    legs={'a': (0.13 * U, (-0.12 - step[0]) * U, za + step[1] * U, 10, step[2]), 'b': (-0.13 * U, 0.10 * U, zb, 28, heel)},
+                    epolea=eL, epoleb=(-eR[0], eR[1], eR[2]), _fr=fr, _haft=haft)
+
+    F = [
+        P((-0.14, -0.20, 1.22), (-0.30, 0.10, 0.95), -0.04, lean=3, yaw=-18, hyaw=16, eL=OUT_, eR=OUT_),                                       # 1 THE GUARD: the axe at port across his chest, its head up by the right shoulder, the left hand low at the belt
+        P((-0.15, 0.0, 1.62), (-0.20, 0.40, 0.89), -0.04, shift=0.03, lean=-2, yaw=-26, twist=-8, hyaw=28, sh=8, eL=(0.3, -0.3, -1.0), eR=(0.9, 0.5, 0.1)),   # 2 THE LIFT: the hands up his right side, the weight back, the head of the axe going up and back
+        P((-0.12, 0.12, 1.97), (0.0, 0.97, 0.25), -0.02, shift=0.01, lean=-8, yaw=-10, twist=-2, head=-4, hyaw=10, sh=16, step=(0.08, 0.06, -8), eL=(1.0, -0.4, 0.0), eR=(1.0, -0.4, 0.0)),   # 3 THE TOP: the hands over his brow, the axe laid back over his head, his back arched, the left foot off the floor and going forward
+        P((-0.12, -0.62, 1.20), (0.0, -0.966, 0.259), -0.12, shift=-0.08, lean=16, yaw=4, twist=4, head=-8, sh=4, fw=8, heel=12, step=(0.16, 0, 0), eL=HIGH, eR=HIGH),          # 4 THE CHOP: the foot down, the knees dropped, the arms thrown out level and the blade straight down in front
+        P((-0.10, -0.62, 0.70), (0.03, -0.99, -0.10), -0.17, shift=-0.10, lean=30, yaw=6, twist=4, head=-14, fw=10, heel=16, step=(0.16, 0, 0)),               # 5 THROUGH: the blade down by the floor in front, the knees deep, his back over it
+        P((-0.13, -0.30, 1.20), (-0.20, -0.25, 0.95), -0.06, shift=-0.02, lean=6, yaw=-10, hyaw=8, step=(0.05, 0, 0), eL=OUT_, eR=OUT_),                     # 6 the foot drawn back, the axe coming back up to the guard
+    ]
+    IDLE = [dict(F[0])]
+
+    def fin(P, tag):
+        Q = {k: v for k, v in P.items() if not k.startswith('_')}
+        b = Vector(P['_haft']).normalized(); e = X.cross(b).normalized()
+        fr = Vector(P['_fr']) * U; fr.z += R.FLOOR
+        mark = {'b': fr, 'a': fr - b * SPACE * U}
+        d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]       # (the shoulders: the arms not yet placed)
+        Q['hands'] = {'a': tuple(b), 'b': tuple(b)}; Q['handsup'] = {'b': tuple(e)}
+        arms = {}
+        for s_, sd in (('a', 'L'), ('b', 'R')):
+            sho = M['arm.' + sd].translation; arms[s_] = mark[s_] + (sho - mark[s_]).normalized() * HAND * U - sho
+        for it in range(8):          # walk each wrist in: the fist is HAND along the forearm from it, wherever the elbow puts the forearm
+            Q['arms'] = {k: tuple(v) for k, v in arms.items()}
+            d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]
+            for s_, sd in (('a', 'L'), ('b', 'R')):
+                arms[s_] = arms[s_] + (mark[s_] - M['hand.' + sd].translation)
+        Q['arms'] = {k: tuple(v) for k, v in arms.items()}
+        d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]
+        out = []
+        for s_, sd in (('a', 'L'), ('b', 'R')):
+            f = (M['fore.' + sd] @ Vector((0, R.BN['fore.' + sd].length, 0)) - M['fore.' + sd].translation).normalized()
+            out.append('%s wrist %3.0f off the haft, its fist %.1f cm off its mark' % (sd, math.degrees(f.angle(b)), (M['hand.' + sd].translation - mark[s_]).length / U * 100))
+        ed = M['hand.R'] @ Vector((0, EDGE[KIT][0] * U, EDGE[KIT][1] * U))
+        print("%s %s: %s | the edge's middle at x %.2f y %.2f z %.2f" % (LOG, tag, '; '.join(out), ed.x / U, ed.y / U, (ed.z - R.FLOOR) / U))
+        if tag == ROW + ' 4':
+            GARRISON['ty'] = ed.y / U + 0.02          # (the target stood where the blade comes down: the edge just inside its chest)
+        return Q
+    mk = lambda name, FR: (lambda i, n: (fin(dict(FR[i]), '%s %d' % (name, i + 1)), 0))
+    return [('idle', 1, False, mk('idle', IDLE), 'ik'), (ROW, 6, False, mk(ROW, F), 'ik')]
+
+
 def rows(R):
-    return rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
+    return rows_greataxe(R) if KIT == 'greataxe' else rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
 
 
 ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3)}     # (frame 4 is the hit in both: his "4 is supposed to be the cut", 11-12)
