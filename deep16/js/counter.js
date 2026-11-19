@@ -354,7 +354,7 @@
   // the hero's answers, a line each in the bubble (wrapped to its width), hovered or picked as any choice
   Counter.prototype.bubbleButtons = function () {
     var out = [], y = BB.y + 6, tw = BB.w - 20;
-    this.wait.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.wrap(o.label, tw), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k, bubble: true }); y += h + 3; });
+    this.wait.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.wrap(o.label, tw), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, off: !!o.off, go: 'opt', k: k, bubble: true }); y += h + 3; }); // (o.off: greyed in the bubble as at the counter -- Asdis's ask, 11-19)
     return out;
   };
   // a first-game shop's greeting said the second game's way, by the shop's id (the first game's content/shops.json left as it is): Marko hires out no guards
@@ -518,7 +518,7 @@
       var hov = k === self.hov, on = q.on;
       if (q.bubble) { // (a hero's answer: a line of the bubble, lit under the mouse)
         if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); }
-        q.lines.forEach(function (l, i) { D.text(ctx, l, q.x + 6, q.y + 2 + i * 10, hov ? W8.gold : q.color || W8.text); });
+        q.lines.forEach(function (l, i) { D.text(ctx, l, q.x + 6, q.y + 2 + i * 10, q.off ? '#6c6c84' : hov ? W8.gold : q.color || W8.text); }); // (q.off: greyed -- Asdis's ask, 11-19)
         return;
       }
       if (q.row) {
@@ -752,7 +752,7 @@
           if (hfu) bubbleSide(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR, my); // (at the bust he stands beside it: the tail off its side at his mouth)
           else bubbleDown(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR ? mx - 14 : mx + 14, my);
           if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
-          else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (q.shade && C.FLIP && !hov) { ctx.fillStyle = C.FLIP.shade; ctx.fillRect(q.x, q.y, q.w, q.h); } if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } if (q.shade && C.FLIP) { ctx.fillStyle = C.FLIP.bar; ctx.fillRect(q.x, q.y, 3, q.h); if (q.tag && done) D.text(ctx, q.tag, q.x + q.w - 4, q.y + 2, C.FLIP.bar, 'right'); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
+          else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (q.shade && C.FLIP && !hov) { ctx.fillStyle = C.FLIP.shade; ctx.fillRect(q.x, q.y, q.w, q.h); } if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } if (q.shade && C.FLIP) { ctx.fillStyle = C.FLIP.bar; ctx.fillRect(q.x, q.y, 3, q.h); if (q.tag && done) D.text(ctx, q.tag, q.x + q.w - 4, q.y + 2, C.FLIP.bar, 'right'); } typed(q.lines, q.x + 6, q.y + 2, q.off ? '#6c6c84' : hov ? W8.gold : q.color || W8.text); }); /* (q.off: a greyed answer in the counter's grey -- Asdis's ask, 11-19) */
         }
         if (hsh) { if (hR) { ctx.save(); ctx.translate(hL + hW, 0); ctx.scale(-1, 1); C.drawPortraitAt(ctx, pt, 'idle', 0, hsh.ax * hs, hfoot, hs); ctx.restore(); } else C.drawPortraitAt(ctx, pt, 'idle', 0, hL + hsh.ax * hs, hfoot, hs); C.nameTag(ctx, h.name, hL + hW / 2, D.H - 28); }
         else { var hx = hR ? D.W - 8 - HB.w : HB.x; D.win8(ctx, hx, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(hx + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); C.drawHeroFace(ctx, h, hx + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t, hR); ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', hx + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); }
