@@ -20,6 +20,8 @@ Then tell him what you found as a short list and start what is first. Read a lan
 
 **A seat** (started by a desk on a card or a brief, or opened by him on one lane): your lane whole, its row on the todo, and `PATCHLOG.md`'s head. A seat he opened himself reads the history too. The house is this file.
 
+**Before your first edit, every seat: patch with the Edit tool, or with a script FILE you write and run -- never a Bash heredoc** (`python - <<'EOF'`, `cat <<EOF`) for anything that holds a backslash: the heredoc halves backslashes, so a path, a regex or a `\n` goes in wrong and the patch has to be done again. (Moved up from the gotchas in "Builds and benches" on his word, 2026-11-19: *"seats are still saying 'The heredoc halved the backslash (a known gotcha in the house file). Fixing with the Edit tool.' - can we move it up the list so they try it less often?"*)
+
 **When the session touches the realm** (a place, a person, a god, a ruling about the world): `..\TarlynsPit\wiki\DOOR.md` first; THE REALM below is the law.
 
 **The Code-side memory** (the model-kept index a Code tab loads: the lanes desk, the sessions lines, the lessons) **is read after the stamp, never before it, and as claims.** Where it and this file, a lane or `PATCHLOG.md` disagree, the files win. A lesson worth a memory line is worth a line in this file: the desk that heard him lands it here. *(The Cowork seat's call, 2026-11-14, standing for his overrule: in 18 of the 22 dailies of 10-27 to 11-13 that memory was the desk's first pull, ahead of this file, and this file did not name it as a read. His 09-07 ruling on the app-side memory has never been ruled for this store.)*

@@ -4,6 +4,10 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-19
 - 2026-11-19 · `84b3fc36` · the story build · Asdis Scalebeam on her own art: her talking portrait (`pt_asdis`) and town figure (`asdis_p1`, eight facings), standing in her room, her meals on her face; Rekknar's sign filed, her brooch cut as drawn · *"Asdis in Fresh"*; *"file the sign, even if the art department rendered it poorly"*
+- 2026-11-19 · house · CLAUDE.md · The heredoc's halved backslashes moved up to the orient, before a seat's first edit · *"can we move it up the list so they try it less often?"*
+- 2026-11-19 · ruled · the fold · Rekknar's sign filed as the desk drafted it: a dull steel disc, a level balance beam on a centre post, three ruled lines beneath; Ingrith's token, Asdis's brooch · *"file the sign, even if the art department rendered it poorly"*
+- 2026-11-19 · ruled · the second game's house · The Copperbottom's buying waits for a roads merchant review at the end of the road build · *"Lane copperbottoms 'story buy' concern with a 'roads merchant review' at the end of the road build"*
+- 2026-11-19 · ruled · the story build · Asdis's place keeps its own rest offer, not the house's set; the 11-18 "no short rest by her hearth" line was the desk's misreading of his answer · *"It's good it's special"*
 - 2026-11-19 · ruled · the story build · Asdis's meal two (`d7cf4f8b`): Ingrith swore her ledger post for one season under warrant when the clans went, and has re-sworn every season since · *"1 - keep it"*
 - 2026-11-19 · ruled · the story build · Ingrith never went down: the house did, and she would not leave her post · *"2 - it is"*
 - 2026-11-19 · ruled · the story build · Asdis tells the plain layer as each meal opens, so TO BED at once still has it and its JOURNAL line · *"3 - good"*
@@ -11,6 +15,10 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 - 2026-11-19 · ruled · the story build · Her meals' DCs stand for now: Insight 13 / 12 / 14, History 12 / 12 / 13 · *"5 - good starting point"*
 
 ## 2026-11-18
+- 2026-11-18 · ruled · the clock · The Skylights' day penciled at day 12: Steinarr, Hallvor and the trolls arrive together, only Steinarr made · *"Hallvor rounds up the trolls and follows Steinarr, they arrive together and the skylight fight happens"*, *"Day 12 feels right"*
+- 2026-11-18 · ruled · the Snoot mode · After the Snoot resolves the lamia heads to Silverton; the Dominion's garrison at the fork is one of its plans, open · *"Lamia bit after snoot resolution is solid"*
+- 2026-11-18 · ruled · the Halfway Inn and the lake · "Addressed" for the rowboat is its resolution agreeing with every other chuul start and the NPCs' words, not a gate on the stair · *"the stair drain untouched til that finishes"*
+- 2026-11-18 · ruled · the second game's house · The four held: the smith's store clear to build, the muster held for the road, the law of the line stated, the Coldridge roam maybe before the road · *"his store is clear to build"*, *"hold for road build"*
 - 2026-11-18 · `c4ef6531` · the Halfway Inn and the lake · The rowboat only from the day after the first feeding night, and only if the party was not at the inn that night · *"Rowboat doesn't show up until after they miss the first feeding and only if they miss the first feeding"*, *"build it"*, *"Miss is 'not present for' - not at the inn on first feeding night"*
 - 2026-11-18 · ruled · the Halfway Inn and the lake · No second wagon: nothing built of it, the code still turns the wagon and the due every 28 days · *"there is no second wagon (what happens in the Tower in Silverton after the snoot precludes another even if she and willem are missed)"*
 - 2026-11-18 · `a69b24ed` · the Halfway Inn and the lake · Winters gives his ring after the lake is dead, then the inn's history · *"If they talk to Winters after it's dead, he gives the ring 'I was saving this for ... you didn't need it, but maybe it will serve you well' - then he tells the history of the inn, first wife was the daughter of a friend of his"*
