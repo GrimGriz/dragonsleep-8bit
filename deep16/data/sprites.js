@@ -1541,7 +1541,7 @@
 "source": "drawn by the art desk (Barley barefoot in his battered brown coat, the threshing flail drawn in his hands), cut and snapped by tools/barley-sheet.py coat; 70 pages, 3 of them attempts the desk marked broken or did not select"
 },
 "barley_p3": {
-"image": "art/barley_p3.png?v=495c94a837",
+"image": "art/barley_p3.png?v=029920b2cc",
 "fw": 64,
 "fh": 72,
 "ax": 32,
@@ -1704,9 +1704,19 @@
 6,
 7
 ]
+},
+"greataxe": {
+"y": 9312,
+"fw": 88,
+"fh": 71,
+"ax": 44,
+"ay": 68,
+"frames": 6,
+"fps": 12,
+"release": 3
 }
 },
-"source": "drawn by the art desk (Barley in the chainmail hauberk and boots, empty-handed: his weapon drawn by the engine at the hands measured here), cut and snapped by tools/barley-sheet.py chain; 70 pages, 15 of them attempts the desk marked broken or did not select; the longsword row (the one-handed slash, the sword drawn in his hand) from the art desk's mannequin pilot of 11-04, cut by tools/barley-slash-sheet.py",
+"source": "drawn by the art desk (Barley in the chainmail hauberk and boots, empty-handed: his weapon drawn by the engine at the hands measured here), cut and snapped by tools/barley-sheet.py chain; 70 pages, 15 of them attempts the desk marked broken or did not select; the longsword row (the one-handed slash, the sword drawn in his hand) from the art desk's mannequin pilot of 11-04, cut by tools/barley-slash-sheet.py -- the greataxe row drawn by the art desk (ART-WANTED-85-BARLEY-CHAINMAIL-GREATAXE, 11-19), added by tools/barley-greataxe-sheet.py",
 "grips": {
 "idle": [
 "8.7 -34.6 -0.7 -27 6;9.4 -35 -0.2 -27.1 6;9.3 -34.7 -0.9 -26.9 6;9.1 -34.9 -0.6 -27.1 6;9.1 -34.9 -0.4 -27.4 6;9.4 -34.7 -0.4 -27 6",
