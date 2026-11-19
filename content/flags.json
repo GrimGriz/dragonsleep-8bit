@@ -245,6 +245,7 @@
     "surfaceCall": "cleared: js/deep.js DS.startFrom (a save that heard the runner, 10-05 to 10-20: the call from the surface left the first game)",
     "tallyMet": "set: js/events.js, js/scenes.js, js/situations.js; read: content/quests.json, js/events.js",
     "talmokBeaten": "set: js/events.js, js/scenes.js; read: content/quests.json",
+    "allies": "set: deep16/js/battle.js Battle.allyRecord -- a fight's allies, by fight id: who was sent, by group, who came, who walked out (the Skylights, 11-19, Griz: \"what people Silverton sends into the fight and how many make it out need to pass back to the save file for other purposes\"); read: deep16/js/battle.js, dev/bench16.js mode=allies1119",
     "tamAfterSaid": "set: js/deep.js; read: js/deep.js",
     "tamDwarfSaid": "set: js/deep.js; read: js/deep.js",
     "tariffDone": "set: js/deep.js; read: content/quests.json, js/deep.js",

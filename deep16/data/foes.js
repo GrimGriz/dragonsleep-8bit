@@ -1354,7 +1354,7 @@
     saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
     attacks: { greataxe: { name: 'Greataxe', atk: 5, dice: '1d12', mod: 3, type: 'slashing', reach: 5, rage: 2, prone: 13, proneRage: true, proneMax: 2 } },
     multi: 1, reckless: true, rageOnHit: true,
-    src: 'ours: Talmok off the sand, npcs-by-location.md §TALMOK (barbarian 3: Greataxe +5 (1d12+3), road iron, never in the pit; the greataxe the SRD\'s weapon, 1d12 slashing, heavy, two-handed); content/text.json hex.intro.talmok; the Path of the Sand\'s Down in the Sand, raging (js/features.js); reckless and rage as the pit sheet talmok -- SENSES as the pit sheet: Stealth none (DEX +2), passive Perception 11'
+    src: 'ours: Talmok off the sand, npcs-by-location.md §TALMOK (barbarian 3: Greataxe +5 (1d12+3), road iron, never in the pit; the greataxe the SRD\'s weapon, 1d12 slashing, heavy, two-handed); content/text.json hex.intro.talmok; the Path of the Sand\'s Down in the Sand, raging (js/features.js); reckless and rage as the pit sheet talmok -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), as the pit sheet; passive Perception 11, because 10 + WIS +1'
   },
   berserker: {
     name: 'Visiting Barbarian', type: 'humanoid', sheet: 'berserker_p1', cr: '2', ac: 13, armor: 'hide armor', hp: 67, speed: 30, size: 1, reach: 5,
