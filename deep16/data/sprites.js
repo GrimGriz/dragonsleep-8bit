@@ -8315,7 +8315,7 @@
 }
 },
 "guard_p2": {
-"image": "art/guard_p2.png?v=2ba71c1584",
+"image": "art/guard_p2.png?v=0a03e7f191",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -8376,9 +8376,27 @@
 "ay": 76,
 "frames": 1,
 "fps": 1
+},
+"throw": {
+"y": 4608,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"shove": {
+"y": 5376,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"keepback": {
+"y": 6144,
+"frames": 6,
+"fps": 12,
+"release": 3
 }
 },
-"source": "drawn by the art desk (ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell), cut by tools/folk-costume-sheet.py (11-15)"
+"source": "drawn by the art desk (ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell), cut by tools/folk-costume-sheet.py (11-15) -- the spear rows (throw, shove, keepback) drawn by the art desk (ART-WANTED-86, the man, 11-19: the spear throw, the shaft shove, the point out), added by tools/guard-spear-sheet.py"
 },
 "guardwoman_p1": {
 "image": "art/guardwoman_p1.png?v=4f92d49145",

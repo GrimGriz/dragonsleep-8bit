@@ -261,7 +261,7 @@
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 },
       // (11-14, Griz: "do newland spear troopers get spears to throw?", then "yes to all four, build them - line guards aren't in any other fight": the SRD Guard's spear is
       // "Melee or Ranged Weapon Attack ... range 20/60 ft."; ours carries two to throw and keeps the one in its hand -- the count the seat's, his to change)
-      throwspear: { name: 'Thrown Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', range: [20, 60], ranged: true, count: 2 } },
+      throwspear: { name: 'Thrown Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', range: [20, 60], ranged: true, count: 2, row: 'throw' } }, // (row: guard_p2's own throw, the art desk's ART-WANTED-86, 11-19 -- tools/guard-spear-sheet.py)
     multi: 1, src: 'SRD 5.1 Guard (CR 1/8): spear, melee or thrown 20/60; content/monsters.json guard (the Line Guard); his own figure since 11-18, guard_p2 (the art desk\'s 77 fight figures, the man: padded jack, iron cap, the spear -- tools/folk-costume-sheet.py; the KayKit guard_p1 before, still the Hired Sword\'s and the Hired Blade\'s)'
   },
   // the ladder's wagon yard: two who rode guard on the wagon (SRD 5.1 Guard; the ladder's own, not the 8-bit game's)

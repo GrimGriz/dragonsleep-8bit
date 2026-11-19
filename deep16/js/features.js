@@ -1124,6 +1124,7 @@
         if (!go) continue;
       }
       w.reaction = 0; var sv = RU.save(mover, 'str', dc); D.sfx(sv.ok ? 'miss' : 'hit');
+      if (D.spr && D.spr.anim(w.sheet, 'keepback')) { w.facing = B.faceTo(w, mover); w.anim = 'keepback'; w.animT = B.t; yield D.spr.duration(w.sheet, 'keepback') || 30; if (w.anim === 'keepback') w.anim = 'idle'; } // (the point out, where the sheet has it: guard_p2's, ART-WANTED-86, 11-19 -- his "stabbing empty space to keep the foe out of that space")
       B.card(['{y}' + Nm(B, w) + '{/} keeps ' + nm(B, mover) + ' back with the ' + w.weapon.name.toLowerCase() + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}PRESSES IN{/}' : '{o}HELD OFF{/}')], 240);
       if (sv.ok) continue;
       D.magic.push(B, w, mover, 1);
