@@ -1,0 +1,86 @@
+{
+ "image": "art/talmok_p2.png",
+ "fw": 48,
+ "fh": 64,
+ "ax": 24,
+ "ay": 61,
+ "top": 57,
+ "source": "talmok_p2 read another way (tools/talmok-axe-sheet.py): the art desk's greataxe rows (ART-WANTED-84, 11-19) for his idle, walk, flinch and blow -- worn by the road's Talmok (data/foes.js talmokroad) and the Pocket DM's (js/classes.js NPC.NAMED talmok); his fall, sit and prone talmok_p2's own",
+ "anims": {
+  "idle": {
+   "y": 4208,
+   "fw": 48,
+   "fh": 64,
+   "ax": 24,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 4720,
+   "fw": 58,
+   "fh": 68,
+   "ax": 29,
+   "ay": 65,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 3528,
+   "fw": 84,
+   "fh": 85,
+   "ax": 42,
+   "ay": 82,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "greataxe": {
+   "y": 3528,
+   "fw": 84,
+   "fh": 85,
+   "ax": 42,
+   "ay": 82,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 5264,
+   "fw": 50,
+   "fh": 75,
+   "ax": 25,
+   "ay": 72,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 1512,
+   "fw": 84,
+   "fh": 63,
+   "ax": 42,
+   "ay": 60,
+   "frames": 4,
+   "fps": 8
+  },
+  "sit": {
+   "y": 2016,
+   "fw": 50,
+   "fh": 63,
+   "ax": 25,
+   "ay": 60,
+   "frames": 2,
+   "fps": 2
+  },
+  "prone": {
+   "y": 3024,
+   "fw": 84,
+   "fh": 63,
+   "ax": 42,
+   "ay": 60,
+   "frames": 4,
+   "fps": 8
+  }
+ },
+ "name": "Talmok, off the sand (the greataxe)"
+}

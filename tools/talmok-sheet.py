@@ -410,3 +410,5 @@ if __name__ == '__main__':
             al = blk[..., 3:4] / 255.0; cv = (blk[..., :3] * al + cv * (1 - al)).astype(np.uint8)
             Image.fromarray(cv).resize((cv.shape[1] * 2, cv.shape[0] * 2), Image.NEAREST).save(os.path.join(d, '%s.png' % anim))
         print('  dev/visions/talmok/<row>.png')
+    # the greataxe rows (ART-WANTED-84, 11-19) and the road's sheet over them: added to what this wrote, so a rebuild keeps them
+    _load('talmokaxe', os.path.join(ROOT, 'tools', 'talmok-axe-sheet.py')).add('check' in sys.argv[1:])
