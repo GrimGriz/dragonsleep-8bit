@@ -1416,7 +1416,8 @@
       canSave: function () { return !!(calm && B.menuSave && B.menuSave()); }, // (the roam's floor inside the 8-bit: SAVE by a hand-back, js/roam.js R.save)
       touch: houseFloor, // (the house's floor: the Light on the one it touches, asked -- js/menu.js MagicPage, js/house.js FD.cast)
       notes: D.house && D.house.playing ? function () { D.house.notes(); } // (the second game's NOTES, in a town, on a floor, in a fight: deep16/js/house.js H.notes)
-        : B.o.pocket && D.pocketdm && D.pocketdm.notes && D.pocketdm.tableOf() ? function () { D.pocketdm.notes(B); } : null, // (a Pocket DM fight's: the same box on the table's own notes -- js/pocketdm.js PD.notes, 11-12, Griz: "still looking for the 'same menu' (with a notes section) on the 'm' key")
+        : B.o.pocket && D.pocketdm && D.pocketdm.notes && D.pocketdm.tableOf() ? function () { D.pocketdm.notes(B); }
+        : D.house && D.house.cardNow && D.house.cardNow() ? function () { D.house.cardNotes(); } : null, // (a card of Sylvia's with neither: the house's box, stamped with the card -- js/house.js H.cardNotes, 11-19) // (a Pocket DM fight's: the same box on the table's own notes -- js/pocketdm.js PD.notes, 11-12, Griz: "still looking for the 'same menu' (with a notes section) on the 'm' key")
       wait: calm && D.hours && D.hours.canWait(B) ? function () { D.hours.wait(B); } : null, // (WAIT to the next bell on Silverton's street: deep16/js/hours.js, 10-28)
       walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
       whyNot: function () { return ''; },

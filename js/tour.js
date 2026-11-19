@@ -293,6 +293,9 @@
   function act(B, k) {
     if (B.leaving) return;
     var here = B.row(); if (!here || !here.r) { if (k === 'table') go(T.tableHref()); return; }
+    // a note being typed is kept before a verdict or N redraws the card (11-19, Griz: "I open the note on the sylvia card and type it in, and then set the number for the card
+    // and it empties the note box for me to fill it or something?" -- a note opened by 2 or 3 was not kept on blur, and the redraw filled the line from the store, empty)
+    if ((k === 'works' || k === 'broken' || k === 'unclear' || k === 'hard' || k === 'easy' || k === 'note') && B.noting && B.noting.el && String(B.noting.el.value || '').trim()) T.note(here.id, B.noting.el.value);
     if (k === 'works' || k === 'hard' || k === 'easy') { T.mark(here.id, k); answered(B, k); return; }
     if (k === 'broken' || k === 'unclear') { T.mark(here.id, k); B.up = true; B.noting = { then: true }; draw(B); return; } // (what broke, in his words, then and there)
     if (k === 'note') { B.up = true; B.noting = { then: false }; draw(B); return; }

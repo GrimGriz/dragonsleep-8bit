@@ -990,7 +990,7 @@
     var rec = H.cur, W = D.world, at = H.atNow(rec), sq = at.town && at.sq ? ' ' + at.sq.join(',') : '', hx = !at.town && rec.world && rec.world.at ? ' hex ' + rec.world.at.join(',') : '';
     var hr = W && W.hour ? W.hour() : null;
     var F = H.fightNow(), fs = F ? ' · in the fight ' + String(F.name || F.fight || 'a fight').replace(/\s*--\s*/g, ' ').slice(0, 48) + ' (started ' + F.started + ')' : '';
-    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.stampWhere(rec) + sq + hx + fs + ' --';
+    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.stampWhere(rec) + sq + hx + fs + H.cardTag() + ' --'; // (the card of Sylvia's over the page, if one: H.cardTag, 11-19)
   };
   // the fight going on as a note is written (11-03 night, the play records lane 6, his "yes to those two leans"): the record of the fight in front, by its `started` -- the stamp
   // names it, so a desk pairs the note with that fight's transcript (dev/records.py); none on a walk, or once the fight's record is closed
@@ -1035,7 +1035,7 @@
   H.notesFile = function (text) {
     var rec = H.cur;
     return { game: 'DRAGONSLEEP', kind: 'hero-situations-feedback', v: 2, from: 'the second game', at: new Date().toISOString(), notes: String(text || ''), page: location.origin + location.pathname + location.search,
-      game2: rec ? H.summary(rec) : null, trail: rec ? (rec.trail || []) : [], save: rec ? JSON.parse(JSON.stringify(rec)) : null };
+      game2: rec ? H.summary(rec) : null, trail: rec ? (rec.trail || []) : [], card: H.cardNow ? H.cardNow() : null, save: rec ? JSON.parse(JSON.stringify(rec)) : null };
   };
   H.notes = function () { if (H.cur) D.push(new Notes()); };
   // THE ONE NOTES BOX (11-12, Griz, on his Pocket DM fight's card: "still looking for the 'same menu' (with a notes section) on the 'm' key"): the box is the house's; another
@@ -1113,6 +1113,29 @@
     this.field();
   };
   H.Notes = Notes;
+  // NOTES ON THE M MENU IN A CARD OF SYLVIA'S (11-19, Griz to the lanes desk: "I think it'll be more convenient for me to use the main-menu notes when working through the
+  // sylvia cards than the ones designed into the sylvia cards, so long as both files land in play records - but I'll need the one on the menu back while I'm in card
+  // instances"): a card's door is mostly a test floor or a fight with no game of the house's and no Pocket DM table, so the menu had no NOTES there (js/ui.js gridHost). With
+  // her bar over the page (js/tour.js T.bar) the menu carries it: the house's own box and its one draft (H.NKEY), each opening stamped with the card -- its id, its title,
+  // the UTC minute, the fight -- and SAVE writes the same hero_situations_feedback-<UTC>.json, `card` in it. The card's own note and her save (the ear file) are untouched
+  H.cardNow = function () {
+    var T = window.DS && window.DS.TOUR, b = T && T.bar, row = null; try { row = b && b.row ? b.row() : null; } catch (e) { row = null; }
+    return row && row.r ? { id: row.id, title: String(row.r.title || ''), obj: String(row.r.obj || ''), url: String(row.r.url || '') } : null;
+  };
+  H.cardTag = function () { var c = H.cardNow(); return c ? ' · Sylvia\'s card ' + c.id : ''; }; // (on the game's own stamp and the Pocket DM's: which eyes row was loaded -- 11-19, Griz: "it'd be cool if it told the instance reading the note what eyerow/card I had loaded?")
+  H.CARD_RE = /^-- (?:day|Sylvia's card) .* --$/; // (the one draft may hold the game's stamps too)
+  H.cardStamp = function () {
+    var c = H.cardNow() || { id: '?', title: '' }, d = new Date(), p = function (v) { return (v < 10 ? '0' : '') + v; }, F = H.fightNow();
+    return '-- Sylvia\'s card · ' + c.id + (c.title ? ' · ' + c.title.replace(/\s*--\s*/g, ' ').slice(0, 60) : '') + ' · ' + d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + 'Z' +
+      (F ? ' · in the fight ' + String(F.name || F.fight || 'a fight').replace(/\s*--\s*/g, ' ').slice(0, 48) + ' (started ' + F.started + ')' : '') + ' --';
+  };
+  H.CARD_NOTES_SRC = {
+    get: H.NOTES_SRC.get, set: H.NOTES_SRC.set,
+    stamp: function () { return H.cardStamp(); }, re: H.CARD_RE,
+    file: function (text) { var f = H.notesFile(text); f.from = 'a card of Sylvia\'s'; f.card = H.cardNow(); return f; }, name: function () { return H.notesName(); },
+    title: '{y}NOTES{/}  what did you notice? the card and the hour go with it'
+  };
+  H.cardNotes = function () { if (!H.cardNow()) return false; D.push(new Notes(H.CARD_NOTES_SRC)); return true; };
 
   // ---------------------------------------------------------------- THE EGGS beside the saves (11-04, Griz: "still need 6 egg-shadows outside the box that fill if you have the associated
   // egg achieved", "it had them in the box with the saves not outside"; his 10-18 "show the six slots over the dragonsleep background not under the save, big pretty eggs that show as you

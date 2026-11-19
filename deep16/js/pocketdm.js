@@ -982,7 +982,7 @@
   PD.noteStamp = function (pk, B) {
     var n = PD.nowOf(pk, B), d = new Date(), p = function (v) { return (v < 10 ? '0' : '') + v; };
     var where = n.fight ? 'in the fight ' + n.fight.name.replace(/\s*--\s*/g, ' ').slice(0, 48) + ', round ' + n.fight.round + (n.fight.started ? ' (started ' + n.fight.started + ')' : '') : (PD.SCREENS[n.screen] || n.screen || 'the table');
-    return '-- the Pocket DM · ' + d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + 'Z · ' + where + (n.run ? ' · ' + n.run : '') + ' --';
+    return '-- the Pocket DM · ' + d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + 'Z · ' + where + (n.run ? ' · ' + n.run : '') + (D.house && D.house.cardTag ? D.house.cardTag() : '') + ' --';
   };
   PD.notesSrc = function (pk, B) {
     var st = pk.st, fb = function () { return st.feedback = st.feedback || {}; };
@@ -990,7 +990,7 @@
       get: function () { return String(fb().draft || ''); },
       set: function (text) { fb().draft = text; pk.keep(); },
       stamp: function () { return PD.noteStamp(pk, B); }, re: PD.NOTE_RE,
-      file: function (text) { var f = PD.feedbackFile(pk); f.notes = String(text || ''); f.from = 'the Pocket DM'; f.now = PD.nowOf(pk, B); f.page = location.origin + location.pathname + location.search; return f; },
+      file: function (text) { var f = PD.feedbackFile(pk); f.notes = String(text || ''); f.from = 'the Pocket DM'; f.now = PD.nowOf(pk, B); f.card = D.house && D.house.cardNow ? D.house.cardNow() : null; f.page = location.origin + location.pathname + location.search; return f; },
       name: function () { return PD.feedbackName(); },
       title: '{y}NOTES{/}  what did you notice? the hour, the fight and its round go with it',
       saved: function () { var f = fb(); f.saved = new Date().toISOString(); f.n = (f.n || 0) + 1; var goose = MP && MP.unlock ? MP.unlock(st, 'goose') : false; pk.keep(); if (goose && !B) PD.egg(pk, 'goose'); } // (Goose on the first notes saved, as SITUATIONS'; shown at the table, not over a fight)
