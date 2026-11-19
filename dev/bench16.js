@@ -28589,6 +28589,38 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var rmG = GH.reach(sg.f, 30);
       okHz('(g) the fighter\'s own reach by the hand: nothing priced (' + (GH.harmFor ? GH.harmFor(sg.f) : 'no G.harmFor') + '), the burning squares reachable at their feet alone (5,6: ' + (rmG['5,6'] && rmG['5,6'].cost) + ' ft, pen ' + (rmG['5,6'] && rmG['5,6'].pen) + ')',
         !!GH.harmFor && GH.harmFor(sg.f) === null && rmG['5,6'] && !rmG['5,6'].pen);
+      // 11-18 later, his "go, both and the golem properly weighting healing squares (with a check who else has healing squares hazardous or otherwise)":
+      // (h) THE MINDLESS: undead and constructs of Intelligence 3 or less weigh nothing (the animated armor, 1; no zombie in the bestiary yet); the skeleton (6) and the wolf (a beast, 2) still do
+      var AIh = D.ai, Bh = mkHz('?npc=animatedarmor,skeleton,wolf&lvl=3&vs=fighter:3&map=camp'), zh = Bh.units.filter(function (w) { return w.kind === 'animatedarmor'; })[0], kh = Bh.units.filter(function (w) { return w.kind === 'skeleton'; })[0], wh = Bh.units.filter(function (w) { return w.kind === 'wolf'; })[0];
+      oilHz(Bh, [[5, 5]], Bh.units.filter(function (w) { return w.side === 'party'; })[0]);
+      var hzOf = function (Bx, u) { Bx.aiMover = u; try { return GH.harmFor(u); } finally { Bx.aiMover = null; } };
+      okHz('(h) the mindless: animated armor ' + AIh.mindless(zh) + ' (weighs ' + !!hzOf(Bh, zh) + '), skeleton ' + AIh.mindless(kh) + ' (weighs ' + !!hzOf(Bh, kh) + '), wolf ' + AIh.mindless(wh) + ' (weighs ' + !!hzOf(Bh, wh) + ') (want the armor alone not weighing)',
+        AIh.mindless(zh) && !hzOf(Bh, zh) && !AIh.mindless(kh) && !!hzOf(Bh, kh) && !AIh.mindless(wh) && !!hzOf(Bh, wh));
+      // (i) A HEALING SQUARE: the troll given Fire Absorption (an iron golem's, the SRD's; no golem in the bestiary yet), hurt -- the burning oil is a gain to end on, and it does;
+      // at full hit points no gain (nothing to regain)
+      var si = setHz(10, 6); si.t.absorb = ['fire']; si.t.regen = 0; si.t.hp = 30; oilHz(si.B, [[7, 5], [7, 6], [7, 7], [8, 6]], si.f);
+      var hzI = hzOf(si.B, si.t), gainI = hzI && hzI.stayHp(7, 6), ri = trollTurn(si);
+      var sf = setHz(10, 6); sf.t.absorb = ['fire']; sf.t.regen = 0; oilHz(sf.B, [[7, 6]], sf.f); var hzF = hzOf(sf.B, sf.t), gainF = hzF ? hzF.stayHp(7, 6) : 0; // (null: nothing about it is priced at all)
+      okHz('(i) fire heals it (hurt, 30 hp): the oil at (7,6) weighs ' + gainI + ' (a gain); its turn ends at (' + ri.x + ',' + ri.y + '), on oil ' + onOil(si.B, si.t) + '; at full hit points the oil weighs ' + gainF + ' (want a gain, on the oil; nothing at full)',
+        gainI < 0 && onOil(si.B, si.t) && ri.struck && gainF === 0);
+      // (j) REGENERATION: fire stops the troll's knitting (battle.js `burned`) -- the campfire weighs its 3.5 and its 10 of knitting; a hill giant's the 3.5 alone
+      var sj = setHz(10, 6), cfJ = hzOf(sj.B, sj.t).stayHp(9, 6);
+      okHz('(j) the camp fire to the troll: ' + cfJ + ' (want 13.5: 3.5 fire and 10 of knitting)', Math.abs(cfJ - 13.5) < 0.01);
+      // (k) SPIKE GROWTH'S CAMOUFLAGE (SRD 5.1; his "go" on rolling it at the cast): a goblin blinded at the cast rolls (a 1: misses), so the spikes weigh nothing to it; their bite
+      // teaches it; one come after rolls at its first weighing (a 20: knows); the caster and the seeing know at once
+      var Bk = mkHz('?npc=goblin,goblin&lvl=5&vs=druid:5&map=camp'), dk = Bk.units.filter(function (w) { return w.side === 'party'; })[0], gks = Bk.units.filter(function (w) { return w.side === 'foe'; }), gk = gks[0], gk2 = gks[1];
+      gk.x = 15; gk.y = 6; gk2.x = 15; gk2.y = 8; dk.x = 4; dk.y = 6; [gk, gk2, dk].forEach(function (w) { delete w.tween; }); GH.setup(GH.map, Bk.units); Bk.dark = false;
+      var spq = [[11, 5], [11, 6], [11, 7], [12, 5], [12, 6], [12, 7]], rec = { kind: 'spikes', sq: spq, by: dk.id, difficult: true, dc: 13, knows: {} };
+      Bk.grounds = [rec]; gk.conds.blinded = true; var nk = (Bk.log || []).length;
+      D.d = function (n) { return n === 20 ? 1 : d0Hz(n); }; try { D.magic.spikesHide(Bk, rec); } finally { D.d = d0Hz; } delete gk.conds.blinded;
+      var lgk = (Bk.log || []).slice(nk).join(' | ');
+      var spikeW = function (u) { var h = hzOf(Bk, u); return h ? h.enter(13, 6, 12, 6) : 'none'; };
+      okHz('(k) at the cast: the druid knows ' + rec.knows[dk.id] + ', the seeing goblin ' + rec.knows[gk2.id] + ', the blinded one rolled a 1: ' + rec.knows[gk.id] + '; to it the spikes weigh ' + spikeW(gk) + ', to the other ' + spikeW(gk2) + ' -- ' + (lgk.match(/could not see it laid[^|]*/) || ['no card'])[0],
+        rec.knows[dk.id] === true && rec.knows[gk2.id] === true && rec.knows[gk.id] === false && spikeW(gk) === 0 && spikeW(gk2) > 0 && /could not see it laid/.test(lgk));
+      gk.x = 12; gk.y = 6; Bk.round = 1; Bk.active = gk; gk.turn = gk.turn || {}; D.magic.stepInto(Bk, gk);
+      okHz('(k) the bite teaches it: knows ' + rec.knows[gk.id] + ', the spikes now weigh ' + spikeW(gk), rec.knows[gk.id] === true && spikeW(gk) > 0);
+      delete rec.knows[gk2.id]; D.d = function (n) { return n === 20 ? 20 : d0Hz(n); }; var lateW; try { lateW = spikeW(gk2); } finally { D.d = d0Hz; }
+      okHz('(k) one come after the cast rolls at its first weighing (a 20): knows ' + rec.knows[gk2.id] + ', weighs ' + lateW, rec.knows[gk2.id] === true && lateW > 0);
     } catch (eHz) { repHz.errors.push(String(eHz && eHz.stack || eHz).slice(0, 900)); }
     D.d = d0Hz;
     if (errs.length) repHz.errors = repHz.errors.concat(errs);

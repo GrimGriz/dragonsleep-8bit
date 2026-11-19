@@ -43,16 +43,22 @@
   AI.HARM_FT = 2; AI.HARM_FRAIL = 20; AI.HARM_LETHAL = 2000;
   function harmBuild(B, u) {
     var M = D.magic, TX = D.tactics, hz = [], pf = function (ab, dc) { return TX && dc ? TX.pFail(u, ab, dc) : 0.5; };
-    var dmg = function (dice, type, ab, dc, half) { var n = TX ? TX.avg(dice) : 0, p = ab ? pf(ab, dc) : 1; n = ab ? p * n + (1 - p) * (half ? n / 2 : 0) : n; return B.typed(u, n, type).n; };
+    // (11-18 later, his "the golem properly weighting healing squares (with a check who else has healing squares hazardous or otherwise)": a block's `absorb` -- SRD 5.1's Fire,
+    // Acid and Lightning Absorption, "it takes no damage and instead regains a number of hit points equal to the ... damage dealt": the iron, clay and flesh golems, the shambling
+    // mound; js/traits.js TR.absorbs -- makes that ground a GAIN, negative, no more than the hit points it lacks; and a Regeneration stopped by the type (the troll's fire and acid,
+    // battle.js hurt's `burned`: no knitting at its next turn, and a drop to 0 is death) costs the knitting, its `regen`, on top)
+    var absorbs = (D.FOES && D.FOES[u.kind] && D.FOES[u.kind].absorb) || u.absorb || [];
+    var typed = function (n, type) { if (!(n > 0)) return 0; if (absorbs.some(function (k) { return String(type || '').indexOf(k) >= 0; })) return -Math.min(n, Math.max(0, (u.maxhp || u.hp) - u.hp)); var m = B.typed(u, n, type).n; if (u.regen > 0 && !u.burned && /fire|acid/.test(type || '')) m += u.regen; return m; };
+    var dmg = function (dice, type, ab, dc, half) { var n = TX ? TX.avg(dice) : 0, p = ab ? pf(ab, dc) : 1; n = ab ? p * n + (1 - p) * (half ? n / 2 : 0) : n; return typed(n, type); };
     var held = function (ab, dc) { return u.webWalker || RU.immuneTo(u, 'restrained') ? 0 : pf(ab, dc) * ((TX ? TX.dpr(u) : 4) * 0.6 + 4); };
     var keys = function (sq) { var s = {}; sq.forEach(function (q) { s[q[0] + ',' + q[1]] = 1; }); return s; };
-    var add = function (sq, enter, stay, perSq) { if (sq && (enter > 0 || stay > 0)) hz.push({ s: keys(sq), enter: enter, stay: stay, per: !!perSq }); };
+    var add = function (sq, enter, stay, perSq) { if (sq && (enter || stay)) hz.push({ s: keys(sq), enter: enter, stay: stay, per: !!perSq }); };
     var ground = !G.aloft(u);
     var lit = ground ? (B.oils || []).filter(function (o) { return o.lit != null; }).map(function (o) { return [o.x, o.y]; }) : []; // (the burning oil: once a turn, whatever square of it -- js/oil.js burn)
-    if (lit.length) { var nO = B.typed(u, (D.oil && D.oil.BURN) || 5, 'fire').n; add(lit, nO, nO); }
-    if (ground && (G.map.campfires || []).length) { var nC = B.typed(u, 3.5, 'fire').n; add(G.map.campfires, nC, nC); }
+    if (lit.length) { var nO = typed((D.oil && D.oil.BURN) || 5, 'fire'); add(lit, nO, nO); }
+    if (ground && (G.map.campfires || []).length) { var nC = typed(3.5, 'fire'); add(G.map.campfires, nC, nC); }
     (B.grounds || []).forEach(function (g) {
-      if (g.kind === 'spikes' && ground) add(g.sq, B.typed(u, 5, 'piercing').n, 0, true);
+      if (g.kind === 'spikes' && ground && (!M.spikesKnown || M.spikesKnown(B, g, u))) add(g.sq, typed(5, 'piercing'), 0, true); // (camouflaged: only one that knows them -- js/grimoire.js M.spikesKnown, 11-18 later)
       else if (g.kind === 'insects') { var nI = dmg(g.dice || '4d10', 'piercing', 'con', g.dc, true); add(g.sq, nI, nI); }
       else if (g.kind === 'tentacles') { var nT = dmg('3d6', 'bludgeoning', 'dex', g.dc, false) + held('dex', g.dc); add(g.sq, nT, nT); }
       else if (g.kind === 'grease' && ground && !u.noProne && !RU.immuneTo(u, 'prone')) add(g.sq, pf('dex', g.dc) * 3, 0);
@@ -63,7 +69,7 @@
       else if (z.id === 'flamingsphere') { var nF = dmg(z.dice, 'fire', 'dex', z.dc, true); add(G.sphere(z.x, z.y, 5), 0, nF); } // (a turn's end within 5 ft: its whole 3x3)
     });
     (B.walls || []).forEach(function (w) {
-      if (w.kind === 'fire') { var nW = B.typed(u, TX ? TX.avg(w.burn) : 0, 'fire').n, band = Object.keys(w.band || {}).map(function (k) { return k.split(',').map(Number); }); add(w.sq, nW, nW); add(band, 0, nW); }
+      if (w.kind === 'fire') { var nW = typed(TX ? TX.avg(w.burn) : 0, 'fire'), band = Object.keys(w.band || {}).map(function (k) { return k.split(',').map(Number); }); add(w.sq, nW, nW); add(band, 0, nW); }
       else if (w.kind === 'thorns') { var nH = dmg(w.rake, 'slashing', 'dex', w.dc, true); add(w.sq, nH, nH); }
     });
     if (ground) (B.webs || []).forEach(function (wb) { if (wb.dc && !(u.turn && u.turn.webSaved)) add(wb.sq, held('dex', wb.dc), held('dex', wb.dc)); });
@@ -73,13 +79,17 @@
     var inAura = function (a, x, y) { return G.dist(u, a.c, x, y) <= a.r; };
     var hpU = Math.max(1, u.hp), k = AI.HARM_FT * Math.max(1, AI.HARM_FRAIL / hpU);
     return {
-      enter: function (x0, y0, x1, y1) { var n = 0; hz.forEach(function (h) { if (h.enter && within(h, x1, y1) && (h.per || !within(h, x0, y0))) n += h.enter; }); aur.forEach(function (a) { if (inAura(a, x1, y1) && !inAura(a, x0, y0)) n += a.n; }); return n; },
+      enter: function (x0, y0, x1, y1) { var n = 0; hz.forEach(function (h) { if (h.enter > 0 && within(h, x1, y1) && (h.per || !within(h, x0, y0))) n += h.enter; }); aur.forEach(function (a) { if (a.n > 0 && inAura(a, x1, y1) && !inAura(a, x0, y0)) n += a.n; }); return n; }, // (a healing step is not priced as a gain on the way: the way's price never falls; ending there is -- `stay`)
       stayHp: function (x, y) { var n = 0; hz.forEach(function (h) { if (h.stay && within(h, x, y)) n += h.stay; }); aur.forEach(function (a) { if (inAura(a, x, y)) n += a.n; }); return n; },
-      stay: function (x, y, hp0) { var n = this.stayHp(x, y); return n ? this.price(hp0 + n) - this.price(hp0) : 0; },
+      stay: function (x, y, hp0) { var n = this.stayHp(x, y); return n < 0 ? n * k : n ? this.price(hp0 + n) - this.price(hp0) : 0; }, // (n < 0: ground that heals it -- a gain, at the feet's rate)
       price: function (hp) { return hp > 0 ? hp * k + (hp >= hpU ? AI.HARM_LETHAL : 0) : 0; }
     };
   }
-  G.harmFor = function (u) { var B = D.battle; if (!B || B.aiMover !== u || !u.conds || u.conds.blinded || u.ethereal) return null; return harmBuild(B, u); };
+  // THE MINDLESS (11-18 later, his "I was thinking undead and constructs as potential mindless that wouldn't weigh the terrain", then "go"; the seat's line, his to overrule:
+  // undead and constructs of Intelligence 3 or less -- the zombie, the animated objects, the clay golem -- and not the skeleton (6), the vampire, the lich, the shield guardian):
+  // they walk where they are walking. Beasts weigh it (Intelligence 2 shies from fire)
+  AI.mindless = function (u) { var t = u.type || (D.FOES && D.FOES[u.kind] && D.FOES[u.kind].type) || ''; return /^(undead|construct)/.test(t) && ((u.abil && u.abil.int) || 10) <= 3; };
+  G.harmFor = function (u) { var B = D.battle; if (!B || B.aiMover !== u || !u.conds || u.conds.blinded || u.ethereal || AI.mindless(u)) return null; return harmBuild(B, u); };
   AI.harmFor = harmBuild; // (dev/bench16.js mode=harm1118)
   // the square to walk to: in reach of the target for least movement, else as close as the move allows
   // (and for the least harm: what the way in costs it, `pen`, and what ending there would, `stay` -- G.reach, harmful ground above; 0 with none about. In feet, as `cost` is,
@@ -87,11 +97,11 @@
   // while a way with no harm in it still brings it nearer, a harmed one is never taken only to be nearer (500 on it); walled in by the fire, it comes on through, priced)
   function approach(u, tgt, rm, reach) {
     var best = null, bs = Infinity, rr = reach || G.reachOf(u), d0 = G.dist(u, tgt), dry = false;
-    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.pen != null && e.stand && !e.pen && !e.stay && G.dist(u, tgt, e.x, e.y) < d0) dry = true; });
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.pen != null && e.stand && !e.pen && !(e.stay > 0) && G.dist(u, tgt, e.x, e.y) < d0) dry = true; });
     Object.keys(rm).forEach(function (k) {
       var e = rm[k];
       if (!e.stand) return;
-      var d = G.dist(u, tgt, e.x, e.y), inR = d <= rr, hp = (e.pen || 0) + (e.stay || 0), s = (inR ? 0 : 1000 + d * 10) + e.cost + (inR ? hp : hp * 10 + (dry && hp ? 500 : 0));
+      var d = G.dist(u, tgt, e.x, e.y), inR = d <= rr, hp = (e.pen || 0) + (e.stay || 0), s = (inR ? 0 : 1000 + d * 10) + e.cost + (inR ? hp : hp * 10 + (dry && hp > 0 ? 500 : 0));
       if (s < bs) { bs = s; best = e; }
     });
     // nothing this turn's move reaches is in reach of the target, on a map with a high face (10-04, the Edifice: the AI stood at the foot of a 45 ft face, nearest the one it hunts, and

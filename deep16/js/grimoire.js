@@ -213,7 +213,7 @@
     var stop = false;
     M.groundAt(B, u.x, u.y).forEach(function (g) {
       if (g.kind === 'grease' && !u.conds.prone && slip(B, u, g, 'steps onto the grease')) stop = true;
-      if (g.kind === 'spikes' && !M.overSpikes(u) && !M.zoneShut(B, g, u, 'in the spikes')) { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing', MAGIC); }
+      if (g.kind === 'spikes' && !M.overSpikes(u) && !M.zoneShut(B, g, u, 'in the spikes')) { if (g.knows) g.knows[u.id] = true; var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing', MAGIC); }
     });
     guardians(B, u, 'comes');
     return stop || u.hp <= 0;
@@ -1229,9 +1229,25 @@
     },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, Object.assign({}, e.g, { shape: 'attack' }), t) || t.conds.enfeebled || (t.weapon && (t.weapon.ranged || t.weapon.finesse))) return; var p = TX().pHit(u.spellAtk, RU.ac(t), 0), sc = p * TX().dpr(t) * 0.5 * 2.5; if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.6 }; }); return best; }
   };
+  // THE CAMOUFLAGE (SRD 5.1: "The transformation of the ground is camouflaged to look natural. Any creature that can't see the area at the time the spell is cast must make a
+  // Wisdom (Perception) check against your spell save DC to recognize the terrain as hazardous before entering it"; 11-18 later, Griz, on rolling it at the cast against at the
+  // entering: "go"): at the cast, each one there that sees any of the area knows it; each that sees none rolls its Perception (its passive less 10, on a d20) against the DC then,
+  // once; one that comes after rolls when it first weighs the ground (it could not see the cast); a miss learns it from the spikes' first bite (M.stepInto). `knows` is what the
+  // AI weighs (js/ai.js harmful ground); the hands see the spikes drawn as ever. The caster knows its own
+  function spikeRoll(B, g, w) { var r = D.d(20), m = (w.perception || (10 + D.mod((w.abil || {}).wis || 10))) - 10, ok = r + m >= (g.dc || 13); g.knows[w.id] = ok; return { r: r, m: m, ok: ok }; }
+  M.spikesHide = function (B, g) {
+    var lines = [];
+    B.units.forEach(function (w) {
+      if (w.dead || w.object || w.ethereal) return;
+      if (w.id === g.by || g.sq.some(function (q) { return M.seesSq(B, w, q[0], q[1]); })) { g.knows[w.id] = true; return; }
+      var c = spikeRoll(B, g, w); lines.push('  ' + Nm(B, w) + ' could not see it laid: Perception ' + c.r + RU.sign(c.m) + ' = ' + (c.r + c.m) + ' vs DC ' + g.dc + '  ' + (c.ok ? '{n}knows the ground{/}' : '{o}misses the spikes{/}'));
+    });
+    if (lines.length) B.card(['{g}The spikes look like plain ground.{/}'].concat(lines.slice(0, 6)), 300);
+  };
+  M.spikesKnown = function (B, g, w) { if (!g.knows) return true; if (!(w.id in g.knows)) spikeRoll(B, g, w); return !!g.knows[w.id]; };
   E.spikegrowth = {
     summary: function () { return '20-ft radius within 150 ft · hidden spikes: difficult, and 2d4 piercing for each 5 ft moved in it (concentration)'; },
-    cast: function* (B, u, t, slot, head, x) { var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'spikes', sq: sq, by: u.id, difficult: true }; B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'moss'); M.concentrate(B, u, 'spikegrowth', 'Spike Growth', function () { removeGround(B, rec); B.card(['{g}The spikes wither back into the ground.{/}'], 240); }); B.card([head + ': the ground bristles with thorns (concentration).']); yield 30; },
+    cast: function* (B, u, t, slot, head, x) { var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'spikes', sq: sq, by: u.id, difficult: true, dc: x.dc, knows: {} }; B.grounds = (B.grounds || []).concat([rec]); M.spikesHide(B, rec); FX.bloom(t.x, t.y, sq, 'moss'); M.concentrate(B, u, 'spikegrowth', 'Spike Growth', function () { removeGround(B, rec); B.card(['{g}The spikes wither back into the ground.{/}'], 240); }); B.card([head + ': the ground bristles with thorns (concentration).']); yield 30; },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught, sq) { var sc = 0; caught.forEach(function (w) { sc += (G.hostile(u, w) ? 1 : -1.5) * 5 * 1.5; }); return sc; }); }
   };
   // Spiritual Weapon (SRD 5.1): a floating weapon (a minute, no concentration); it strikes as it appears, and each turn after a bonus
