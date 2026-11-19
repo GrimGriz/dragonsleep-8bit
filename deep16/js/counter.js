@@ -940,11 +940,25 @@
   C.WRING = 'ringwaterwalking';
   C.leadOf = function (st) { var rec = D.house && D.house.playing && D.house.cur, k = rec && rec.lead, p = st.party.filter(function (h) { return h && !h.dead; }); return p.filter(function (h) { return (h.key || h.id) === k; })[0] || p[0] || st.party[0] || null; };
   C.ringReady = function (st) { var ld = C.leadOf(st); return !!ld && (ld.lvl || 1) >= C.RING_LVL; };
-  C.wintersRing = function* (sc) {
-    var st = sc.st, f = st.flags, ld = C.leadOf(st);
-    yield sc.say(L('winters.ready'), 'welcoming');
-    D.sfx('ring'); give(st, C.WRING, 1); f.wintersRing = 1;
-    yield sc.say(L('winters.ring'), 'attentive');
+  // THE RING AFTER THE LAKE (RULED 2026-11-18, Griz: "If they talk to Winters after it's dead, he gives the ring 'I was saving this for ... you didn't need it, but maybe
+  // it will serve you well' - then he tells the history of the inn, first wife was the daughter of a friend of his"): the thing in the lake dead by any door and the ring
+  // not had, his ring for nothing at any level, then the inn's history as the realm has it (TarlynsPit/wiki/halfway-inn-and-lake.md "The history", CANON 11-11: the
+  // trader's Half-Cellar, the road friend's family and the grandson's gambling, Doran the freed fighter given the inn, the good years with Anwen and Tobin, the thing down
+  // the drainage, Anwen gone the third night; Gennet after) -- Anwen the daughter of a friend of his. The lines the seat's drafts on his shape (invented.json winters-lake-ring-1118)
+  C.WINTERS_LAKE = {
+    give: ['Winters takes a plain ring out of a drawer and turns it over in his fingers. "I was saving this for the thing in the lake."', '"You didn\'t need it. But maybe it will serve you well."'],
+    history: ['He sits back. "That inn was a trader\'s once. The Half-Cellar, they called it then. He did well enough off it to pay for a proper inn, and a road friend of his kept it. That family kept it till a grandson gambled it away."',
+      '"The man who won it bet on a slave who fought his way free. Doran. He won so much on him that he gave him the inn."',
+      '"Anwen was the daughter of a friend of mine. She married Doran, and for a few years that was the best stop on the road. Then something came down the drainage from the bogs. The third night, she was gone. Tobin too, in the end."',
+      '"Gennet came after. The rest you know better than I do."'],
+    text: 'Ambrose Winters, Acquisitions & Estates, Fountain Street. The thing in the lake is dead, and Winters has something for you anyway.',
+    step: 'Winters, on Fountain Street: the thing in the lake is dead, and he has something for you anyway.',
+    doneText: 'The Ring of Water Walking, which Winters was saving for the thing in the lake. You didn\'t need it.' };
+  C.wintersRing = function* (sc, lake) {
+    var st = sc.st, f = st.flags, ld = C.leadOf(st), WL = C.WINTERS_LAKE;
+    if (!lake) yield sc.say(L('winters.ready'), 'welcoming');
+    D.sfx('ring'); give(st, C.WRING, 1); f.wintersRing = 1; if (lake) f.wintersLakeRing = 1;
+    yield sc.say(lake ? WL.give : L('winters.ring'), 'attentive');
     var free = function (h) { return h && h.equip && !h.dead && (!h.equip.ring || !h.equip.ring2); }; // (two ring fingers on the grid: camp.js SLOTS ring, ring2)
     var who = free(ld) ? ld : st.party.filter(free)[0] || ld;
     if (who && who.equip && (yield sc.ask(L('winters.equipAsk', { name: who.name }), ['YES', 'NO'], 'attentive')) === 0) {
@@ -952,7 +966,8 @@
       if (who.equip[slot]) give(st, who.equip[slot], 1);
       who.equip[slot] = C.WRING; take(st, C.WRING, 1); sc.regear = true; D.sfx('confirm');
     }
-    if (D.house && D.house.trail) D.house.trail('ring', 'Winters gave the Ring of Water Walking' + (who && who.equip && (who.equip.ring === C.WRING || who.equip.ring2 === C.WRING) ? ', on ' + who.name : ', to the pack') + ' (the lead at ' + (ld ? ld.lvl : '?') + ')');
+    if (D.house && D.house.trail) D.house.trail('ring', 'Winters gave the Ring of Water Walking' + (who && who.equip && (who.equip.ring === C.WRING || who.equip.ring2 === C.WRING) ? ', on ' + who.name : ', to the pack') + (lake ? ', the lake dead' : '') + ' (the lead at ' + (ld ? ld.lvl : '?') + ')');
+    if (lake) { f.wintersInnTold = 1; yield sc.say(WL.history, 'attentive'); } // (the inn's history, after the ring: his "then he tells the history of the inn")
   };
   C.winters = function* (sc) {
     var st = sc.st, f = st.flags, ld = C.leadOf(st), had = function () { return count(st, C.WRING) > 0 || st.party.some(function (h) { return h.equip && (h.equip.ring === C.WRING || h.equip.ring2 === C.WRING); }); };
@@ -968,6 +983,7 @@
       yield sc.say(['{y}' + (ld ? ld.name : 'The party') + ':{/} "' + L('winters.askLake') + '"'], 'attentive');
       if (!C.ringReady(st)) yield sc.say(L('winters.watching'), 'attentive');
     }
+    if (!had() && f.lakeDone && !f.wintersRing) { yield* C.wintersRing(sc, true); return; } // (the lake dead first: his ring anyway, and the inn's history -- C.WINTERS_LAKE, RULED 11-18)
     if (!had() && !f.lakeDone && C.ringReady(st)) { yield* C.wintersRing(sc); return; } // (the first game's: the ring ends the talk)
     // (an errand brought back closes as soon as you walk in, and the next one comes with it -- the first game's playtest 09-25 round four)
     var notReady = function () { // (once at each of the lead's levels below the 3rd, as the talk ends: the first game said it at every leaving; the JOURNAL keeps it between)
@@ -1534,9 +1550,9 @@
     steps: [{ 'if': '!has:cord & !flag:nedBraid', site: 'webgulch', where: 'The ettercap\'s braid, out of its web at Web Gulch\'s strung end: out of Silverton by the east gate, then down the road on THE WORLD past the fork.' },
       { 'if': 'has:cord & !flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the braid for the wand.' },
       { 'if': 'flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned has the braid. The wand will be ready in the morning, at Percy\'s Particulars.' }] });
-  C.OWN_QUESTS.push({ id: 'ring', doneText: C.RING_WORDS.doneText,
-    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? C.RING_WORDS.text : q.text; },
-    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
+  C.OWN_QUESTS.push({ id: 'ring', doneText: function (st) { return st && st.flags && st.flags.wintersLakeRing ? C.WINTERS_LAKE.doneText : C.RING_WORDS.doneText; }, // (the lake dead first: C.WINTERS_LAKE)
+    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return st && st.flags && st.flags.lakeDone && !st.flags.wintersRing ? C.WINTERS_LAKE.text : C.ringReady(st) ? C.RING_WORDS.text : q.text; },
+    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; if (st && st.flags && st.flags.lakeDone && !st.flags.wintersRing) return [{ map: 'winters', npc: 'winters', where: C.WINTERS_LAKE.step }]; return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
   // (a second game's record of a first-game id stands over it, field by field -- its show, its words, its steps: js/hours.js; `text` and `steps` may be read off the state; the
   // list in C.QUESTS's order)
   C.quests = function (st) {
