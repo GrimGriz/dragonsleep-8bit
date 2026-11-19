@@ -6,7 +6,7 @@ Plain Python (Pillow).
     python tools/twinmace-sheet.py sword [dwarf]   the one-handed slash (deep16/_src/slash1h[-dwarf]/ -> deep16/art-src/slash1h/slash1h-*.png)
     python tools/twinmace-sheet.py swordshield                  Lymen's longsword slash behind a round shield (deep16/art-src/slashshield/), the human build
     python tools/twinmace-sheet.py greataxe                     Talmok's overhand chop, two hands on one haft (11-19: deep16/art-src/greataxe/), the human build
-    python tools/twinmace-sheet.py spearthrow|spearpush         the guard's spear throw and Keep Back's haft shove (11-19: deep16/art-src/spearthrow/, spearpush/)
+    python tools/twinmace-sheet.py spearthrow|spearpush         the guard's spear throw and Keep Back, the point out (11-19: deep16/art-src/spearthrow/, spearpush/)
     python tools/twinmace-sheet.py longbow|stab dwarf           the road patrol's two (deep16/art-src/longbow/, stab/), laid the same way
     python tools/twinmace-sheet.py axe|handaxe|crossbow dwarf   the garrison's three (11-12: deep16/_src/<axeshield|handaxe|crossbow>-dwarf/ ->
                                               deep16/art-src/<name>/<name>-dwarf-<view>.png the striker alone, <name>-dwarf-target-<view>.png with
@@ -32,7 +32,7 @@ GARR = {'axe': ('axeshield', 'axecut', 'BATTLEAXE CUT, ROUND SHIELD', 'THE CUT')
         'crossbow': ('crossbow', 'shoot', 'HEAVY CROSSBOW SHOT', 'LOOSE'),           # the garrison's three (11-12)
         'swordshield': ('slashshield', 'slash', 'LONGSWORD SLASH, ROUND SHIELD', 'THE CUT'),      # Lymen's (11-13), the human build: slashshield-<view>.png with the target, slashshield-alone-<view>.png
         'greataxe': ('greataxe', 'chop', 'GREATAXE OVERHAND CHOP, TWO HANDS', 'THE CHOP'),      # Talmok's (11-19), the human build, laid as Lymen's: greataxe-<view>.png with the target, greataxe-alone-<view>.png
-        'spearthrow': ('spearthrow', 'throw', 'SPEAR THROW', 'RELEASE'), 'spearpush': ('spearpush', 'keepback', 'SPEAR KEEP BACK, THE HAFT SHOVE', 'THE SHOVE'),      # the guard's two (11-19), the human build, laid as the greataxe
+        'spearthrow': ('spearthrow', 'throw', 'SPEAR THROW', 'RELEASE'), 'spearpush': ('spearpush', 'keepback', 'SPEAR KEEP BACK, THE POINT OUT', 'THE POINT'),      # the guard's two (11-19), the human build, laid as the greataxe
         'longbow': ('longbow', 'shoot', 'LONGBOW SHOT', 'LOOSE'), 'stab': ('stab', 'stab', 'SHORTSWORD STAB', 'THE STAB')}      # the road patrol's two
 for _k in GARR:
     if _k in sys.argv[1:]:
