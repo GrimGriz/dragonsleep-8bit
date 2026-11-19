@@ -10,6 +10,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 - 2026-11-19 · ruled · the story build · Her meals' DCs stand for now: Insight 13 / 12 / 14, History 12 / 12 / 13 · *"5 - good starting point"*
 
 ## 2026-11-18
+- 2026-11-18 · `a69b24ed` · the Halfway Inn and the lake · Winters gives his ring after the lake is dead, then the inn's history · *"If they talk to Winters after it's dead, he gives the ring 'I was saving this for ... you didn't need it, but maybe it will serve you well' - then he tells the history of the inn, first wife was the daughter of a friend of his"*
 - 2026-11-18 · `1aa3809f` · the AI and the dark · Undead and constructs of Intelligence 3 or less (the animated armor; the zombie and the clay golem when they come) weigh no harmful ground · *"I was thinking undead and constructs as potential mindless that wouldn't weigh the terrain"*, *"go"*
 - 2026-11-18 · `1aa3809f` · the AI and the dark · Spike Growth's camouflage by the SRD, the Perception rolled at the cast by those who could not see the area, a latecomer at its first weighing, a miss learning from the first bite; the AI weighs the spikes only where it knows them · *"vs rolling it when spell cast I mean"*, *"go"*
 - 2026-11-18 · `1aa3809f` · the AI and the dark · Ground that heals: a block's Fire, Acid or Lightning Absorption makes it a gain to end a turn on (no more than it lacks), and fire or acid costs a troll its knitting on top · *"the golem properly weighting healing squares (with a check who else has healing squares hazardous or otherwise)"*
