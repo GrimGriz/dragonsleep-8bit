@@ -2,6 +2,13 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. **The gate warns, never RED, on a new line past 400 characters** (RULED 2026-11-17, Griz: *"warning"*; `dev/check.py`, the lines in a tree that `origin/main` doesn't have): trim the what, never his words. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-11-19
+- 2026-11-19 · ruled · the story build · Asdis's meal two (`d7cf4f8b`): Ingrith swore her ledger post for one season under warrant when the clans went, and has re-sworn every season since · *"1 - keep it"*
+- 2026-11-19 · ruled · the story build · Ingrith never went down: the house did, and she would not leave her post · *"2 - it is"*
+- 2026-11-19 · ruled · the story build · Asdis tells the plain layer as each meal opens, so TO BED at once still has it and its JOURNAL line · *"3 - good"*
+- 2026-11-19 · ruled · the story build · A missed History at her table gets the blunt question and her short answer, nothing more · *"4 - well handled"*
+- 2026-11-19 · ruled · the story build · Her meals' DCs stand for now: Insight 13 / 12 / 14, History 12 / 12 / 13 · *"5 - good starting point"*
+
 ## 2026-11-18
 - 2026-11-18 · `d497fcf2` · the menus · The ring's subcategories: WRESTLE (GRAPPLE, SHOVE, PIN, LET GO) and OFF HAND (the torch, the hood, DRAW) under ACTIONS on the classic ring, each folded only where two or more are there (`ring1118`) · *"two new sub categories, yours and one for 'off hand' to include torches and weapon slots (if that's feasible and straightforward)"*
 - 2026-11-18 · ruled · eyes on the screen · The Wet's floor keeps no def key: the walk reads it as `wet` (`EW.key`), its steps tick, so the ruled "key 'wet'" stands as built in `f05f5e24` · *"Seems like yes, is the situation that inspired your task to create it addressed by the current method?"*
