@@ -929,8 +929,9 @@
     // the bunks and the crews' fire ask it (js/mines.js M.longWhy, the bunk's eight hours): inside the 24 hours her cot is not offered, and the line says the hour a long rest opens at.
     // The roam's prompt greys no button (js/ui.js), so the offer goes rather than standing greyed as the counter's do)
     var why = M.longWhy ? M.longWhy(M.BUNK.restHours) : ''; SK.asdisWhy = why;
-    var a = yield { prompt: { who: t, title: (u && u.name ? u.name : 'ASDIS SCALEBEAM').toUpperCase(), lines: R.wrap(said.concat([SK.L('deep.asdisAsk')], why ? [why] : [])), opts: why ? [{ label: 'NOT NOW', value: 1 }] : [{ label: 'EAT AND SLEEP', value: 0 }, { label: 'NOT NOW', value: 1 }] } };
+    var a = yield { prompt: { who: t, title: (u && u.name ? u.name : 'ASDIS SCALEBEAM').toUpperCase(), lines: R.wrap(said.concat([SK.L('deep.asdisAsk')], why ? [why] : [])), opts: (why ? [] : [{ label: 'EAT AND SLEEP', value: 0 }]).concat([{ label: 'HAVE A HOT MEAL', value: 2 }, { label: 'NOT NOW', value: 1 }]) } }; // (HAVE A HOT MEAL, 11-19, his "also 'have a hot meal' (short rest), which also triggers the conversations (available whether long rest is available or not)": js/asdis.js)
     SK.lastSaid = said.join(' ');
+    if (a === 2) { f.asdisHot = (f.asdisHot || 0) + 1; if (D.asdis && D.asdis.supper) yield* D.asdis.supper(B, u); B.card(R.wrap([(D.asdis && D.asdis.HOT) || 'A hot meal, and an hour by her hearth.'].concat(M.shortRestHere(B))), 300); return; } // (the hour's short rest, the house's as the bunks give it: js/mines.js M.shortRestHere)
     if (a !== 0 || why) return;
     f.asdisRested = (f.asdisRested || 0) + 1;
     if (D.asdis && D.asdis.supper) yield* D.asdis.supper(B, u); // (HER THREE MEALS, 11-18, his "Silent rolls on Asdis supper": one a night between the yes and the sleep, in order -- js/asdis.js)

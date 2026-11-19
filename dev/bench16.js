@@ -8044,7 +8044,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           return got ? got.opts.map(function (o) { return o.label; }).join('|') + ' :: ' + window.DS.stripCodes(got.lines.join(' ')) : 'no offer';
         };
         var a0 = asd33(null), a1 = asd33(2), a2 = asd33(20);
-        var asdOk33 = /^EAT AND SLEEP\|NOT NOW/.test(a0) && /^NOT NOW ::/.test(a1) && /No long rest yet: one a day\. A long rest again from/.test(a1) && /^EAT AND SLEEP\|NOT NOW/.test(a2);
+        var asdOk33 = /^EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW/.test(a0) && /^HAVE A HOT MEAL\|NOT NOW ::/.test(a1) && /No long rest yet: one a day\. A long rest again from/.test(a1) && /^EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW/.test(a2);
         okSk('his notes from Sylvia\'s table of 11-17/18: (1) the east store cut whole on main street ' + onMain33 + ' and in the court ' + court33 + ' of ' + store33.length + ', standing on the apron behind the party (' + apron33 + ' cut); in Rekknar\'s temple the stone in front of its stair down cut ' + front33 + ' of 3, its own pillars standing (' + own33 + ' cut); (2) in the assay house his 15,14 cut ' + wall33 + ', Rekknar\'s pillars to their stub ' + pill33 + ' of 4 (' + stub33 + '); (3, 6) clicked: ' + clk33.join('; ') + '; (4) each flight up an arch on the rock it rises into ' + fun33 + ' of 2, the west wall\'s stair module gone (' + westMod33 + ' left), the treads rising north ' + treads33 + ', down to ' + land33.map(function (l) { return l.at + ' facing ' + l.fw + ', the way up the step north ' + l.up; }).join(' / ') + '; (5) ' + names33.join(', ') + '; (6) Ásdís: fresh "' + a0.slice(0, 26) + '", two hours after a long rest "' + a1.slice(0, 120) + '", twenty after "' + a2.slice(0, 26) + '"; its why "' + (a1.match(/No long rest yet[^"]*$/) || ['none'])[0].slice(0, 90) + '"',
           onMain33 === 25 && court33 === 25 && apron33 === 0 && front33 === 3 && own33 === 0 && wall33 && pill33 === 4 && stub33 === 'temple_pillar_stub' && clkOk33 && fun33 === 2 && westMod33 === 0 && treads33 && landOk33 && namesOk33 && asdOk33);
       } catch (e33) { okSk('his notes from Sylvia\'s table of 11-17/18: THREW ' + String(e33).slice(0, 160), false); }
@@ -8081,7 +8081,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.seed = +get('seed', 1118);
       var boxAs = boxWatch(CAs), faceAs = [];
       // her table from E on her to the morning: `had` the meals before tonight's; `picks` an answer an opening ('hero:id', 'READER:id' the hero the read went to, 'bed')
-      var mealAs = function (had, pins, picks, setup) {
+      var mealAs = function (had, pins, picks, setup, pick) {
         D.scenes.length = 0; SKa.play({ key: 'solskaft_asdis', at: [4, 2], hour: 18, flags: had ? { asdisMeals: had, asdisIdx: had } : {} });
         var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } AA.pinned = pins.slice(); if (setup) setup(B);
         var t = B.roam.token; t.x = 4; t.y = 2; t.tween = null; B.roam.fw = [-1, 0]; B.roam.path = null; D.grid.setup(B.map, B.units); B.cards = []; B.roam.keys.push('use');
@@ -8106,7 +8106,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           if (s !== B) { end = s instanceof HAs.Morning ? 'morning' : 'other'; break; }
           var st = B.co.next(v); v = undefined; if (st.done) { end = 'done'; break; }
           if (typeof st.value === 'number') B.t += Math.max(1, st.value);
-          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return o.label; }).join('|'); v = 0; }
+          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return o.label; }).join('|'); v = pick == null ? 0 : pick; }
+          if ((B.cards || []).some(function (c) { return /an hour by her hearth/.test(c.lines.join(' ')); })) { end = 'hot'; break; } // (HAVE A HOT MEAL: the hour's short rest on its card)
         }
         var tr = (HAs.cur.trail || []).slice(trail0).filter(function (x) { return /ASDIS'S TABLE/.test(x.s); }).map(function (x) { return x.s; });
         return { B: B, f: B.roam.flags, seen: window.DS.stripCodes(seen.join(' / ')), flips: flips, offer: offer, end: end, trail: tr, cards: ((B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' ')) };
@@ -8121,7 +8122,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 1. MEAL ONE, reached: the read is one hero's, the sharp History question shaded, the vigil named and no more
       var g1 = mealAs(0, hi, ['READER:kept', 'aurdin:deep', 'lymen:over']), r1 = reader(g1);
       okAs('MEAL ONE, the read reached and History made (offered "' + g1.offer + '"; the read ' + r1 + '\'s, what it opens held by ' + holders(g1, 'kept').join(',') + '): ' + g1.seen.slice(0, 2600) + ' -- flags street ' + g1.f.asdisStreet + ' seams ' + g1.f.asdisSeams + ' vigil ' + g1.f.asdisVigil + ' meals ' + g1.f.asdisMeals + '; ended in the ' + g1.end + '; the record: ' + g1.trail.join(' | ').slice(0, 700),
-        g1.offer === 'EAT AND SLEEP|NOT NOW' && g1.flips.length === 3 && !!r1 && holders(g1, 'kept').join() === r1 && oneRead(g1) && g1.flips[0].every(function (x) { return x.shaded === 1 && x.tags[0] === 'History' && x.ids.indexOf('deep') >= 0 && x.ids.indexOf('blunt') < 0; }) &&
+        g1.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && g1.flips.length === 3 && !!r1 && holders(g1, 'kept').join() === r1 && oneRead(g1) && g1.flips[0].every(function (x) { return x.shaded === 1 && x.tags[0] === 'History' && x.ids.indexOf('deep') >= 0 && x.ids.indexOf('blunt') < 0; }) &&
         /Forty families barred their doors and went back deep\. I keep the lamp/.test(g1.seen) && /READ \w+: \(insight\) She tells it without grief/.test(g1.seen) && /They went down to keep a vigil/.test(g1.seen) && /We did\./.test(g1.seen) && /The ore is where it always was/.test(g1.seen) && /> lymen: A vigil over what\? .*Eat your soup\./.test(g1.seen) &&
         !/NO HERO|NO ANSWER/.test(g1.seen) && noDieAs(g1.seen) && !AA.CEILING.test(g1.seen) && vig(g1.seen) >= 2 && g1.f.asdisStreet === 1 && g1.f.asdisSeams === 1 && g1.f.asdisVigil === 1 && g1.f.asdisMeals === 1 && g1.f['heard:r-asdis-street'] === 1 && /forty families barred their doors/.test(jr(g1)) &&
         g1.end === 'morning' && rolls(g1, 'made') === 4 && g1.trail.some(function (s) { return /passive Insight \d+ vs DC 13, read: duty/.test(s); }) && HAs.cur.flags.asdisMeals === 1);
@@ -8153,7 +8154,20 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 7. AFTER THE THIRD: her offer and the night, no meal
       var n7 = faceAs.length, g7 = mealAs(3, hi, []);
       okAs('after the third meal: offered "' + g7.offer + '", ' + g7.flips.length + ' openings, ' + (faceAs.length - n7) + ' lines at a table, ended in the ' + g7.end + ', meals ' + g7.f.asdisMeals + ', rested ' + g7.f.asdisRested,
-        g7.offer === 'EAT AND SLEEP|NOT NOW' && !g7.flips.length && faceAs.length === n7 && g7.end === 'morning' && g7.f.asdisMeals === 3 && g7.f.asdisRested === 1 && !AA.due(g7.f));
+        g7.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && !g7.flips.length && faceAs.length === n7 && g7.end === 'morning' && g7.f.asdisMeals === 3 && g7.f.asdisRested === 1 && !AA.due(g7.f));
+      // 7b. HAVE A HOT MEAL (11-19, Griz: "I intended she offer 'eat and sleep'(long rest available) and also 'have a hot meal' (short rest), which also triggers the
+      // conversations (available whether long rest is available or not)"): offered beside EAT AND SLEEP, and alone inside the 24 hours of a long rest; it plays the next
+      // conversation and then is an hour's short rest, no night; ONE conversation in 24 hours -- a hot meal or a night inside them is the rest alone (RED: no such offer)
+      var hrAs = function (B) { return D.mines.hourNow(D.roam.q, B); }, hurt = function (B) { var u = B.roam.members[0]; u.hp = Math.max(1, u.maxhp - 5); if (u.src) u.src.hp = u.hp; };
+      var h1 = mealAs(0, hi, ['bed'], hurt, 2), hot1 = hrAs(h1.B);
+      var h2 = mealAs(1, hi, ['bed'], function (B) { HAs.cur.restEnd = D.world.state().t - 2; }, 2);
+      var h3 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealT = D.world.state().t - 2; }, 2);
+      var h4 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealT = D.world.state().t - 2; });
+      var h5 = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisMealT = D.world.state().t - 25; }, 2);
+      okAs('HAVE A HOT MEAL: fresh, offered "' + h1.offer + '" -- taken, meal ' + h1.f.asdisMeals + ' played over ' + h1.flips.length + ' opening, then "' + window.DS.stripCodes(h1.cards).slice(0, 150) + '", the hour ' + hot1 + ' (from 18), ended ' + h1.end + ', hot ' + h1.f.asdisHot + ', rested ' + h1.f.asdisRested + '; two hours after a long rest, offered "' + h2.offer + '", meal ' + h2.f.asdisMeals + ' played (' + h2.flips.length + '), ended ' + h2.end + '; two hours after a conversation: a hot meal plays none (' + h3.flips.length + ', meals ' + h3.f.asdisMeals + ', ended ' + h3.end + '), nor a night (' + h4.flips.length + ', ended ' + h4.end + '); 25 hours after, the next (' + h5.flips.length + ', meals ' + h5.f.asdisMeals + ')',
+        h1.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h1.flips.length === 1 && h1.f.asdisMeals === 1 && h1.f.asdisStreet === 1 && /A bowl of soup, the heel of the loaf/.test(h1.cards) && hot1 === 19 && h1.end === 'hot' && h1.f.asdisHot === 1 && !h1.f.asdisRested && h1.f.asdisMealT != null &&
+        h2.offer === 'HAVE A HOT MEAL|NOT NOW' && h2.flips.length === 1 && h2.f.asdisMeals === 2 && h2.end === 'hot' &&
+        h3.flips.length === 0 && h3.f.asdisMeals === 1 && h3.end === 'hot' && h3.f.asdisHot === 1 && h4.flips.length === 0 && h4.f.asdisMeals === 1 && h4.end === 'morning' && h5.flips.length === 1 && h5.f.asdisMeals === 2 && h5.end === 'hot');
       // 8. THE VIGIL'S CEILING, read off the meals as written: no line of any layer holds a word of A.CEILING; "vigil" only in meal one's Insight answer and the question after it
       var srcAs = [], vigAt = [];
       AA.MEALS.forEach(function (ML) {

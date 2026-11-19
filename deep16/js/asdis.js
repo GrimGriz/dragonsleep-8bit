@@ -31,6 +31,12 @@
   A.passive = function (h, skill) { return 10 + DS.R.skill(h, skill, A.AB[skill]); };
   A.had = function (f) { return (f && f.asdisMeals) || 0; };
   A.due = function (f) { return A.had(f) < A.MEALS.length; };
+  // HAVE A HOT MEAL (2026-11-19, Griz to the lanes desk: "I intended she offer 'eat and sleep'(long rest available) and also 'have a hot meal' (short rest), which also triggers
+  // the conversations (available whether long rest is available or not)"): either offer plays the next of the three (js/solskaft.js SK.asdisTalk). The hot meal can be had hour
+  // after hour, so the conversations keep to ONE IN 24 HOURS by the house's clock (f.asdisMealT) -- the seat's call, his to move: a meal inside them is the rest alone
+  A.GAP = 24; A.HOT = 'A bowl of soup, the heel of the loaf, an hour by her hearth with your boots off.';
+  A.now = function () { var W = D.world, S = W && W.state && W.state(); return S && S.t != null && D.house && D.house.playing ? S.t : null; };
+  A.dueNow = function (f) { var now = A.now(); return A.due(f) && (now == null || f.asdisMealT == null || now - f.asdisMealT >= A.GAP); };
   var QUIET = [`Spoons. The fire ticks.`, `Nobody talks for a while. The bread goes round.`, `Asdis fills a bowl that had not asked.`];
   var eat = { id: 'eat', all: true, again: true, last: true, say: function () { return `(Eat quietly.)`; }, run: function (S) { S.narr(QUIET[(S.quiet = (S.quiet || 0) + 1) % QUIET.length]); } };
   // a meal's filler, one a hero: `f` the hero's key to [the question, her answer]; one not of the four thanks her
@@ -71,7 +77,7 @@
     // INSIGHT: she stayed for Ingrith, not the street -- a post is kept, and so is kin
     { id: 'stayed', flag: 'asdisStayed', rumor: 'r-asdis-stayed',
       open: function (S) {
-        S.narr(`Supper at her table again. The bread was cut before anyone sat.`);
+        S.narr(`Her table again. The bread was cut before anyone sat.`);
         S.by(`"Ingrith came up for a loaf this morning and ate it standing. Ours. She keeps the garrison's ledger."`);
         S.by(`"The house below was my brother's, then his daughter's, then Ingrith's. They went down. Ingrith would not leave her post."`);
         S.by(`"And somebody should keep a lamp lit on the street. Go on. You've been counting chairs."`);
@@ -94,7 +100,7 @@
     // INSIGHT: she does not defend it -- a regretful, necessary call
     { id: 'burning', flag: 'asdisBurning', rumor: 'r-asdis-burning',
       open: function (S) {
-        S.narr(`The third night at her table. Asdis is slower with the ladle.`);
+        S.narr(`The third meal at her table. Asdis is slower with the ladle.`);
         S.by(`"You're Silverton people, or near enough. You had the Water Burning with your milk."`, 'attentive');
         S.by(`"The water went bad, and the king brought us out to answer it. One winter. That much your town tells true."`);
         S.by(`"You'll want the rest of it, or you'll want your beds. I'd not blame either."`);
@@ -111,7 +117,7 @@
           { id: 'right', read: 'right', say: function () { return `Was it right?`; },
             run: function (S) { S.f.asdisRegret = 1; S.look(`Asdis puts her spoon down.`); S.by(`"It was necessary. Water is the one thing down here nobody may be careless with, and they had to be made to know it."`); S.by(`"I have never once called it right. And if it came again I would not stop them. Sit with that. I do."`, 'grave'); } }
         ]),
-      close: `Asdis banks the fire. She does not take up her mending tonight.` }
+      close: `Asdis banks the fire. She does not take up her mending.` }
   ];
   A.speaker = function (u) { return { name: A.NAME, unit: u || null, side: 'right', sheet: A.SHEET }; };
   A.roomShot = function (B) { // (her room as the camera has it, live under the screen and dimmed -- js/inn.js In.roomShot's way)
@@ -169,14 +175,14 @@
       prompt = last || { by: 1, line: more[fillN++ % more.length] };
     }
     sc.echo = null; sc.hero = null;
-    f.asdisMeals = n + 1;
+    f.asdisMeals = n + 1; var now = A.now(); if (now != null) f.asdisMealT = now;
     yield sc.narr([ML.close]);
   };
   // between the yes and the sleep (js/solskaft.js SK.asdisTalk): tonight's meal, if one of the three is still to come
   A.supper = function* (B, u) {
-    var C = D.counter, f = B.roam.flags, n = A.had(f); if (!C || !A.due(f)) return false;
+    var C = D.counter, f = B.roam.flags, n = A.had(f); if (!C || !A.dueNow(f)) return false;
     if (D.house && D.house.trail) D.house.trail('talk', 'asdis meal ' + (n + 1));
-    var sc = new C.Counter(B, { id: 'asdismeal', name: A.NAME, place: 'Sólskaft', what: 'supper at her table', room: true, open: true, bg: A.roomShot(B), script: function (s) { return A.meal(s, B, u, n); } });
+    var sc = new C.Counter(B, { id: 'asdismeal', name: A.NAME, place: 'Sólskaft', what: 'at her table', room: true, open: true, bg: A.roomShot(B), script: function (s) { return A.meal(s, B, u, n); } });
     D.push(sc); while (!sc.done) yield 1;
     return true;
   };
@@ -185,7 +191,7 @@
   if (SK && SK.BEATS) {
     [['THE STREET: why the clans went back down', 'her first meal'], ['WHY SHE STAYED: the house, Ingrith, the post', 'her second meal, the first had'], ['THE WATER BURNING', 'her third meal, two had']].forEach(function (b, n) {
       SK.BEATS.push({ id: 'asdismeal' + (n + 1), key: SK.ASDIS, label: 'ASDIS\'S TABLE, MEAL ' + (n + 1) + ' -- ' + b[0], at: [4, 3], hour: 18, flags: n ? { asdisMeals: n, asdisIdx: n } : {}, asdisPins: [18, 18, 18, 18],
-        note: 'In her room over the west store at dusk, ' + b[1] + '. E on her, then EAT AND SLEEP: the meal plays before the cot. She tells the plain of it as it opens; flip through the four (the names at the bubble\'s head) -- one has a read in the insight colour and what it lets that hero say, and the shaded answer is the History question (the dice pinned high here: every hero has the sharp one). No die shows. Three openings, or TO BED; then the night.' });
+        note: 'In her room over the west store at dusk, ' + b[1] + '. E on her, then EAT AND SLEEP (the meal, then the cot) or HAVE A HOT MEAL (the meal, then an hour\'s short rest). She tells the plain of it as it opens; flip through the four (the names at the bubble\'s head) -- one has a read in the insight colour and what it lets that hero say, and the shaded answer is the History question (the dice pinned high here: every hero has the sharp one). No die shows. Three openings, or TO BED; then the night.' });
     });
     var play0 = SK.play; SK.play = function (bt) { A.pinned = bt && bt.asdisPins ? bt.asdisPins.slice() : null; return play0.apply(this, arguments); };
   }
