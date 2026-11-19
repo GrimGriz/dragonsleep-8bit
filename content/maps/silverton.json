@@ -292,7 +292,7 @@
 "dir": "down",
 "idle": true,
 "lantern": true,
-"cond": "flag:postgame"
+"cond": "flag:postgame | flag:elsbethCandle"
 }
 ],
 "warps": [

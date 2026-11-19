@@ -265,7 +265,7 @@
     A.backRoom(B);
     if (!aloud) { if (asleep.length) yield* In.card(B, [A.LINES.poisonDrop.split('{names}').join(asleep.map(function (u) { return u.name; }).join(' and ')).split(' go down').join(asleep.length === 1 ? ' goes down' : ' go down'), A.LINES.poisonRise], 420); else yield* In.card(B, [A.LINES.poisonUp], 420); } // (said aloud: Gennet's own line at the table was the turn -- js/inn.js In.SAC.his)
     B.units.filter(function (u) { return u.npc === 'snootRunner'; }).forEach(function (u) { In.gone(B, u); }); // (RULED 11-11, ruling 38: the moot's runner is no part of this; he is outdoors, out of the room's sight)
-    var els = B.units.filter(function (u) { return u.npc === 'elsbeth'; })[0] || null; if (els) yield* In.walk(B, els, A.ELS_BACK, [0, -1]); // (RULED 11-12, Griz: "back room with children" -- off the field, in the wing's west bedroom with the boys behind her, no wand out: A.backRoom; she had stood at the kitchen's side of the big fire, A.ELS_DOOR)
+    var els = B.units.filter(function (u) { return u.npc === 'elsbeth'; })[0] || null; if (els) { els.guarded = true; yield* In.walk(B, els, A.ELS_BACK, [0, -1]); } // (RULED 11-12, Griz: "back room with children" -- off the field, in the wing's west bedroom with the boys behind her, no wand out: A.backRoom; she had stood at the kitchen's side of the big fire, A.ELS_DOOR)
     // the Waterbys rise from their own places: with the supper's seating kept (js/inn.js In.mealScene) they are AT the table already, so each is swapped for its fighting
     // figure on its own square and nobody jumps (11-11, Griz: the fault this seat named -- "nobody pops")
     var gN = B.units.filter(function (u) { return u.npc === 'gennet'; })[0], dN = B.units.filter(function (u) { return u.npc === 'doranIn'; })[0];
@@ -286,7 +286,7 @@
     if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
     try { D.music((D.roam.def && D.roam.def.music) || 'inn'); A.musicBack = (A.musicBack || 0) + 1; } catch (eM) { } // (11-13, his "Combat music that starts at dinner should turn off at yield (and start back up when party token breaks to fight monster)": the house's own again; the thing's fight starts its own, A.lakeFight)
     var doranUp = A.standing(B, Y.doran), gennetUp = A.standing(B, Y.gennet);
-    if (!gennetUp) f.gennetDead = 1; if (!doranUp) f.doranDead = 1;
+    if (!gennetUp) f.gennetDead = 1; if (!doranUp) { f.doranDead = 1; if (f.doranDeadDay == null) f.doranDeadDay = In.day(D.roam.q); }
     if (!doranUp) { A.clear(B, Y); A.backRoomClear(B); In.lay(B, 'inn', true); yield* In.card(B, [A.LINES.poisonNoConfess], 420); f.dueUnfed = In.dueCycle(In.day(D.roam.q)); yield* A.dueMorning(B, 'none'); return; }
     // THE YIELD (re-cut 11-12 on his 0043Z notes, the inn seat of 11-12; Griz on the faint tell: "reverts to old models after yield, then pops scene to standing regular
     // positions, no 'following doran outside', he does go outside"; on the full tell: "confession triggered 'leave the fight', which works but needs him to run over and
@@ -411,8 +411,13 @@
   A.backRoom = function (B) {
     if (B.units.some(function (u) { return u.scripted === 'orrinBack'; })) return;
     B.units.filter(function (u) { return u.npc === 'orrin' || u.npc === 'pell'; }).forEach(function (u) { In.gone(B, u); }); // (never two of each: by supper's hour they are in, and the floor's own are laid only by daylight)
-    A.BOYS_BACK.forEach(function (q, i) { var u = In.unit(B, { id: i ? 'pellBack' : 'orrinBack', kind: 'commonerchild', at: q.slice(), name: i ? 'Pell' : 'Orrin', face: [0, -1] }); u.bystander = true; });
+    A.BOYS_BACK.forEach(function (q, i) { var u = In.unit(B, { id: i ? 'pellBack' : 'orrinBack', kind: 'commonerchild', at: q.slice(), name: i ? 'Pell' : 'Orrin', face: [0, -1] }); u.bystander = true; u.guarded = true; });
   };
+  // THE BACK ROOM UNTOUCHABLE (RULED 2026-11-18, Griz, on the seat's three ways after his "it's an edge case and they can't hurt her or the kids even with fireball, right?":
+  // "1 - make them untouchable"): Elsbeth and the boys behind her in the wing's west bedroom (u.guarded) take no harm from anything -- a Fireball's edge, a flask, a blow --
+  // at the one place harm lands (js/battle.js Battle.prototype.hurt); the record says what was turned aside
+  var hurtG = D.Battle && D.Battle.prototype.hurt;
+  if (hurtG) D.Battle.prototype.hurt = function (u, n) { if (u && u.guarded && n > 0) { if (D.house && D.house.trail) D.house.trail('act', 'THE SECOND ACT: ' + n + ' harm to ' + u.name + ' turned aside (the back room, guarded)'); return; } return hurtG.apply(this, arguments); };
   A.backRoomClear = function (B) { B.units.filter(function (u) { return u.scripted === 'orrinBack' || u.scripted === 'pellBack'; }).forEach(function (u) { In.gone(B, u); }); };
   A.ELS_DOOR = [31, 18]; A.HEARTH = [24, 16]; A.TUB = [33, 21]; // (the kitchen's side of the big fire; Gennet's place by the hearth and Elsbeth's at the tub, as js/inn.js In.FOLK stands them)
   // all asleep: the drag -- ten minutes of it, a save every two, each success +1 to the save at the stone; on the stone the rise, and the saves again each round
@@ -678,7 +683,7 @@
     B.hurt = hurt0;
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     if (Y.doran && B.units.indexOf(Y.doran) >= 0 && Y.doran.hp <= Y.doran.maxhp / 2 && Y.doran.hp > 0) f.doranYield = 1;
-    if (Y.doran && (Y.doran.hp <= 0 || Y.doran.dead)) f.doranDead = 1;
+    if (Y.doran && (Y.doran.hp <= 0 || Y.doran.dead)) { f.doranDead = 1; if (f.doranDeadDay == null) f.doranDeadDay = In.day(D.roam.q); }
     return /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : o === 'won' ? 'won' : o === 'yielded' ? 'yielded' : 'escaped';
   };
   A.doranIn = function (B, Y) {
@@ -796,7 +801,7 @@
     if (o === 'lost') return o;
     if (f.gennetTaken && Y.chuul && Y.chuul.fled) { A.trail('the inn lady taken: it went down with her'); return 'taken'; }
     if (Y.preyTaken && Y.chuul && Y.chuul.fled) { A.trail('the one on the stone taken: it went down'); return 'taken'; } // (the no-tell night's take, 11-12) // (it has its offering: down with her, the frog's fight its own end)
-    if (o === 'won') { f.lakeDone = 1; A.trail('the thing in the lake killed' + (ring ? '' : ', no ring')); yield* In.card(B, [].concat(L('lake.after')), 480); if (!f.lakeGiftGot) { var id = f.bucketNight && DS.DATA.items.cloakmantaray ? 'cloakmantaray' : In.giftId(st); /* (11-13, the bucket's party: the Cloak of the Manta Ray here, which the other road -- Elsbeth's gift after the chase, js/inn.js In.giftId -- never gave them) */ D.counter.give(st, id, 1); f.lakeGiftGot = 1; D.sfx('chest'); yield* In.card(B, [L('lake.corpseGift'), L('g.got', { item: DS.DATA.items[id].name })], 420); } }
+    if (o === 'won') { f.lakeDone = 1; if (f.lakeDay == null) f.lakeDay = In.day(D.roam.q); A.trail('the thing in the lake killed' + (ring ? '' : ', no ring')); yield* In.card(B, [].concat(L('lake.after')), 480); if (!f.lakeGiftGot) { var id = f.bucketNight && DS.DATA.items.cloakmantaray ? 'cloakmantaray' : In.giftId(st); /* (11-13, the bucket's party: the Cloak of the Manta Ray here, which the other road -- Elsbeth's gift after the chase, js/inn.js In.giftId -- never gave them) */ D.counter.give(st, id, 1); f.lakeGiftGot = 1; D.sfx('chest'); yield* In.card(B, [L('lake.corpseGift'), L('g.got', { item: DS.DATA.items[id].name })], 420); } }
     else { A.trail('the party got clear of the lake'); }
     return o;
   };

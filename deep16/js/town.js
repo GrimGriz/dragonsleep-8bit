@@ -332,6 +332,7 @@
     // (nor on the way up to a door: the square in front of it, or for a door on a lane between two houses the lane's squares beside it -- 10-22, a door in a nook had one)
     var noStand = Object.create(used), openSq = function (x, y) { var r = L.rows[y]; return !!r && '.,='.indexOf(r.charAt(x)) >= 0; };
     Object.keys(M.doors).forEach(function (k) { var q = M.doors[k]; if (openSq(q[0], q[1] + 1)) noStand[q[0] + ',' + (q[1] + 1)] = 1; else [-1, 1].forEach(function (o) { if (openSq(q[0] + o, q[1])) noStand[(q[0] + o) + ',' + q[1]] = 1; }); });
+    if (D.inn && D.inn.candleTick && flags) D.inn.candleTick(flags); // (Elsbeth on vice row once she has left the inn: js/inn.js In.ELS_TOWN, 11-18)
     ((npc8 && npc8.npcs) || []).forEach(function (n) {
       var pl = T.PLACE[n.id]; if (!pl || !T.cond(n.cond, flags)) return;
       var p0 = pl.pin ? (L.v6pins[pl.pin] || null) : null, sq = null;

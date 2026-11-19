@@ -218,6 +218,14 @@
   // (In.dueDay(0)), and only if that night was not played at the inn (f.firstDueHere, set as it begins -- js/secondact.js A.dueNight; an older save's dueCycle 0 the same).
   // Before it, or with the party there that night, the boat's square is the shallows and nothing to use
   In.boatOn = function (f, d) { f = f || {}; return d > In.dueDay(0) && !f.firstDueHere && f.dueCycle !== 0; };
+  // ELSBETH TO VICE ROW (RULED 11-07, rulings 10 and 12 -- Doran dead, or the lake killed: she leaves for Silverton and is the candle girl on vice row; the conditions the
+  // desk's lean, "go with your lean otherwise" 11-18: she leaves the morning after the first of the two, and stands on vice row from then (js/town.js asks In.candleTick
+  // as Silverton's people are laid; content/maps/silverton.json elsbethCandles on flag:elsbethCandle) -- NEVER if 9 or 11 holds (RULED 11-18: "if 9 or 11 are true she
+  // doesn't ever leave the inn to candle girl"), nor if she has gone to the Pit with the boys (elsbethGone). An older save with the deed and no day kept: gone already
+  In.elsbethStays = function (f) { return !!((f.gennetTaken && f.gennetLet) || f.gennetDead || f.elsbethGone); };
+  In.elsbethLeaveDay = function (f) { f = f || {}; if (In.elsbethStays(f) || !(f.lakeDone || f.doranDead)) return null; var ds = []; if (f.lakeDone) ds.push(f.lakeDay != null ? f.lakeDay : -99); if (f.doranDead) ds.push(f.doranDeadDay != null ? f.doranDeadDay : -99); return Math.min.apply(null, ds) + 1; };
+  In.elsbethAway = function (f, d) { var L0 = In.elsbethLeaveDay(f); return L0 != null && d >= L0; };
+  In.candleTick = function (f) { if (f && !f.elsbethCandle && In.elsbethAway(f, In.day(null))) f.elsbethCandle = 1; return !!(f && f.elsbethCandle); };
   In.offering = function (f, c) { return f.dueOffC === c ? f.dueOff : 'goblin'; };
   In.BARN = [7, 5]; // (the barn's west end stall, the far end from its door)
   In.barnGoblinOn = function (f, d) { var c = In.cycle(d); return c >= 0 && d >= In.WAGON.first + c * In.WAGON.every && d <= In.dueDay(c) && f.dueCycle !== c && (In.offering(f, c) === 'goblin' || f.barnC === c) && !f.lakeDone && !f.barnFreed; }; // (barnC: the one seen through in the barn, a child there still)
@@ -238,7 +246,8 @@
     });
     // (ONE KAT, 11-18, his playthrough NOTES on the wagon night: "Freeroam worked and revealed doran and kat and elsbeth all hanging out while this is going on outside, (dupe
     // kat since one is standing outside)" -- while she is out in the yard as the traveler (f.katYard: In.yardCast's katYard), the house's own Katarina is not at her fire)
-    var dd = In.day(In.q), npcs = In.FOLK.filter(function (p) { return (inside === 'inn' || p.out) && In.when(p.when, hour) && (p.id !== 'katarina' || (In.katHere(flags || {}, dd) && !(flags && flags.wagonIn && flags.katYard))) && !(flags && flags.wagonIn && In.INDOORS[p.id]); }).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir, cond: p.cond }; });
+    var dd = In.day(In.q); if (flags) { if (flags.lakeDone && flags.lakeDay == null) flags.lakeDay = dd; if (flags.doranDead && flags.doranDeadDay == null) flags.doranDeadDay = dd; } // (a deed with no day kept -- an older save, a test door: its day the first the inn sees it)
+    var npcs = In.FOLK.filter(function (p) { return (inside === 'inn' || p.out) && In.when(p.when, hour) && (p.id !== 'elsbeth' || !In.elsbethAway(flags || {}, dd)) && (p.id !== 'katarina' || (In.katHere(flags || {}, dd) && !(flags && flags.wagonIn && flags.katYard))) && !(flags && flags.wagonIn && In.INDOORS[p.id]); }).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir, cond: p.cond }; });
     if (flags && flags.wagonIn) { // (THE WAGON NIGHT staged in the yard: the wagon pulled in, the pair by its team, the one at its tail, the inn lady with her lantern, the traveler come down)
       rows = rows.map(function (r, y) { var w = In.WAGONAT; if (y < w[1] || y > w[1] + 1) return r; return r.split('').map(function (c, x) { return x >= w[0] && x < w[0] + 3 ? 'U' : x === w[0] + 3 ? 'V' : c; }).join(''); });
       // (the yard's people -- the pair, the one at the tail, the inn lady with her lantern, the traveler -- are stood and moved by the night's script, In.wagonNight: In.YARDFOLK keeps their squares)
@@ -2055,11 +2064,24 @@
   // the push -- Gennet named a fraud to her face -- is the wand, in the kitchen only, and she is done for the night: js/secondact.js A.wand, the lane's §10.4)
   In.elsOpen = function (f) { return In.renown() >= 3 || !!(f.mealWrong && !f.mealGirlSaid); }; // (she will talk: the supper's renown, or the counting seen and kept quiet)
   In.ELS = { renown: 3, work: 'The girl focuses on her work.', notNow: 'She does not turn round. "Not now. In the morning, when she\'s out at the well."', monsters: '"You\'re the people stopping the monsters."' }; // (work and monsters: HIS words, ruling 58; notNow the seat's)
+  // ELSBETH THROUGH THE FIGHTS' ENDS (RULED 2026-11-07, this lane's rulings 9-12, put back to him 11-18 -- "other rulings stand" -- then "if 9 or 11 are true she doesn't
+  // ever leave the inn to candle girl (when like dies in 12), go with your lean otherwise"): 9 Gennet taken and the party let it: "You were supposed to stop it." and silent
+  // to the party after; 11 Gennet dead: at her third tier a quiet relief and she keeps working, below it grief and her back to the party for good; 12 the lake killed: she
+  // stops working to say one thing, the first time she speaks away from the tub -- THE SEAT'S LEAN, his "go with your lean": where 9 or 11 has silenced her, 12 does not
+  // break it. Her lines the seat's drafts (invented.json elsbeth-after-1118); her move to vice row: In.ELS_TOWN
+  In.ELS_AFTER = {
+    stop: ['Elsbeth stops scrubbing. She does not turn round.', '"You were supposed to stop it."'],
+    relief: ['Elsbeth keeps working. For a moment her shoulders come down, as if something she had carried a long time had been set on the floor.'],
+    grief: ['Elsbeth is crying over the tub, without a sound. When she sees you she turns her back, and keeps it turned.'],
+    lake: ['Elsbeth sets the brush down and steps away from the tub, the first time you have seen her leave it.', '"It was only an animal," she says. "I knew. I always knew."', 'Then she goes back to the dishes.']
+  };
   M.SCENES.elsbeth = function* (sc, B) {
-    var st = sc.st, f = st.flags, A = D.secondact;
-    if (f.lakeDone) { yield sc.say(L('inn.elsbethAfter')); return; }
+    var st = sc.st, f = st.flags, A = D.secondact, EA = In.ELS_AFTER;
     if (f.wandOut) { yield sc.say(A ? A.LINES.elsbethSilentWand : L('inn.elsbethSilent')); return; }
     if (f.elsbethSilent) { yield sc.say(L('inn.elsbethSilent')); return; }
+    if (f.gennetTaken && f.gennetLet) { f.elsbethSilent = 1; f.elsbethStopSaid = 1; yield sc.say(EA.stop); return; } // (9: said once, silent after)
+    if (f.gennetDead) { if ((f.elsbethTier || 0) < 3) { f.elsbethSilent = 1; yield sc.say(EA.grief); return; } if (!f.elsbethRelief) { f.elsbethRelief = 1; yield sc.say(EA.relief); return; } } // (11: below her third tier silent for good; at it, the relief once)
+    if (f.lakeDone) { if (!f.elsbethLakeSaid) { f.elsbethLakeSaid = 1; yield sc.say(EA.lake); return; } yield sc.say(L('inn.elsbethAfter')); return; } // (12: once, then her back at the tub)
     if (f.childGuest && !f.elsbethGone) { // (the child with the party: she sends them to the Pit; ASK HER TO COME, and she stays with her father -- In.CHILD, 11-12)
       var EC = In.CHILD; f.elsbethPit = 1; yield sc.say(EC.elsbeth);
       var ea = yield sc.ask(EC.elsbethAsk, [EC.come, EC.go]); if (ea === 0) { f.elsbethAsked = 1; yield sc.say(EC.elsbethStay(f)); }
@@ -2460,7 +2482,7 @@
       yield* Rm.engage(B, { foes: [G, Dn], why: 'barn', zone: null, onSpill: seat }, false, 'barn');
       if (/^(lost|lose|dead|ko)$/.test(String(R0.lastOutcome)) || (A && A.wiped(B))) return;
       var up = function (u) { return B.units.indexOf(u) >= 0 && u.hp > 0 && !u.dead; }, dUp = up(Dn), gUp = up(G);
-      if (!gUp) f.gennetDead = 1; if (!dUp) f.doranDead = 1;
+      if (!gUp) f.gennetDead = 1; if (!dUp) { f.doranDead = 1; if (f.doranDeadDay == null) f.doranDeadDay = In.day(D.roam.q); }
       // the yield: nobody is pulled off the yard -- the two stand where the fight left them (each foe's figure swapped for its own on the same square), what is said is
       // said on portraits, and then each walks off (11-11, Griz: "surrender shouldn't pull all but the party token off the screen - doran's post yield talk should be with portraits")
       var gq = [G.x, G.y], dq = [Dn.x, Dn.y]; [G, Dn].forEach(function (u) { gone(u, 'swap'); });
