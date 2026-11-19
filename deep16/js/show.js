@@ -111,8 +111,9 @@
   };
   // (nor a shapechanger's shift on a kind that does not shift: the werewolf's `shift` is the priest's, data/foes.js werewolfpriest -- the road's hybrid never
   // plays it; nor the werewolf's `towolf`, which no fight plays yet -- the wolf form is not on the grid; the row gallery, ?gallery&shelf=creatures&rows=werewolf,
-  // plays both: 11-14, the hyena-stirge seat)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && !(r === 'shift' && !shf) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
+  // plays both: 11-14, the hyena-stirge seat; nor the Shove's `shove` and the Long Guard feat's `keepback`, which a show's blows never bring about -- the Line
+  // Guard's guard_p2, ART-WANTED-86, 11-19, the cutter-guard seat: the gallery, ?rows=guard_p2, plays both)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && !(r === 'shift' && !shf) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
