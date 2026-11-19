@@ -13,10 +13,11 @@ The cut keeps the art desk's registration (its FRAME-MAP.csv): each frame its so
 placed by the desk's anchor in its 112 x 80 preview cell (the rear boot's landmark) -- FIT brings the desk's ~51-px guard to his installed height (barley_p3's
 idle, 47 px of figure). Snapped and outlined as tools/talmok-axe-sheet.py does (the 64; red, fire and violet left out); SW W NW the mirrors of SE E NE.
 
-Nothing plays the row yet: a greataxe in his hands today plays his empty-handed `attack` and `attack2` with the BATTLEAXE drawn by code through his fists
-(js/sprites.js S.wieldOf: a greataxe is drawn as the battleaxe), and which kit and which hand reach this row is his to say. The row carries no `grips`, so
-were it played no code axe would be drawn over the painted one (the art desk's "suppress the equipped-weapon overlay for this row"). deep16/?barleyshow
-beat `greataxe` stands the two side by side.
+Before it, a greataxe in his hands played his empty-handed `attack` and `attack2` with the BATTLEAXE drawn by code through his fists (js/sprites.js
+S.wieldOf: a greataxe is drawn as the battleaxe). Shown the two side by side (deep16/?barleyshow beat `greataxe`), Griz, 11-19: "looks like we have to keep
+the code-drawn idle, but the attacks are way beeter on the right" -- so both blows play this row while a greataxe is in his hands (js/sprites.js
+S.HELD.greataxe), his idle and walk keep the code-drawn axe. The row carries no `grips`, so no code axe is drawn over the painted one (the art desk's
+"suppress the equipped-weapon overlay for this row").
 """
 import os, sys, json, csv
 import importlib.util

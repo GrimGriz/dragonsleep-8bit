@@ -258,7 +258,8 @@
   // fight, `calm`), its carry for walk, the staff as focus for every cast, its strike for a blow (the cast's thrust where no strike is drawn); the
   // dagger's stab for a blow. Drawn only: what the engine sets (u.anim) and times stays the row it names, each pair the same length
   S.HELD = { quarterstaff: { idle: 'staffidle', walk: 'staffwalk', cast: 'staffcast', castup: 'staffcast', attack: 'staffstrike|staffcast' }, dagger: { attack: 'dagger' },
-    longsword: { attack: 'longsword' } }; // (Barley in mail's slash over the mannequin, barley_p3 `longsword`: played when a longsword is in his hand -- 11-04, Griz: "ideally he'll carry it if a player ever equips it")
+    longsword: { attack: 'longsword' }, // (Barley in mail's slash over the mannequin, barley_p3 `longsword`: played when a longsword is in his hand -- 11-04, Griz: "ideally he'll carry it if a player ever equips it")
+    greataxe: { attack: 'greataxe', attack2: 'greataxe' } }; // (the art desk's overhand chop, barley_p3 `greataxe` (ART-WANTED-85): both his blows while a greataxe is in his hands, the axe painted in; his idle and walk keep the code-drawn axe -- 11-19, Griz on the show side by side: "looks like we have to keep the code-drawn idle, but the attacks are way beeter on the right")
   S.inHand = function (u, anim, calm) {
     var sh = u && D.SHEETS && D.SHEETS[u.sheet], w = u && !u.sheathed && u.weapon, m = sh && w && S.HELD[w.kind]; if (!m) return anim;
     if (anim === 'idle' && calm && m === S.HELD.quarterstaff && sh.anims.staffrest) return 'staffrest';

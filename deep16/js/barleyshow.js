@@ -145,29 +145,32 @@
       return [down && rose, 'on ' + u.sheet + ' facing ' + FN[this.facing] + ': ' + (down ? 'flat on the prone row' : 'never flat') + ', ' + (rose ? 'then up through the get-up' : 'no get-up') + (drawn ? '' : ' (the rows the UI draws; headless, undrawn)')];
     }
 
-    // THE GREATAXE, TODAY AND DRAWN (11-19, the cutter seat cutter-barley-1119, on Griz's "have the cutter start on the new barley and compare with what we'd render
-    // in game today if barely equipped a greataxe"): two of him in mail side by side, the same facing, the same size, a greataxe in both their hands -- on the LEFT
-    // what the engine draws today (no row for a greataxe: his empty-handed `attack`, then Extra Attack's `attack2`, the BATTLEAXE drawn by code through his fists,
-    // js/sprites.js S.wieldOf), on the RIGHT the art desk's ART-WANTED-85 chop, the `greataxe` row of barley_p3 (no grips: no code axe over the painted one). Every
-    // facing in turn, S round to SE. Nothing in a fight plays the new row yet
+    // THE GREATAXE, BEFORE AND NOW (11-19, the cutter seat cutter-barley-1119, on Griz's "have the cutter start on the new barley and compare with what we'd render
+    // in game today if barely equipped a greataxe"; then, on this beat, "looks like we have to keep the code-drawn idle, but the attacks are way beeter on the
+    // right"): two of him in mail side by side, the same facing, the same size -- on the LEFT the greataxe as the game drew it before that word (no row of its own:
+    // his empty-handed `attack`, then Extra Attack's `attack2`, the axe drawn by code through his fists -- staged here with the battleaxe, the shape a greataxe
+    // was drawn in, js/sprites.js S.wieldOf), on the RIGHT a greataxe in his hands as the game plays it now: both blows the art desk's ART-WANTED-85 chop
+    // (S.HELD.greataxe -> barley_p3 `greataxe`, no grips: no code axe over the painted one), his idle still the code-drawn axe. Every facing, S round to SE
     function* greataxeBeat() {
-      stage(null, null, 'chain', 'greataxe');
-      var v = Object.assign({}, u, { id: (u.id || 'barley') + '_drawn', name: 'Barley (drawn)', conds: {}, x: home[0] + 2, y: home[1] - 2, weapon: Object.assign({}, u.weapon) });
+      stage(null, null, 'chain', 'battleaxe');
+      var v = Object.assign({}, u, { id: (u.id || 'barley') + '_now', name: 'Barley (now)', conds: {}, x: home[0] + 2, y: home[1] - 2, weapon: Object.assign({}, u.weapon, WPN.greataxe) });
       B.units = [u, v]; G.setup(G.map, B.units); D.iso.lookAt(home[0] + 1, home[1] - 1, G.map.gz(home[0], home[1]));
-      var order = [0, 7, 6, 5, 4, 3, 2, 1], drawn = 0, today = [];
+      var now = ['attack', 'attack2', 'idle'].map(function (r) { return D.spr.inHand(v, r); }).join(','), order = [0, 7, 6, 5, 4, 3, 2, 1], went = [];
       for (var i = 0; i < order.length; i++) {
         var fc = order[i];
         for (var j = 0; j < 2; j++) {
           var row = j ? 'attack2' : 'attack';
-          u.facing = v.facing = fc; u.anim = row; v.anim = 'greataxe'; u.animT = v.animT = B.t;
-          B.clearCards(); B.card(['{y}' + FN[fc] + '{/}   {g}LEFT: today, ' + row + ' with the code-drawn axe   RIGHT: the new greataxe row{/}'], 1e9);
+          u.facing = v.facing = fc; u.anim = v.anim = row; u.animT = v.animT = B.t;
+          B.clearCards(); B.card(['{y}' + FN[fc] + '{/}   {g}LEFT: before, ' + row + ' with the code-drawn axe   RIGHT: now, the greataxe chop{/}'], 1e9);
           yield* hold(Math.max(dur(row), dur('greataxe')) + 16);
-          if (D.spr.anim(v.sheet, 'greataxe')) drawn++;
         }
-        today.push(FN[fc]);
+        went.push(FN[fc]);
       }
-      u.anim = v.anim = 'idle'; B.units = [u]; G.setup(G.map, B.units); B.clearCards();
-      return [sawAnim('attack') && sawAnim('attack2') && holds() === 'battleaxe' && drawn === 16, 'left on ' + u.sheet + ' holding the greataxe, drawn as the ' + holds() + ' (attack, attack2); right the greataxe row; facings ' + today.join(' ')];
+      u.anim = v.anim = 'idle'; u.animT = v.animT = B.t;
+      B.clearCards(); B.card(['{g}At rest: both keep the code-drawn axe in his hands{/}'], 1e9); yield* hold(60);
+      var vw = D.spr.wieldOf(v); B.units = [u]; G.setup(G.map, B.units); B.clearCards();
+      return [sawAnim('attack') && sawAnim('attack2') && holds() === 'battleaxe' && now === 'greataxe,greataxe,idle' && vw === 'battleaxe',
+        'left on ' + u.sheet + ' (before: attack, attack2, the code-drawn axe); right holding the greataxe, its rows now ' + now + ', at rest the ' + vw + '; facings ' + went.join(' ')];
     }
 
     var BEATS = [
@@ -186,7 +189,7 @@
       { id: 'chainwalk', look: 'chain', name: 'In mail: his legs', what: 'Two squares each way in all eight facings, holding the threshing flail the engine draws in his hands. S and N are the desk\'s new walks with their frames put in step order; SE, NE and E are its attempts that land every step on the same leg (broken, used as they are), and their mirrors.', run: walkBeat },
       { id: 'chainflail', look: 'chain', wpn: 'flail', name: 'In mail: the flail', what: 'A goblin in reach. The Sweep, then Extra Attack\'s Overhead, with the threshing flail drawn by code: the staff through both fists, the beater swinging on its link and out straight on the blow (frame 4).', run: swingBeat },
       { id: 'chainaxe', look: 'chain', wpn: 'battleaxe', name: 'In mail: a battleaxe', what: 'The same two blows with a battleaxe in his hands instead: the haft through both fists, one bearded blade at its head, the edge the way he faces.', run: swingBeat },
-      { id: 'greataxe', look: 'chain', name: 'In mail: a greataxe, today and drawn', what: 'Two of him side by side, a greataxe in both their hands. LEFT: what the game draws today -- his empty-handed Sweep and Overhead with the axe drawn by code. RIGHT: the art desk\'s new chop, the axe painted in. Every facing in turn.', run: greataxeBeat },
+      { id: 'greataxe', look: 'chain', name: 'In mail: a greataxe, before and now', what: 'Two of him side by side. LEFT: a greataxe as the game drew it before -- his empty-handed Sweep and Overhead with the axe drawn by code. RIGHT: a greataxe in his hands now -- both blows the art desk\'s chop, the axe painted in; at rest the code-drawn axe, as before. Every facing in turn.', run: greataxeBeat },
       { id: 'chainwind', look: 'chain', name: 'In mail: Second Wind', what: 'At 10 HP he takes his Second Wind: the standing breath, the chest lifting, the guard back up, the flail in his hands throughout.', run: windBeat },
       { id: 'chainsurge', look: 'chain', name: 'In mail: Action Surge', what: 'Both blows spent, he surges -- the grip raised high and ready -- and swings a third time.', run: surgeBeat },
       { id: 'chainhands', look: 'chain', name: 'In mail: a hand free', what: 'The Dodge (the weapon across him), a potion, a hand on a thing and the win (both bare): one fist lets go and the other keeps the flail at its guard.', run: handsBeat },
