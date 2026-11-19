@@ -1111,7 +1111,9 @@
   // there (battle.js moveAlong, where a step lands, as GIVE GROUND; a player's hero asked, the AI's always); SET AGAINST THE CHARGE -- one that came 20 ft or more straight
   // at it this turn and stands within its reach: its next hit on that one before the end of its next turn deals one more weapon die (F.chargeStep each step; battle.js)
   F.longGuard = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'longguard') && (u.abil || h.abil).str >= 13); };
-  F.reachInHand = function (u) { return !!(u && u.weapon && !u.weapon.ranged && u.weapon.reach >= 10); };
+  // THE SPEAR TOO (RULED 2026-11-19, Griz: "wouldn't pushback applied to the spear keep the foe out of the 8 squares around then, keeping them 5 ft away versus 10 for longer
+  // polearms? If so, we'll include spears in the feat"): a spear in hand uses both halves at its own 5 ft -- KEEP BACK on the step to adjacent, the mover left 10 ft off
+  F.reachInHand = function (u) { return !!(u && u.weapon && !u.weapon.ranged && (u.weapon.reach >= 10 || u.weapon.kind === 'spear')); };
   F.keepBack = function* (B, mover, from) {
     var ws = B.units.filter(function (w) { return w !== mover && G.hostile(w, mover) && F.longGuard(w) && F.reachInHand(w) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !mover.object && D.magic.sees(B, w, mover); });
     for (var i = 0; i < ws.length; i++) {

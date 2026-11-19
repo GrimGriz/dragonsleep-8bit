@@ -77,6 +77,16 @@ attack row to send to the art desk with a talmok request"):
 What it adds: a frame is THE HAFT -- where the right fist is (metres: across, forward, above the floor) and which way the haft points -- and
 the left fist is SPACE down the haft from the right on every frame; each wrist is then walked in till its fist is on its mark (rows_greataxe).
 The edge leads the swing: square to the haft, in the plane the haft swings in.
+
+THE GUARD'S SPEAR (11-19, Griz: "do an art request for human spear users, include thrown spears"; and of the feat Long Guard's Keep Back,
+"not the thrust, but do one for pushback"): two rows on the greataxe's way of posing, the human build, sized to guard_p2's idle.
+    ... -- build kit=spearthrow           THROW 6: 1 the spear up to the right shoulder, 2 drawn back past the ear with the left side and
+                        hand forward, 3 the left foot stepping, the elbow leading, 4 THE RELEASE (the arm out high and forward: the spear in
+                        the fist on 1-4 and gone on 5 and 6), 5 the empty hand down and across, 6 the foot drawn back.
+    ... -- build kit=spearpush            KEEPBACK 6, the haft shove: the spear held ACROSS him in both hands a pace apart, 1 at port, 2 drawn
+                        in to the chest with the knees bent, 3 driving, 4 THE SHOVE (both arms straight, the haft level across the
+                        target's chest, a step in), 5 held out, 6 back to port. No point in it: a polearm drawn over it shoves the same.
+Then `python tools/twinmace-sheet.py spearthrow` and `... spearpush`.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -104,7 +114,7 @@ if KIT == 'sword':
 SWSH = KIT == 'sword+shield'              # Lymen's (11-13): the same slash, a round shield on the left forearm
 if SWSH:
     WORK = os.path.join(ROOT, 'deep16', '_src', 'slashshield'); LOG = '[slashshield]'
-GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot'), 'longbow': ('longbow', 'shoot'), 'stab': ('stab', 'stab'), 'greataxe': ('greataxe', 'chop')}     # the garrison's kits (11-12): the folder and the row
+GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot'), 'longbow': ('longbow', 'shoot'), 'stab': ('stab', 'stab'), 'greataxe': ('greataxe', 'chop'), 'spearthrow': ('spearthrow', 'throw'), 'spearpush': ('spearpush', 'keepback')}     # the garrison's kits (11-12): the folder and the row
 if KIT in GARR:
     WORK = os.path.join(ROOT, 'deep16', '_src', GARR[KIT][0]); ROW = GARR[KIT][1]; LOG = '[%s]' % GARR[KIT][0]
 DWARF = MQ.OPT.get('build', 'human') == 'dwarf'
@@ -115,6 +125,8 @@ if DWARF:
         MQ.HERO = 'gatewatch_p2' if KIT in GARR else 'pyro_p0'     # (the garrison's troopers wear the gate watch's fight figure)
 elif KIT == 'greataxe' and 'hero' not in MQ.OPT:
     MQ.HERO = 'talmok_p2'              # (Talmok's: the human build, as tall as his own idle stands)
+elif KIT in ('spearthrow', 'spearpush') and 'hero' not in MQ.OPT:
+    MQ.HERO = 'guard_p2'               # (the Line Guard's: the spear users' own figure)
 # a dwarf on the same bones: the legs much shorter, the trunk a little shorter and a good deal wider and deeper, the limbs thick, the head big
 LEGK, TRUNK, XK, YK, RK, HEADK, HK = (0.56, 0.90, 1.24, 1.18, 1.30, 1.14, 0.74) if DWARF else (1, 1, 1, 1, 1, 1, 1)
 
@@ -222,10 +234,15 @@ SPACE = 0.34             # (the left fist from the right, down the haft: the sam
 GAXE = [('rod', 'grip', (0, -0.50, 0), (0, -0.455, 0), 0.034), ('rod', 'haft', (0, -0.455, 0), (0, 0.80, 0), 0.024), ('rod', 'grip', (0, 0.80, 0), (0, 0.82, 0), 0.030),
         ('slab', 'blade', [(0.560, 0.0), (0.770, 0.0), (0.850, 0.250), (0.700, 0.300), (0.540, 0.275), (0.455, 0.215), (0.575, 0.090)], 0.040),   # the blade: its edge 0.40 long, 0.30 off the haft
         ('slab', 'tip', [(0.600, -0.02), (0.730, -0.02), (0.705, -0.085), (0.625, -0.085)], 0.040)]                                           # the poll
-HELD = {'axe+shield': AXE, 'handaxe': HATCHET, 'crossbow': XBOW, 'stab': SHORT, 'greataxe': GAXE}
-GONE = {'handaxe': {'R': (4, 5)}, 'crossbow': {'span': (3, 4, 5), 'bolt': (3, 4, 5), 'loose': (0, 1, 2)},     # the row's frames (from 0) a held thing is NOT there on
+# the guard's spear (11-19), 1.85 m, a little taller than he is (guard_p2's): for the throw, in the right fist at its balance; for the shove, the
+# right fist a third of the way up from the butt and the left SPUSH further toward the point
+SPUSH = 0.60
+SPEART = [('rod', 'haft', (0, -0.90, 0), (0, 0.72, 0), 0.019), ('rod', 'blade', (0, 0.72, 0), (0, 0.88, 0), 0.034), ('rod', 'tip', (0, 0.88, 0), (0, 0.95, 0), 0.020)]
+SPEARP = [('rod', 'haft', (0, -0.50, 0), (0, 1.12, 0), 0.019), ('rod', 'blade', (0, 1.12, 0), (0, 1.28, 0), 0.034), ('rod', 'tip', (0, 1.28, 0), (0, 1.35, 0), 0.020)]
+HELD = {'axe+shield': AXE, 'handaxe': HATCHET, 'crossbow': XBOW, 'stab': SHORT, 'greataxe': GAXE, 'spearthrow': SPEART, 'spearpush': SPEARP}
+GONE = {'handaxe': {'R': (4, 5)}, 'spearthrow': {'R': (4, 5)}, 'crossbow': {'span': (3, 4, 5), 'bolt': (3, 4, 5), 'loose': (0, 1, 2)},     # the row's frames (from 0) a held thing is NOT there on
         'longbow': {'srest': (1, 2), 'shalf': (0, 2, 3, 4, 5), 'sfull': (0, 1, 3, 4, 5), 'anock': (1, 2, 3, 4, 5), 'ahalf': (0, 2, 3, 4, 5), 'afull': (0, 1, 3, 4, 5)}}
-EDGE = {'axe+shield': (0.30, 0.210), 'handaxe': (0.24, 0.135), 'crossbow': (0.50, 0.0), 'longbow': (BOWH, 0.0), 'stab': (0.50, 0.0), 'greataxe': (0.66, 0.27)}
+EDGE = {'axe+shield': (0.30, 0.210), 'handaxe': (0.24, 0.135), 'crossbow': (0.50, 0.0), 'longbow': (BOWH, 0.0), 'stab': (0.50, 0.0), 'greataxe': (0.66, 0.27), 'spearthrow': (0.88, 0.0), 'spearpush': (SPUSH / 2, 0.0)}
 BELLY = (-0.03, 0.98)    # the stab's mark on the target: its belly, a little to its left of the middle, x and z                        # the edge's middle (y, z): what the points file calls the head
 FORE = 0.27              # the crossbow's fore-stock, from the right fist: where the left hand holds it
 BELT = (-0.15, 0.95)     # the battleaxe's mark on the target: its hip on its LEFT side (the striker's right), x and z -- as high as a dwarf's cut comes down on a grown man
@@ -647,8 +664,8 @@ def rows_greataxe(R):
     X = Vector((1, 0, 0))
     OUT_, DOWN, HIGH = (0.55, 0.45, -0.60), (0.45, 0.20, -1.0), (0.9, 0.1, 0.35)      # an elbow out and back (the guard), under the arm (the follow-through), and out and a little up (the blow: the forearms come down onto the haft)
 
-    def P(fr, haft, lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, sh=0, fw=0, heel=0, step=(0, 0, 0), eL=DOWN, eR=DOWN):
-        return dict(lift=lift * U, shift=shift * U, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
+    def P(fr, haft, lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, sh=0, fw=0, heel=0, step=(0, 0, 0), eL=DOWN, eR=DOWN, fl=None):
+        return dict(_fl=fl, lift=lift * U, shift=shift * U, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
                     legs={'a': (0.13 * U, (-0.12 - step[0]) * U, za + step[1] * U, 10, step[2]), 'b': (-0.13 * U, 0.10 * U, zb, 28, heel)},
                     epolea=eL, epoleb=(-eR[0], eR[1], eR[2]), _fr=fr, _haft=haft)
 
@@ -660,15 +677,36 @@ def rows_greataxe(R):
         P((-0.10, -0.62, 0.70), (0.03, -0.99, -0.10), -0.17, shift=-0.10, lean=30, yaw=6, twist=4, head=-14, fw=10, heel=16, step=(0.16, 0, 0)),               # 5 THROUGH: the blade down by the floor in front, the knees deep, his back over it
         P((-0.13, -0.30, 1.20), (-0.20, -0.25, 0.95), -0.06, shift=-0.02, lean=6, yaw=-10, hyaw=8, step=(0.05, 0, 0), eL=OUT_, eR=OUT_),                     # 6 the foot drawn back, the axe coming back up to the guard
     ]
+    if KIT == 'spearthrow':        # THE THROW (11-19): one hand, the left free (`fl`: where its fist is, as `fr`); the spear gone after 4
+        F = [
+            P((-0.24, -0.06, 1.50), (0.04, -0.97, 0.22), -0.04, lean=2, yaw=-16, hyaw=14, eR=OUT_, fl=(0.16, -0.36, 1.18), eL=DOWN),                                  # 1 the spear up to the right shoulder in an overhand grip, level, its point at the enemy; the left hand coming up in front
+            P((-0.30, 0.30, 1.60), (0.10, -0.95, 0.28), -0.05, shift=0.04, lean=-4, yaw=-42, twist=-14, hyaw=50, sh=8, eR=(0.9, 0.5, 0.1), fl=(0.10, -0.56, 1.40)),   # 2 THE DRAW: his left side to the enemy, the weight back, the spear hand drawn back past the ear, the left arm out at the mark
+            P((-0.28, 0.08, 1.72), (0.05, -0.97, 0.22), -0.06, shift=-0.01, lean=2, yaw=-22, twist=-4, hyaw=22, sh=12, step=(0.08, 0.05, -8), eR=HIGH, fl=(0.20, -0.42, 1.24)),   # 3 THE STEP: the left foot off the floor and forward, the hips coming round, the elbow leading the hand
+            P((-0.18, -0.62, 1.78), (0.0, -0.99, 0.10), -0.10, shift=-0.09, lean=13, yaw=16, twist=10, head=-6, hyaw=-14, sh=8, fw=6, heel=12, step=(0.15, 0, 0), fl=(0.24, -0.14, 1.02)),   # 4 THE RELEASE: the foot down, the weight on it, the arm out high and forward, the spear leaving the fingers; the left hand pulled in to the hip
+            P((0.02, -0.46, 0.98), (0.3, -0.8, -0.5), -0.11, shift=-0.10, lean=22, yaw=24, twist=14, head=-10, hyaw=-20, heel=16, step=(0.15, 0, 0), fl=(0.30, 0.06, 1.00)),   # 5 the follow-through: the empty hand down and across, the right shoulder through
+            P((-0.24, -0.10, 0.98), (0.0, -0.6, -0.8), -0.05, shift=-0.02, lean=5, yaw=4, step=(0.04, 0, 0), fl=(0.24, -0.10, 0.96)),                              # 6 the foot drawn back, both hands down: he has thrown it
+        ]
+    elif KIT == 'spearpush':       # KEEP BACK (11-19): the haft shove, the spear across him in both hands; `haft` points along it to the point, his left
+        F = [
+            P((-0.22, -0.22, 1.04), (0.72, -0.10, 0.68), -0.04, lean=3, eL=OUT_, eR=OUT_),                                                # 1 PORT: the spear slanted across his chest, the right hand low at the hip, the left high by the left shoulder, the point up to his left
+            P((-0.25, -0.14, 1.14), (0.86, -0.04, 0.50), -0.10, shift=0.03, lean=5, eL=OUT_, eR=OUT_),                                    # 2 GATHERED: the haft drawn in to his chest, the knees bent, the weight back
+            P((-0.26, -0.36, 1.22), (0.92, -0.04, 0.38), -0.10, shift=-0.03, lean=10, head=-4, step=(0.06, 0.04, -6), eL=OUT_, eR=OUT_),   # 3 DRIVING: the legs straightening into it, the left foot stepping, the haft going out
+            P((-0.28, -0.66, 1.30), (0.96, -0.02, 0.26), -0.09, shift=-0.09, lean=16, head=-8, fw=10, heel=12, step=(0.14, 0, 0)),        # 4 THE SHOVE: both arms straight, the haft across the enemy's chest, his weight behind it
+            P((-0.28, -0.70, 1.26), (0.96, -0.02, 0.26), -0.10, shift=-0.11, lean=19, head=-10, fw=12, heel=16, step=(0.14, 0, 0)),       # 5 held out, leaning on it: the enemy goes back
+            P((-0.23, -0.28, 1.08), (0.76, -0.08, 0.64), -0.05, shift=-0.02, lean=5, step=(0.04, 0, 0), eL=OUT_, eR=OUT_),                 # 6 the foot drawn back, the spear coming back to port
+        ]
     IDLE = [dict(F[0])]
+    SP = SPUSH if KIT == 'spearpush' else -SPACE          # (the left fist from the right, along the haft toward its head)
 
     def fin(P, tag):
         Q = {k: v for k, v in P.items() if not k.startswith('_')}
-        b = Vector(P['_haft']).normalized(); e = X.cross(b).normalized()
+        b = Vector(P['_haft']).normalized(); e = X.cross(b); e = e.normalized() if e.length > 1e-4 else Vector((0, 0, 1))
         fr = Vector(P['_fr']) * U; fr.z += R.FLOOR
-        mark = {'b': fr, 'a': fr - b * SPACE * U}
+        mark = {'b': fr, 'a': fr + b * SP * U}
+        if P.get('_fl'):               # (a free left hand: where the frame says)
+            mark['a'] = Vector(P['_fl']) * U; mark['a'].z += R.FLOOR
         d, lift, shift, sway = R.pose_d(Q); M = R.solve(d, lift, shift, sway, mats=True)[1]       # (the shoulders: the arms not yet placed)
-        Q['hands'] = {'a': tuple(b), 'b': tuple(b)}; Q['handsup'] = {'b': tuple(e)}
+        Q['hands'] = {'b': tuple(b)} if P.get('_fl') else {'a': tuple(b), 'b': tuple(b)}; Q['handsup'] = {'b': tuple(e)}
         arms = {}
         for s_, sd in (('a', 'L'), ('b', 'R')):
             sho = M['arm.' + sd].translation; arms[s_] = mark[s_] + (sho - mark[s_]).normalized() * HAND * U - sho
@@ -685,15 +723,15 @@ def rows_greataxe(R):
             out.append('%s wrist %3.0f off the haft, its fist %.1f cm off its mark' % (sd, math.degrees(f.angle(b)), (M['hand.' + sd].translation - mark[s_]).length / U * 100))
         ed = M['hand.R'] @ Vector((0, EDGE[KIT][0] * U, EDGE[KIT][1] * U))
         print("%s %s: %s | the edge's middle at x %.2f y %.2f z %.2f" % (LOG, tag, '; '.join(out), ed.x / U, ed.y / U, (ed.z - R.FLOOR) / U))
-        if tag == ROW + ' 4':
-            GARRISON['ty'] = ed.y / U + 0.02          # (the target stood where the blade comes down: the edge just inside its chest)
+        if tag == ROW + ' 4' and KIT != 'spearthrow':
+            GARRISON['ty'] = ed.y / U + (0.02 if KIT == 'greataxe' else -0.13)          # (the target stood where the blade comes down, the edge just inside its chest; or with its chest on the shoving haft)
         return Q
     mk = lambda name, FR: (lambda i, n: (fin(dict(FR[i]), '%s %d' % (name, i + 1)), 0))
     return [('idle', 1, False, mk('idle', IDLE), 'ik'), (ROW, 6, False, mk(ROW, F), 'ik')]
 
 
 def rows(R):
-    return rows_greataxe(R) if KIT == 'greataxe' else rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
+    return rows_greataxe(R) if KIT in ('greataxe', 'spearthrow', 'spearpush') else rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
 
 
 ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3)}     # (frame 4 is the hit in both: his "4 is supposed to be the cut", 11-12)

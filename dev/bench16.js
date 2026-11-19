@@ -17232,6 +17232,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var h4 = mkLg({ nofeat: true }), w4 = walkLg(h4, 3), h5 = mkLg({ w: 'longsword' }), w5 = walkLg(h5, 3), h6 = mkLg({ ai: true }), w6 = walkLg(h6, 3);
       okLg('without the feat: asked "' + w4.asked + '", to ' + w4.d + ' ft; with a longsword: asked "' + w5.asked + '", to ' + w5.d + ' ft; the AI\'s own: asked "' + w6.asked + '", ' + (/HELD OFF/.test(w6.log) ? 'held off' : 'not') + ' at ' + w6.d + ' ft',
         !w4.asked && w4.d === 5 && !w5.asked && w5.d === 5 && !w6.asked && /HELD OFF/.test(w6.log) && w6.d === 15);
+      // THE SPEAR (11-19, his "we'll include spears in the feat"): KEEP BACK on the step to adjacent, the goblin held off at 10 ft; the pick's row says nothing of reach; and the charge's mark at 5 ft
+      var hS = mkLg({ w: 'spear' }), wS = walkLg(hS, 3), rs = rowLg('spear'), hT = mkLg({ w: 'spear', far: 6, noReact: true }), wT = walkLg(hT, 5), mkT = !!(hT.g.conds.setAgainst && hT.g.conds.setAgainst.by === hT.f.id);
+      okLg('with a SPEAR: asked "' + wS.asked + '", ' + (/HELD OFF/.test(wS.log) ? 'held off' : 'not') + ' at ' + wS.d + ' ft (want 10), the reaction ' + hS.f.reaction + '; the pick with a spear, no line ' + !!(rs && !/has no reach/.test(rs.desc)) + '; 25 ft straight in to ' + wT.d + ' ft, marked ' + mkT,
+        hS.ok && /KEEP BACK\?/.test(wS.asked) && /HELD OFF/.test(wS.log) && wS.d === 10 && hS.f.reaction === 0 && rs && !/has no reach/.test(rs.desc) && wT.d === 5 && mkT);
       // SET AGAINST THE CHARGE: from 30 ft, 20 ft straight in, the reaction spent -- the mark, and the glaive's hit one more die, once
       var h7 = mkLg({ far: 6, noReact: true }), w7 = walkLg(h7, 4), mk7 = !!(h7.g.conds.setAgainst && h7.g.conds.setAgainst.by === h7.f.id);
       D.rules.startTurn(h7.f); h7.B.active = h7.f; var n7 = (h7.B.log || []).length; D.d = function (k) { return k === 20 ? 15 : d0Lg(k); }; runLg(h7.B.exec(h7.f, { do: 'attack', target: h7.g })); var a7 = logLg(h7.B, n7); D.d = d0Lg;
