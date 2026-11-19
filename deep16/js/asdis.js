@@ -40,6 +40,9 @@
   // (js/counter.js C.mealOne: each one who eats with a level of exhaustion sheds one), on a card, only when someone has a level. On a test door with no house clock none of
   // the hours bind
   A.DAY = 24; A.PER_DAY = 2; A.COOL = 6; A.HOT = 'A bowl of soup, the heel of the loaf, an hour by her hearth with your boots off.';
+  // THE HOUR WITHOUT THE MEAL (2026-11-19, Griz: "to still offer the short rest when it doesn't offer the meal", then "that reading is right, hour's rest without the
+  // conversation"): inside the hot meal's six hours her ask greys HAVE A HOT MEAL with its hour and offers the house's SHORT REST: AN HOUR beside it -- no food, no talk
+  A.HOUR = 'No soup on yet. She waves you to the bench by the fire anyway: an hour with your boots off.';
   A.now = function () { var W = D.world, S = W && W.state && W.state(); return S && S.t != null && D.house && D.house.playing ? S.t : null; };
   A.recent = function (f, now) { return (f.asdisMealTs || []).filter(function (t) { return now - t < A.DAY; }); };
   A.dueNow = function (f) { var now = A.now(); return A.due(f) && (now == null || A.recent(f, now).length < A.PER_DAY); };

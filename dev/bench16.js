@@ -2168,6 +2168,44 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR);
     return;
   }
+  // A GREYED OPTION IN THE POPUP (mode=greypop1119; 2026-11-19, Griz: "yes, i'd like to have familiar interfaces as standard as makes sense to be at various player rest
+  // points", on the menus lane's look "why the roam's prompt can't grey a button"): a popup option { ok: false } or { off: true } stands greyed -- the selection starts on the
+  // first live one; E, its number or a click on it only buzz and land on it; its why drawn in the box's foot when the lines do not say it; a live one answers; the same
+  // prompt on the ring greys it too (js/ui.js optOff, promptInput, prompt) (RED on the old ui.js: the greyed one answers)
+  if (get('mode', '') === 'greypop1119') {
+    var repG = { checks: [], errors: [] }, um0G = D.ui.urlMenu, pr0G = D.input.pressed, rp0G = D.input.repeat, ms0G = D.input.mouse, tx0G = D.text, sfx0G = D.sfx;
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var BG = D.npcFight('?npc=goblin&lvl=3&vs=fighter,cleric', {}); D.battle = BG; BG.enter(); while (!BG.order.length) BG.co.next(); BG.dark = false;
+      var uG = BG.units.filter(function (u) { return u.side === 'party'; })[0], gotG = { n: 0, v: undefined }, sndG = [];
+      BG.answer = function (v) { gotG.n++; gotG.v = v; }; D.sfx = function (s) { sndG.push(s); };
+      var mkP = function (spell, ring) { var o = { label: 'TAKE IT', value: 'a', why: 'Not yet: again from 22:00.' }; if (spell === 'off') o.off = true; else o.ok = false; return { who: uG, ring: !!ring, title: 'GREY', lines: ['A line of the ask.'], opts: [o, { label: 'THIS ONE', value: 'b' }, { label: 'NOT NOW', value: 'c' }] }; };
+      var upG = function (p, style) { D.ui.urlMenu = style || 'window'; BG.req = { prompt: p }; D.ui.onRequest(BG, BG.req); gotG.n = 0; gotG.v = undefined; sndG = []; };
+      var keyG = function (k, rpt) { D.input.pressed = function (b) { return !rpt && b === k; }; D.input.repeat = function (b) { return !!rpt && b === k; }; D.input.mouse = Object.assign({}, ms0G, { click: false, rbtn: false, moved: false }); try { D.ui.input(BG, BG.req); } finally { D.input.pressed = pr0G; D.input.repeat = rp0G; D.input.mouse = ms0G; } };
+      var clickG = function (r) { D.input.pressed = function () { return false; }; D.input.repeat = function () { return false; }; D.input.mouse = Object.assign({}, ms0G, { x: r.x + 2, y: r.y + 2, click: true, rbtn: false, moved: false, inside: true }); try { D.ui.input(BG, BG.req); } finally { D.input.pressed = pr0G; D.input.repeat = rp0G; D.input.mouse = ms0G; } };
+      var cvG = document.createElement('canvas'); cvG.width = D.W; cvG.height = D.H; var saidG = [];
+      var drawG = function () { saidG = []; D.text = function (c, s) { saidG.push(String(s).replace(/\{\/?[a-z]*\}/g, '')); return tx0G.apply(this, arguments); }; try { D.ui.drawBattle(cvG.getContext('2d'), BG); } finally { D.text = tx0G; } };
+      ['ok', 'off'].forEach(function (sp) {
+        upG(mkP(sp)); var sel0 = BG.sel;
+        keyG('n1'); var n1 = gotG.n === 0 && BG.sel === 0 && sndG.indexOf('error') >= 0;
+        keyG('a'); var a1 = gotG.n === 0;
+        drawG(); var why1 = saidG.indexOf('Not yet: again from 22:00.') >= 0, r0 = BG.promptRects && BG.promptRects[0];
+        sndG = []; if (r0) clickG(r0); var c1 = !!r0 && gotG.n === 0 && sndG.indexOf('error') >= 0;
+        keyG('right', true); drawG(); var why2 = saidG.indexOf('Not yet: again from 22:00.') < 0;
+        keyG('a'); var a2 = gotG.n === 1 && gotG.v === 'b';
+        upG(mkP(sp)); keyG('n2'); var n2 = gotG.n === 1 && gotG.v === 'b';
+        okG('the popup, greyed by ' + (sp === 'ok' ? '{ ok: false }' : '{ off: true }') + ': starts on ' + sel0 + ' (the first live); its number answers nothing ' + n1 + ', E on it nothing ' + a1 + ', a click on it nothing ' + c1 + '; its why in the foot ' + why1 + ', gone off it ' + why2 + '; E on THIS ONE answers ' + a2 + ', its number ' + n2,
+          sel0 === 1 && n1 && a1 && c1 && why1 && why2 && a2 && n2);
+      });
+      upG(mkP('off', true), 'ring'); var Lg = BG.list, it0 = Lg && Lg.items[0]; keyG('n1'); var rn1 = gotG.n === 0; keyG('n2'); var rn2 = gotG.n === 1 && gotG.v === 'b';
+      okG('the same prompt on the ring ({ off: true }): a ring ' + !!Lg + ', its first greyed ' + (it0 && it0.ok === false) + ' with its why "' + (it0 && it0.why) + '"; its number answers nothing ' + rn1 + ', the live one answers ' + rn2, !!Lg && it0 && it0.ok === false && it0.why === 'Not yet: again from 22:00.' && rn1 && rn2);
+    } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
+    D.ui.urlMenu = um0G; D.input.pressed = pr0G; D.input.repeat = rp0G; D.input.mouse = ms0G; D.text = tx0G; D.sfx = sfx0G;
+    if (errs.length) repG.errors = repG.errors.concat(errs);
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
+    return;
+  }
   // READY SPRUNG BY A FRIEND'S ACTION, AND WHEN? AS A RING (mode=ready1113; 11-13, Griz, from play: "During playthough I realized we need a set of readied actions triggered by
   // friendly actions (other than being downed) - at a table readied is often to follow up or set up a team combo"; the READY lane §3.1, his 10-06 "if you put ready on the ring, the
   // expanded text shows below when it highlights, when the person picks the thing that text could have the 'next' instruction"): eight triggers; WHEN? a ring of eight with the long
@@ -8041,10 +8079,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           D.scenes.length = 0; SKk.play({ key: 'solskaft_asdis', at: [4, 2], hour: 18 }); var Bq = topSk(), S = D.world.state(); HSk.cur.restEnd = since == null ? null : S.t - since;
           atSk(Bq, 4, 2, [-1, 0]); Bq.cards = []; Bq.roam.keys.push('use'); var got = null;
           for (var k = 0; k < 800 && !got; k++) { var st = Bq.co.next(); if (st.done) break; if (st.value && st.value.prompt) got = st.value.prompt; else if (typeof st.value === 'number') Bq.t += st.value; }
-          return got ? got.opts.map(function (o) { return o.label; }).join('|') + ' :: ' + window.DS.stripCodes(got.lines.join(' ')) : 'no offer';
+          return got ? got.opts.map(function (o) { return (o.ok === false ? '~' : '') + o.label; }).join('|') + ' :: ' + window.DS.stripCodes(got.lines.join(' ')) : 'no offer'; // (~: greyed with its why, 11-19 js/ui.js optOff)
         };
         var a0 = asd33(null), a1 = asd33(2), a2 = asd33(20);
-        var asdOk33 = /^EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW/.test(a0) && /^HAVE A HOT MEAL\|NOT NOW ::/.test(a1) && /No long rest yet: one a day\. A long rest again from/.test(a1) && /^EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW/.test(a2);
+        var asdOk33 = /^EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW/.test(a0) && /^~EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW ::/.test(a1) && /No long rest yet: one a day\. A long rest again from/.test(a1) && /^EAT AND SLEEP\|HAVE A HOT MEAL\|NOT NOW/.test(a2);
         okSk('his notes from Sylvia\'s table of 11-17/18: (1) the east store cut whole on main street ' + onMain33 + ' and in the court ' + court33 + ' of ' + store33.length + ', standing on the apron behind the party (' + apron33 + ' cut); in Rekknar\'s temple the stone in front of its stair down cut ' + front33 + ' of 3, its own pillars standing (' + own33 + ' cut); (2) in the assay house his 15,14 cut ' + wall33 + ', Rekknar\'s pillars to their stub ' + pill33 + ' of 4 (' + stub33 + '); (3, 6) clicked: ' + clk33.join('; ') + '; (4) each flight up an arch on the rock it rises into ' + fun33 + ' of 2, the west wall\'s stair module gone (' + westMod33 + ' left), the treads rising north ' + treads33 + ', down to ' + land33.map(function (l) { return l.at + ' facing ' + l.fw + ', the way up the step north ' + l.up; }).join(' / ') + '; (5) ' + names33.join(', ') + '; (6) Ásdís: fresh "' + a0.slice(0, 26) + '", two hours after a long rest "' + a1.slice(0, 120) + '", twenty after "' + a2.slice(0, 26) + '"; its why "' + (a1.match(/No long rest yet[^"]*$/) || ['none'])[0].slice(0, 90) + '"',
           onMain33 === 25 && court33 === 25 && apron33 === 0 && front33 === 3 && own33 === 0 && wall33 && pill33 === 4 && stub33 === 'temple_pillar_stub' && clkOk33 && fun33 === 2 && westMod33 === 0 && treads33 && landOk33 && namesOk33 && asdOk33);
       } catch (e33) { okSk('his notes from Sylvia\'s table of 11-17/18: THREW ' + String(e33).slice(0, 160), false); }
@@ -8106,7 +8144,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           if (s !== B) { end = s instanceof HAs.Morning ? 'morning' : 'other'; break; }
           var st = B.co.next(v); v = undefined; if (st.done) { end = 'done'; break; }
           if (typeof st.value === 'number') B.t += Math.max(1, st.value);
-          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return o.label; }).join('|'); ask = window.DS.stripCodes(st.value.prompt.lines.join(' ')); v = pick == null ? 0 : pick; }
+          else if (st.value && st.value.prompt) { offer = st.value.prompt.opts.map(function (o) { return (o.ok === false ? '~' : '') + o.label; }).join('|'); /* (~: greyed with its why, 11-19 js/ui.js optOff) */ ask =window.DS.stripCodes(st.value.prompt.lines.join(' ')); v = pick == null ? 0 : pick; }
+          if ((B.cards || []).some(function (c) { return /No soup on yet/.test(c.lines.join(' ')); })) { end = 'hour'; break; } // (SHORT REST: AN HOUR inside the six hours, 11-19: the hour without the meal -- js/asdis.js A.HOUR)
           if ((B.cards || []).some(function (c) { return /an hour by her hearth/.test(c.lines.join(' ')); })) { end = 'hot'; break; } // (HAVE A HOT MEAL: the hour's short rest on its card)
         }
         var tr = (HAs.cur.trail || []).slice(trail0).filter(function (x) { return /ASDIS'S TABLE/.test(x.s); }).map(function (x) { return x.s; });
@@ -8173,10 +8212,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okAs('HAVE A HOT MEAL: fresh, offered "' + h1.offer + '" -- taken with two worn (2 and 1), meal ' + h1.f.asdisMeals + ' played over ' + h1.flips.length + ' opening, her food "' + fedAs(h1) + '" (exhaustion now ' + ex1 + '), the hour ' + hot1 + ' (from 18), ended ' + h1.end + ', hot ' + h1.f.asdisHot + ', rested ' + h1.f.asdisRested + '; two hours after a long rest, offered "' + h2.offer + '", meal ' + h2.f.asdisMeals + ' played, ended ' + h2.end +
         '; SIX HOURS: two after a hot meal offered "' + h3.offer + '" with "' + (h3.ask.match(/A hot meal again from[^.]*\./) || ['no line'])[0] + '" (the night still plays meal ' + h3.f.asdisMeals + '), seven after "' + h3b.offer + '"; TWO A DAY: one conversation two hours back, the hot meal plays the second (' + h4.flips.length + ', meals ' + h4.f.asdisMeals + '); two in the day, a hot meal plays none (' + h5.flips.length + ', ended ' + h5.end + ') nor a night (' + h6.flips.length + ', ended ' + h6.end + '); both past 24 hours, the next (' + h7.flips.length + ', meals ' + h7.f.asdisMeals + '); EAT AND SLEEP with two worn, no meal left: her food "' + fedAs(h8) + '", on the save after the night ' + ex8.split('/')[0] + '; nobody worn, a hot meal with no meal left: her food "' + fedAs(h9) + '", ended ' + h9.end,
         h1.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h1.flips.length === 1 && h1.f.asdisMeals === 1 && h1.f.asdisStreet === 1 && /A bowl of soup, the heel of the loaf/.test(h1.cards) && /is less worn \(exhausted 1\)/.test(h1.cards) && /eats the weariness off/.test(h1.cards) && ex1 === '1000' && hot1 === 19 && h1.end === 'hot' && h1.f.asdisHot === 1 && !h1.f.asdisRested && h1.f.asdisHotT != null && (h1.f.asdisMealTs || []).length === 1 && noDieAs(window.DS.stripCodes(h1.cards)) &&
-        h2.offer === 'HAVE A HOT MEAL|NOT NOW' && h2.flips.length === 1 && h2.f.asdisMeals === 2 && h2.end === 'hot' &&
-        h3.offer === 'EAT AND SLEEP|NOT NOW' && /A hot meal again from 22:00/.test(h3.ask) && h3.flips.length === 1 && h3.f.asdisMeals === 2 && h3.end === 'morning' && h3b.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h3b.end === 'hot' &&
+        h2.offer === '~EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h2.flips.length === 1 && h2.f.asdisMeals === 2 && h2.end === 'hot' &&
+        h3.offer === 'EAT AND SLEEP|~HAVE A HOT MEAL|SHORT REST: AN HOUR|NOT NOW' && /A hot meal again from 22:00/.test(h3.ask) && h3.flips.length === 1 && h3.f.asdisMeals === 2 && h3.end === 'morning' && h3b.offer === 'EAT AND SLEEP|HAVE A HOT MEAL|NOT NOW' && h3b.end === 'hot' &&
         h4.flips.length === 1 && h4.f.asdisMeals === 2 && h4.f.asdisMealTs.length === 2 && h5.flips.length === 0 && h5.f.asdisMeals === 1 && h5.end === 'hot' && h5.f.asdisHot === 1 && h6.flips.length === 0 && h6.f.asdisMeals === 1 && h6.end === 'morning' && h7.flips.length === 1 && h7.f.asdisMeals === 2 && h7.end === 'hot' &&
         /less worn \(exhausted 1\)/.test(fedAs(h8)) && /eats the weariness off/.test(fedAs(h8)) && ex8.indexOf('0000/') === 0 && h8.end === 'morning' && fedAs(h9) === '' && h9.end === 'hot');
+      // 7c. THE HOUR WITHOUT THE MEAL (11-19, Griz: "to still offer the short rest when it doesn't offer the meal", "that reading is right, hour's rest without the
+      // conversation"; and "yes, i'd like to have familiar interfaces as standard as makes sense to be at various player rest points", the greyed popup, js/ui.js optOff):
+      // inside the six hours HAVE A HOT MEAL stands greyed and SHORT REST: AN HOUR beside it -- taken, the hour on the clock, no conversation, no meal counted, the six hours
+      // not restarted; the greyed one answered anyway (the popup refuses it; her ask guards it too) gives nothing (RED: no SHORT REST row, or the hot meal dropped, not greyed)
+      var h3c = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisHotT = tAs() - 2; }, 3), hr3c = hrAs(h3c.B);
+      var h3d = mealAs(1, hi, ['bed'], function (B) { B.roam.flags.asdisHotT = tAs() - 2; }, 2);
+      okAs('THE HOUR WITHOUT THE MEAL: two hours after a hot meal offered "' + h3c.offer + '"; SHORT REST taken: ended ' + h3c.end + ' at ' + hr3c + ' (from 18), ' + h3c.flips.length + ' openings, meals ' + h3c.f.asdisMeals + ', hot ' + h3c.f.asdisHot + ', the hot meal again from ' + (h3c.f.asdisHotT === tAs() - 3 ? 'unchanged' : h3c.f.asdisHotT) + ', card "' + h3c.cards.slice(0, 160) + '"; the greyed HAVE A HOT MEAL answered anyway: ended ' + h3d.end + ', ' + h3d.flips.length + ' openings, hot ' + h3d.f.asdisHot,
+        h3c.offer === 'EAT AND SLEEP|~HAVE A HOT MEAL|SHORT REST: AN HOUR|NOT NOW' && h3c.end === 'hour' && hr3c === 19 && h3c.flips.length === 0 && h3c.f.asdisMeals === 1 && !h3c.f.asdisHot && !h3c.f.asdisRested && /No soup on yet/.test(h3c.cards) &&
+        h3d.end !== 'hot' && h3d.end !== 'hour' && h3d.end !== 'morning' && h3d.flips.length === 0 && !h3d.f.asdisHot && h3d.f.asdisMeals === 1);
       // 8. THE VIGIL'S CEILING, read off the meals as written: no line of any layer holds a word of A.CEILING; "vigil" only in meal one's Insight answer and the question after it
       var srcAs = [], vigAt = [];
       AA.MEALS.forEach(function (ML) {

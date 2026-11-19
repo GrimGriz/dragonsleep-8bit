@@ -81,7 +81,7 @@
     }
     B.readyAim = req.aim || null;
     if (req.aim) aimStart(B, req.aim);
-    if (req.prompt) { B.sel = 0; if (!req.prompt.quiet) D.sfx('popup'); // (quiet: a readied thing's NOW / HOLD -- the `ready` ping is its sound, battle.js readySpring, 11-13)
+    if (req.prompt) { B.sel = firstLive(req.prompt); if (!req.prompt.quiet) D.sfx('popup'); // (quiet: a readied thing's NOW / HOLD -- the `ready` ping is its sound, battle.js readySpring, 11-13)
       if (ringPrompt(B, req.prompt)) { B.list = promptRing(B, req.prompt, 0); B.ringB = null; B.ringStill = false; ringInView(B, req.prompt.who, B.list); } // (a choice among things on your own turn: on the ring -- THE POPUP RULE, ringPrompt below)
       if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
     if (req.prompt && req.prompt.squares && req.prompt.pick.length) { // (a pick of squares -- Rootdrag's drag, 10-30: the view on the middle of them, so none sits under the prompt's box)
@@ -592,7 +592,7 @@
     p.opts.forEach(function (o, i) { if (i !== no) picks.push(i); });
     var pages = picks.length > 10 ? Math.ceil(picks.length / PROMPT_PAGE) : 1, pg = ((page || 0) % pages + pages) % pages;
     var on = pages > 1 ? picks.slice(pg * PROMPT_PAGE, pg * PROMPT_PAGE + PROMPT_PAGE) : p.opts.map(function (o, i) { return i; });
-    var entry = function (i) { var o = p.opts[i]; return { kind: 'promptpick', opt: i, value: o.value, icon: o.icon || (i === no ? 'back' : 'spell'), tint: o.tint || '', fig: o.fig || null, id: o.icon || 'spell', name: o.label, label: o.label, ok: o.ok !== false, why: o.why || '', note: o.note || (i === no ? 'Nothing taken.' : lines.join(' ')) }; };
+    var entry = function (i) { var o = p.opts[i]; return { kind: 'promptpick', opt: i, value: o.value, icon: o.icon || (i === no ? 'back' : 'spell'), tint: o.tint || '', fig: o.fig || null, id: o.icon || 'spell', name: o.label, label: o.label, ok: !optOff(o), why: o.why || '', note: o.note || (i === no ? 'Nothing taken.' : lines.join(' ')) }; };
     var items = on.map(entry);
     if (pages > 1) {
       var nx = (pg + 1) % pages, from = nx * PROMPT_PAGE + 1, to = Math.min(picks.length, from + PROMPT_PAGE - 1);
@@ -652,15 +652,22 @@
     if (ringPrompt(B, p) && !(B.list && B.list.prompt === p)) { B.list = promptRing(B, p, 0); B.ringB = null; }
     if (!ringPrompt(B, p) && B.list && B.list.kind === 'prompt') B.list = null;
     if (ringPrompt(B, p)) return promptRingInput(B, p);
-    var n = p.opts.length, s0 = B.sel, go = function (v) { D.sfx('confirm'); B.answer(v); };
+    // (a greyed option -- optOff -- is landed on, so its why shows in the box's foot, but E, its number or a click on it only buzz: the ring's way, promptRingInput)
+    var n = p.opts.length, s0 = B.sel, go = function (i) { var o = p.opts[i]; if (!o) return; if (optOff(o)) { B.sel = i; D.sfx('error'); return; } D.sfx('confirm'); B.answer(o.value); };
     if (I.repeat('left') || I.repeat('up')) B.sel = (B.sel + n - 1) % n;
     if (I.repeat('right') || I.repeat('down')) B.sel = (B.sel + 1) % n;
     if (B.sel !== s0) D.sfx('cursor');
-    for (var k = 1; k <= n; k++) if (I.pressed('n' + k)) return go(p.opts[k - 1].value);
-    if (I.pressed('a')) return go(p.opts[B.sel].value);
+    for (var k = 1; k <= n; k++) if (I.pressed('n' + k)) return go(k - 1);
+    if (I.pressed('a')) return go(B.sel);
     if (rightNo(B, p)) return; // (X or the right button: the prompt's NO, where it has one -- noOf; nothing where it has none)
-    if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return go(p.opts[i].value);
+    if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return go(i);
   }
+  // A GREYED OPTION IN THE POPUP (2026-11-19, Griz: "yes, i'd like to have familiar interfaces as standard as makes sense to be at various player rest points", on the menus
+  // lane's look "why the roam's prompt can't grey a button"): an option { ok: false } (the ring's word) or { off: true } (the counter's, js/hours.js H16.restOffers) stands
+  // greyed with its why, as the counter's ask and the ring's do -- before this the popup took any option, so Asdis's ask dropped the ones she could not give
+  function optOff(o) { return !!o && typeof o === 'object' && (o.ok === false || !!o.off); }
+  function firstLive(p) { for (var i = 0; p && p.opts && i < p.opts.length; i++) if (!optOff(p.opts[i])) return i; return 0; }
+  UI.optOff = optOff; UI.firstLive = firstLive; // (dev/bench16.js greypop1119)
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
   function moveCursor(B, dir) {
     B.hoverUnit = null; B.ropePick = null; // (the keys move the cursor: the mouse's figure is no longer the one meant -- hoveredAt; nor the rope's rung -- ropeRung)
@@ -3063,7 +3070,8 @@
     var need = Math.max(D.textWidth(p.title), Math.max.apply(null, lines.map(function (l) { return D.textWidth(l); }).concat([0])), bws.reduce(function (s, b) { return s + b + 6; }, -6)) + 18;
     var w = Math.min(maxW, Math.max(300, need)), inner = w - 16, rows = [[]], rx = 0;
     bws.forEach(function (bw, i) { if (rx && rx + bw > inner) { rows.push([]); rx = 0; } rows[rows.length - 1].push(i); rx += bw + 6; });
-    var h = 26 + lines.length * 9 + rows.length * 15 + 1, x = Math.round((D.W - w) / 2), y = BAR_Y - h - 4;
+    var so = p.opts[B.sel], footW = optOff(so) && so.why && lines.indexOf(so.why) < 0 ? D.wrap(String(so.why), inner) : []; // (the selected greyed option's why, unless the lines say it already)
+    var h = 26 + lines.length * 9 + rows.length * 15 + 1 + footW.length * 9, x = Math.round((D.W - w) / 2), y = BAR_Y - h - 4;
     D.win8(ctx, x, y, w, h);
     D.text(ctx, p.title, x + 8, y + 6, W8.gold);
     lines.forEach(function (l, k) { D.text(ctx, l, x + 8, y + 18 + k * 9, W8.text); });
@@ -3071,14 +3079,15 @@
     rows.forEach(function (row, ri) {
       var bx = x + 8, by = y + 22 + lines.length * 9 + ri * 15;
       row.forEach(function (i) {
-        var o = p.opts[i], bw = bws[i], r = { x: bx, y: by, w: bw, h: 12 };
+        var o = p.opts[i], bw = bws[i], r = { x: bx, y: by, w: bw, h: 12 }, off = optOff(o);
         B.promptRects[i] = r;
-        ctx.fillStyle = i === B.sel ? W8.sel : '#0a0c24'; ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.fillStyle = i === B.sel && !off ? W8.sel : '#0a0c24'; ctx.fillRect(r.x, r.y, r.w, r.h);
         ctx.strokeStyle = i === B.sel ? W8.gold : W8.mid; ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
-        D.text(ctx, (i + 1) + ' ' + o.label, r.x + 5, r.y + 2, i === B.sel ? W8.gold : W8.text);
+        D.text(ctx, (i + 1) + ' ' + o.label, r.x + 5, r.y + 2, off ? '#6c6c84' : i === B.sel ? W8.gold : W8.text); // (greyed: the counter's grey, js/counter.js)
         bx += bw + 6;
       });
     });
+    footW.forEach(function (l, k) { D.text(ctx, l, x + 8, y + h - 10 - (footW.length - 1 - k) * 9, '#9a9ab4'); });
   }
   // THE VICTORY PANEL (11-05, Griz, the Warrens: "still would prefer end of fight reward text as a popup in the middle rather than an additional line at the top"; on the lean,
   // "4&5 yes"): a fight's pay -- the XP, the coin, the harvest -- in a window of the prompt's own (D.win8) in the middle of the fight's screen (the 10-29 ruling stands: victory on
