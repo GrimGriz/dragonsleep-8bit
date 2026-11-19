@@ -665,12 +665,17 @@ def rows_greataxe(R):
     The left foot STEPS: off the floor on 3, down ahead on 4 and 5, drawn back on 6 (`step`: forward, up, the toes' pitch)."""
     za, zb = R.ANK0['a'].z, R.ANK0['b'].z
     X = Vector((1, 0, 0))
+    FWK = 0.85 if DWARF else 1.0       # (how far forward a dwarf's fists go of a man's: his arms are the man's a little shortened)
     OUT_, DOWN, HIGH = (0.55, 0.45, -0.60), (0.45, 0.20, -1.0), (0.9, 0.1, 0.35)      # an elbow out and back (the guard), under the arm (the follow-through), and out and a little up (the blow: the forearms come down onto the haft)
 
-    def P(fr, haft, lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, sh=0, fw=0, heel=0, step=(0, 0, 0), eL=DOWN, eR=DOWN, fl=None):
-        return dict(_fl=fl, lift=lift * U, shift=shift * U, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
-                    legs={'a': (0.13 * U, (-0.12 - step[0]) * U, za + step[1] * U, 10, step[2]), 'b': (-0.13 * U, 0.10 * U, zb, 28, heel)},
-                    epolea=eL, epoleb=(-eR[0], eR[1], eR[2]), _fr=fr, _haft=haft)
+    XS = 0.06 if DWARF else 0.0        # (the haft a little toward his left: a dwarf's chest is wider, and the left fist could not come across to its mark)
+
+    def P(fr, haft, lift, shift=0.0, lean=0, yaw=0, twist=0, head=0, hyaw=0, sh=0, fw=0, heel=0, step=(0, 0, 0), eL=DOWN, eR=DOWN, fl=None, air=0.0, tuck=(0, 0), stepb=0.0):
+        # (the dwarf build, 11-19, Brann's: the fists' heights go through zmap as the slash's do, the reach forward and the body's moves by FWK and HK; the human build's numbers are untouched, those being 1 and 0 there.
+        #  THE JUMP: `air` is how far the whole of him is off the floor, in metres as they are; `tuck` is how much further each foot is drawn up under him, left then right; `stepb` is the right foot's own step forward)
+        return dict(_fl=fl, lift=(lift * HK + air) * U, shift=shift * U * HK, lean=lean, bodyyaw=yaw, twist=twist, head=head, hyaw=hyaw, shupa=sh, shupb=sh, shfwa=fw, shfwb=fw,
+                    legs={'a': (0.13 * U, (-0.12 - step[0] * HK) * U, za + (step[1] * HK + air + tuck[0]) * U, 10, step[2]), 'b': (-0.13 * U, (0.10 - stepb * HK) * U, zb + (air + tuck[1]) * U, 28, heel)},
+                    epolea=eL, epoleb=(-eR[0], eR[1], eR[2]), _fr=(fr[0] + XS, fr[1] * FWK, zmap(fr[2]) + air), _haft=haft)
 
     F = [
         P((-0.14, -0.20, 1.22), (-0.30, 0.10, 0.95), -0.04, lean=3, yaw=-18, hyaw=16, eL=OUT_, eR=OUT_),                                       # 1 THE GUARD: the axe at port across his chest, its head up by the right shoulder, the left hand low at the belt
@@ -680,6 +685,15 @@ def rows_greataxe(R):
         P((-0.10, -0.62, 0.70), (0.03, -0.99, -0.10), -0.17, shift=-0.10, lean=30, yaw=6, twist=4, head=-14, fw=10, heel=16, step=(0.16, 0, 0)),               # 5 THROUGH: the blade down by the floor in front, the knees deep, his back over it
         P((-0.13, -0.30, 1.20), (-0.20, -0.25, 0.95), -0.06, shift=-0.02, lean=6, yaw=-10, hyaw=8, step=(0.05, 0, 0), eL=OUT_, eR=OUT_),                     # 6 the foot drawn back, the axe coming back up to the guard
     ]
+    if DWARF and KIT == 'greataxe':        # BRANN'S (11-19, Griz to the lanes desk: "have him jump and really really chop"): the dwarf leaves the floor with the axe over his head and comes down on it
+        F = [
+            P((-0.14, -0.20, 1.22), (-0.30, 0.10, 0.95), -0.08, lean=5, yaw=-18, hyaw=16, eL=OUT_, eR=OUT_),                                                                  # 1 THE GUARD: the axe at port across his chest, the knees already bent
+            P((-0.15, -0.02, 1.50), (-0.20, 0.40, 0.89), -0.24, shift=0.02, lean=10, yaw=-24, twist=-8, hyaw=26, sh=6, heel=10, eL=(0.3, -0.3, -1.0), eR=(0.9, 0.5, 0.1)),    # 2 THE COIL: sunk deep on both legs, the axe going up his right side
+            P((-0.12, -0.04, 1.97), (0.0, 0.97, 0.25), 0.0, shift=-0.12, lean=-10, yaw=-8, head=-4, hyaw=8, sh=16, step=(0.14, 0, -20), stepb=0.10, air=0.34, tuck=(0.22, 0.12), eL=(1.0, -0.4, 0.0), eR=(1.0, -0.4, 0.0)),   # 3 THE TOP OF THE JUMP: both feet off the floor and drawn up, his back arched, the axe laid back over his head
+            P((-0.12, -0.80, 1.75), (0.0, -0.99, 0.10), 0.0, shift=-0.30, lean=16, yaw=4, twist=4, head=-8, sh=10, fw=8, step=(0.30, 0, 15), stepb=0.14, air=0.30, tuck=(0.10, 0.24), eL=HIGH, eR=HIGH),   # 4 THE CHOP, coming down: still in the air, the left foot reaching for the floor, the arms thrown out and the blade down through the target's collar
+            P((-0.10, -1.00, 0.98), (0.03, -0.92, -0.38), -0.26, shift=-0.36, lean=34, yaw=6, twist=4, head=-16, fw=10, heel=18, step=(0.40, 0, 0), stepb=0.22),             # 5 LANDED: both feet down ahead of where he stood, the knees deep, the blade driven to the floor
+            P((-0.13, -0.42, 1.20), (-0.20, -0.25, 0.95), -0.08, shift=-0.14, lean=6, yaw=-10, hyaw=8, step=(0.18, 0, 0), stepb=0.08, eL=OUT_, eR=OUT_),                      # 6 stepping back, the axe coming up to the guard
+        ]
     if KIT == 'spearthrow':        # THE THROW (11-19): one hand, the left free (`fl`: where its fist is, as `fr`); the spear gone after 4
         F = [
             P((-0.24, -0.06, 1.50), (0.04, -0.97, 0.22), -0.04, lean=2, yaw=-16, hyaw=14, eR=OUT_, fl=(0.16, -0.36, 1.18), eL=DOWN),                                  # 1 the spear up to the right shoulder in an overhand grip, level, its point at the enemy; the left hand coming up in front
