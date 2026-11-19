@@ -102,7 +102,8 @@
     { id: 'villains', name: 'VILLAINS', named: true, icon: 'crown', sub: 'the story\'s named, and your own: made here or marked from the roster' }
   ];
   var TYPED = ['beast', 'monstrosity', 'humanoid', 'giant'];
-  PD.OUT = ['keeperold', 'stonegiantm', 'gnollgray', 'gloryseekergray', 'gnollmatriarch', 'gnollmatriarchguard', 'werewolfpriest']; // (the werewolf as the priest, 11-14: the same block before its shift -- a story fight's, and the road's stay hybrid; the ladder's old Keeper; the stone giant's second look and the Gray Keeping's gnolls and matriarchs, the same blocks -- one of each on the shelf)
+  // (talmok, 11-19: the pit's sheet is the Hex's alone; the shelf's one Talmok is talmokroad, the greataxe -- Griz, "he'd be axe-wielding in pocket DM fights (if preventing doubles means one version)")
+  PD.OUT = ['keeperold', 'talmok', 'stonegiantm', 'gnollgray', 'gloryseekergray', 'gnollmatriarch', 'gnollmatriarchguard', 'werewolfpriest']; // (the werewolf as the priest, 11-14: the same block before its shift -- a story fight's, and the road's stay hybrid; the ladder's old Keeper; the stone giant's second look and the Gray Keeping's gnolls and matriarchs, the same blocks -- one of each on the shelf)
   PD.shelf = function (shop, sort) {
     var out = Object.keys(D.FOES).filter(function (k) {
       var f = D.FOES[k]; if (!f || /^fam_/.test(k) || f.object || PD.OUT.indexOf(k) >= 0) return false; // (CR 0 on the shelves since his 10-09, at 10 sp: a hyena in a unit)

@@ -1343,6 +1343,19 @@
     multi: ['fists', 'fists'], reckless: true, rageOnHit: true,
     src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists 1d4+3 (+2 raging; a flat 4 till 09-28h, the SRD unarmed strike: the Path of the Sand and its PIT FISTS give them the die), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13) -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a pit fighter, raging in the open; passive Perception 11, because 10 + WIS +1'
   },
+  // Talmok off the sand (11-19, the forge-smith seat, on Griz's "note I think we have text that says talmok fights with an axe on the road not his fists"): the game's own words --
+  // content/text.json hex.intro.talmok "His greataxe is road iron; it never comes into the pit. Pit fists only."; rumors.json r-talmok "Greataxe on the road, fists in the pit." --
+  // and the register's block (npcs-by-location.md §TALMOK: "Greataxe +5 (1d12+3) -- road iron, never in the pit"). The pit's sheet above keeps its fists for the Hex; this is his
+  // sheet anywhere else (the Skylights, data/fights.js edifice). One swing a turn: barbarian 3 has no Extra Attack (it comes at 5: js/ladder.js). Down in the Sand as the path has it
+  // (js/features.js): raging only (`proneRage`), Large or smaller (`proneMax` 2), DC 8 + 2 + STR 3 = 13. Rage on the first hit, blades and blows halved, +2 to the axe, as the pit's.
+  talmokroad: {
+    name: 'Talmok', type: 'humanoid', named: true, sheet: 'talmok_p2', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, init: 2, perception: 11,
+    saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
+    attacks: { greataxe: { name: 'Greataxe', atk: 5, dice: '1d12', mod: 3, type: 'slashing', reach: 5, rage: 2, prone: 13, proneRage: true, proneMax: 2 } },
+    multi: 1, reckless: true, rageOnHit: true,
+    src: 'ours: Talmok off the sand, npcs-by-location.md §TALMOK (barbarian 3: Greataxe +5 (1d12+3), road iron, never in the pit; the greataxe the SRD\'s weapon, 1d12 slashing, heavy, two-handed); content/text.json hex.intro.talmok; the Path of the Sand\'s Down in the Sand, raging (js/features.js); reckless and rage as the pit sheet talmok -- SENSES as the pit sheet: Stealth none (DEX +2), passive Perception 11'
+  },
   berserker: {
     name: 'Visiting Barbarian', type: 'humanoid', sheet: 'berserker_p1', cr: '2', ac: 13, armor: 'hide armor', hp: 67, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 12, con: 17, int: 9, wis: 11, cha: 9 }, init: 1, perception: 10,

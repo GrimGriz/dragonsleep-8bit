@@ -253,7 +253,7 @@
     // the Sand (09-28g; invented.json #path-of-the-sand), and its 3rd-level features are what his block already did. The register gives
     // no race: human, the generator's. The ladder's card keeps his bestiary sheet (data/foes.js talmok); this is the Pocket DM's
     talmok: { name: 'Talmok', cls: 'barbarian', lvl: 3, race: 'human', subclass: 'Path of the Sand', named: true, look: 'talmok_p2', // (10-30: the art desk's new look, tools/talmok-sheet.py)
-      abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, equip: { weapon: 'unarmed', armor: null }, alt: null, hp: 35 }, // (no handaxes to throw: the pit fists)
+      abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, equip: { weapon: 'greataxe', armor: null }, alt: null, hp: 35 }, // (no handaxes to throw) (the greataxe since 11-19: the Pocket DM is not the pit -- Griz, "he'd be axe-wielding in pocket DM fights (if preventing doubles means one version)"; the register's "Greataxe +5 (1d12+3) -- road iron, never in the pit"; the Hex's bouts are data/foes.js talmok, its fists)
     // Katarina, the mender (serial-castegut/BIBLE.md: a cleric of Tronupholen, the Fey in the Mirror, CANON 08-06). RULED 09-28g (Griz):
     // "Kat supposed to be Cleric of trickster deity trapped in mirror" -- her domain is our own, the Window (invented.json #the-window).
     // Her level is unruled in the register (cleric 2 or 3, BIBLE 08-27), so she stands at any, as Higertha does; human, generic numbers

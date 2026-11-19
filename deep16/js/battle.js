@@ -160,7 +160,9 @@
     // put in the pack, and the seam hands it back to the 8-bit game's: a lantern is never lost)
     if (torchBy) {
       var torchHeld = false;
-      this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = D.light.isLantern(torchKind) ? D.light.make(torchKind, !!F.roost) : { lit: true }; D.light.regrip(u); torchHeld = true; } });
+      // (a hand for it as js/light.js L.handForLight has it since 10-05 -- a two-hander carries it in one, and it falls when he swings: Griz, "two handers holding a torch that
+      // drops when they attack". The walk-in asked for a hand free, and a two-hander's lamp went to the pack -- found 11-19 when Talmok took up his greataxe off the sand)
+      this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handForLight(u)) { u.torch = D.light.isLantern(torchKind) ? D.light.make(torchKind, !!F.roost) : { lit: true }; D.light.regrip(u); torchHeld = true; } });
       if (!torchHeld && D.light.isLantern(torchKind)) { var lp = this.inv.filter(function (s) { return s.id === torchKind; })[0]; if (lp) lp.n++; else this.inv.push({ id: torchKind, n: 1 }); this.lampReturned = torchKind; }
     }
     // the sides the AI runs walk in lit where they need it (11-13, Griz 09-29: "the various participants should already be holding torch, lantern, or someone glowing with
@@ -3102,13 +3104,14 @@
       yield 30;
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone
+    // (atk.proneRage: only while the attacker rages -- Talmok's greataxe off the sand, data/foes.js talmokroad: the Path of the Sand's Down in the Sand, raging, 11-19)
     // (atk.knockOff: the same save against being knocked back off the edge it stands on -- the Skylights' male giant's rocks, 10-05, Griz: "the male throws his two rocks at people on
     // the edge (once he's made it to the window) with a save vs knockback off the edge": failed, 5 ft straight back from the thrower and down, the fall's 1d6 a 10 ft, prone)
     var offSq = atk.knockOff && atk.prone && !tgt.dead && tgt.hp > 0 ? Battle.knockSq(att, tgt) : null;
     // (atk.unspell: a made thing's knockdown falls on its prey's magic, not its body -- the mirror wolf's on a spell held, the mirror worg's on a slot; true when it had magic to
     // fall on, and then there is no knockdown: js/seep.js S.mirrorBite, 11-13)
     var unsp = atk.unspell && atk.prone && !tgt.dead && tgt.hp > 0 && D.seep && D.seep.mirrorBite ? yield* D.seep.mirrorBite(this, att, tgt, atk) : false;
-    if (!unsp && atk.prone && !tgt.dead && tgt.hp > 0 && !(atk.proneMax && (tgt.size || 1) > atk.proneMax) && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) { // (proneMax: the largest it can knock down -- the mouther's bite, Medium or smaller, 10-06)
+    if (!unsp && atk.prone && !(atk.proneRage && !att.raging) && !tgt.dead && tgt.hp > 0 && !(atk.proneMax && (tgt.size || 1) > atk.proneMax) && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) { // (proneMax: the largest it can knock down -- the mouther's bite, Medium or smaller, 10-06)
       var ks = RU.save(tgt, 'str', atk.prone);
       this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? (offSq ? '{n}HOLDS THE EDGE{/}' : '{n}STAYS UP{/}') : offSq ? '{o}KNOCKED OFF THE EDGE{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
       if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, tgt, 'prone'))) tgt.conds.prone = true; D.sfx('hit'); }

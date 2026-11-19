@@ -692,7 +692,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function mk(fid, o) { var Bx = new D.Battle(Object.assign({ ladder: true, fight: fid, bench: true, npc: { party: OURS, foes: [] } }, o)); D.battle = Bx; Bx.enter(); Bx.units.forEach(function (u) { if (u.side === 'party') u.guest = false; }); return Bx; }
     function who(Bx, re) { return Bx.units.filter(function (u) { return u.side === 'party' && re.test(u.id); })[0]; }
     try {
-      // (Talmok: his fists leave both hands free; Torvald's mace and shield leave none, as the camp says)
+      // (Talmok: his greataxe since 11-19 carries a light in one hand, the 10-05 two-hander rule; Torvald's mace and shield leave none, as the camp says)
       var B6 = mk(get('fight', 'trolls'), { torch: 'p0-talmok', torchKind: 'lantern' }), tv = who(B6, /talmok/);
       ok4('a dark fight (' + B6.fight.name + '): ' + B6.dark, B6.dark);
       ok4('Talmok walks in with a lantern: ' + JSON.stringify(tv.torch), !!(tv.torch && tv.torch.kind === 'lantern' && !tv.torch.hood));
@@ -759,7 +759,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okP('a hooded light by the data: lantern ' + LtP.isLantern('lantern') + ', ledgerlamp ' + LtP.isLantern('ledgerlamp') + ', torch ' + LtP.isLantern('torch') + ', potion ' + LtP.isLantern('potion'), LtP.isLantern('lantern') && LtP.isLantern('ledgerlamp') && !LtP.isLantern('torch') && !LtP.isLantern('potion'));
       var wLan = D.textWidth(LtP.blurb('lantern')), wLamp = D.textWidth(LtP.blurb('ledgerlamp'));
       okP('the ITEM list\'s line under the lamp fits as the lantern\'s does: ' + wLamp + ' px against ' + wLan + ' (the panel is ' + (D.W - 12) + ' wide): "' + LtP.blurb('ledgerlamp') + '"', wLamp <= Math.max(wLan, D.W - 12));
-      // (Talmok: his fists leave both hands free)
+      // (Talmok: his greataxe since 11-19 carries a light in one hand, the 10-05 two-hander rule)
       var BP = mkP(get('fight', 'trolls'), { torch: 'p0-talmok', torchKind: 'ledgerlamp' }), tp = whoP(BP, /talmok/);
       okP('a dark fight (' + BP.fight.name + '): ' + BP.dark, BP.dark);
       okP('Talmok walks in with the Ledger-Lamp: ' + JSON.stringify(tp.torch), !!(tp.torch && tp.torch.kind === 'lantern' && tp.torch.item === 'ledgerlamp' && !tp.torch.hood));
@@ -29606,7 +29606,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var U = {}; B5.units.forEach(function (u) { U[u.side === 'foe' ? u.id : u.id.replace(/^p\d-/, '')] = u; });
       var T5 = U.talmok, W5 = U.willem, K5 = U.katarina, V5 = U.torvald, F0 = B5.units.filter(function (u) { return u.side === 'foe'; })[0], F1 = B5.units.filter(function (u) { return u.side === 'foe'; })[1];
       ok3('the four: ' + [T5, W5, K5, V5].map(function (u) { return u.name + ' ' + u.cls + ' ' + u.lvl + ' (' + u.subclass + ')'; }).join(', '), T5.subclass === 'Path of the Sand' && W5.subclass === 'the Rimeglass' && K5.subclass === 'the Window' && V5.subclass === 'the Vigil');
-      ok3('Talmok fights with his fists, no handaxes: ' + T5.weapon.name + ', alt ' + (T5.alt ? T5.alt.name : 'none'), !T5.alt);
+      ok3('Talmok fights with his greataxe off the sand (11-19, Griz: "he\'d be axe-wielding in pocket DM fights"), no handaxes: ' + T5.weapon.name + ', alt ' + (T5.alt ? T5.alt.name : 'none'), !T5.alt && T5.weapon.name === 'Greataxe');
       ok3('the Window\'s list: ' + K5.known.join(','), ['blur', 'hypnoticpattern', 'disguiseself'].every(function (id) { return K5.known.indexOf(id) >= 0; }));
       ok3('the Vigil\'s list on Torvald\'s own: ' + V5.known.join(','), ['protectionfromevilandgood', 'wardingbond', 'spiritguardians', 'sacredflame'].every(function (id) { return V5.known.indexOf(id) >= 0; }));
       ok3('the uses: hand ' + K5.feats.handOnNeck + ', ward ' + V5.feats.keepersWard + ', channel ' + K5.feats.channel + '/' + V5.feats.channel, K5.feats.handOnNeck >= 1 && V5.feats.keepersWard >= 1);
