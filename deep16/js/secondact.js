@@ -164,6 +164,7 @@
   A.wiped = function (B) { return !(B.roam.members || []).some(function (u) { return u.hp > 0 && !u.dead; }); };
   A.dueNight = function* (B, d) {
     var R0 = B.roam, f = R0.flags, c = In.dueCycle(d), off = In.offering(f, c), st = D.counter.state(B);
+    if (c === 0) f.firstDueHere = 1; // (the party here on the first feeding night: no rowboat after it -- js/inn.js In.boatOn, RULED 11-18)
     f.dueCycle = c; ['duePaid', 'dueTonight', 'secondActDone', 'lanternWalks', 'pathStand'].forEach(function (k) { delete f[k]; }); f.warmup = 0;
     delete f.doranAway; // (Doran back from Newland by the due: the seat's call)
     A.trail('the due night, day ' + d + ': the offering ' + off);
@@ -1080,7 +1081,7 @@
     if (bt.beat === 'poison') { ['dueTonight', 'kidTaken', 'kidAtInn', 'glamourBroken', 'glamourSeen'].forEach(function (k) { delete rec.flags[k]; }); }
     if (bt.beat === 'boat') { ['wagonIn', 'dueTonight', 'kidTaken', 'kidAtInn', 'doranAway', 'wagonStopped'].forEach(function (k) { delete rec.flags[k]; }); } // (a day with no wagon: the rowboat's own)
     if (bt.ring) { var lead = rec.party[0]; if (lead && lead.equip) { lead.equip.ring = D.counter.WRING; H.add(rec.inv, D.counter.WRING, 0); } }
-    H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = bt.beat === 'wand' ? W.tAt(In.WAGON.first) + 18 : W.tAt(In.dueDay(0)) + (bt.beat === 'boat' ? 14 - 24 : bt.beat === 'poison' ? 18 : 23); // (the due's own night: day 15 since 11-05, three on from the first WAGON DAY -- js/inn.js In.DUE; the wand at six on day 12; the rowboat the afternoon before the due)
+    H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = bt.beat === 'wand' ? W.tAt(In.WAGON.first) + 18 : W.tAt(In.dueDay(0)) + (bt.beat === 'boat' ? 14 + 24 : bt.beat === 'poison' ? 18 : 23); // (the due's own night: day 15 since 11-05, three on from the first WAGON DAY -- js/inn.js In.DUE; the wand at six on day 12; the rowboat the afternoon after the first due, missed -- js/inn.js In.boatOn, 11-18)
     In.pinned = bt.dice ? bt.dice.slice() : null;
     var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'poison' ? [24, 17] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'offer' ? A.PATH.head.slice() : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
     var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' || bt.beat === 'poison' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });

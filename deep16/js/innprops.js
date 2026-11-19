@@ -415,7 +415,7 @@
     if (!BANDS || BANDS.rows !== In.ROWS) {
       BANDS = { rows: In.ROWS, at: {}, list: [] };
       for (var yy = 0; yy < In.ROWS.length; yy++) for (var xx = 0; xx < In.ROWS[yy].length; xx++) {
-        if (In.ROWS[yy].charAt(xx) !== 'W') continue;
+        if (In.ROWS[yy].charAt(xx) !== 'W' && In.ROWS[yy].charAt(xx) !== 'p') continue; // (the boat's square water too: the shallows when there is no boat yet -- js/inn.js In.boatOn, 11-18 -- and under it when there is)
         var best = 99; for (var dy = -5; dy <= 5; dy++) for (var dx = -5; dx <= 5; dx++) { var r = In.ROWS[yy + dy], c = r ? r.charAt(xx + dx) : ''; if (c && !isLake(c)) best = Math.min(best, Math.sqrt(dx * dx + dy * dy)); }
         var b = Math.max(1, Math.min(4, Math.round(best))); BANDS.at[xx + ',' + yy] = b; BANDS.list.push([xx, yy, b]);
       }

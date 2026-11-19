@@ -339,6 +339,7 @@
     "nedWandGot": "set: deep16/js/counter.js C.nedWand (the Wand of Web given); read: the JOURNAL's Ned's Wand done",
     "cordTaken": "set: deep16/js/gulch.js Gu.ettercap (the braid cut out of the web), js/counter.js C.braidOwed; read: C.braidOwed",
     "wintersRing": "set: deep16/js/counter.js C.wintersRing (Winters gave his ring at the lead's 3rd -- the Ring of Water Walking since 11-16 -- RULED 10-29 -- 11-05, the Winters seat); read: the record",
+    "firstDueHere": "set: deep16/js/secondact.js A.dueNight (the party at the inn on the first feeding night, cycle 0 -- RULED 11-18); read: deep16/js/inn.js In.boatOn (no rowboat after it)",
     "wintersLakeRing": "set: deep16/js/counter.js C.wintersRing (the ring given after the thing in the lake was dead -- RULED 11-18, the clock-road seat); read: deep16/js/counter.js the ring mission's done words",
     "wintersInnTold": "set: deep16/js/counter.js C.wintersRing (the inn's history told after the lake, 11-18); read: the record",
     "innRegard": "set: deep16/js/inn.js In.meal (the Waterbys' regard for the party, the one hidden scale with a supper's warmth: 0 cold, 1 civil, 2 warm -- the step the last supper ended on); read: deep16/js/inn.js In.supStart",

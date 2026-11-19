@@ -3986,9 +3986,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okWn('STAND ASIDE on the path, the ring worn: ' + sl(o7, /You stand out of the light/, 1300) + ' -- paid ' + f7.duePaid + ', the lake done ' + f7.lakeDone,
         /You stand out of the light/.test(o7) && /At the flat stone the offering is set down/.test(o7) && /The ring on your hand is warm/.test(o7) && /INITIATIVE/.test(o7) && /The deep is only water now/.test(o7) && f7.duePaid === 1 && f7.lakeDone === 1);
       // 8. THE ROWBOAT BY DAY (no wagon, no ring): the boat's square on the floor; LEAVE IT -- nothing; PUSH OUT AND SOUND THE DEEP -- the line goes down, something comes up, not ready, the fight
-      var B8 = stageWn('?roam=halfway&hour=14&day=5&at=45,21', { secondAct: { beat: 'boat' } }), tr8 = ((RWn.def.src8 || {}).triggers || RWn.def.triggers || []).filter(function (t) { return t.script === 'inn:rowboat'; })[0];
+      var B8 = stageWn('?roam=halfway&hour=14&day=' + (InWn.dueDay(0) + 1) + '&at=45,21', { secondAct: { beat: 'boat' } }), tr8 = ((RWn.def.src8 || {}).triggers || RWn.def.triggers || []).filter(function (t) { return t.script === 'inn:rowboat'; })[0];
       var o8a = flowWn(B8, ['LEAVE IT', 'LEAVE IT']), f8 = B8.roam.flags; // (twice: the flow's own queued E finds the boat again now that the deep's words are only on the four straight out from the stone, 11-13)
-      var B8b = stageWn('?roam=halfway&hour=14&day=5&at=45,21', { secondAct: { beat: 'boat' } });
+      var B8b = stageWn('?roam=halfway&hour=14&day=' + (InWn.dueDay(0) + 1) + '&at=45,21', { secondAct: { beat: 'boat' } });
       var o8 = flowWn(B8b, ['PUSH OUT AND SOUND THE DEEP']), f8b = B8b.roam.flags;
       okWn('the rowboat by day [' + [/worst decision available here/.test(o8a), !/INITIATIVE/.test(o8a), !f8.lakeDone, /The sounding line goes down and down/.test(o8), /you are not ready for it/.test(o8), /INITIATIVE/.test(o8), /The deep is only water now/.test(o8), f8b.lakeDone].join(',') + ']: its square ' + (tr8 ? tr8.rect.join(',') + ' (' + tr8.on + ')' : 'NONE') + '; LEAVE IT -- "' + o8a.slice(0, 160) + '"; SOUND THE DEEP -- ' + sl(o8, /sounding line/, 700) + ' -- the lake done ' + f8b.lakeDone,
         !!tr8 && tr8.on === 'use' && /worst decision available here/.test(o8a) && !/INITIATIVE/.test(o8a) && !f8.lakeDone && /The sounding line goes down and down/.test(o8) && /you are not ready for it/.test(o8) && /INITIATIVE/.test(o8) && /The deep is only water now/.test(o8) && f8b.lakeDone === 1);
@@ -14699,8 +14699,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.seed = +get('seed', 1118);
       // the starts, each to each end the fight can have
       var starts = [
-        { id: 'boat', day: 8, hour: 14, at: [45, 21], ring: false, go: function (B) { return runRB(B, ARB.sound(B), ['PUSH OUT AND SOUND THE DEEP']); } },
-        { id: 'boatring', day: 8, hour: 14, at: [45, 21], ring: true, go: function (B) { return runRB(B, ARB.sound(B), ['PUSH OUT AND SOUND THE DEEP']); } },
+        { id: 'boat', day: DUE + 1, hour: 14, at: [45, 21], ring: false, go: function (B) { return runRB(B, ARB.sound(B), ['PUSH OUT AND SOUND THE DEEP']); } },
+        { id: 'boatring', day: DUE + 1, hour: 14, at: [45, 21], ring: true, go: function (B) { return runRB(B, ARB.sound(B), ['PUSH OUT AND SOUND THE DEEP']); } },
         { id: 'warm', day: DUE + 1, hour: 1, at: [40, 18], ring: true, flags: { duePaid: 1, dueSeen: 1, dueCycle: 0 }, go: function (B) { return runRB(B, ARB.ringWarm(B, {}, false), [ARB.LINES.opts.down]); } },
         { id: 'rise', day: DUE + 1, hour: 1, at: [ARB.STONE[0] - 2, ARB.STONE[1]], ring: false, flags: { dueSeen: 1, dueCycle: 0 }, go: function (B) { return runRB(B, ARB.rise(B, {}, null), []); } },
         { id: 'risering', day: DUE + 1, hour: 1, at: [ARB.STONE[0] - 2, ARB.STONE[1]], ring: true, flags: { dueSeen: 1, dueCycle: 0 }, go: function (B) { return runRB(B, ARB.rise(B, {}, null), []); } }
@@ -14716,13 +14716,21 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         });
       });
       // the rowboat left: nothing woken, nothing set
-      var BL = stageRB(14, 8, BASE, false); atRB(BL, 45, 21); var sL = runRB(BL, ARB.sound(BL), ['LEAVE IT']); SC.push({ id: 'boat:left', said: sL, flags: flagsRB(BL.roam.flags) });
+      var BL = stageRB(14, DUE + 1, BASE, false); atRB(BL, 45, 21); var sL = runRB(BL, ARB.sound(BL), ['LEAVE IT']); SC.push({ id: 'boat:left', said: sL, flags: flagsRB(BL.roam.flags) });
       repRB.notes = SC;
       var by = {}, wins = ['boat', 'boatring', 'warm', 'rise', 'risering']; SC.forEach(function (x) { by[x.id] = x; });
       var E = function (x, k, who) { return ((x[k] || {})[who] || ''); };
       // 1. THE FLAGS each end leaves: won -- the lake done, seen, its gift once; got clear -- seen, the lake alive; LEFT -- nothing
       okRB('the flags: ' + SC.map(function (x) { return x.id + ' ' + JSON.stringify(x.flags); }).join('; '),
         wins.every(function (w) { var a = by[w + ':won'].flags, b = by[w + ':escaped'].flags; return a.lakeDone === 1 && a.chuulSeen === 1 && a.lakeGiftGot === 1 && !b.lakeDone && b.chuulSeen === 1 && !b.lakeGiftGot; }) && !by['boat:left'].flags.lakeDone && !by['boat:left'].flags.chuulSeen && !/INITIATIVE|heaves/.test(by['boat:left'].said));
+      // 1b. THE ROWBOAT ONLY AFTER A MISSED FIRST FEEDING (RULED 11-18: "Rowboat doesn't show up until after they miss the first feeding and only if they miss the first feeding";
+      // "Miss is 'not present for' - not at the inn on first feeding night"): before the first due's night, none; the day after it with the party away that night, the boat and its E;
+      // with the party there that night (firstDueHere, or an older save's dueCycle 0), none
+      var boatAt = function (day, fl) { var B = stageRB(14, day, Object.assign({}, BASE, fl || {}), false); var tr = (RRB.def.src8.triggers || []).some(function (t) { return t.id === 'rowboat'; }), sq = B.map.at(45, 22); return (tr ? 'E' : '-') + (sq && sq.walk != null ? '' : '') + (InRB.boatOn(B.roam.flags, day) ? 'on' : 'off'); };
+      var bt5 = boatAt(5), bt15 = boatAt(DUE), bt16 = boatAt(DUE + 1), bt16h = boatAt(DUE + 1, { firstDueHere: 1 }), bt20 = boatAt(DUE + 5);
+      var B16 = stageRB(14, DUE + 1, Object.assign({}, BASE, { firstDueHere: 1 }), false), aDue = { roam: { flags: {} } }; aDue.roam.flags = {};
+      okRB('the rowboat only after a missed first feeding: day 5 ' + bt5 + ', the due\'s day ' + bt15 + ', the day after (away that night) ' + bt16 + ', the day after (here that night) ' + bt16h + ', five on ' + bt20,
+        bt5 === '-off' && bt15 === '-off' && bt16 === 'Eon' && bt16h === '-off' && bt20 === 'Eon' && !InRB.boatOn({ dueCycle: 0 }, DUE + 3) && InRB.boatOn({ dueCycle: 1 }, DUE + 30));
       // 2. WON, BY EVERY DOOR, THE SAME HOUSE AFTER: Gennet grieving at the table, Elsbeth's back at the tub, Doran's mug, his yard line the lake's (not "Nobody draws from the lake"),
       // her count of the nights only that the lake is quiet, no due, no goblin in the barn, the morning the lake's own
       var wonSame = function (who, k) { var v = wins.map(function (w) { return E(by[w + ':won'], k, who); }); return v.every(function (t) { return !!t && t === v[0]; }) ? v[0] : 'DIFFER: ' + v.join(' || '); };
@@ -14734,7 +14742,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // her count of the nights to the due; Doran's yard line as ever
       var bE = by['boat:escaped'];
       okRB('got clear of it by day: Gennet "' + E(bE, 'day', 'gennet').slice(0, 80) + '"; Elsbeth "' + E(bE, 'dayIn', 'elsbeth').slice(0, 110) + '"; the due ' + bE.dueOn + ', the barn ' + bE.barnOn + '; Doran in the yard "' + E(bE, 'day', 'doranYard').slice(-50) + '"',
-        /It always gives back/.test(E(bE, 'day', 'gennet')) && /The god is an animal/.test(E(bE, 'dayIn', 'elsbeth')) && /six nights off/.test(E(bE, 'dayIn', 'elsbeth')) && bE.dueOn === true && bE.barnOn === true && /Nobody draws from the lake/.test(E(bE, 'day', 'doranYard')) && !E(bE, 'dayIn', 'gennetGrief'));
+        /It always gives back/.test(E(bE, 'day', 'gennet')) && /The god is an animal/.test(E(bE, 'dayIn', 'elsbeth')) && /nights off/.test(E(bE, 'dayIn', 'elsbeth')) && bE.dueOn === true && bE.barnOn === true && /Nobody draws from the lake/.test(E(bE, 'day', 'doranYard')) && !E(bE, 'dayIn', 'gennetGrief'));
       // 4. THE ROWBOAT'S MORNING: the first sleep at the inn after a kill by day wakes to the lake's own morning, as the nights' kills do; a day later, the inn's ordinary morning
       var mornRB = function (dSleep) { var fl = Object.assign({}, BASE, { lakeDone: 1, chuulSeen: 1, lakeGiftGot: 1 }), B = stageRB(21, dSleep, fl, false, true); B.roam.flags.lakeMorn = 8; var o = runRB(B, InRB.sleep(B), []); return { o: o, left: B.roam.flags.lakeMorn }; };
       var m8 = mornRB(8), m9 = mornRB(9), m11 = mornRB(11);
