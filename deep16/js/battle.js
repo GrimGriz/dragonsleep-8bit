@@ -369,7 +369,8 @@
   Battle.prototype.makeFoe0 = function (f, d) {
     return {
       // the creature type (RULED 09-28: on every sheet) and the challenge rating (Turn Undead's destroying reads it)
-      id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
+      // (`f.sheet`: a fight's own figure for one of its units, its numbers the kind's -- Bloodsnout's four in the Line Guard's spear figure, 11-19, Griz: "put them in guard_p2 for now")
+      id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: f.sheet || d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
       // (f.hp: a fight's own number for one -- GreyFang's pit, where the Harbinger is there to be stomped, 10-08)
       hp: f.hp || d.hp, maxhp: f.hp || d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)

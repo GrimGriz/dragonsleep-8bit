@@ -25545,6 +25545,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okA('the fight ends (' + rsA + ', round ' + BA.round + ') and its record is on the save: ' + !!recA + ', the battle\'s own the same ' + (BA.allyRec === recA), !!recA && BA.allyRec === recA && recA.result === rsA);
       okA('the groups out/came/sent: talmok ' + gs('talmok') + ', bloodsnout ' + gs('bloodsnout') + ', garrison ' + gs('garrison'), !!gA.talmok && gA.talmok.sent === 1 && !!gA.bloodsnout && gA.bloodsnout.sent === 4 && !!gA.garrison && gA.garrison.sent === 5);
       var tA = recA && recA.sent.talmok;
+      var bsA = BA.units.filter(function (w) { return /^bs\d$/.test(w.id); }).map(function (w) { return w.sheet; });
+      okA('Bloodsnout\'s four in the Line Guard\'s spear figure (his "put them in guard_p2 for now"): ' + bsA.join(','), bsA.length === 4 && bsA.every(function (s) { return s === 'guard_p2'; }));
       okA('Talmok: ' + JSON.stringify(tA), !!tA && tA.kind === 'talmokroad' && tA.came && typeof tA.out === 'boolean' && (tA.out ? tA.hp > 0 : tA.hp === 0));
       okA('each out is one on its feet at the end: ' + Object.keys((recA || {}).sent || {}).every(function (id) { var s = recA.sent[id], u = BA.units.filter(function (w) { return w.id === id && w.side === 'party'; })[0]; return s.out === !!(u && !u.dead && u.hp > 0 && !u.fled); }), !!recA && Object.keys(recA.sent).every(function (id) { var s = recA.sent[id], u = BA.units.filter(function (w) { return w.id === id && w.side === 'party'; })[0]; return s.out === !!(u && !u.dead && u.hp > 0 && !u.fled); }));
       var BN = new D.Battle({ ladder: true, fight: 'trolls', bench: true, level: 8 }); D.battle = BN; BN.enter(); aiA(BN); var dN = BN.from && BN.from.data; drive(BN);
