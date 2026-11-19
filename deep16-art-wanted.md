@@ -699,7 +699,7 @@ Draw every page with the image generator, never with code: no Pillow, no script-
 ```
 Where: the next rest after Torvald (the timeline's assassins-scene). Cut as: `pt_sectblade`, worn by the one who speaks. Their kit the first game's sheet (`monsters.json` assassin: two shortswords, *"Sect Blade"*) and its lines (`deep.asUnseen` *"hooded, blades out"*, `deep.asAsk` *"Dwarves. The blades are etched."*, `deep.asDead` *"Ward-knots on both"*); no age, and the wiki names no one (`deepholm-and-the-edifice.md`: Dvalgarda's sect, infiltrated). They fight: a fight figure follows the portrait (his answer 2).
 
-## 88. The road's fighters of the garrison: Halldor, Brann and Hedda -- a town (world) figure and a fight sheet each, in all five views (added 11-19, the seat road-art-1119, on his word to the lanes desk) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it (the art desk, 11-19: "give each combat follow-up its own ART-### number, starting at ART-144"); never sent as an ART-WANTED number, which the art desk's portrait checkpoints already use -- HELD 2026-11-19 before it went, on his kit question (*"we should probably think through who gets what better and diff it vs what comes back (pyro's knowing leadership + 70 years of dealing with this road, the stations and what they're for) presume drillyard, shieldwall, and pikewall feats exist"*): the seat held the garrison's three till he rules who carries what; built and waiting, one folder and `.zip` a character, at `deep16/_src/art-desk/held/ASK-2026-11-19-halldor-figure-and-fight/`, `ASK-2026-11-19-brann-figure-and-fight/` and `ASK-2026-11-19-hedda-figure-and-fight/`, NOT in the outbox
+## 88. The road's fighters of the garrison: Halldor, Brann and Hedda -- a town (world) figure and a fight sheet each, in all five views (added 11-19, the seat road-art-1119, on his word to the lanes desk) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it (the art desk, 11-19: "give each combat follow-up its own ART-### number, starting at ART-144"); never sent as an ART-WANTED number, which the art desk's portrait checkpoints already use -- HELD 2026-11-19 on his kit question, RELEASED the same day on his ruling of the seat's kit table, *"1. yes to both"* (the garrison's captain and veteran with warhammer and shield, Brann's axe two-handed, as written) -- IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19-halldor-figure-and-fight/`, `ASK-2026-11-19-brann-figure-and-fight/` and `ASK-2026-11-19-hedda-figure-and-fight/`, each with its `.zip`
 
 His words, to the lanes desk 2026-11-19, on the seat's reading of his earlier answer (portraits first, figures later): *"that's more an instruction to the art department regarding the world sprites, I still need the world sprite and combat asks for those identified to likely be in a combat the party sees/takes part in"*; the earlier answer: *"once the portraits exist to provide the art-dept the identity marker the goal is to have it make the world figures and combat poses based on kit if there's reasonable likelihood of that NPC being in a fight"*. So: each figure is drawn from that person's talking-portrait pages, asked in section 86 or 87 (sent 11-19) -- the portrait is the identity, these sheets carry it down to the feet; where those pages are not drawn yet, they come first.
 
@@ -915,7 +915,7 @@ Where: the fight at the rest after Torvald (`first/content/monsters.json` assass
 
 ## 90. The road speakers' Idle checkpoint, two answers: Torvald's holy symbol, and Dagny without furniture (added 11-19, the seat road-art-1119, on his word to the lanes desk) -- an answer to the art desk's §88 checkpoint (our section 87), under that number, no new one -- IN THE OUTBOX 2026-11-19, waiting to go (`deep16/_src/outbox/ASK-2026-11-19-road-checkpoint-torvald-dagny/` and its `.zip`)
 
-What came back 11-19: the Idle checkpoints of sections 86 and 87 (`deep16/_src/Fresh/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT.zip` and `ART-WANTED-88-ROAD-SPEAKERS-IDLE-CHECKPOINT.zip` -- the art desk numbered them 87 and 88; ours are 86 and 87, and the numbering is his to settle with the art desk). His words to the lanes desk, verbatim: *"the ask said only "a holy symbol"; the art desk chose a cross - we've chosen one of the 3 dwarven holy symbols, of course blank holy symbol comes off of 'most common' cross - please design symbols for the other two dwarven deities and choose the best fit for torvald and include the description of that symbol in the new ask"*; and on Dagny's desk and scale stand, *"2 - without furniture"*. This section carries those two answers only; the rest of the checkpoint's answer waits on his word (*"we'll wait on our own seats before responding to the checkpoints"*).
+What came back 11-19: the Idle checkpoints of sections 86 and 87 (`deep16/_src/Fresh/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT.zip` and `ART-WANTED-88-ROAD-SPEAKERS-IDLE-CHECKPOINT.zip` -- the art desk numbered them 87 and 88; ours are 86 and 87, and the numbering is his to settle with the art desk). His words to the lanes desk, verbatim: *"the ask said only "a holy symbol"; the art desk chose a cross - we've chosen one of the 3 dwarven holy symbols, of course blank holy symbol comes off of 'most common' cross - please design symbols for the other two dwarven deities and choose the best fit for torvald and include the description of that symbol in the new ask"*; and on Dagny's desk and scale stand, *"2 - without furniture"*. Then, in the seat's window: *"include asdis and ingrith in the dagny ask"*, and *"3. yes"* to the seat's question whether Dagny's brooch is Rekknar's sign, her clan's god's (`invented.json` rekknar-sign-1119). This section carries those two answers only; the rest of the checkpoint's answer waits on his word (*"we'll wait on our own seats before responding to the checkpoints"*).
 
 The symbol: the realm's dwarven triad is Dvalgarda, Ward of the Dormant; Mótsognir, the Forge-Father; and Rekknar, the Reckoner (`TarlynsPit/wiki/pantheon.md`). The one sign chosen is Rekknar's (`invented.json` rekknar-sign-1119, filed 11-19 on his word). The seat drafted the other two (`invented.json` dvalgarda-sign-1119, motsognir-sign-1119, PROPOSED for his word) and gives Torvald Dvalgarda's: he is her cleric (`the-copper-egg.md`: Torvald Greyseam, cleric 5 of Dvalgarda), and her sign's ward-knot is the mark the game already puts on her sect's blades.
 
@@ -933,9 +933,11 @@ Draw every page with the image generator, never with code: no Pillow, no script-
 Where: `pt_torvald` (section 87). The same sign goes on his town figure and fight sheet (section 89: the holy symbol in his left hand is this disc). Cut as: section 87's.
 
 ### Dagny Scalebeam -- the talking portrait again, standing, without the furniture
-ATTACH `ART-WANTED-88-pt_dagny-HEAD-1-IDLE.png` (your own Idle page of her: keep her, take away the furniture).
+ATTACH `ART-WANTED-88-pt_dagny-HEAD-1-IDLE.png` (your own Idle page of her: keep her, take away the furniture), `ART-141-INGRITH_HEAD-01_PAGE-1_IDLE.png` and `ART-WANTED-83-ASDIS_HEAD-01-IDLE.png` (two of her clan you drew, Ingrith and Ásdís Scalebeam: the family's likeness).
 ```text
 Attached: your own Idle page of DAGNY SCALEBEAM, the dwarf woman of the toll-grille. Keep HER exactly as drawn -- the face, the grey-streaked braided hair, the dark green coat with its braided trim, the brooch -- and take away ALL the furniture: no desk, no chair, no inkwell, no quill, no scale stand, no ironwork behind her. She stands in the open like the other portraits, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HER eye level (a dwarf: do not draw her looked down on), looking screen left. The ledger stays, as a thing she carries: a thick bound ledger held closed in the crook of her left arm.
+
+Also attached: the portraits you drew of two of her clan, the Scalebeams -- Ingrith, her cousin, and Ásdís, an old kinswoman. Keep Dagny's own face as your page draws it, brought into the family's likeness: the same colouring and family features, NOT their faces. Her brooch is the sign of Rekknar, her clan's god, as Ásdís wears hers: a round disc of dull steel about the size of a large coin, a level balance beam across its middle (a plain horizontal bar on a short centre post, no hanging pans), and three short ruled lines beneath the beam, like lines in a ledger; plain and old, worn smooth at the edge, not jewelled and not gold.
 
 Draw all six pages of her portrait again this way:
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing, the ledger in the crook of her arm, her other hand resting on its cover; loops cleanly.
@@ -950,3 +952,260 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: `pt_dagny` (section 87); this block replaces section 87's Dagny block, whose IDLE asked her seated at her grille. Cut as: section 87's.
+
+## 91. The road's speakers who do not fight: a town (world) figure each for Ketil, Ulf, Thyra, Geir, Ragna, Gudrun and Dagny, in all five views (added 11-19, the seat road-art-1119, on his word) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it -- IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19-<name>-town-figure/` for ketil, ulf, thyra, geir, ragna, gudrun and dagny, each with its `.zip`
+
+His words, 2026-11-19, in the seat's window, on its question whether the seven who do not fight get town figures: *"5. yes"*; on whether a town figure travels in the same ask as a fight sheet: *"7. yes, follow each portrait"* -- each figure follows that person's talking portrait (ours 86 and 87, the art desk's §87 and §88): drawn from the portrait pages once approved, the Idle checkpoint page attached as the identity. The kit is his ruled table (*"1. yes to both"*, 11-19): Ketil the garrison's battleaxe and shield; the three wardens shield and hammer or axe; Ragna, Gudrun and Dagny no weapon. Whoever has no he or she in the sources is gendered by the cutter from the pages (his *"i guess we'll have the cutter assign gender based on what comes back"*); these blocks say "the dwarf".
+
+### Ketil Silversands -- the town figure, in all five views
+ATTACH `ART-WANTED-87-KETIL-HEAD-01-IDLE.png` (your own Idle page of this dwarf: the identity), `trooper_p1-town-figure-the-format-reference.png` (the garrison trooper's town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of KETIL SILVERSANDS, the second at a dwarf hold's vault door -- draw this same dwarf head to foot, the same face, beard and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
+
+KETIL SILVERSANDS, walking: the garrison's kit -- steel cap, coat of mail, a round shield slung on the back by its strap, a battleaxe at the belt. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing at the door, counting who goes by, a small breath); Walk (8: a steady, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Sólskaft's vault doors beside Pyro (`deep16/js/solskaft.js` SK.FOLK `ketil`, on `trooper_p1` today). Cut as: `ketil_p1` in all eight facings, SW, W and NW mirrored.
+
+### Ulf Silversands -- the town figure, in all five views
+ATTACH `ART-WANTED-87-ULF-HEAD-01-IDLE.png` (your own Idle page of this dwarf: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of ULF SILVERSANDS, the warden of a road's first lamp-station -- draw this same dwarf head to foot, the same face, beard and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
+
+ULF SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on the back, a warhammer or a battleaxe at the belt (whichever the portrait pages give). Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: thumbs in the belt by the station's hearth, a small breath); Walk (8: an easy, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: First Lamp (not yet built in the second game). Cut as: `ulf_p1` in all eight facings, SW, W and NW mirrored.
+
+### Thyra Silversands -- the town figure, in all five views
+ATTACH `ART-WANTED-87-THYRA-HEAD-01-IDLE.png` (your own Idle page of her: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of THYRA SILVERSANDS, the warden of a road's midway lamp-station -- draw this same dwarf woman head to foot, the same face, hair and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
+
+THYRA SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on her back, a warhammer or a battleaxe at her belt (whichever the portrait pages give). Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing at ease by her station's lamp, a small breath); Walk (8: a brisk, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Second Lamp (not yet built in the second game). Cut as: `thyra_p1` in all eight facings, SW, W and NW mirrored.
+
+### Geir Silversands -- the town figure, in all five views
+ATTACH `ART-WANTED-87-GEIR-HEAD-01-IDLE.png` (your own Idle page of this dwarf: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of GEIR SILVERSANDS, the warden of a road's last lamp-station -- draw this same dwarf head to foot, the same face, beard and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
+
+GEIR SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on the back, a warhammer or a battleaxe at the belt (whichever the portrait pages give). Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing among the station's crates, an ear on the dark road, a small breath); Walk (8: a steady, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Third Lamp (not yet built in the second game). Cut as: `geir_p1` in all eight facings, SW, W and NW mirrored.
+
+### Ragna Copperbottom -- the town figure, in all five views
+ATTACH `ART-WANTED-88-pt_ragna-HEAD-1-IDLE.png` (your own Idle page of her: the identity), `folkdwarf_p1-town-figure-the-format-reference.png` (a dwarf of the same hold in plain clothes, the town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of RAGNA COPPERBOTTOM, the captain of a dwarf hold's water -- draw this same dwarf woman head to foot, the same face, hair, colouring and clothes the page shows; the walking town figure you drew of a dwarf of the same hold, for the format, the camera and the size; a size reference.
+
+RAGNA COPPERBOTTOM, walking: dressed as her portrait shows her, carried down to the feet. No weapon. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing with her arms folded, a small breath); Walk (8: a sure, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Sólskaft's water (not yet on the second game's floor). Cut as: `ragna_p1` in all eight facings, SW, W and NW mirrored.
+
+### Gudrun Tallowmark -- the town figure, in all five views
+ATTACH `ART-WANTED-88-pt_gudrun-HEAD-1-IDLE.png` (your own Idle page of this dwarf: the identity), `folkdwarf_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of GUDRUN TALLOWMARK, the provisioner and cook of a road's midway lamp-station -- draw this same dwarf head to foot, the same face, hair, colouring and clothes the page shows; the walking town figure you drew of a dwarf of the same hold, for the format, the camera and the size; a size reference.
+
+GUDRUN TALLOWMARK, walking: dressed as the portrait shows, carried down to the feet. No weapon. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing behind the stores, hands on the apron, a small breath); Walk (8: a busy, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the Lamp Stores at Second Lamp (not yet built in the second game). Cut as: `gudrun_p1` in all eight facings, SW, W and NW mirrored.
+
+### Dagny Scalebeam -- the town figure, in all five views
+ATTACH `ART-WANTED-88-pt_dagny-HEAD-1-IDLE.png` (your own Idle page of her: the identity -- she is to be redrawn standing, without the furniture, as section 90 asks), `folkdwarf_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of DAGNY SCALEBEAM, the dwarf woman of the toll-grille at a deep city's door -- draw this same dwarf woman head to foot, the same face, braided grey-streaked hair, colouring and dark green coat the page shows, STANDING: no desk, no chair, no scale, no furniture; the walking town figure you drew of a dwarf of the same hold, for the format, the camera and the size; a size reference.
+
+DAGNY SCALEBEAM, walking: the coat carried down to the feet, a thick bound ledger held closed in the crook of her left arm, her brooch the sign of Rekknar (a round disc of dull steel, a level balance beam across its middle, three short ruled lines beneath it). No weapon. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing, the ledger in her arm, the other hand on its cover, a small breath); Walk (8: an unhurried, exact, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Deepholm's door, the toll-grille (not yet built in the second game). Cut as: `dagny_p1` in all eight facings, SW, W and NW mirrored.
+
+## 92. The side missions' two without a face: Hask (a talking portrait, then a town figure and a fight sheet) and Tobin Thorne (a talking portrait) (added 11-19, the seat road-art-1119, on his word) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it -- IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19-hask/` and `ASK-2026-11-19-tobin-portrait/`, each with its `.zip`
+
+His words, 2026-11-19, in the seat's window: *"is the hask figure code drawn, if so include world/combat in his ask, after portrait identity"* and *"6. yes+ as above"* (Hask and Tobin each get a portrait ask). Checked: Hask's figure `hask_p1` is a KayKit model rendered and graded by code (`aec769e1`, 09-27), never drawn by the art desk -- so his ask carries the portrait first, then his town figure and fight sheet drawn from it. Tobin has no art at all. Neither has a face in the realm wiki; each is asked from age, office, kit and the first game's lines, as the road's speakers were (his answer 1 of 11-19). Hask has no he or she anywhere; the cutter genders from the pages (his answer 1).
+
+### Hask, the night crew's boss -- a talking portrait
+ATTACH `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face).
+```text
+Attached: two portrait pages from the same game, for the format only.
+
+HASK -- the boss of a night crew of a silver-mining town: grave-robbers who drained a flooded stair and broke into a sealed dwarven tomb to strip the dead. A hard, capable captain of thieves, the big one of the crew. A heavy iron pry-bar, a long knife at the belt, a work lamp, dark rough working clothes. Contemptuous and sure of themselves. Hask says: "Well. Somebody's name got made. This is none of yours. Nobody down here is going to miss it." -- "You again. You were paid. Go and spend it."
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with the pry-bar resting on one shoulder; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): head tilted, sizing the viewer up.
+HEAD 3 -- SNEER (1): a curled lip: "This is none of yours."
+HEAD 4 -- MENACE (1): the pry-bar hefted in both hands, leaning in.
+HEAD 5 -- DISMISSIVE (1): a flick of the hand: "You were paid. Go and spend it."
+HEAD 6 -- LAUGH (1): head back, a hard laugh.
+
+All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: the figure stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at eye level, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the drained stair behind the fountains, the burial's top tier (the night crews' scene, `deep.crewCatch` to `deep.crewDown`), and the wheelwright's scene at the door. Cut as: `pt_hask`. Kit and lines the first game's (`first/content/monsters.json` hask: a pry-bar and a knife; `deep.haskSees`, `deep.haskBack`; the wiki `the-warrens.md`: "Hask, a captain with a pry-bar"). That Hask is human is the seat's reading of a Silverton crew, not a source.
+
+### Hask -- the town figure, in all five views (after the portrait is approved)
+ATTACH `folkman_p1-town-figure-the-format-reference.png` (a human town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`; and your own approved portrait pages of Hask (above).
+```text
+Attached: a walking town figure you drew of a human of the same game, for the format, the camera and the size; a size reference. With your own approved portrait pages of HASK: draw that same person, the same face and clothes, head to foot.
+
+HASK, walking: the night crew's boss, the pry-bar on one shoulder, the knife at the belt, the work lamp hung at the hip. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing, the pry-bar on the shoulder, a small breath); Walk (8: a heavy, unhurried walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Silverton's streets and the wheelwright's scene at the door. Cut as: `hask_p1` redrawn in all eight facings, SW, W and NW mirrored; the KayKit render retires.
+
+### Hask, fighting with pry-bar and knife -- in all five views (after the portrait is approved)
+ATTACH `crewboss_p1-fight-sheet-the-format-reference.png` (the crew boss's fight sheet you drew -- a different person of the same trade: the format, the camera and THE SIZE), `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `ONE-HANDED-SLASH-HUMAN-<view>.png` and `-ALL-VIEWS.png` (a human one-handed blow: the pry-bar); and your own approved portrait pages of Hask.
+```text
+Attached: the fight sheet you drew of another night crew's boss from the same game, for the format, the camera and THE SIZE -- not this person; a size reference; the game's palette; a pose guide on a jointed human mannequin for the Attack row -- follow its six beats frame for frame in every view, the blow landing on frame 4 (the guide's blade is the pry-bar). With your own approved portrait pages of HASK: draw that same person.
+
+HASK, fighting: the night crew's boss, a heavy iron PRY-BAR in the RIGHT hand, a long KNIFE in the LEFT.
+
+SIZE: exactly the size of the attached fight figure -- a grown human about 50 pixels from sole to crown at game size. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: crouched a little, the bar raised, the knife low, a small breath); Walk (8: a heavy, prowling advance; animate in place); Attack (8: the pry-bar swung one-handed -- the guide's six beats with one frame of settle before and after; the blow lands on frame 4); Attack 2 (6: the knife, a short low stab with the LEFT hand, home on frame 4); Parry (4: the pry-bar brought up across the body to turn a blow aside); Flinch (4: struck, rocked back, recovering); Fall (6: knocked down); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. The pry-bar is in the RIGHT hand and the knife in the LEFT in every view, the views seen from behind included. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the night crews' fight on the burial's top tier (`first/content/monsters.json` hask: Bandit Captain -- the pry-bar twice and the knife a turn, a Parry reaction). Cut as: a fight sheet `hask_p2`, `attack` (the bar), `attack2` (the knife), `parry`; SW, W and NW mirrored from SE, E and NE.
+
+### Tobin Thorne, Marko's son -- a talking portrait
+ATTACH `pt_marko-portrait-sheet.png` (the portrait you drew of his father, Marko Thorne the provisioner: the FAMILY's look and colouring -- his son, not the same face), `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only).
+```text
+Attached: the portrait you drew of a provisioner of the same town, Marko Thorne -- this young man's father: draw his son, the same family's look and colouring, NOT the same face; two portrait pages from the same game, for the format only.
+
+TOBIN THORNE -- a YOUNG MAN of nineteen, the son of the town's provisioner, who works the shop and wants out of the town. His grandfather's caravan went out on the mountain road and never came back, and the family has always believed it lost. Working clothes of a shop's back room, sleeves rolled, a sack on his shoulder. He says: "Mical told us. The caravan wasn't lost." -- "Then I'll stay. Somebody should keep the shop that was waiting for it."
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with a sack on one shoulder; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): listening, head a little to one side.
+HEAD 3 -- RESTLESS (1): eyes going past the viewer to the door: he wants out.
+HEAD 4 -- STUNNED (1): the sack set down, eyes wide: "The caravan wasn't lost."
+HEAD 5 -- RESOLVED (1): a slow nod, jaw set: "Then I'll stay."
+HEAD 6 -- GRATEFUL (1): a real smile, both hands on an opened crate's lid.
+
+All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at his eye level, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Marko's shop on Fountain Street, the tariff's crate (the story build lane J.4; `deep.tobin`). Cut as: `pt_tobin`. His age and wish the wiki's (`silverton-people.md`: "son Tobin, 19, wants out", CANON 08-02); the caravan `fountain-street.md`; his line the first game's. No town figure asked (his word covered Hask's figure only).
+
+## 93. The garrison's pike wall: the pike trooper -- a portrait still on the generic dwarf and a fight sheet in all five views (added 11-19, the seat road-art-1119, on his word) -- to take the next free ART number from ART-144, assigned by Griz as he opens it -- IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19-pike-trooper/` and its `.zip`
+
+His words, 2026-11-19: on the kit table the seat proposed (the garrison drilled to hold necks and stations, *"pyro's knowing leadership + 70 years of dealing with this road, the stations and what they're for) presume drillyard, shieldwall, and pikewall feats exist"*), and its proposal of a pike trooper for the pike wall's second rank behind the shields, *"1. yes to both"*. The pike is the SRD's (two-handed, heavy, reach 10 ft; in the second game since `7dd4adcd`). The pike wall feat itself is his thinking, not built (the leveling lane's 2026-11-19 section). No mannequin guide is made for the pike yet; the thrust is described.
+
+### The pike trooper -- a portrait still on the generic dwarf
+ATTACH `ART-141-DWARF_HEAD-01_PAGE-1_IDLE.png` (the generic dwarf you drew: the same face, beard and build), `ART-142-HEAD-01-PAGE-1-TROOPER.png` (the same dwarf as a garrison trooper: the cap, the mail, the colours).
+```text
+Attached: the generic dwarf you drew, and the same dwarf as a trooper of the garrison. Draw ONE more still of this same dwarf, in the format of the trooper page.
+
+HEAD 1 -- THE PIKE TROOPER (1): the same dwarf, the same steel cap with its riveted band and the same coat of mail over quilted red sleeves, NO shield, holding a PIKE upright beside him in both hands, its butt on the ground: a long ash shaft with a narrow leaf-shaped steel head, much taller than he is (the head rising out of the top of the frame is fine), the steady look of the second rank.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: `pt_dwarf`, a new `pikeman` row (`tools/portrait-sheet.py`), worn by the garrison's pike troopers when they speak.
+
+### The pike trooper, fighting with the pike -- in all five views
+ATTACH `trooper_p2-fight-sheet-the-format-reference.png` (the garrison trooper's fight sheet you drew: the format, the camera and THE SIZE), `ART-142-HEAD-01-PAGE-1-TROOPER.png` (his costume), `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`.
+```text
+Attached: the fight sheet you drew of a garrison trooper of this dwarf hold, for the format, the camera and THE SIZE; his portrait, for the costume; a size reference; the game's palette.
+
+THE PIKE TROOPER, fighting: the same garrison dwarf -- steel cap, coat of mail over quilted red sleeves, wide belt, heavy boots -- with NO shield and a PIKE in BOTH hands: a long ash shaft with a narrow leaf-shaped steel head, much longer than he is tall, held level at the hip and shoulder to reach OVER a front rank of shields. The pike's length is drawn true: give every frame the room it needs, the pike never cut by the frame's edge or crossing a neighbour.
+
+SIZE: exactly the size of the attached trooper's fight figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: the pike levelled forward at the hip, both hands on the shaft, weight back, a small breath); Walk (8: a slow, steady, short-legged advance, the pike level; animate in place); Attack (8: the thrust -- 1-2 the pike drawn back along the hip, 3 the weight going forward, 4 the full thrust, both arms driving, the point at its farthest reach, 5-6 drawn back, 7-8 settle); Flinch (4: struck, rocked back, the pike held); Fall (6: knocked down, the pike falling across him); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: a new Pike Trooper foe or ally (`deep16/data/foes.js`, not yet made: the pike wall is his thinking, laned not built). Cut as: a fight sheet `trooperpike_p2` in the shape of `trooper_p2`, the attack at reach 10.
