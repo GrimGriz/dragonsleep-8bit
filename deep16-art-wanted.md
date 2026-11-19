@@ -698,3 +698,217 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: the next rest after Torvald (the timeline's assassins-scene). Cut as: `pt_sectblade`, worn by the one who speaks. Their kit the first game's sheet (`monsters.json` assassin: two shortswords, *"Sect Blade"*) and its lines (`deep.asUnseen` *"hooded, blades out"*, `deep.asAsk` *"Dwarves. The blades are etched."*, `deep.asDead` *"Ward-knots on both"*); no age, and the wiki names no one (`deepholm-and-the-edifice.md`: Dvalgarda's sect, infiltrated). They fight: a fight figure follows the portrait (his answer 2).
+
+## 88. The road's fighters of the garrison: Halldor, Brann and Hedda -- a town (world) figure and a fight sheet each, in all five views (added 11-19, the seat road-art-1119, on his word to the lanes desk) -- proposed ART-WANTED-88, HELD 2026-11-19 before it went, on his kit question (*"we should probably think through who gets what better and diff it vs what comes back (pyro's knowing leadership + 70 years of dealing with this road, the stations and what they're for) presume drillyard, shieldwall, and pikewall feats exist"*): the seat held the garrison's three till he rules who carries what; built and waiting at `deep16/_src/art-desk/held/ASK-2026-11-19-road-garrison-fighters/` and its `.zip`, NOT in the outbox
+
+His words, to the lanes desk 2026-11-19, on the seat's reading of his earlier answer (portraits first, figures later): *"that's more an instruction to the art department regarding the world sprites, I still need the world sprite and combat asks for those identified to likely be in a combat the party sees/takes part in"*; the earlier answer: *"once the portraits exist to provide the art-dept the identity marker the goal is to have it make the world figures and combat poses based on kit if there's reasonable likelihood of that NPC being in a fight"*. So: each figure is drawn from that person's talking-portrait pages, asked in section 86 or 87 (sent 11-19) -- the portrait is the identity, these sheets carry it down to the feet; where those pages are not drawn yet, they come first.
+
+Who fights, in the plans (the story build lane §2 and the first game as built): **Halldor** -- held the north cut's neck with his unit when the party reaches him (Pinned), and walks into the brood with the party and four of the garrison (`deep.petitionJoin`, the lane's E.4); **Brann and Hedda** -- the party's guests from the muster to Third Lamp, every fight of the walk and the raid (`deep.guestsJoin`). Each has a guest sheet in the first game (`first/content/heroes.json`) that gives the kit below. Today they fight on LPC figures composed 09-27 (`halldor_p0`, `brann_p0`, `hedda_p0`, `afa7c7a0`).
+
+Attachments (all in the ask's `attach/`): `trooper_p2-fight-sheet-the-format-reference.png` (the garrison trooper's fight sheet you drew, ART-142, as the game cut it: the format, the camera and THE SIZE), `trooper_p1-town-figure-the-format-reference.png` (his town figure, the same), `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, and the pose guides: `BATTLEAXE-AND-SHIELD-DWARF-<view>.png` and `-ALL-VIEWS.png` (a one-handed blow over a round shield, dwarf-sized: Halldor's and Hedda's warhammer) and `GUIDE-GREATAXE-CHOP-HUMAN-<view>.png` and `-ALL-VIEWS.png` (a two-handed overhand chop on a HUMAN mannequin: Brann's battleaxe in both hands, drawn at a dwarf's size).
+
+### Captain Halldor Silversands -- his town figure, in all five views
+ATTACH `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`; and your own portrait pages of Halldor Silversands (ART-WANTED-86).
+```text
+Attached: the walking town figure you drew of a garrison trooper of the same dwarf hold, for the format, the camera and the size, and a size reference. With your own portrait pages of CAPTAIN HALLDOR SILVERSANDS (asked as ART-WANTED-86): draw that same dwarf, the same face, beard and colouring, head to foot.
+
+CAPTAIN HALLDOR SILVERSANDS, walking: a dwarf captain of the garrison in splint armour, a round shield slung on his back by its strap, a warhammer at his belt. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing at ease, a hand resting on the warhammer's head at his belt, a small breath); Walk (8: a steady, heavy, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the muster yard, his bunk in the halls, the north cut. Cut as: `halldor_p1` in all eight facings, SW, W and NW mirrored (`tools/trooper-town-sheet.py`'s way).
+
+### Captain Halldor Silversands, fighting with warhammer and shield -- in all five views
+ATTACH `trooper_p2-fight-sheet-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `BATTLEAXE-AND-SHIELD-DWARF-<view>.png` and `-ALL-VIEWS.png`; and your own portrait pages of Halldor Silversands (ART-WANTED-86).
+```text
+Attached: the fight sheet you drew of a garrison trooper of the same dwarf hold, for the format, the camera and THE SIZE; a size reference; the game's palette; a pose guide on a jointed mannequin for the Attack row -- follow its six beats frame for frame in every view, the blow landing on frame 4 (the guide's magenta plate is an axe head: put his warhammer's head there). With your own portrait pages of CAPTAIN HALLDOR SILVERSANDS (asked as ART-WANTED-86): draw that same dwarf.
+
+CAPTAIN HALLDOR SILVERSANDS, fighting: a dwarf captain of the garrison in SPLINT armour, a round shield on his LEFT forearm in every frame, a WARHAMMER in his RIGHT hand -- a heavy one-handed war hammer, a square steel head with a spike behind it on a stout haft as long as his forearm and hand.
+
+SIZE: exactly the size of the attached trooper's fight figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: on guard, the shield up before his chest, the hammer held back at his right side, a small breath); Walk (8: a steady, short-legged advance behind the shield; animate in place); Attack (8: the hammer brought down over the shield's rim -- the guide's six beats with one frame of settle before and after; the blow lands on frame 4, the shield between him and his enemy the whole way); Flinch (4: struck, rocked back behind the shield, recovering); Fall (6: knocked down, the shield arm folding under him); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. The hammer is in his RIGHT hand and the shield on his LEFT arm in every view, the views seen from behind included. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Halldor the guest (`first/content/heroes.json` halldor: warhammer, splint, shield; the wiki *"warhammer and shield"*), at the north cut and in the brood. Cut as: a fight sheet `halldor_p2` in the shape of `trooper_p2`, SW, W and NW mirrored from SE, E and NE; `halldor_p0` (LPC) retires.
+
+### Brann Silversands -- his town figure, in all five views
+ATTACH `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`; and your own portrait pages of Brann Silversands (ART-WANTED-86).
+```text
+Attached: the walking town figure you drew of a garrison trooper of the same dwarf hold, for the format, the camera and the size, and a size reference. With your own portrait pages of BRANN SILVERSANDS (asked as ART-WANTED-86): draw that same young dwarf, the same face, beard and colouring, head to foot.
+
+BRANN SILVERSANDS, walking: a young dwarf trooper of the garrison in SPLINT armour, a battleaxe carried on his shoulder. No shield. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing, the battleaxe's haft grounded at his side, a small breath); Walk (8: an eager, short-legged walk toward the viewer, the axe on his shoulder; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the muster yard, the halls. Cut as: `brann_p1` in all eight facings, SW, W and NW mirrored.
+
+### Brann Silversands, fighting with a battleaxe in both hands -- in all five views
+ATTACH `trooper_p2-fight-sheet-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `GUIDE-GREATAXE-CHOP-HUMAN-<view>.png` and `-ALL-VIEWS.png`; and your own portrait pages of Brann Silversands (ART-WANTED-86).
+```text
+Attached: the fight sheet you drew of a garrison trooper of the same dwarf hold, for the format, the camera and THE SIZE; a size reference; the game's palette; a pose guide for the Attack row -- a jointed HUMAN mannequin making a two-handed overhand chop: follow its six beats frame for frame in every view, the blade landing on frame 4, but draw a DWARF's body at the attached trooper's size, not the mannequin's. With your own portrait pages of BRANN SILVERSANDS (asked as ART-WANTED-86): draw that same young dwarf.
+
+BRANN SILVERSANDS, fighting: a young dwarf trooper in SPLINT armour, a BATTLEAXE held in BOTH hands -- a broad bearded war-axe blade on a stout haft, gripped two-handed for the weight of the blow. No shield.
+
+SIZE: exactly the size of the attached trooper's fight figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: on guard, the axe held across his body in both hands, weight forward, a small breath); Walk (8: a quick, short-legged advance, the axe ready across him; animate in place); Attack (8: the two-handed overhand chop -- the guide's six beats with one frame of settle before and after; the blade lands on frame 4 with the head's weight leading); Flinch (4: struck, rocked back, recovering); Fall (6: knocked down, the axe falling from his hands); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Brann the guest (`first/content/heroes.json` brann: battleaxe, splint, no shield, Great Weapon Fighting -- the axe two-handed), the walk to Third Lamp and the raid. Cut as: a fight sheet `brann_p2` in the shape of `trooper_p2`; `brann_p0` (LPC) retires. His father's axe (`deep.leavings`) is the same kind of axe and needs no row of its own.
+
+### Hedda Greyseam -- her town figure, in all five views
+ATTACH `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`; and your own portrait pages of Hedda Greyseam (ART-WANTED-87).
+```text
+Attached: the walking town figure you drew of a garrison trooper of the same dwarf hold, for the format, the camera and the size, and a size reference. With your own portrait pages of HEDDA GREYSEAM (asked as ART-WANTED-87): draw that same older dwarf woman, the same face and colouring, head to foot.
+
+HEDDA GREYSEAM, walking: an older dwarf woman, a veteran trooper of the garrison, in CHAIN MAIL, a round shield slung on her back by its strap, a warhammer at her belt. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing still and watchful, thumbs in her belt, a small breath); Walk (8: a steady, unhurried, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the muster yard, the halls. Cut as: `hedda_p1` in all eight facings, SW, W and NW mirrored.
+
+### Hedda Greyseam, fighting with warhammer and shield -- in all five views
+ATTACH `trooper_p2-fight-sheet-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `BATTLEAXE-AND-SHIELD-DWARF-<view>.png` and `-ALL-VIEWS.png`; and your own portrait pages of Hedda Greyseam (ART-WANTED-87).
+```text
+Attached: the fight sheet you drew of a garrison trooper of the same dwarf hold, for the format, the camera and THE SIZE; a size reference; the game's palette; a pose guide on a jointed mannequin for the Attack row -- follow its six beats frame for frame in every view, the blow landing on frame 4 (the guide's magenta plate is an axe head: put her warhammer's head there). With your own portrait pages of HEDDA GREYSEAM (asked as ART-WANTED-87): draw that same older dwarf woman.
+
+HEDDA GREYSEAM, fighting: an older dwarf woman, a veteran trooper, in CHAIN MAIL, a round shield on her LEFT forearm in every frame, a WARHAMMER in her RIGHT hand -- a one-handed war hammer, a square steel head with a spike behind it on a stout haft as long as her forearm and hand.
+
+SIZE: exactly the size of the attached trooper's fight figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: on guard, the shield up before her chest, the hammer held back at her right side, a small breath); Walk (8: a steady, short-legged advance behind the shield; animate in place); Attack (8: the hammer brought down over the shield's rim -- the guide's six beats with one frame of settle before and after; the blow lands on frame 4, the shield between her and her enemy the whole way); Flinch (4: struck, rocked back behind the shield, recovering); Fall (6: knocked down, the shield arm folding under her); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. The hammer is in her RIGHT hand and the shield on her LEFT arm in every view, the views seen from behind included. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Hedda the guest (`first/content/heroes.json` hedda: warhammer, chain mail, shield), the walk to Third Lamp and the raid. Cut as: a fight sheet `hedda_p2` in the shape of `trooper_p2`; `hedda_p0` (LPC) retires.
+
+## 89. The made road's fighters: Torvald Greyseam and the sect's blade -- a town (world) figure and a fight sheet each, in all five views (added 11-19, the seat road-art-1119, on his word to the lanes desk) -- proposed ART-WANTED-89, IN THE OUTBOX 2026-11-19, waiting to go (`deep16/_src/outbox/ASK-2026-11-19-road-made-road-fighters/` and its `.zip`)
+
+His words: as section 88's. Who fights, in the plans: **Torvald** -- the cleric met on the made road below Third Lamp; his fight is built in the first game (`monsters.json` torvald: a mace, Spirit Guardians, Hold Person, Sanctuary; he yields at half) and runs if the party stops him (the timeline's torvald-scene); **the sect's blades** -- two of them, at the next rest after Torvald, a fight with surprise (`monsters.json` assassin: two shortswords; the timeline's assassins-scene). Each figure is drawn from the person's talking-portrait pages (section 87, sent 11-19). Today they fight on `torvald_p0` (LPC, `afa7c7a0`) and `assassin_p1`.
+
+Attachments (all in the ask's `attach/`): `trooper_p2-fight-sheet-the-format-reference.png`, `trooper_p1-town-figure-the-format-reference.png` (a dwarf of the same game, fight sheet and town figure as the game cut them: the format, the camera and THE SIZE -- not these dwarves' clothes), `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, and the pose guides: `ONE-HANDED-SLASH-DWARF-<view>.png` and `-ALL-VIEWS.png` (Torvald's mace blow) and `SHORTSWORD-STAB-DWARF-<view>.png` and `-ALL-VIEWS.png` (the blade's thrusts).
+
+### Torvald Greyseam -- his town figure, in all five views
+ATTACH `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`; and your own portrait pages of Torvald Greyseam (ART-WANTED-87).
+```text
+Attached: the walking town figure you drew of a dwarf of the same game, for the format, the camera and the size -- not this dwarf's clothes -- and a size reference. With your own portrait pages of TORVALD GREYSEAM (asked as ART-WANTED-87): draw that same dwarf cleric, the same face, beard and colouring, head to foot.
+
+TORVALD GREYSEAM, walking: a dwarf cleric in a cleric's coat under a traveling cloak, a pack on his back, a holy symbol on him, a mace at his belt. Walking fast, in a hurry. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing, both hands on his pack's straps, weight forward, impatient, a small breath); Walk (8: a fast, short-legged walk toward the viewer, the cloak swinging; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1. The pack on his back is the largest thing seen.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: coming up the made road toward the party (`deep.tvCome`). Cut as: `torvald_p1` in all eight facings, SW, W and NW mirrored.
+
+### Torvald Greyseam, fighting with mace and holy symbol -- in all five views
+ATTACH `trooper_p2-fight-sheet-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `ONE-HANDED-SLASH-DWARF-<view>.png` and `-ALL-VIEWS.png`; and your own portrait pages of Torvald Greyseam (ART-WANTED-87).
+```text
+Attached: the fight sheet you drew of a dwarf of the same game, for the format, the camera and THE SIZE -- not this dwarf's clothes; a size reference; the game's palette; a pose guide on a jointed mannequin for the Attack row -- follow its six beats frame for frame in every view, the blow landing on frame 4 (the guide's blade is his mace). With your own portrait pages of TORVALD GREYSEAM (asked as ART-WANTED-87): draw that same dwarf cleric.
+
+TORVALD GREYSEAM, fighting: a dwarf cleric in his cleric's coat, the traveling cloak thrown back, the pack dropped (not on him in a fight). A MACE in his RIGHT hand -- a flanged iron head on a short haft. His holy symbol in his LEFT hand. No shield.
+
+SIZE: exactly the size of the attached fight figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: on guard, the mace up, the holy symbol held out before him, a small breath); Walk (8: a wary, short-legged advance; animate in place); Attack (8: the mace blow -- the guide's six beats with one frame of settle before and after; the blow lands on frame 4); Cast (6: the holy symbol raised high in the left hand, a call to his goddess on frame 4, then lowered -- the gesture only, no spell effect drawn); Flinch (4: struck, rocked back, recovering); Fall (6: knocked down); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. The mace is in his RIGHT hand and the holy symbol in his LEFT in every view, the views seen from behind included. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: his fight on the made road (`first/content/monsters.json` torvald: a mace; the specials Spirit Guardians, Hold Person and Sanctuary all cast on the Cast row). Cut as: a fight sheet `torvald_p2` in the shape of `trooper_p2`, with a `cast` row; `torvald_p0` (LPC) retires.
+
+### The sect's blade -- the town figure, in all five views
+ATTACH `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`; and your own portrait pages of the sect's blade (ART-WANTED-87).
+```text
+Attached: the walking town figure you drew of a dwarf of the same game, for the format, the camera and the size -- not this dwarf's clothes -- and a size reference. With your own portrait pages of THE SECT'S BLADE (asked as ART-WANTED-87): draw that same dwarf, head to foot.
+
+THE SECT'S BLADE, walking: a hooded dwarf, one of two killers of a secret order, two short swords sheathed at the hips, their blades etched with ward-knots. Quiet and light on the feet. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing still, hood up, hands near the sword hilts, a small breath); Walk (8: a quick, quiet, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the two at the rest after Torvald (`deep.asUnseen`: they are not seen walking in; the figure is for standing among the party and leaving). Cut as: `sectblade_p1` in all eight facings, SW, W and NW mirrored; worn by both.
+
+### The sect's blade, fighting with two short swords -- in all five views
+ATTACH `trooper_p2-fight-sheet-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `SHORTSWORD-STAB-DWARF-<view>.png` and `-ALL-VIEWS.png`; and your own portrait pages of the sect's blade (ART-WANTED-87).
+```text
+Attached: the fight sheet you drew of a dwarf of the same game, for the format, the camera and THE SIZE -- not this dwarf's clothes; a size reference; the game's palette; a pose guide on a jointed mannequin for the Attack rows -- a shortsword thrust: follow its six beats frame for frame in every view, the point going home on frame 4. With your own portrait pages of THE SECT'S BLADE (asked as ART-WANTED-87): draw that same dwarf.
+
+THE SECT'S BLADE, fighting: a hooded dwarf killer, a SHORT SWORD in EACH hand, the blades etched with ward-knots.
+
+SIZE: exactly the size of the attached fight figure -- a dwarf about 42 pixels from sole to crown at game size, where a grown human stands about 50. Draw it large; the cutter brings it down.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: crouched a little, both blades low and forward, a small breath); Walk (8: a quick, quiet, short-legged advance, both blades low; animate in place); Attack (8: the RIGHT-hand blade's thrust -- the guide's six beats with one frame of settle before and after; the point goes home on frame 4, the left blade held back); Attack 2 (8: the same thrust with the LEFT-hand blade, the right held back -- the guide's beats mirrored); Flinch (4: struck, rocked back, recovering); Fall (6: knocked down, the blades falling); Prone (1: down on the ground, the last Fall frame held).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. The same rows as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. The same rows as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. The same rows as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. The same rows as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; the walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. Feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the fight at the rest after Torvald (`first/content/monsters.json` assassin: two shortsword attacks a turn). Cut as: a fight sheet `sectblade_p2` in the shape of `trooper_p2`, `attack` and `attack2`, worn by both blades; `assassin_p1` retires from them.
