@@ -1189,8 +1189,25 @@
     } else this.card(['{r}' + shortName(u) + ' breaks for the road, on foot.{/}'], 400);
   };
 
+  // WHO A FIGHT'S ALLIES WERE, AND WHO WALKED OUT (11-19, the forge-smith seat; Griz: "Even if what/who we send in with Talmok changes, what people Silverton sends into the fight
+  // and how many make it out need to pass back to the save file for other purposes"): a fight with `allies` (data/fights.js -- the Skylights' Talmok, Bloodsnout's four, the
+  // garrison) leaves its record on the save it was entered with, flags.allies[<fight id>], whatever the ending: each ally sent by its id (kind, name, `group`, came onto the field,
+  // out on its feet at the end, its HP), and the groups counted (sent, came, out). Who goes in is the fight's list; the record reads it, so a changed list is recorded as it stands
+  Battle.allyRecord = function (B, o) {
+    var F = B.fight; if (!F || !F.allies || !F.allies.length) return null;
+    var rec = { fight: F.id, result: o || null, round: B.round || 0, sent: {}, groups: {} };
+    F.allies.forEach(function (a) {
+      var u = B.units.filter(function (w) { return w.id === a.id && w.side === 'party'; })[0], d = D.FOES[a.kind] || {};
+      var s = rec.sent[a.id] = { kind: a.kind, name: a.name || d.name || a.kind, group: a.group || a.id, came: !!u, out: !!(u && !u.dead && u.hp > 0 && !u.fled), hp: u ? Math.max(0, u.hp) : null };
+      var g = rec.groups[s.group] = rec.groups[s.group] || { sent: 0, came: 0, out: 0 }; g.sent++; if (s.came) g.came++; if (s.out) g.out++;
+    });
+    B.allyRec = rec;
+    var data = B.from && B.from.data; if (data) { data.flags = data.flags || {}; data.flags.allies = data.flags.allies || {}; data.flags.allies[F.id] = rec; }
+    return rec;
+  };
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    Battle.allyRecord(this, o); // (the allies' record on the save, first: whatever comes after, the ending is known -- Battle.allyRecord)
     var gth = Battle.prototype.gatherThrown.call(this, o); if (gth) { this.card([gth], 260); yield 30; } // (the thrown weapons on a held field back in the pack: 11-10; by the prototype -- a bench's stand-in battle runs finish too)
     var RG = window.DS.R.GRIPPING; if (RG) this.units.forEach(function (u) { if (u.src) RG.delete(u.src); }); // (no grip outlives its fight: Battle.gripFor)
     // a trooper left lying when the party got out (escapeEnd): a word for each, and the 8-bit lets them go (embed.js leftBehind -- 10-13, his: "continue with sad note on 'troop' NPCs")

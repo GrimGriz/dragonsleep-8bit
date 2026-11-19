@@ -567,7 +567,7 @@
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
-    multi: ['spear', 'spear'], src: 'content/monsters.json stablefighter (SRD 5.1 Thug: a stable man the owner wants bled; wiki/the-hex.md), on the Crewman sheet'
+    multi: ['spear', 'spear'], packTactics: true, src: 'content/monsters.json stablefighter (SRD 5.1 Thug: a stable man the owner wants bled; wiki/the-hex.md), on the Crewman sheet; the Thug\'s Pack Tactics since 11-19 (the forge-smith seat: the crewman and the thug had it, the stable man not -- in the Hex\'s one-on-one bout no ally stands by, so it changes only the Skylights\' four)'
   },
   // the garrison of SÃ³lskaft, out of the Edifice's roof hatch in the Skylights (10-05, Griz: "a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when
   // the first bang hits the skylight"): the 8-bit's Drill-sergeant (content/npcs.json drillmaster) as the SRD 5.1 Veteran, his troopers as the SRD Guard, dwarves (speed 25, darkvision,

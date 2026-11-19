@@ -25531,6 +25531,30 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // after"; "that group could come out the top door when the first bang hits the skylight (next round, maybe 2 after)"; "second names"): the fight's shape; the walk-in in bounded
   // beats with the townsfolk gone after it, the Hex's eight on their squares, the garrison held; the allies ours, the brute's, not counted for the party's standing; the giants' names
   // on the cards; the hatch the round after the first bang, a glancing blow no bang
+  // THE ALLIES' RECORD ON THE SAVE (mode=allies1119; 11-19, the forge-smith seat, Griz: "Even if what/who we send in with Talmok changes, what people Silverton sends into the
+  // fight and how many make it out need to pass back to the save file for other purposes"): one Skylights to its end, and flags.allies.edifice on the save it was entered with
+  // (js/battle.js Battle.allyRecord): every ally of the fight's list sent and grouped (Talmok 1, Bloodsnout's 4, the garrison 5), Talmok on his greataxe sheet (talmokroad)
+  if (get('mode', '') === 'allies1119') {
+    var repA = { checks: [], errors: [] };
+    function okA(what, v) { repA.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      D.seed = +get('seed', 3); D.lastError = null;
+      var BA = new D.Battle({ ladder: true, fight: 'edifice', bench: true, level: 8 }); D.battle = BA; BA.enter(); var aiA = function (Bx) { Bx.units.concat(Bx.arriving ? Bx.arriving.ours : []).forEach(function (u) { if (u.side === 'party' && !u.ally) { u.guest = true; u.classAI = true; } }); }; aiA(BA); // (the four on the class AI, as x mode; the allies on the brute, as in play)
+      var dataA = BA.from && BA.from.data, rsA = drive(BA), recA = dataA && dataA.flags && dataA.flags.allies && dataA.flags.allies.edifice, gA = (recA && recA.groups) || {};
+      var gs = function (k) { var g = gA[k]; return g ? g.out + '/' + g.came + '/' + g.sent : 'none'; };
+      okA('the fight ends (' + rsA + ', round ' + BA.round + ') and its record is on the save: ' + !!recA + ', the battle\'s own the same ' + (BA.allyRec === recA), !!recA && BA.allyRec === recA && recA.result === rsA);
+      okA('the groups out/came/sent: talmok ' + gs('talmok') + ', bloodsnout ' + gs('bloodsnout') + ', garrison ' + gs('garrison'), !!gA.talmok && gA.talmok.sent === 1 && !!gA.bloodsnout && gA.bloodsnout.sent === 4 && !!gA.garrison && gA.garrison.sent === 5);
+      var tA = recA && recA.sent.talmok;
+      okA('Talmok: ' + JSON.stringify(tA), !!tA && tA.kind === 'talmokroad' && tA.came && typeof tA.out === 'boolean' && (tA.out ? tA.hp > 0 : tA.hp === 0));
+      okA('each out is one on its feet at the end: ' + Object.keys((recA || {}).sent || {}).every(function (id) { var s = recA.sent[id], u = BA.units.filter(function (w) { return w.id === id && w.side === 'party'; })[0]; return s.out === !!(u && !u.dead && u.hp > 0 && !u.fled); }), !!recA && Object.keys(recA.sent).every(function (id) { var s = recA.sent[id], u = BA.units.filter(function (w) { return w.id === id && w.side === 'party'; })[0]; return s.out === !!(u && !u.dead && u.hp > 0 && !u.fled); }));
+      var BN = new D.Battle({ ladder: true, fight: 'trolls', bench: true, level: 8 }); D.battle = BN; BN.enter(); aiA(BN); var dN = BN.from && BN.from.data; drive(BN);
+      okA('a fight with no allies leaves none: ' + JSON.stringify(dN && dN.flags && dN.flags.allies), !(dN && dN.flags && dN.flags.allies && dN.flags.allies.trolls));
+      if (D.lastError) repA.errors.push('lastError: ' + String(D.lastError.stack || D.lastError).slice(0, 400));
+    } catch (eA) { repA.errors.push(String(eA && eA.stack || eA).slice(0, 700)); }
+    var preA = document.createElement('pre'); preA.id = 'out'; preA.textContent = 'BENCH16 ' + JSON.stringify(repA);
+    document.body.appendChild(preA);
+    return;
+  }
   if (get('mode', '') === 'skylights1005') {
     var repK = { checks: [], errors: [] }, d0K = D.d;
     function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
