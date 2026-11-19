@@ -471,6 +471,39 @@
 },
 "source": "drawn by the art desk (ART-10 SE and NE, 10-10; ART-53 S, E and N, 10-19), cut by tools/ankheg-sheet.py through tools/artdesk.py (10-22)"
 },
+"asdis_p1": {
+"image": "art/asdis_p1.png?v=c46d9344dd",
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Asdis",
+"hold": [
+"the brooch (the sign of Rekknar) is a few grey pixels at game size on S, SE and E; hidden from behind; the mirrors move it to the other shoulder"
+],
+"source": "drawn by the art desk (ART-WANTED-83-ASDIS-SCALEBEAM, 11-18: art-wanted section 83, her town figure in five views), cut by tools/asdis-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "assassin_p1": {
 "image": "art/assassin_p1.png?v=e0ee0f0998",
 "fw": 96,
@@ -16707,6 +16740,97 @@ true
 "art": "ART-80",
 "door": "keeper:androit",
 "source": "deep16/_src/androit/ART-80 (the art desk's ART-80, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_asdis": {
+"image": "art/pt_asdis.png?v=590169637f",
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"remembering": {
+"y": 468,
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grave": {
+"y": 624,
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"firm": {
+"y": 780,
+"fw": 184,
+"fh": 156,
+"ax": 121,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-WANTED-83",
+"door": "npc:asdis (Solskaft, her room over the west store; her meals, js/asdis.js)",
+"source": "deep16/_src/asdis/2026-11-18-ART-83/portrait-pages-1440x810 (the art desk's ART-WANTED-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_aurdin_ochre": {
 "image": "art/pt_aurdin_ochre.png?v=5f1a566106",

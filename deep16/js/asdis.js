@@ -15,8 +15,9 @@
        silently once a hero a meal; no die on the screen -- every check into the play record (A.trail); a miss is never a dead end: the plain layer is told to everyone, and a
        missed History asks the blunt question, which she answers.
      WHAT IS KEPT: a flag a layer heard (each named in content's flags registry) for the lamp meals to come, and a JOURNAL line a meal (content/rumors.json r-asdis-*, js/counter.js C.heard).
-     HER FACE: she speaks on `pt_asdis` when that sheet exists (asked of the art desk 11-18, not cut yet) and on her figure's face till then (js/counter.js C.spSheet): the
-       cut needs no change here.
+     HER FACE: she speaks on `pt_asdis` when that sheet exists (cut 11-19, cutter-asdis: the art desk's ART-WANTED-83) and on her figure's face till then (js/counter.js
+       C.spSheet). A line may name one of her heads (S.by's second, a filler's third: attentive, welcoming, remembering, grave, firm) -- given sparingly, 11-19, where the
+       line asks for it; the rest is her idle.
    Every line of hers here is the seat's DRAFT (invented.json asdis-meals-1118), his to re-word; her voice as her first lines have it (content/text.json deep.asdis0-3). */
 'use strict';
 (function () {
@@ -34,8 +35,8 @@
   var eat = { id: 'eat', all: true, again: true, last: true, say: function () { return `(Eat quietly.)`; }, run: function (S) { S.narr(QUIET[(S.quiet = (S.quiet || 0) + 1) % QUIET.length]); } };
   // a meal's filler, one a hero: `f` the hero's key to [the question, her answer]; one not of the four thanks her
   var fill = function (by) {
-    return ['lymen', 'aurdin', 'vivian', 'barley'].map(function (k) { return { id: 'f_' + k, who: [k], say: function () { return by[k][0]; }, run: function (S) { S.by(by[k][1]); } }; })
-      .concat([{ id: 'f_any', any: true, say: function () { return `Thank you for the supper.`; }, run: function (S) { S.by(`"Thank it by finishing it."`); } }]);
+    return ['lymen', 'aurdin', 'vivian', 'barley'].map(function (k) { return { id: 'f_' + k, who: [k], say: function () { return by[k][0]; }, run: function (S) { S.by(by[k][1], by[k][2]); } }; })
+      .concat([{ id: 'f_any', any: true, say: function () { return `Thank you for the supper.`; }, run: function (S) { S.by(`"Thank it by finishing it."`, 'firm'); } }]);
   };
   // the History question: every hero rolls it silently, once; made, the sharper question, SHADED; missed, the blunt one, which she still answers
   var deep = function (dc, sharp, blunt, run, miss) {
@@ -48,7 +49,7 @@
     { id: 'street', flag: 'asdisStreet', rumor: 'r-asdis-street',
       open: function (S) {
         S.narr(`Soup and bread at the table by the hearth. Asdis ladles, and sits last.`);
-        S.by(`"You came up a street of barred doors and did not ask. That's manners, or it's nerves."`);
+        S.by(`"You came up a street of barred doors and did not ask. That's manners, or it's nerves."`, 'welcoming');
         S.by(`"The mines were called dead. Forty families barred their doors and went back deep. I keep the lamp."`);
         S.by(`"Ask. I'd sooner be asked than wondered at."`);
       },
@@ -62,8 +63,8 @@
           function (S) { S.by(`"Called dead, I said. Mind the word."`); }))
         .concat([
           { id: 'kept', read: 'kept', say: function () { return `You don't sound like someone who lost anything.`; },
-            run: function (S) { S.f.asdisVigil = 1; S.by(`"I didn't. Nothing failed."`); S.look(`Asdis looks at the lamp in her window, and back.`); S.by(`"They went down to keep a vigil. That's the word, and it's the only one of it you'll have from me."`); } },
-          { id: 'over', all: true, needs: function (S) { return !!S.asked.kept; }, say: function () { return `A vigil over what?`; }, run: function (S) { S.by(`"Eat your soup."`); } } // (the ceiling: asked outright, she says no more)
+            run: function (S) { S.f.asdisVigil = 1; S.by(`"I didn't. Nothing failed."`); S.look(`Asdis looks at the lamp in her window, and back.`); S.by(`"They went down to keep a vigil. That's the word, and it's the only one of it you'll have from me."`, 'grave'); } },
+          { id: 'over', all: true, needs: function (S) { return !!S.asked.kept; }, say: function () { return `A vigil over what?`; }, run: function (S) { S.by(`"Eat your soup."`, 'firm'); } } // (the ceiling: asked outright, she says no more)
         ]),
       close: `The pot is scraped. Asdis banks the fire and takes up her mending.` },
     // ---- MEAL TWO, WHY SHE STAYED: PLAIN: her brother's house, his daughter's, then Ingrith's; Ingrith would not leave her post. HISTORY: the warrant and a season.
@@ -78,14 +79,14 @@
       reads: { door: { skill: 'Insight', dc: 12, opens: 'forher', text: `(insight) She says "the street". The warmest place at the table is laid nearest the door, and nobody has been sat in it.` } },
       ask: fill({ lymen: [`Does she come up to eat?`, `"When the columns balance. So, not often."`],
                   barley: [`Good bread.`, `"It's bread. Somebody has to bake it."`],
-                  vivian: [`What was she like, small?`, `"Exact. She would count the stairs and tell you if one was missing."`],
+                  vivian: [`What was she like, small?`, `"Exact. She would count the stairs and tell you if one was missing."`, 'remembering'],
                   aurdin: [`What does a ledger keep, with the doors shut?`, `"Everything. That's the trouble with her."`] })
         .concat(deep(12, `A ledger post is sworn under warrant, a season at a time. How many has she sworn?`, `Couldn't she keep a ledger in Deepholm?`,
           function (S) { S.f.asdisWarrant = 1; S.by(`"One, she told them. One season under warrant, and then she'd follow the house down."`); S.look(`Asdis sets a covered bowl by the hearth to keep warm.`); S.by(`"She has sworn the next one every time, the day the last ran out. I stopped airing her room."`); },
           function (S) { S.by(`"She could keep one anywhere. She swore to keep this one."`); }))
         .concat([
           { id: 'forher', read: 'forher', say: function () { return `It isn't the street you stayed for.`; },
-            run: function (S) { S.f.asdisForIngrith = 1; S.by(`"The street is stone. It keeps."`); S.by(`"She was six under this table. A clan can vote where it lives. It can't vote who I feed."`); S.by(`"A post is kept. So is kin. She keeps hers. I keep mine."`); } }
+            run: function (S) { S.f.asdisForIngrith = 1; S.by(`"The street is stone. It keeps."`); S.by(`"She was six under this table. A clan can vote where it lives. It can't vote who I feed."`, 'remembering'); S.by(`"A post is kept. So is kin. She keeps hers. I keep mine."`); } }
         ]),
       close: `Asdis covers what is left of the loaf, for the morning and for whoever comes up for it.` },
     // ---- MEAL THREE, THE WATER BURNING (no gate: "burning is town NPC, if they're reading this they should have heard of it by now"). PLAIN: the water went bad and the
@@ -94,7 +95,7 @@
     { id: 'burning', flag: 'asdisBurning', rumor: 'r-asdis-burning',
       open: function (S) {
         S.narr(`The third night at her table. Asdis is slower with the ladle.`);
-        S.by(`"You're Silverton people, or near enough. You had the Water Burning with your milk."`);
+        S.by(`"You're Silverton people, or near enough. You had the Water Burning with your milk."`, 'attentive');
         S.by(`"The water went bad, and the king brought us out to answer it. One winter. That much your town tells true."`);
         S.by(`"You'll want the rest of it, or you'll want your beds. I'd not blame either."`);
       },
@@ -108,7 +109,7 @@
           function (S) { S.by(`"Nobody you could hang. That was the worst of it."`); }))
         .concat([
           { id: 'right', read: 'right', say: function () { return `Was it right?`; },
-            run: function (S) { S.f.asdisRegret = 1; S.look(`Asdis puts her spoon down.`); S.by(`"It was necessary. Water is the one thing down here nobody may be careless with, and they had to be made to know it."`); S.by(`"I have never once called it right. And if it came again I would not stop them. Sit with that. I do."`); } }
+            run: function (S) { S.f.asdisRegret = 1; S.look(`Asdis puts her spoon down.`); S.by(`"It was necessary. Water is the one thing down here nobody may be careless with, and they had to be made to know it."`); S.by(`"I have never once called it right. And if it came again I would not stop them. Sit with that. I do."`, 'grave'); } }
         ]),
       close: `Asdis banks the fire. She does not take up her mending tonight.` }
   ];
@@ -126,10 +127,10 @@
     var C = D.counter, st = C.state(B), f = st.flags, ML = A.MEALS[n], she = A.speaker(u);
     var four = (B.roam.members || []).filter(function (m) { return m.src && !m.src.guest && !m.src.dead && !m.src.ko; }).slice(0, 4).map(function (m) { var k = m.src.key || m.src.id; return { u: m, h: m.src, key: k, hero: { id: k, key: k, name: m.name } }; });
     var S = { f: f, n: n, asked: {}, opened: {}, q: Object.keys(ML.reads), cur: {}, seen: {}, out: [], rolls: {}, turn: 0 };
-    S.by = function (line) { S.out.push({ by: 1, line: line }); }; S.narr = function (line) { S.out.push({ narr: line }); }; S.look = function (line) { S.out.push({ look: 1, line: line }); };
+    S.by = function (line, face) { S.out.push({ by: 1, line: line, face: face }); }; S.narr = function (line) { S.out.push({ narr: line }); }; S.look = function (line) { S.out.push({ look: 1, line: line }); };
     // a check, rolled once a hero a skill a meal, silently: the play record has it, the screen never
     S.made = function (e, skill, dc) { var k = e.key + ':' + skill; if (S.rolls[k] == null) { var r = A.d20(), v = DS.R.skill(e.h, skill, A.AB[skill]); S.rolls[k] = r + v >= dc; A.trail(e.hero.name + ' ' + skill + ' ' + r + (v >= 0 ? ' + ' : ' - ') + Math.abs(v) + ' = ' + (r + v) + ' vs DC ' + dc + (S.rolls[k] ? ', made' : ', missed') + ' (silent)'); } return S.rolls[k]; };
-    var wait = function (o) { return o.narr ? sc.narr([o.narr]) : o.look ? sc.lookAt(she, [o.line], null) : sc.by(she, [o.line]); };
+    var wait = function (o) { return o.narr ? sc.narr([o.narr]) : o.look ? sc.lookAt(she, [o.line], null) : sc.by(she, [o.line], o.face); };
     A.trail('meal ' + (n + 1) + ' of ' + A.MEALS.length + ': ' + ML.id);
     f[ML.flag] = 1; if (C.heard) C.heard(st, ML.rumor); // (the plain layer is told as the meal opens: every party has it, and its JOURNAL line)
     ML.open(S);

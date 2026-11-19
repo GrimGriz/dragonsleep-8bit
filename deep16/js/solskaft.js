@@ -903,7 +903,7 @@
       '#......#',
       '#S.....#',
       '########'], stair: [1, 3], at: [2, 3], face: [1, 0], hearth: [2, 1], window: [7, 2], cot: [6, 1],
-      folk: [{ id: 'asdis', at: [3, 2], dir: 'down', kind: 'commonerwoman' }] }
+      folk: [{ id: 'asdis', at: [3, 2], dir: 'down', kind: 'commonerwoman', sheet: 'asdis_p1' }] } // (11-19, cutter-asdis: on her own town figure, asdis_p1, the art desk's ART-WANTED-83 in all eight facings -- tools/asdis-town-sheet.py; the kind kept for what reads it)
   };
   SK.isLodge = function (key) { return !!SK.LODGE[key]; };
   SK.LABEL[SK.S8.needles] = 'the touch-needles'; SK.LABEL[SK.S8.weights] = 'the locked case'; SK.LABEL[SK.LINES.furnace] = 'the furnace'; SK.LABEL[SK.LINES.balance] = 'the balance';

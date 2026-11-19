@@ -1,0 +1,33 @@
+{
+ "image": "art/asdis_p1.png",
+ "fw": 28,
+ "fh": 64,
+ "ax": 14,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 28,
+   "fh": 64,
+   "ax": 14,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 34,
+   "fh": 64,
+   "ax": 17,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Asdis",
+ "hold": [
+  "the brooch (the sign of Rekknar) is a few grey pixels at game size on S, SE and E; hidden from behind; the mirrors move it to the other shoulder"
+ ],
+ "source": "drawn by the art desk (ART-WANTED-83-ASDIS-SCALEBEAM, 11-18: art-wanted section 83, her town figure in five views), cut by tools/asdis-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

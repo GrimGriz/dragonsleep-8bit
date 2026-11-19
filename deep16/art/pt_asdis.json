@@ -1,0 +1,91 @@
+{
+ "image": "art/pt_asdis.png",
+ "fw": 184,
+ "fh": 156,
+ "ax": 121,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 184,
+   "fh": 156,
+   "ax": 121,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 184,
+   "fh": 156,
+   "ax": 121,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 312,
+   "fw": 184,
+   "fh": 156,
+   "ax": 121,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "remembering": {
+   "y": 468,
+   "fw": 184,
+   "fh": 156,
+   "ax": 121,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grave": {
+   "y": 624,
+   "fw": 184,
+   "fh": 156,
+   "ax": 121,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "firm": {
+   "y": 780,
+   "fw": 184,
+   "fh": 156,
+   "ax": 121,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-WANTED-83",
+ "door": "npc:asdis (Solskaft, her room over the west store; her meals, js/asdis.js)",
+ "source": "deep16/_src/asdis/2026-11-18-ART-83/portrait-pages-1440x810 (the art desk's ART-WANTED-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

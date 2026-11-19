@@ -338,6 +338,15 @@ PEOPLE = {
         ('ingrith/PORTRAITS/source/ART-141-INGRITH_HEAD-01_PAGE-1_IDLE.png', [3, 3], ['idle'] * 6)]
         + [('ingrith/PORTRAITS/source/ART-141-INGRITH_HEAD-%02d_PAGE-1_%s.png' % (h, act.upper()), [1], [act]) for h, act in [
             (2, 'attentive'), (3, 'welcoming'), (4, 'skeptical'), (5, 'grave'), (6, 'weary')]]}),
+    # ASDIS SCALEBEAM, Ingrith's old kinswoman over Solskaft's west store (11-19, cutter-asdis, on the lanes desk's start, his "Asdis in Fresh"; art-wanted section 83,
+    # his "outbox that art ask please"): the art desk's ART-WANTED-83-ASDIS-SCALEBEAM, sorted to deep16/_src/asdis/2026-11-18-ART-83/ -- its six registered 1440x810
+    # pages: Idle 6 (hands folded in her apron, the blink on 4) and five moods: attentive, welcoming (a hand out to a seat), remembering, grave, firm (pointing into the
+    # bowl she holds). Waist-up with no counter, so `noledge` and `cutline` (Ingrith's way); looks screen left. The brooch -- the sign of Rekknar pinning her shawl at
+    # her left shoulder (Griz, 11-19: "file the sign, even if the art department rendered it poorly") -- is cut as drawn. Her meals speak on her (js/asdis.js A.SHEET)
+    'asdis': ('asdis/2026-11-18-ART-83/portrait-pages-1440x810', 'ART-WANTED-83', 'npc:asdis (Solskaft, her room over the west store; her meals, js/asdis.js)', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['red', 'fire'], 'layout': [
+        ('asdis/2026-11-18-ART-83/portrait-pages-1440x810/HEAD-01-Idle.png', [3, 3], ['idle'] * 6)]
+        + [('asdis/2026-11-18-ART-83/portrait-pages-1440x810/HEAD-%02d-%s.png' % (h, act.title()), [1], [act]) for h, act in [
+            (2, 'attentive'), (3, 'welcoming'), (4, 'remembering'), (5, 'grave'), (6, 'firm')]]}),
 }
 
 
