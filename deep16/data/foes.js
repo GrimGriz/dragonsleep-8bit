@@ -1348,8 +1348,9 @@
   // and the register's block (npcs-by-location.md §TALMOK: "Greataxe +5 (1d12+3) -- road iron, never in the pit"). The pit's sheet above keeps its fists for the Hex; this is his
   // sheet anywhere else (the Skylights, data/fights.js edifice). One swing a turn: barbarian 3 has no Extra Attack (it comes at 5: js/ladder.js). Down in the Sand as the path has it
   // (js/features.js): raging only (`proneRage`), Large or smaller (`proneMax` 2), DC 8 + 2 + STR 3 = 13. Rage on the first hit, blades and blows halved, +2 to the axe, as the pit's.
+  // (his figure, 11-19: talmokroad_p2, the art desk's ART-WANTED-84 -- the greataxe in his hands standing, walking and struck, its chop his blow; tools/talmok-axe-sheet.py)
   talmokroad: {
-    name: 'Talmok', type: 'humanoid', named: true, sheet: 'talmok_p2', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
+    name: 'Talmok', type: 'humanoid', named: true, sheet: 'talmokroad_p2', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, init: 2, perception: 11,
     saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
     attacks: { greataxe: { name: 'Greataxe', atk: 5, dice: '1d12', mod: 3, type: 'slashing', reach: 5, rage: 2, prone: 13, proneRage: true, proneMax: 2 } },

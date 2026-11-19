@@ -31736,7 +31736,7 @@ true
 }
 },
 "talmok_p2": {
-"image": "art/talmok_p2.png?v=7921379211",
+"image": "art/talmok_p2.png?v=bc051f23b6",
 "anims": {
 "idle": {
 "y": 0,
@@ -31801,6 +31801,43 @@ true
 "ay": 60,
 "frames": 4,
 "fps": 8
+},
+"greataxe": {
+"y": 3528,
+"fw": 84,
+"fh": 85,
+"ax": 42,
+"ay": 82,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"axeidle": {
+"y": 4208,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"axewalk": {
+"y": 4720,
+"fw": 58,
+"fh": 68,
+"ax": 29,
+"ay": 65,
+"frames": 8,
+"fps": 10
+},
+"axeflinch": {
+"y": 5264,
+"fw": 50,
+"fh": 75,
+"ax": 25,
+"ay": 72,
+"frames": 4,
+"fps": 12
 }
 },
 "fw": 44,
@@ -31808,8 +31845,94 @@ true
 "ax": 22,
 "ay": 60,
 "top": 57,
-"source": "drawn by the art desk (ART-123-TALMOK HEAD 2, his five town Idle pages, 10-29; ART-123-TALMOK-COMBAT, his fight poses in five views, 10-30 -- its own word \"PARTIAL / REVIEW CANDIDATES\"), cut and snapped by tools/talmok-sheet.py",
+"source": "drawn by the art desk (ART-123-TALMOK HEAD 2, his five town Idle pages, 10-29; ART-123-TALMOK-COMBAT, his fight poses in five views, 10-30 -- its own word \"PARTIAL / REVIEW CANDIDATES\"), cut and snapped by tools/talmok-sheet.py -- the greataxe rows (greataxe, axeidle, axewalk, axeflinch) drawn by the art desk (ART-WANTED-84-TALMOK-GREATAXE, 11-19), added by tools/talmok-axe-sheet.py",
 "old": "talmok_p1"
+},
+"talmokroad_p2": {
+"image": "art/talmok_p2.png?v=bc051f23b6",
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 61,
+"top": 57,
+"source": "talmok_p2 read another way (tools/talmok-axe-sheet.py): the art desk's greataxe rows (ART-WANTED-84, 11-19) for his idle, walk, flinch and blow -- worn by the road's Talmok (data/foes.js talmokroad) and the Pocket DM's (js/classes.js NPC.NAMED talmok); his fall, sit and prone talmok_p2's own",
+"anims": {
+"idle": {
+"y": 4208,
+"fw": 48,
+"fh": 64,
+"ax": 24,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 4720,
+"fw": 58,
+"fh": 68,
+"ax": 29,
+"ay": 65,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 3528,
+"fw": 84,
+"fh": 85,
+"ax": 42,
+"ay": 82,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"greataxe": {
+"y": 3528,
+"fw": 84,
+"fh": 85,
+"ax": 42,
+"ay": 82,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 5264,
+"fw": 50,
+"fh": 75,
+"ax": 25,
+"ay": 72,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 1512,
+"fw": 84,
+"fh": 63,
+"ax": 42,
+"ay": 60,
+"frames": 4,
+"fps": 8
+},
+"sit": {
+"y": 2016,
+"fw": 50,
+"fh": 63,
+"ax": 25,
+"ay": 60,
+"frames": 2,
+"fps": 2
+},
+"prone": {
+"y": 3024,
+"fw": 84,
+"fh": 63,
+"ax": 42,
+"ay": 60,
+"frames": 4,
+"fps": 8
+}
+},
+"name": "Talmok, off the sand (the greataxe)"
 },
 "tam_p1": {
 "image": "art/tam_p1.png?v=20bb66568d",
