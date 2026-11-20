@@ -1578,6 +1578,7 @@
       placed.push(u);
     });
     if (!placed.length) { B.card(['{g}(no square for them: the encounter passes){/}'], 160); return; }
+    if (set && set.place) set.place(B, placed); // (a set fight's own squares for its foes, before anything is drawn: Web Gulch's lad and lair, js/gulch.js -- 11-20, his walk, "looks like the spiders spawned closed and then moved to official positions (teleport)")
     var distFt = Math.min.apply(null, placed.map(function (u) { return G.dist(t, u); }));
     placed.forEach(function (u) { B.units.push(u); });
     G.setup(G.map, B.units);

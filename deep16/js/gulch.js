@@ -214,6 +214,22 @@
     var gs = mine.map(function (u) { return gapOf(u.x, u.y); });
     return { foes: mine.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }), kinds: mine.map(function (u) { return u.kind; }).sort(), gap: Math.min.apply(null, gs), far: Math.max.apply(null, gs) };
   };
+  // the same seats taken as the encounter places them, before they are drawn (11-20, his walk: "looks like the spiders spawned closed and then moved to official positions
+  // (teleport) as party token expanded"): each on its square where it may stand, clear of the others' footing and at least minGap from the token -- else the ring search's
+  // nearest such square; the spill's Gu.seatOn after keeps every seat that is still clear, so nothing moves on screen unless the party spilled onto it
+  Gu.placeOn = function (B, placed, spec, minGap) {
+    var G = D.grid, t = B.roam.token, taken = {}, used = [];
+    B.units.forEach(function (w) { if (placed.indexOf(w) < 0) G.foot(w).forEach(function (q) { taken[q[0] + ',' + q[1]] = 1; }); });
+    var free = function (u, x, y) { var n = u.size || 1; for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) if (taken[(x + i) + ',' + (y + j)]) return false; return G.canStand(u, x, y, { ghost: true }) && Math.max(Math.abs(x - t.x), Math.abs(y - t.y)) >= minGap; };
+    spec.forEach(function (f) {
+      var u = placed.filter(function (w) { return w.kind === f[0] && used.indexOf(w) < 0; })[0]; if (!u) return; used.push(u);
+      var sq = free(u, f[1], f[2]) ? [f[1], f[2]] : null;
+      for (var r = 1; r <= 6 && !sq; r++) for (var dy = -r; dy <= r && !sq; dy++) for (var dx = -r; dx <= r && !sq; dx++) if (Math.max(Math.abs(dx), Math.abs(dy)) === r && free(u, f[1] + dx, f[2] + dy)) sq = [f[1] + dx, f[2] + dy];
+      if (!sq) return;
+      u.x = sq[0]; u.y = sq[1]; u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
+      var n = u.size || 1; for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) taken[(sq[0] + i) + ',' + (sq[1] + j)] = 1;
+    });
+  };
   Gu.snaredInPlace = function* (B, step) {
     var R = D.roam, R0 = B.roam, t = R0.token, G = D.grid, F0 = D.fight && D.fight('snared');
     D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
@@ -223,6 +239,7 @@
     B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.ladWebs(B), dc: Gu.LAD.webDC, ground: true }]);
     var set = { list: Gu.LAD.foes.map(function (f) { return f[0]; }), at: Gu.SNARE.slice(), how: 'out of the silk behind him', flag: 'trig:snared', trig: ['snared', 'snaredstep'], // (both spent at the win: the party gathers inside the hollow after, and its step must not ask again)
       line: (F0 && F0.intro) || 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
+      place: function (B2, placed) { Gu.placeOn(B2, placed, Gu.LAD.foes, Gu.LAD.minGap); set.placed = placed.map(function (u) { return u.kind + "@" + u.x + "," + u.y; }); }, // (seated before they are drawn: Gu.placeOn)
       onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAD.foes, Gu.LAD.minGap); } }; // (the three on their squares behind him, as the grid fight seats its own)
     Gu.ladLast = set;
     try { yield* M.inPlace(B, 'snared', set); }
@@ -264,6 +281,7 @@
     B.webs = (w0 || []).concat([{ by: 'the gully\'s silk, the ettercap\'s', sq: sq, dc: Gu.LAIR.webDC, ground: true }]);
     var set = { list: Gu.LAIR.foes.map(function (e) { return e[0]; }), at: Gu.LAIR.seat.slice(), how: 'from its strand at the back', flag: 'trig:ettercap', trig: ['ettercap'],
       line: (F0 && F0.intro) || 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
+      place: function (B2, placed) { Gu.placeOn(B2, placed, Gu.LAIR.foes, Gu.LAIR.minGap); set.placed = placed.map(function (u) { return u.kind + "@" + u.x + "," + u.y; }); }, // (seated before they are drawn: Gu.placeOn)
       onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAIR.foes, Gu.LAIR.minGap); } };
     Gu.lairLast = set;
     try { yield* M.inPlace(B, 'ettercap', set); }

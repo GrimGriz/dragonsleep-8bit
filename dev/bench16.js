@@ -2743,6 +2743,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var op3 = (GuGL.ladLast && GuGL.ladLast.opening) || {};
       okGL('the grid fight\'s three: ' + (op3.kinds || []).join(',') + ' (the grid\'s ' + grid3.join(',') + ') seated at ' + (op3.foes || []).join(' ') + ' (at the first hero\'s turn ' + (fg.foes || []).join(' ') + ')', (op3.kinds || []).join() === grid3.join() && (op3.foes || []).join(' ') === 'wolfspider@27,50 giantspider@26,52 wolfspider@28,56');
       okGL('their spread as the fight opens: ' + op3.gap + ' to ' + op3.far + ' squares from the nearest of the party (the grid\'s ' + gridGap.join(',') + ' from its entry)', op3.gap >= 4 && op3.far <= 10);
+      var pl3 = ((GuGL.ladLast && GuGL.ladLast.placed) || []).slice().sort().join(' '), ob3 = (op3.foes || []).slice().sort().join(' ');
+      okGL('seated as they are placed, before they are drawn (his 11-20 "spawned closed and then moved to official positions (teleport)"): placed ' + pl3 + ', the fight opens ' + ob3, !!pl3 && pl3 === ob3);
       okGL('the silk: ' + (fg.webs || []).join('; ') + ' -- the grid\'s DC ' + ((D.MAPS[F3.map] || {}).webDC), fg.dc === (D.MAPS[F3.map] || {}).webDC);
       okGL('won: his flag ' + !!B3.roam.flags['trig:snared'] + ', twelve silver (' + sv3 + ' -> ' + D.counter.state(B3).silver() + '), his triggers gone (' + ((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).filter(function (t) { return /^snared/.test(t.id); }).length + '), the silk the fight\'s alone after (' + (B3.webs || []).length + ')',
         !!B3.roam.flags['trig:snared'] && D.counter.state(B3).silver() >= sv3 + 12 /* (his twelve, and the fight's own spoils as the field's way pays them) */ && !((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).some(function (t) { return /^snared/.test(t.id); }) && (B3.webs || []).length === (w3 || []).length);
@@ -2816,6 +2818,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okG2('the story fight\'s four: ' + (op2.kinds || []).join(',') + ' (the grid\'s ' + grid3.join(',') + ') seated at ' + (op2.foes || []).join(' ') + '; ' + op2.gap + ' to ' + op2.far + ' squares from the nearest of the party as it opens',
           (op2.kinds || []).join() === grid3.join() && (op2.foes || []).join(' ') === 'ettercap@4,86 giantspider@5,82 wolfspider@9,84 wolfspider@7,90' && op2.gap >= 4);
         okG2('the silk: ' + (f2.webs || []).join('; '), (f2.webs || []).some(function (w) { return /ettercap's \d+ at DC 11$/.test(w); }) && !(f2.webs || []).some(function (w) { return /DC 12/.test(w); }));
+        var pl2 = ((Gu2.lairLast && Gu2.lairLast.placed) || []).slice().sort().join(' '), ob2 = (op2.foes || []).slice().sort().join(' ');
+        okG2('seated as they are placed, before they are drawn: placed ' + pl2 + ', the fight opens ' + ob2, !!pl2 && pl2 === ob2);
         var fig2 = B2.units.filter(function (u) { return u.npc === 'ettercap8'; })[0], fang2 = D.counter.count ? D.counter.count(st2, 'ettercapfangs') : -1;
         okG2('won: its flag ' + !!B2.roam.flags['trig:ettercap'] + ', the fangs ' + fang0 + ' -> ' + fang2 + ', the cord taken ' + !!st2.flags.cordTaken + ', its figure gone ' + !fig2 + ', its step gone ' + !trigsG2(/^ettercap$/).length + ', the silk lifted (' + (B2.webs || []).length + ')',
           !!B2.roam.flags['trig:ettercap'] && fang2 === fang0 + 1 && !!st2.flags.cordTaken && !fig2 && !trigsG2(/^ettercap$/).length && !(B2.webs || []).length);
