@@ -659,7 +659,7 @@
     name: 'Road Patrol', type: 'humanoid', sheet: 'roadpatrol_p2', humanoid: true, soldiering: true, cr: '1/2', ac: 13, armor: 'leather armor', hp: 16, speed: 25, size: 1, reach: 5, darkvision: 60,
     // (11-20, Griz on its STR 11 under Soldiering's 13: "what's their stat total? If under 70 bring up to 70, else 'change recruitment standards' such that the troops on the road
     // were the ones capable of the training" -- 72, so the road's recruits are the strong ones: the Scout's STR 11 and WIS 13 swapped, the saves with them, Perception +4 (passive 14))
-    abil: { str: 13, dex: 14, con: 12, int: 11, wis: 11, cha: 11 }, init: 2, perception: 14, stealth: 6, keen: 'hearing and sight',
+    abil: { str: 13, dex: 14, con: 12, int: 11, wis: 11, cha: 11 }, init: 2, perception: 14, stealth: 6, keen: 'hearing and sight', srdDiffers: 'STR 13, WIS 11, passive Perception 14: his recruitment standards, 11-20',
     saves: { str: 1, dex: 2, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
       shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },

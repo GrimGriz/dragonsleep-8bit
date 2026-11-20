@@ -6421,7 +6421,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         nfiles === 25 && nb >= 300 && an('goblin') === '+6/9' && an('spy') === '+4/16' && an('giant spider') === '+7/10' && an('ankheg') === '-/11' && an('wolf') === '+4/13');
       // every foe, by its src
       var OURS = /^ours\b|game-original|the 8-bit game's own|^dominion|^the Snoot mode|OD&D/i, FAMF = { 'owl': 'owl', 'snowy owl': 'owl', 'bat': 'bat', 'rat': 'rat', 'spider': 'spider', 'frog': 'frog', 'snake': 'poisonous snake' }, ALI = { drow: 'elf, drow' };
-      var right = 0, ours = [], wrong = [], lost = [];
+      var right = 0, ours = [], wrong = [], lost = [], byHim = [];
       Object.keys(D.FOES).forEach(function (k) {
         var d = D.FOES[k], src = d.src || '';
         if (OURS.test(src)) { ours.push(k); return; }
@@ -6430,10 +6430,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         else { var mm = /SRD 5\.1 ([A-Z][A-Za-z'’ -]+?)(?: \(|;|,|\)|:| made| from| as | in | cut| with|$)/.exec(src); if (mm) { nm = normSB(mm[1]); nm = ALI[nm] || nm; } }
         if (!nm) { ours.push(k); return; } // (no SRD block named: one of ours)
         var b = SRDB[nm]; if (!b) { lost.push(k + ' (' + nm + ')'); return; }
-        var st = d.stealth || null, ok = st === b.stealth && d.perception === b.pp;
+        // (a block that differs from its SRD block by his word names the field in `srdDiffers` -- the road patrol's passive 14 since 11-20, his "change recruitment standards": counted, and listed)
+        var dif = d.srdDiffers || '', st = d.stealth || null, ok = (st === b.stealth || /stealth/i.test(dif)) && (d.perception === b.pp || /perception/i.test(dif));
+        if (ok && dif) byHim.push(k + ' (' + dif + ')');
         if (ok) right++; else wrong.push(k + ': Stealth ' + (st == null ? 'none' : '+' + st) + ' / passive ' + d.perception + ', the SRD ' + b.name + ' ' + (b.stealth == null ? 'none' : '+' + b.stealth) + ' / ' + b.pp);
       });
-      okSB('every SRD foe carries its block\'s Stealth and passive Perception: ' + right + ' right, ' + wrong.length + ' not' + (wrong.length ? ' -- ' + wrong.join('; ') : '') + ' (want none not)', wrong.length === 0 && right >= 80);
+      okSB('every SRD foe carries its block\'s Stealth and passive Perception: ' + right + ' right, ' + wrong.length + ' not' + (wrong.length ? ' -- ' + wrong.join('; ') : '') + (byHim.length ? '; differing by his word: ' + byHim.join('; ') : '') + ' (want none not)', wrong.length === 0 && right >= 80);
       okSB('every src that names an SRD block finds it: ' + (lost.length ? lost.join(', ') : 'all') + ' (want all)', lost.length === 0);
       // OUR OWN (11-10, Griz: "go ahead and have it reason a stealth and perception for custom monsters that didn't have it"): every foe of ours carries its reasoned senses
       // in its src -- "SENSES (ours, 11-10): Stealth +N, because ...; passive Perception M, because ..." (or "Stealth none, its DEX check") -- and its fields are what that says.
