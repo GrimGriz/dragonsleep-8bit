@@ -29902,7 +29902,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // button on the stage) / error. The register is read in by a synchronous XHR when index.html does not load it yet (the seat adds the
   // script line); &only=a,b keeps to those
   if (get('mode', '') === 'featurewalk') {
-    var EXPECT_W = { sneakattack: /sneak 1d6/, colossusslayer: /colossus slayer/, divinesmite: /smite \d/, stunningstrike: /stunning strike/, openhandtechnique: /open hand/, uncannydodge: /uncanny dodge/,
+    var EXPECT_W = { soldiering_wheel: /WHEEL/, soldiering_wall: /DRIVEN BACK[\s\S]*IT HOLDS/, soldiering_pike: /vs AC \d+(?!\d| \+\d+ cover)/, sneakattack: /sneak 1d6/, colossusslayer: /colossus slayer/, divinesmite: /smite \d/, stunningstrike: /stunning strike/, openhandtechnique: /open hand/, uncannydodge: /uncanny dodge/,
       deflectmissiles: /deflects the missile/, evasion_monk: /evasion/, evasion_rogue: /evasion/, firstblood: /FIRST BLOOD/, answerback: /answers back/, downinthesand: /down in the sand/, rimedoubles: /breaks to rime/,
       rimestep: /Rime Step/, sculptspells: /sculpted/, potentcantrip: /potent/, elementalaffinity: /affinity/, discipleoflife: /CURE WOUNDS/, blessedhealer: /blessed healer/, destroyundead: /DESTROYED/,
       darkonesblessing: /Dark One's Blessing/, agonizingblast: /1d10\+\d/, pactoftheblade: /\(pact\)/, pactofthetome: /SACRED FLAME/, auraofprotection: /aura \+/, auraofdevotion: /proof against/,

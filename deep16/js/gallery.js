@@ -281,6 +281,7 @@
     keepback: { foe: 4, nfoe: 1, mate: null }, setagainst: { foe: 6, nfoe: 1, mate: null }, // (the feat Long Guard, ours, 10-30: the foe 20 ft and 30 ft off)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
+    soldiering_wheel: { mate: null, nfoe: 1 }, soldiering_wall: { mate: null, nfoe: 2 }, soldiering_pike: { mate: null, foe: 2, nfoe: 1 }, // (the feat Soldiering, ours, 11-20: the demo builds its own mates)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
     stabdebut: { mate: null }, openingnight: { mate: null }, // (Cutthroat, ours: a foe that hasn't had its turn)
     wicklore: { mate: null }, hoodedlamp: { mate: null }, pinthelight: { foe: 3, mate: null }, byherownlight: { mate: null }, // (the Lampwright, ours, 11-03: no friend beside the foe)
@@ -310,6 +311,7 @@
     holdthethread: { picks: { 4: { asi: { feat: 'holdthethread' } } } }, untempled: { picks: { 4: { asi: { feat: 'untempled' } } } }, suddendark: { picks: { 4: { asi: { feat: 'suddendark' } } } }, standin: { picks: { 4: { asi: { feat: 'standin' } } } }, // (the first batch's, at 4)
     keepback: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, setagainst: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, // (Long Guard at 4, a glaive in hand)
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
+    soldiering_wheel: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_wall: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_pike: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike' } }, // (Soldiering at 4)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
     pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] },
     // (the SRD's invocations of 11-20: the Armor wants no armour worn, the Blade its pact weapon at 5)
@@ -597,6 +599,26 @@
       thickpelt: function* (c) { D.features.wearBeast(B, c.hero, ['claws']); yield 30; yield* swing(c, null, 3, true); }, // (the claws on, the temporary HP, a blow with them)
       twoparts: function* (c) { D.features.wearBeast(B, c.hero, ['hide', 'claws']); yield 30; yield* swing(c, null, 3, true); }, // (hide and claws on one use, a blow with magical claws)
       setplays: swings(4),
+      // the feat Soldiering (ours, 11-20; js/features.js): WHEEL -- the fighter hurt to half, a trained friend beside, a hit, and the two trade squares; THE WALL -- a trained mate set
+      // beside the fighter, a foe before each, the next round THE PUSH with the dice pinned: the fighter's foe fails and is driven back, the mate's holds (the wall bends); THE PIKE
+      // RANK -- two trained mates set before the piker, the foe 10 ft off beyond them, the pike's blow with no cover
+      soldiering_wheel: function* (c) { var u = c.hero, t = c.foes[0], m = make('fighter:5', 'party', 'g-mate', u.x - 1, u.y, 4); m.soldiering = true; B.units.push(m); D.grid.setup(D.grid.map, B.units); u.hp = Math.floor(u.maxhp / 2); yield 30; yield* swing(c, t, 4, true); yield 40; },
+      soldiering_wall: function* (c) {
+        var u = c.hero, f0 = c.foes[0], f1 = c.foes[1], m = make('fighter:5', 'party', 'g-mate', u.x + 1, u.y, 4); m.soldiering = true; m.src = m.src || {}; m.src.equip = Object.assign({}, m.src.equip || {}, { shield: 'shield' });
+        u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); B.units.push(m); D.grid.setup(D.grid.map, B.units); f0.x = u.x; f0.y = u.y - 1; f1.x = m.x; f1.y = m.y - 1;
+        D.rules.startTurn(u); B.active = u; yield* fire(B.exec(u, { do: 'setshields' })); yield 40;
+        D.rules.startTurn(m); B.active = m; yield* fire(B.exec(m, { do: 'setshields' })); yield 40;
+        D.rules.startTurn(m); D.rules.startTurn(u); B.active = u; var d0 = D.d, k = 0; D.d = function (n) { return n === 20 ? (k++ ? 20 : 1) : d0(n); };
+        try { yield* fire(B.exec(u, { do: 'wallpush' })); } finally { D.d = d0; }
+        yield 60;
+      },
+      soldiering_pike: function* (c) {
+        var u = c.hero, t = c.foes[0], a = make('fighter:5', 'party', 'g-mate', u.x, u.y - 1, 4), b = make('fighter:5', 'party', 'g-mate2', u.x + 1, u.y - 1, 4);
+        [a, b].forEach(function (w) { w.soldiering = true; w.src = w.src || {}; w.src.equip = Object.assign({}, w.src.equip || {}, { shield: 'shield' }); B.units.push(w); });
+        t.x = u.x; t.y = u.y - 2; D.grid.setup(D.grid.map, B.units);
+        [a, b].forEach(function (w) { D.rules.startTurn(w); B.active = w; D.features.setShields(B, w); });
+        yield 40; yield* swing(c, t, 4, false); yield 40;
+      },
       callthemark: function* (c) { yield* fire(B.exec(c.hero, { do: 'callmark' })); yield 30; if (c.mate) { D.rules.startTurn(c.mate); B.active = c.mate; yield* fire(B.exec(c.mate, { do: 'attack', target: c.foes[0] })); B.active = c.hero; } },
       holdground: function* (c) { var u = c.hero; u.reaction = 1; yield 20; D.magic.push(B, c.foes[0], u, 10); yield 50; },
       uncannydodge: function* (c) { yield* foeStrike(c, 5, { until: struck }); },
