@@ -1003,16 +1003,18 @@
     var cnt = {}; list.forEach(function (k) { cnt[k] = (cnt[k] || 0) + 1; });
     var who = Object.keys(cnt).map(function (k) { var nm = (D.FOES[k].name || k).toLowerCase(); return cnt[k] > 1 ? cnt[k] + ' ' + nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e') + 's' : (/^[aeiou]/.test(nm) ? 'an ' : 'a ') + nm; }).join(', '); // ("An insect swarm", not "A insect swarm": the lanes desk's hygiene 11-16)
     R0.last = { why: why, who: who, kinds: list.slice(), at: [t.x, t.y], field: true }; R0.log.push(R0.last);
-    var simple = !D.simple || D.simple.on();
+    var simple = set && set.grid ? false : !D.simple || D.simple.on(); // (set.grid: a set fight on the grid alone -- Web Gulch's watches with the crew boss lent, js/gulch.js)
     D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
-    var a = yield { prompt: { who: t, title: 'ENCOUNTER', lines: R.wrap([(set && set.line) || ('{r}' + who.charAt(0).toUpperCase() + who.slice(1) + '{/}, out of the dark.')]),
-      opts: [{ label: 'FIGHT', value: 0 }].concat(D.simple ? [{ label: simple ? 'ON THE GRID' : 'SIMPLE', value: 1 }] : []) } };
+    var a = yield { prompt: { who: t, title: (set && set.title) || 'ENCOUNTER', lines: R.wrap([(set && set.line) || ('{r}' + who.charAt(0).toUpperCase() + who.slice(1) + '{/}, out of the dark.')]),
+      opts: [{ label: 'FIGHT', value: 0 }].concat(D.simple && !(set && set.grid) ? [{ label: simple ? 'ON THE GRID' : 'SIMPLE', value: 1 }] : []) } };
     if (a === 1) simple = !simple; // (the other way, for this fight alone -- the road's card, RULED 10-21, Griz: "yes")
     var F = M.fieldDef(R.def, list, simple, set, [t.x, t.y]);
+    if (set && set.dress) set.dress(F); // (a set fight's own additions to its field's fight: Web Gulch's crew boss lent, its victory's line -- js/gulch.js Gu.watchSet)
     R.party0.backTo = R.def.sub; R.party0.straightBack = true; // (the fight's last card: E back to the dens -- js/battle.js o.backTo)
     var watch = /[?&]watch\b/.test(R.q || ''); // (the test door's &watch: the four run by the class AI in there too, as on the floor)
     var fb = null, enter = function (b) {
       fb = b; if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+      if (set && set.enter) set.enter(b);
       if (F.roost) { var hurt0 = b.hurt; b.hurt = function (u, amt, type) { if (type === 'fire' && this.active && this.active.side === 'party' && amt > 0) this.firedRoost = true; return hurt0.apply(this, arguments); }; } // (fire dealt by the party under the roost: M.roostBroke)
     };
     // its play record in the house, as the road's fights keep theirs (js/record.js; the house lane's 10-19 note 6, "the floor's fights keep no play record")
@@ -1437,6 +1439,7 @@
   ];
   M.isoPlay = function (bt) {
     var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, bt.flags || {});
+    if (bt.pin) bt.pin(); // (a beat's own staging: Web Gulch's camp night, the second watch's fight and the crew boss hurt -- js/gulch.js, 11-20)
     (bt.inv || []).concat([['torch', 2]]).forEach(function (s) { H.add(rec.inv, s[0], s[1]); }); // (two torches, as the Wet's show gives: a dark floor)
     H.begin(rec, 0);
     var S = D.world.state && D.world.state(); if (bt.hour != null && S) S.t = Math.floor((S.t || 0) / 24) * 24 + bt.hour; // (THE WORLD's clock at the beat's hour: a clocked floor's hour is the house's -- M.hourNow)

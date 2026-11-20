@@ -10,7 +10,8 @@
        ettercap up a side gully near the south end (the grid's `ettercap` on its webbed map; Hessle's board pays the fangs), the two chests, the gulch's spider table on
        fields cut from the floor.
      4 THE NOON: 11 to 14 the cutters out at the webs and the boy drumming, the fights half as often ("the spiders sulk"); by night twice as often, as the Glowseep's.
-     5 A BED: none here -- the party sleeps on THE WORLD, or goes back up a mouth to camp.
+     5 A BED: none here -- the party sleeps on THE WORLD, or goes back up a mouth to camp. (REVERSED 11-16, Griz: "yes on the leans" -- the cutters' fire a camp with
+       its watch kept and the morning saved there: THE CUTTERS' FIRE A CAMP below, built 11-20)
    The floor is the seat's own (Gu.ROWS, 40 x 112, north up), laid along his paint's line: the Pit road down the bed from the fork's end, bending a little east as it
    goes south as his road does (the cut's paint is the 10-20 seed, `seeded.gulch1020`: mile hexes within 0.75 mi of the road, 350 ft under its banks). It rides the
    top levels' floors (js/mines.js M.FLOORS, `own` with its map; M.tick's clock by its rate, M.light by its phases) and THE WORLD's step (js/world.js W.onStep). */
@@ -80,12 +81,11 @@
     { id: 'gulchboss', look: 'worker', day: [9, 11], noon: [12, 25], night: [10, 10], dir: { day: 'right', noon: 'down', night: 'right' } }];
   Gu.KINDS = { drummer: 'commonerchild', ettercap8: 'ettercap', gulchboss: 'crewboss' }; // (the boy a child's figure; the ettercap its own, braiding till it is woken -- js/ui.js; the crew boss the SRD's thug in his own figure)
   // their costumes (js/counter.js C.GENERIC, the unnamed in the job's clothes: the figure folk<man>_<costume>_p1, the portrait pt_genman's row): the silk-cutter in `hired`
-  // (THE SILK-CUTTER's own costume waits on the dream list -- deep16-dream-polish.md, the art desk at its ceiling), the guard in `guard`; the crew boss his own figure, the
-  // generic man's `crewboss` row his portrait (js/counter.js C.FIG, C.VENDORS)
+  // (THE SILK-CUTTER's own costume waits on the dream list -- deep16-dream-polish.md, the art desk at its ceiling), the guard in `guard`; the crew boss his own figure by his
+  // kind (data/foes.js crewboss: crewboss_p1 by Gu.KINDS -- not a keeper's C.FIG, the drawn-round keepers' list), the generic man's `crewboss` row his portrait (C.VENDORS)
   (function () {
     var C = D.counter; if (!C || !C.GENERIC) return;
     C.GENERIC.silkcutter = ['man', 'hired']; C.GENERIC.gulchguard = ['man', 'guard'];
-    if (C.FIG) C.FIG.gulchboss = 'crewboss_p1';
     if (C.VENDORS) { C.VENDORS.silkcutter = C.VENDORS.silkcutter || { sheet: 'pt_genman', look: 'hired', wait: '' }; C.VENDORS.gulchguard = { sheet: 'pt_genman', look: 'guard', wait: '' }; C.VENDORS.gulchboss = { sheet: 'pt_genman', look: 'crewboss', wait: '' }; }
   })();
   Gu.phase = function (h) { return M.night(h) ? 'night' : h >= Gu.NOON[0] && h < Gu.NOON[1] ? 'noon' : 'day'; };
@@ -116,7 +116,7 @@
     if (flags['trig:snared']) rows[Gu.SNARE[1]] = rows[Gu.SNARE[1]].slice(0, Gu.SNARE[0]) + 'x' + rows[Gu.SNARE[1]].slice(Gu.SNARE[0] + 1); // (cut down: the silk left between the trees)
     var npcs = Gu.PEOPLE.map(function (p) { return { id: p.id, x: p[ph][0], y: p[ph][1], look: p.look, dir: p.dir[ph] }; });
     if (Gu.alive(flags)) npcs.push({ id: 'ettercap8', x: Gu.ETTERCAP[0], y: Gu.ETTERCAP[1], look: 'ettercap', dir: 'right' });
-    var trig = [];
+    var trig = [{ id: 'gulchfire', rect: [Gu.FIRE[0], Gu.FIRE[1], 1, 1], on: 'use', script: 'gulchFire' }]; // (the cutters' fire a camp: Gu.fire, 11-20)
     if (!flags['trig:snared']) trig.push({ id: 'snared', rect: [Gu.SNARE[0], Gu.SNARE[1], 1, 1], on: 'use', script: 'gulchSnared', once: true });
     if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: Gu.STRUNG.slice(), on: 'step', script: 'gulchEttercap' });
     return { id: 'gulch', name: 'Web Gulch', rows: rows, legend: Gu.LEGEND, music: 'dungeon', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: ph === 'night',
@@ -185,8 +185,133 @@
     yield* Gu.set(B, { fight: 'ettercap', trig: 'ettercap', title: 'THE STRUNG END', lines: [].concat(L('gulch.ettercap')), away: 'BACK AWAY', step: step,
       after: function* (B2) { var st2 = D.counter.state(B2); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); /* (and its braid, the Braided Cord: Ned's wand, 11-16 -- js/counter.js C.nedWand) */ M.relay(B2, null, true); B2.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; } });
   };
+  // ---------------------------------------------------------------- THE CUTTERS' FIRE A CAMP (RULED 11-16, Griz: "yes on the leans" -- a long rest at the cutters' fire, the
+  // 10-28 lean 5 reversed, the morning saved there -- then "What's the cost of rigging it special to still make the players do a watch and adding a male crewboss to fights
+  // that night?", and "DM hand-wavey text on the victory card about the drummer boy running to the crew boss with a healers kit if he falls, playing on screen behind victory
+  // card"; built 11-20 by the gulch seat). E at the fire: the crew boss's word, LONG REST, SHORT REST: AN HOUR, the wait, LEAVE (js/hours.js H16.restOffers -- the long rest
+  // greyed inside the 24 hours, H.longOpen). LONG REST is the party's night with the watch kept: who stands which of three watches (THE WORLD's own screen, js/house.js
+  // H.Watches, on the floor's four), each watch a roll on the gulch's table for its hour -- by night gulch_night -- and a fight come to the fire on the grid, the crew boss lent
+  // to the party (the fight's `allies`, js/battle.js); if he falls the drummer boy runs to him with a healer's kit behind the VICTORY panel, its DM line on it, and he is up
+  // by the morning (the later watches without him). Then the eight hours on the clock and the morning, saved there. The floor's watch runner (Gu.night) is the floor's own:
+  // THE WORLD's (H.runNight) is bound to its own scene and fights.
+  Gu.CAMP = {
+    restHours: 8,
+    watchP: { night: 1 / 3, day: 1 / 6 } // (a watch's chance of a fight: by night twice the day's, as the table's own count is -- the seat's numbers, standing for his overrule)
+  };
+  Gu.LINES.camp = {
+    fire: 'The crew boss shifts over on his log. "Our fire\'s yours. Our watch is yours too."',
+    short: 'An hour by the cutters\' fire. The guard keeps the gully; the boy keeps his drum quiet.',
+    down: 'The cutters turn in. The party takes the watches turn and turn about with the camp\'s guard, the crew boss up with whoever has the fire.',
+    quiet: 'The watch passes quiet: the fire, the gully, the silk ticking in the cold.',
+    sleep: 'The boy sleeps with his drum for a pillow.',
+    morning: 'Morning comes down the gulch. The cutters stir round their fire, and the crew boss is already up.',
+    bossUp: 'Morning comes down the gulch. The cutters stir round their fire. The crew boss is up by the morning, bandaged, sour about it, and back on his log.', // (in the morning's place when he fell in the night)
+    boy: 'The drummer boy is already running, a healer\'s kit banging at his hip. He drops beside the crew boss, gets the bandage on, and gets him breathing.' // (the DM's hand-wave: invented.json web-gulch-camp-night)
+  };
+  Gu.WATCH = ['FIRST', 'SECOND', 'THIRD'];
+  Gu.firePic = function () { var P = M.FIREPIC, m0 = P.moss; P.moss = []; try { return M.firePic.apply(this, arguments); } finally { P.moss = m0; } }; // (the seep's fire with no moss on the gravel)
+  Gu.fire = function* (B) {
+    var H6 = D.hours, R = D.roam, id = null;
+    yield* M.talk(B, 'gulchboss', function (sc) { return (function* () { var again = false; while (true) { var o = H6.restOffers({ hours: Gu.CAMP.restHours }), a = yield sc.ask([again ? H6.REST.again : Gu.LINES.camp.fire].concat(o.why ? [o.why] : []), o.opts); id = o.idOf(a); if (id === 'wait') { yield sc.say(H6.placeTill(B, Gu.CAMP.restHours)); again = true; continue; } if (id === 'short') yield sc.say([Gu.LINES.camp.short].concat(M.shortRestHere(B))); return id === 'long'; } })(); }, 'The cutters\' fire', Gu.firePic);
+    if (id === 'long') yield* Gu.night(B);
+  };
+  Gu.hero = function (u) { return u && u.side === 'party' && !!u.src && !u.ally && !u.guest && !u.familiar; };
+  Gu.watchRoll = function (k, nt) { return D.rand() < (nt ? Gu.CAMP.watchP.night : Gu.CAMP.watchP.day); }; // (a bench pins it)
+  // who stands which watch: THE WORLD's screen over the floor's four (js/house.js Watches: click a watch, up/down a hero, E begin, X back); the default split as THE WORLD's
+  Gu.watchAsk = function* (B, party) {
+    var H = D.house, asg = H.watchDefault(party); if (!H.Watches) return asg;
+    var w = Object.create(H.Watches.prototype); w.kind = 'housewatches'; w.opaque = false; w.party = party; w.asg = asg; w.i = 0; w.t = 0; w.res = null;
+    w.go = function (what) { if (D.top() === this) D.pop(); D.sfx(what === 'begin' ? 'confirm' : 'cancel'); this.res = what; };
+    D.push(w); while (!w.res) yield 1;
+    return w.res === 'begin' ? w.asg : null;
+  };
+  // a watch's fight: the field cut round the fire, on the grid, the crew boss beside the party unless he is down already tonight
+  Gu.watchSet = function (B, k, list, names, lit, night) {
+    var st = { boss: null, fb: null, fell: false };
+    st.set = { list: list, grid: true, gap: 'rule', title: 'THE ' + Gu.WATCH[k - 1] + ' WATCH',
+      line: '{r}Out of ' + lit + '{/}: ' + (names.length ? names.join(' and ') + ' on the watch, the rest up from their blankets.' : 'the rest up from their blankets.'),
+      enter: function (b) { st.fb = b; st.boss = b.units.filter(function (u) { return u.ally && u.kind === 'crewboss'; })[0] || null; if (st.boss && Gu.showBossHp) st.boss.hp = Gu.showBossHp; }, // (the show's crew boss comes to the fire hurt: Gu.showBossHp, the beat below)
+      dress: function (F) {
+        F.intro = 'In the ' + Gu.WATCH[k - 1].toLowerCase() + ' watch, out of ' + lit + ', at the cutters\' fire.'; F.won = 'THE WATCH HOLDS.';
+        if (!night.bossDown) { var at = Gu.besideEntry(); if (at) F.allies = [{ id: 'gulchboss', kind: 'crewboss', at: at, name: 'The crew boss' }]; }
+        F.onEnd = function (b, o, paid) {
+          var bs = st.boss; if (o !== 'won' || !bs || !(bs.hp <= 0 || bs.dead)) return paid;
+          st.fell = true; Gu.boyRuns(b, bs);
+          var p = paid.length ? paid.slice() : ['{y}Victory!{/}']; p.push('{g}' + Gu.LINES.camp.boy + '{/}'); return p;
+        };
+      } };
+    return st;
+  };
+  // a square beside the party's lineup on the field just cut (D.MAPS['mine-field']): the crew boss stands in it
+  Gu.besideEntry = function () {
+    var md = D.MAPS['mine-field']; if (!md) return null;
+    var open = function (x, y) { var r = md.rows[y]; return !!r && x >= 0 && x < r.length && '.,gr'.indexOf(r.charAt(x)) >= 0; }, used = {};
+    (md.entry || []).forEach(function (q) { used[q[0] + ',' + q[1]] = 1; });
+    for (var i = 0; i < (md.entry || []).length; i++) for (var d = 1; d <= 3; d++) {
+      var q = md.entry[i], c = [[q[0], q[1] + d], [q[0], q[1] - d], [q[0] + d, q[1]], [q[0] - d, q[1]]];
+      for (var j = 0; j < c.length; j++) if (open(c[j][0], c[j][1]) && !used[c[j][0] + ',' + c[j][1]]) return c[j];
+    }
+    return null;
+  };
+  // the drummer boy behind the VICTORY panel (his "playing on screen behind victory card"): in at the field's edge nearest the camp, a square a beat to beside the crew boss,
+  // kneeling there; no one's target, in no area (the gulch's people, below)
+  Gu.boyRuns = function (b, boss) {
+    var G = D.grid, kind = D.FOES.commonerchild ? 'commonerchild' : 'commoner', u = b.makeFoe({ id: 'drummer', kind: kind, at: [boss.x, boss.y], side: 'party', ally: true });
+    u.name = 'The drummer boy'; u.look = true; u.bystander = true; u.noArea = true; u.attacks = {}; u.hp = u.maxhp = 4; u.npc = 'drummer'; u.kit = true;
+    if (D.SHEETS && D.SHEETS.folkchild_p1) u.sheet = 'folkchild_p1';
+    var w = G.map && G.map.def ? G.map.def.rows[0].length : 16, h = G.map && G.map.def ? G.map.def.rows.length : 16, best = null;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) { if (x && y && x < w - 1 && y < h - 1) continue; if (!G.canStand(u, x, y)) continue; var dd = Math.hypot(x - boss.x, y - boss.y); if (dd >= 5 && (!best || dd < best[2])) best = [x, y, dd]; } // (the nearest rim square at least five off)
+    if (!best) best = [boss.x, Math.max(0, boss.y - 5), 0];
+    u.x = best[0]; u.y = best[1]; b.units.push(u);
+    var near = D.Battle.nearSq(u, [boss.x, boss.y]) || [boss.x, boss.y], path = D.Battle.route(u, near) || [], f = 0;
+    u.run = { path: path, to: near, done: false };
+    var amb0 = b.ambient;
+    b.ambient = function (bb) {
+      if (amb0) amb0(bb);
+      if (u.run.done || ++f % 8) return; // (a square a beat: js/battle.js STEP_FRAMES)
+      var q = u.run.path.shift();
+      if (!q) { u.run.done = true; u.anim = D.spr.anim(u.sheet, 'kneel') ? 'kneel' : 'idle'; u.facing = D.spr.facingFor(boss.x - u.x, boss.y - u.y); u.animT = bb.t; return; }
+      u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: 8, mode: null }; u.facing = D.spr.facingFor(q[0] - u.x, q[1] - u.y); u.anim = 'walk'; u.x = q[0]; u.y = q[1];
+    };
+    return u;
+  };
+  // the night: the watches, then the eight hours and the morning
+  Gu.night = function* (B) {
+    var R = D.roam, R0 = B.roam, party = R0.members.filter(function (u) { return Gu.hero(u) && u.hp > 0; });
+    var asg = yield* Gu.watchAsk(B, party); if (!asg) return;
+    var h0 = M.hourNow(R.q, B), wh = Gu.CAMP.restHours / Gu.WATCH.length, night = { bossDown: false, fights: [] };
+    R0.campNight = night; // (what the night brought, for a bench and the morning)
+    B.card(R.wrap([Gu.LINES.camp.down]), 220); yield 30;
+    for (var k = 1; k <= Gu.WATCH.length; k++) {
+      var hk = (h0 + (k - 0.5) * wh) % 24, nt = M.night(hk), ph = Gu.phase(hk), zone = ph === 'day' ? 'gulch' : 'gulch_' + ph;
+      var p = Gu.watchRoll(k, nt) ? R.pick(zone, R0.flags) : null;
+      if (!p || !p.list.length) continue;
+      var names = party.filter(function (u) { return asg[u.key || u.id] === k; }).map(function (u) { return u.name; }); // (keyed as H.watchDefault keys them)
+      var lit = nt ? 'the dark' : M.night((hk + 1) % 24) || M.night((hk + 23) % 24) ? 'the half-light' : 'the daylight';
+      var st = Gu.watchSet(B, k, p.list, names, lit, night), lent = !night.bossDown;
+      yield* M.fieldFight(B, 'watch', st.set);
+      night.fights.push({ k: k, zone: zone, list: p.list.slice(), lent: lent && !!(st.fb && st.boss), bossFell: st.fell, res: R0.pulled });
+      if (st.fell) night.bossDown = true;
+      if (R0.pulled !== 'won' && R0.pulled !== 'escaped') return; // (lost: the field's own end, as any floor fight's)
+    }
+    R0.clockFights = R0.fights; // (the watches' fights are inside the night's eight hours, not on top of them: M.tick)
+    B.card(R.wrap([Gu.LINES.camp.sleep]), 200); yield 30;
+    var house = !!(R.house() && D.house && D.house.playing), h1 = (h0 + Gu.CAMP.restHours) % 24, wk = M.wakeAt(h1), ln = null;
+    if (!house) R0.hour = h1;
+    var line = wk.title === 'MORNING' ? (night.bossDown ? Gu.LINES.camp.bossUp : Gu.LINES.camp.morning) : Gu.line(h1) + (night.bossDown ? ' The crew boss is up, bandaged, and sour about it.' : '');
+    var s0 = R.def.save; R.def.save = true; // (the morning saved at the fire -- RULED 11-16, his "yes on the leans"; the rest of the floor keeps its own rule: no SAVE out in the gully)
+    try { yield* D.house.sleepOnFloor(B, { line: line, title: wk.title, music: 'inn', hours: Gu.CAMP.restHours, before: function () { ln = M.lightNow(B); } }); }
+    finally { R.def.save = s0; }
+    night.done = true;
+    if (ln) { D.sfx('popup'); B.card(R.wrap([ln]), 300); yield 20; }
+  };
+  // the camp's night, shown (deep16/?isoshow&beat=gulchcamp&lvl=3 -- the eyes row's door): a level 3 party beside the cutters' fire at 22:00; E at the fire, LONG REST, the
+  // watches; the second watch brings a fight (the roll pinned), and the crew boss comes to it on 4 hit points, so a spider's bite or two drops him and the boy runs
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchcamp', label: 'THE CUTTERS\' FIRE A CAMP, by night', note: 'Beside the cutters\' fire at 22:00: three tents, the four keepers. E at the fire: LONG REST, the watches; the second watch\'s fight comes, the crew boss in it with you.', key: 'webgulch', at: [12, 11], hour: 22,
+    pin: function () { Gu.watchRoll = function (k) { return k === 2; }; Gu.showBossHp = 4; } });
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {
+    if (trig.script === 'gulchFire'){ yield* Gu.fire(B); return; }
     if (trig.script === 'gulchSnared') { yield* Gu.snared(B); return; }
     if (trig.script === 'gulchEttercap') { yield* Gu.ettercap(B, true); return; }
     yield* trigger0.apply(this, arguments);

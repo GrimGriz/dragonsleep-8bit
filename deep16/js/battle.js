@@ -605,6 +605,7 @@
     if (this.shakeT > 0) this.shakeT--;
     FX.update();
     this.units.forEach(function (u) { if (u.flash > 0) u.flash--; if (u.tween) { u.tween.t++; if (u.tween.t >= u.tween.dur) delete u.tween; } });
+    if (this.ambient) this.ambient(this); // (a beat played behind a card or the VICTORY panel, frame by frame: Web Gulch's drummer boy running to the crew boss -- js/gulch.js Gu.boyRuns, 11-20)
     this.flyCheck(); // (a flier aloft that can no longer stay up falls: flight at a height, 10-08)
     this.cards = this.cards.filter(function (c) { return this.t - c.t0 < c.life; }, this);
     if (D.magic.laughTick) { if (this.req && this.req.scene) D.magic.laughHold(this); else D.magic.laughTick(this); } // (a gnoll's fit and its laughs on their beats, js/grimoire.js M.LAUGH -- held still under a cutscene beat, the egg's: the fight pauses)
@@ -1233,6 +1234,7 @@
     // the victory on this last card, the XP and the spoils (RULED 10-29, Griz: "Leans stand" -- his "can we do victory (xp rewards, etc) on the fight screen instead of the
     // roam screen after return from the fight?"): a host that pays its fights pays here (o.payNow: a floor's, js/roam.js R.pullPay; the road's and the night's watches', js/house.js H.payFight)
     var paid = this.o.payNow ? [].concat(this.o.payNow(this, o) || []) : [];
+    if (F && F.onEnd) paid = [].concat(F.onEnd(this, o, paid) || paid); // (a fight's own lines on its VICTORY panel, and what plays behind it: Web Gulch's watches, the drummer boy -- js/gulch.js, 11-20)
     // (the pay in the VICTORY panel in the middle, closed with E -- 11-05, Griz: "still would prefer end of fight reward text as a popup in the middle rather than an additional
     // line at the top"; "4&5 yes" -- the card at the top the ending alone while it is up, then the way on under it; the pay in the log and the record as it was)
     var vic = Battle.victoryOf(paid);

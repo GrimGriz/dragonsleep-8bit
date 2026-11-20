@@ -2469,6 +2469,128 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // reaction goes off if triggered on someone else's turn"; "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
   // A READIED CONE SPRINGS AT ITS LENGTH (mode=glowseep1115; 11-15, Griz's NOTES from the Glowseep: "should the 3rd snake making his first move have triggered aurdins burning
   // hands ready?" -- battle.js readyTargets read a cone's reach as touch, 5 ft): a goblin crawls to 15 ft of a wizard holding Burning Hands -- sprung, burned; at 20 ft, held
+  // WEB GULCH'S CAMP (mode=gulchcamp1120; the gulch seat, on Griz's 11-16 ruling -- "total 3 tents with two more NPCs to sell secured workers camp", "make the players do a
+  // watch and adding a male crewboss to fights that night", "DM hand-wavey text on the victory card about the drummer boy running to the crew boss with a healers kit if he
+  // falls, playing on screen behind victory card"; js/gulch.js THE CUTTERS' FIRE A CAMP): 1. three tents and four keepers in their costumes, by day and by night; 2. no fight
+  // in the camp's rows at any hour; 3. the night at the fire on a test door -- LONG REST, the watches' screen, the second watch's fight on the grid with the crew boss lent,
+  // he falls, the boy's line on the VICTORY panel and the boy run to him behind it, the eight hours, the sheets whole, the crew boss up in the morning's line; 4. in the
+  // house: the night, the morning's SAVE asked at the fire, and the fire's LONG REST greyed after it (one in 24 hours)
+  if (get('mode', '') === 'gulchcamp1120') {
+    var repGC = { checks: [], errors: [] }, memGC = {}, stGGC = D.store.get, stSGC = D.store.set, muGC = D.music, apGC = window.DS.autoPicks, simGC = D.simple && D.simple.on, GuGC = D.gulch, RGC = D.roam, HGC = D.house, CGC = D.counter, WGC = D.world, MGC = D.mines;
+    function okGC(what, v) { repGC.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memGC[k] ? JSON.parse(memGC[k]) : null; }; D.store.set = function (k, v) { memGC[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { }; if (D.simple) D.simple.on = function () { return false; };
+    function floorGC(q) { var B = RGC.make(q); D.scenes.length = 0; D.push(B); for (var k = 0; k < 44; k++) D.update(); return B; }
+    function wakeGC() { var m = D.top(); if (!(m instanceof HGC.Morning)) return ''; var ls = [], ti = (m.o && m.o.title) || 'MORNING', ln = (m.o && m.o.line) || ''; for (var k = 0; k < 24 && !m.over; k++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { ls = m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } if (D.top() === m) D.pop(); return 'WOKE ' + ti + ': ' + ln + ' ' + ls.filter(Boolean).join(' '); }
+    // Gu.fire run on floor B to its end: the fire's screen answered from `ans` by label (a greyed one refused, then the last), the watches begun, each fight driven (the crew
+    // boss down first when `bossFalls`, then every foe), the boy's run stepped behind the panel, the morning woken; what was said, and each fight's VICTORY lines
+    function nightGC(B, ans, bossFalls, offs) {
+      var seen = [], q = ans.slice(), out = { seen: '', fights: [], boy: null }, finished = false, c0 = B.card, co0 = B.co;
+      B.card = function (ls) { seen.push('CARD: ' + [].concat(ls).join(' ')); return c0.apply(this, arguments); };
+      B.co = (function* () { yield* GuGC.fire(B); finished = true; if (co0) yield* co0; })();
+      try {
+        for (var k = 0; k < 40000 && !finished; k++) {
+          var s = D.top();
+          if (s instanceof CGC.Counter) { var w = s.wait || {}, bs = s.buttons();
+            if (w.ask) { seen = seen.concat(w.ask); var ol = w.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }), off = w.opts.map(function (o) { return !!(o && o.off); }), a0 = q.length ? q.shift() : ol.length - 1, i0 = typeof a0 === 'string' ? ol.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = ol.length - 1;
+              ol.forEach(function (l, i) { if (off[i] && offs) offs.push(l); }); seen.push('[' + ol.map(function (l, i) { return off[i] ? '(' + l + ')' : l; }).join(' | ') + '] > ' + ol[i0]);
+              var b0 = bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]; s.press(b0); if (b0 && b0.off) { seen.push('REFUSED'); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === ol.length - 1; })[0]); } }
+            else if (w.say) { seen = seen.concat(w.say); s.press(bs[0]); } else s.press(bs[0]);
+            if (s.done && D.top() === s) D.pop(); continue; }
+          if (s instanceof HGC.Morning) { seen.push(wakeGC()); continue; }
+          if (s && s.kind === 'housewatches') { seen.push('WATCHES: ' + JSON.stringify(s.asg)); s.go('begin'); continue; }
+          if (s && s !== B && s instanceof D.Battle) {
+            var b = s; if (b.baking) { b.baking = false; b.enter(); } for (var j = 0; j < 6; j++) D.update();
+            var boss = b.units.filter(function (u) { return u.ally && u.kind === 'crewboss'; })[0] || null, rec = { foes: b.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }), boss: !!boss, bossSide: boss && boss.side, title: b.fight && b.fight.intro };
+            var v, r, m = 0, paid = null, f0 = b.fight && b.fight.onEnd;
+            if (b.fight && f0) b.fight.onEnd = function (bb, o, p) { var x = f0.apply(this, arguments); paid = x; return x; };
+            while (b.co && m++ < 200000) { r = b.co.next(v); v = undefined; if (r.done) { b.co = null; break; } var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene || y.victory) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { if (boss && bossFalls) { boss.hp = 0; } b.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); v = { do: 'end' }; } }
+            rec.paid = window.DS.stripCodes((paid || []).join(' / '));
+            var boy = b.units.filter(function (u) { return u.npc === 'drummer' && u.run; })[0];
+            if (boy) { var start = [boy.x, boy.y]; for (var j2 = 0; j2 < 400 && !boy.run.done; j2++) b.ambient(b); rec.boy = { from: start, at: [boy.x, boy.y], done: boy.run.done, by: Math.max(Math.abs(boy.x - boss.x), Math.abs(boy.y - boss.y)), bystander: !!boy.bystander, sheet: boy.sheet }; }
+            out.fights.push(rec);
+            b.req = null; b.wait = 0; b.waitFx = false; for (var j3 = 0; j3 < 3; j3++) D.update(); D.input.press('a'); D.update(); D.input.release('a');
+            continue;
+          }
+          if (s !== B) { D.pop(); continue; }
+          if (B.req && B.req.prompt) { seen.push('? ' + B.req.prompt.title + ': ' + B.req.prompt.lines.join(' ')); B.answer(B.req.prompt.opts[0].value); continue; }
+          D.update();
+        }
+      } finally { B.card = c0; }
+      out.seen = window.DS.stripCodes(seen.join(' / ')); out.finished = finished; return out;
+    }
+    var roll0 = GuGC.watchRoll;
+    try {
+      // 1. three tents and four keepers
+      var tents = 0; GuGC.ROWS.slice(0, 15).forEach(function (r) { tents += (r.match(/k/g) || []).length; });
+      var byHour = [9, 12, 21].map(function (h) {
+        var B = floorGC('?roam=webgulch&hour=' + h + '&at=12,11'), ppl = {};
+        B.units.forEach(function (u) { if (typeof u.npc === 'string') ppl[u.npc] = { at: u.x + ',' + u.y, sheet: u.sheet }; });
+        return { h: h, ppl: ppl };
+      });
+      var want = { 9: { silkcutter: '11,9', drummer: '11,12', gulchguard: '16,11', gulchboss: '9,11' }, 12: { silkcutter: '13,27', drummer: '14,28', gulchguard: '15,26', gulchboss: '12,25' }, 21: { silkcutter: '11,11', drummer: '13,10', gulchguard: '12,14', gulchboss: '10,10' } };
+      byHour.forEach(function (o) {
+        var w = want[o.h], good = Object.keys(w).every(function (id) { return o.ppl[id] && o.ppl[id].at === w[id]; });
+        okGC('the camp at ' + o.h + ':00: ' + Object.keys(w).map(function (id) { return id + ' ' + (o.ppl[id] ? o.ppl[id].at + ' ' + o.ppl[id].sheet : 'none'); }).join('; '), good);
+      });
+      var p21 = byHour[2].ppl;
+      okGC('three tents at the camp (' + tents + '); the silk-cutter in the hired hand\'s clothes (' + (p21.silkcutter || {}).sheet + '), the guard in the guard\'s (' + (p21.gulchguard || {}).sheet + '), the crew boss his own figure (' + (p21.gulchboss || {}).sheet + ')',
+        tents === 3 && (p21.silkcutter || {}).sheet === 'folkman_hired_p1' && (p21.gulchguard || {}).sheet === 'folkman_guard_p1' && (p21.gulchboss || {}).sheet === 'crewboss_p1');
+      var Bw = floorGC('?roam=webgulch&hour=21&at=12,11'), wd = [];
+      ['gulchguard', 'gulchboss'].forEach(function (id) { var sc = null; var t0 = M8talk(Bw, id); wd.push(id + ': ' + t0); });
+      function M8talk(B, id) { var said = []; var g = MGC.SCENES[id]({ say: function (ls) { said = said.concat(ls); return 0; }, st: CGC.state(B) }, B); var st, n = 0; while (n++ < 20) { st = g.next(); if (st.done) break; } return said.join(' '); }
+      okGC('their words by night: ' + wd.join(' / '), /stand a watch like the rest of us/.test(wd.join(' ')) && /the boy hears it/.test(wd.join(' ')));
+      // 2. no fight in the camp's rows, by day, at noon or by night
+      var zoned = [];
+      [9, 12, 21].forEach(function (h) { var B = floorGC('?roam=webgulch&hour=' + h + '&at=12,11'); for (var y = 0; y < 15; y++) for (var x = 0; x < 40; x++) { var z = RGC.zoneAt(B, x, y); if (z) zoned.push(h + 'h ' + x + ',' + y + ' ' + z); } });
+      okGC('no fight in the camp\'s rows (0-14) at 9, 12 or 21: ' + (zoned.length ? zoned.slice(0, 4).join('; ') : 'none zoned'), !zoned.length);
+      // 3. the night on a test door: the second watch brings the fight
+      GuGC.watchRoll = function (k) { return k === 2; };
+      var B3 = floorGC('?roam=webgulch&hour=21&at=12,11'), hurt = B3.roam.members.filter(GuGC.hero)[0]; hurt.hp = 1; if (hurt.src) hurt.src.hp = 1;
+      var n3 = nightGC(B3, ['LONG REST: 8 HOURS'], true), cn = B3.roam.campNight || {}, f3 = n3.fights[0] || {};
+      okGC('the fire: "' + (n3.seen.match(/Our fire's yours[^/]*/) || [''])[0] + '"; LONG REST taken, the watches asked (' + /WATCHES: \{/.test(n3.seen) + ')', /Our watch is yours too/.test(n3.seen) && /LONG REST: 8 HOURS/.test(n3.seen) && /WATCHES: \{/.test(n3.seen));
+      okGC('three watches, one fight, in the second: ' + JSON.stringify((cn.fights || []).map(function (f) { return { k: f.k, zone: f.zone, list: f.list, lent: f.lent, fell: f.bossFell, res: f.res }; })), (cn.fights || []).length === 1 && cn.fights[0].k === 2 && cn.fights[0].zone === 'gulch_night' && cn.fights[0].res === 'won');
+      okGC('the fight on the grid with the crew boss lent (' + f3.boss + ', side ' + f3.bossSide + '): the foes ' + (f3.foes || []).join(',') + '; "' + f3.title + '"', f3.boss && f3.bossSide === 'party' && (f3.foes || []).length > 0 && /second watch/.test(f3.title || ''));
+      okGC('he fell: the VICTORY panel "' + (f3.paid || '').slice(-170) + '"', /drummer boy is already running, a healer's kit/.test(f3.paid || ''));
+      var by3 = f3.boy || {};
+      okGC('the boy run to him behind the panel: from ' + by3.from + ' to ' + by3.at + ' (' + by3.by + ' off, done ' + by3.done + ', no one\'s target ' + by3.bystander + ', ' + by3.sheet + ')', by3.done && by3.by <= 1 && by3.bystander && (by3.from || [])[0] + ',' + (by3.from || [])[1] !== (by3.at || [])[0] + ',' + (by3.at || [])[1]);
+      var woke = (n3.seen.match(/WOKE [^/]*/) || [''])[0];
+      okGC('the morning: hour ' + B3.roam.hour + ' (21 + 8), ' + hurt.name + ' ' + hurt.hp + '/' + hurt.maxhp + ', "' + woke.slice(0, 220) + '"', B3.roam.hour === 5 && hurt.hp === hurt.maxhp && /crew boss is up by the morning/.test(woke) && n3.finished && cn.done);
+      // 3b. a quiet night: no watch brings a fight, the crew boss never down
+      GuGC.watchRoll = function () { return false; };
+      var B3b = floorGC('?roam=webgulch&hour=21&at=12,11'), n3b = nightGC(B3b, ['LONG REST: 8 HOURS'], false), wk3b = (n3b.seen.match(/WOKE [^/]*/) || [''])[0];
+      okGC('a quiet night: no fight (' + n3b.fights.length + '), awake at ' + B3b.roam.hour + ', no word of the crew boss hurt ("' + wk3b.slice(0, 120) + '")', !n3b.fights.length && B3b.roam.hour === 5 && !/bandaged/.test(wk3b) && n3b.finished);
+      // 3c. SHORT REST: AN HOUR
+      var B3c = floorGC('?roam=webgulch&hour=21&at=12,11'), n3c = nightGC(B3c, ['SHORT REST: AN HOUR'], false);
+      okGC('SHORT REST: an hour on (' + B3c.roam.hour + '), no watches (' + !/WATCHES/.test(n3c.seen) + '): "' + (n3c.seen.match(/An hour by the cutters[^/]*/) || [''])[0].slice(0, 90) + '"', B3c.roam.hour === 22 && !/WATCHES/.test(n3c.seen) && /An hour by the cutters' fire/.test(n3c.seen));
+      // 4. in the house: the morning's save at the fire, then the fire's long rest greyed
+      var morn0 = HGC.morning, saves = [];
+      HGC.morning = function (o) { saves.push(!!(o && o.save)); return morn0.apply(this, arguments); };
+      try {
+        HGC.playing = false; HGC.cur = null; var rec4 = HGC.fresh('barley'); rec4.at = { town: 'webgulch', gate: 'north', sq: [12, 11], dir: null }; HGC.begin(rec4, 0);
+        var B4 = D.top(); if (B4 && B4.baking) { B4.baking = false; B4.enter(); } D.battle = B4; WGC.state().t = 21; for (var k4 = 0; k4 < 44; k4++) D.update();
+        var open4 = HGC.longOpen(8), n4 = nightGC(B4, ['LONG REST: 8 HOURS'], false), t4 = WGC.state().t, offs4 = [], n4b = nightGC(B4, ['LONG REST'], false, offs4);
+        okGC('in the house: the long rest open at 21:00 (' + open4 + '), the night slept to ' + t4 + ' (29), the morning\'s SAVE asked at the fire (' + saves.join(',') + '), the floor\'s own rule kept after (save ' + RGC.def.save + ')', open4 && t4 === 29 && saves[0] === true && RGC.def.save === false);
+        okGC('the fire again that morning: LONG REST greyed (' + offs4.join(',') + '), refused, no second night (the clock ' + WGC.state().t + ')', offs4.some(function (l) { return /^LONG REST/.test(l); }) && /REFUSED/.test(n4b.seen) && WGC.state().t === 29 && !/WATCHES/.test(n4b.seen));
+      } finally { HGC.morning = morn0; HGC.playing = false; HGC.cur = null; }
+      // 5. the eyes row's door, ?isoshow&beat=gulchcamp&lvl=3: the camp at night, a level 3 party by the fire, the second watch's fight pinned
+      var bt5 = (MGC.ISO_BEATS || []).filter(function (b) { return b.id === 'gulchcamp'; })[0];
+      if (!bt5) okGC('the show\'s beat gulchcamp', false);
+      else {
+        HGC.freshLvl = 3; D.scenes.length = 0; try { MGC.isoPlay(bt5); } finally { HGC.freshLvl = 0; }
+        var B5 = D.top(); if (B5 && B5.baking) { B5.baking = false; B5.enter(); } for (var k5 = 0; k5 < 44; k5++) D.update(); B5 = D.top();
+        var t5 = B5 && B5.roam && B5.roam.token, lv5 = HGC.cur && HGC.cur.party.map(function (h) { return h.lvl; }).join(',');
+        okGC('the show door: ' + (RGC.def && RGC.def.key) + ' at ' + (t5 && t5.x + ',' + t5.y) + ', ' + WGC.hour() + ':00 (' + (RGC.def && RGC.def.dark ? 'dark' : 'light') + '), the party at ' + lv5 + ', the second watch pinned ' + GuGC.watchRoll(2, true) + '/' + GuGC.watchRoll(1, true),
+          RGC.def.key === 'webgulch' && t5 && t5.x === 12 && t5.y === 11 && WGC.hour() === 22 && RGC.def.dark && /^3(,3)*$/.test(lv5) && GuGC.watchRoll(2, true) && !GuGC.watchRoll(1, true));
+        GuGC.showBossHp = 0; HGC.playing = false; HGC.cur = null;
+      }
+    } catch (eGC) { repGC.errors.push(String(eGC && eGC.stack || eGC).slice(0, 900)); }
+    GuGC && (GuGC.watchRoll = roll0); D.store.get = stGGC; D.store.set = stSGC; D.music = muGC; window.DS.autoPicks = apGC; if (D.simple && simGC) D.simple.on = simGC;
+    if (errs.length) repGC.errors = repGC.errors.concat(errs);
+    var preGC = document.createElement('pre'); preGC.id = 'out'; preGC.textContent = 'BENCH16 ' + JSON.stringify(repGC);
+    document.body.appendChild(preGC);
+    return;
+  }
   if (get('mode', '') === 'glowseep1115') {
     var repN = { checks: [], errors: [] };
     function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -11335,7 +11457,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       B7 = testI('?roam=webgulch&hour=9&at=16,24'); m7 = B7.map; var k8 = kindsI(m7), tr8 = m7.sq.filter(function (s) { return s.stands === 'a tree'; }).length, te8 = m7.sq.filter(function (s) { return s.stands === 'the tent'; });
       var fi8 = (D.looks.props(B7) || []).filter(function (o) { return o.depth === GI.FIRE[0] + GI.FIRE[1] + 0.5 && o.draw; }).length, bl8 = m7.props.filter(function (p) { return p.kind === 'block' && te8.indexOf(p.sq) >= 0; }).length;
       okI('the gulch\'s pieces: trees ' + (k8.tree || 0) + ' (cover "a tree" ' + tr8 + '), tents ' + (k8.tent || 0) + ' (a woodpile under them ' + bl8 + '), the cocoon ' + (k8.cocoon || 0) + ', webs and bones ' + (k8.decal || 0) + ', crates ' + (k8.block || 0) + '; the fire at ' + GI.FIRE + ' in the sort ' + fi8,
-        k8.tree === 11 && tr8 === 11 && k8.tent === 2 && te8.length === 2 && !bl8 && k8.cocoon === 1 && k8.decal === 177 && k8.block === 2 && fi8 === 1);
+        k8.tree === 11 && tr8 === 11 && k8.tent === 3 && te8.length === 3 && !bl8 /* (three since 11-20: the camp's third tent, RULED 11-16 -- mode=gulchcamp1120) */ && k8.cocoon === 1 && k8.decal === 177 && k8.block === 2 && fi8 === 1);
       // 9. THE SHOW'S GULCH: noon by the near webs (the cutter out at them), the camp by night (dark, the boy beside the fire, not in front of it on the screen)
       var sh9 = MI.isoShow('?isoshow&beat=gulchnoon'); D.scenes.length = 0; D.push(sh9); sh9.update(); var B9 = topI(), cu9 = B9 && B9.units.filter(function (u) { return u.npc === 'silkcutter'; })[0], h9 = RI.def.hour;
       HI.playing = false; HI.cur = null;
@@ -22140,7 +22262,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           !!s && s.portrait && s.anims.idle.frames === 6 && COSTG.every(function (c) { return s.anims[c] && s.anims[c].frames === 1; }));
       });
       var idsG = Object.keys(CG.GENERIC), badG = idsG.filter(function (id) { var v = CG.VENDORS[id], g = CG.GENERIC[id]; return !v || v.sheet !== 'pt_gen' + g[0] || (g[1] === 'idle' ? !!v.look : v.look !== g[1] || !D.SHEETS[v.sheet].anims[g[1]]) || !CG.takes(id) || v.wait !== ''; });
-      okG(idsG.length + ' unnamed on their person in costume, each to the counter\'s screen with no counter line (' + idsG.map(function (id) { return id + ' ' + CG.GENERIC[id].join('/'); }).join(', ') + ')' + (badG.length ? ' -- off: ' + badG.join(', ') : ''), idsG.length === 24 && !badG.length);
+      okG(idsG.length + ' unnamed on their person in costume, each to the counter\'s screen with no counter line (' + idsG.map(function (id) { return id + ' ' + CG.GENERIC[id].join('/'); }).join(', ') + ')' + (badG.length ? ' -- off: ' + badG.join(', ') : ''), idsG.length === 26 && !badG.length /* (26 since 11-20: Web Gulch's silk-cutter in hired and its guard, RULED 11-16 -- mode=gulchcamp1120) */);
       okG('the street\'s boy and girl keep their card (towns4, towns8 not taken)', !CG.takes('towns4') && !CG.takes('towns8'));
       HG.begin(HG.fresh(), 0); var BG = topG(), RG = BG.roam;
       var trG = (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === 'talk:towns1'; })[0], uG = BG.units.filter(function (u) { return u.npc === 'towns1'; })[0];
