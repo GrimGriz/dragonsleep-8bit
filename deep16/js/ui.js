@@ -1613,9 +1613,11 @@
   UI.drawReq =function (ctx, B, req) { if (req.prompt) prompt(ctx, B, req.prompt); if (req.entry) entry(ctx, B); if (req.scene) scene(ctx, B, req.scene); if (req.victory) victory(ctx, B, req.victory); }; // (the simple fight's: its boxes under them -- js/simple.js)
 
   // the far steps' marks (10-04 night): a diamond on every standing figure in the side's colour -- ours glow-blue, a guest or an ally moss, a foe red -- the active one ringed gold
+  UI.farMarks = function (ctx, B) { farMarks(ctx, B); }; // (for a bench: the marks a far step draws)
   function farMarks(ctx, B) {
     B.units.forEach(function (u) {
       if (!G.standing(u) || (u.riding && u.master) || u.object) return;
+      if (D.fog && D.fog.hides && D.fog.hides(B, u)) return; // (one on a square the fog hides gets no mark either: 11-20, his "the 'see icons at far away zoom' included the ettercap in fog of war")
       var p = unitPos(B, u), col = u.side === 'foe' ? R('red', 4) : u.side === 'party' && !u.guest ? R('glow', 2) : R('moss', 3);
       var dia = function (r, h) { ctx.beginPath(); ctx.moveTo(p.x, p.y - h); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + h); ctx.lineTo(p.x - r, p.y); ctx.closePath(); };
       ctx.fillStyle = R('outline', 0); dia(7, 5); ctx.fill();

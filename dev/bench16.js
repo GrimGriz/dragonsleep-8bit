@@ -2726,7 +2726,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       tok1.x = 20; tok1.y = 70; FogGL.see(B1); var seen1b = cntGL(B1.roam.fogSeen);
       okGL('walked on to 20,70: ' + seen1b + ' seen (more than ' + seen1 + '), the lad\'s square still seen ' + at1(23, 54) + ', now the strung end\'s mouth 12,87 ' + at1(12, 87), seen1b > seen1 && at1(23, 54) === 1);
       FogGL.MEM = {}; /* (a fresh party: the fog is kept across visits since 11-20, gulchfog1120) */ var B1n = floorGL('?roam=webgulch&hour=23&at=20,50'), f1n = FogGL.see(B1n), seen1n = cntGL(B1n.roam.fogSeen);
-      okGL('by night at 20,50 (dark ' + !!B1n.dark + '): ' + seen1n + ' seen, by the party\'s light and eyes (fewer than by day\'s ' + seen1 + ' or the same)', !!B1n.dark && seen1n > 0 && seen1n <= seen1);
+      okGL('by night at 20,50 (dark ' + !!B1n.dark + '): ' + seen1n + ' seen, by the party\'s light and eyes (the lit squares at any reach since 11-20, his light against the fog: gulchfog1120)', !!B1n.dark && seen1n > 0);
       var B1x = floorGL('?roam=webgulch&hour=10&at=20,50'); GuGL.TRY.fog = false; var off1 = !FogGL.on(B1x); GuGL.TRY.fog = true;
       okGL('&nofog\'s switch (Gu.TRY.fog false): the fog off ' + off1, off1);
       // 2. THE HOLLOW AND THE STEP
@@ -2885,6 +2885,17 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         viv.x = 20; viv.y = 70; B1e.roam.mode = 'walk'; B1e.roam.fogNow = null; Fog2.see(B1e); var walk1e = far1();
         B1e.roam.mode = 'fight'; B1e.roam.fogNow = null; Fog2.see(B1e); var fight1e = far1(); B1e.roam.mode = 'walk';
         okG2('a fight\'s eyes: ' + viv.name + ' at 20,70 apart from the token at 20,50 -- 20,72 seen on the walk ' + walk1e + ' (the token\'s eyes only), in a fight ' + fight1e + ' (every member\'s)', walk1e === 0 && fight1e === 1);
+        // 1c. LIGHT AGAINST THE FOG (11-20, his "is the fog thing completely undoing the lighting settings - I cast light on barley and detected no change"): at 19:15, his Light,
+        // the floor is not dark (dusk: no light pass, fog or none); by night nothing the party sees by its light and eyes is fogged (the day's 7-square cap had painted the
+        // dim ring past it black); and the far step's marks leave out a figure the fog hides ("the 'see icons at far away zoom' included the ettercap in fog of war")
+        Fog2.MEM = {}; var Bdk = floorG2('?roam=webgulch&hour=19.25&at=9,87'), dusk1c = !!Bdk.dark;
+        Fog2.MEM = {}; var Bnt = floorG2('?roam=webgulch&hour=23&at=20,50'), tN = Bnt.roam.token; tN.torch = { lit: true, kind: 'torch' }; Bnt.cache = null; Bnt.partyMap = null; Bnt.roam.fogNow = null;
+        var fN = Fog2.see(Bnt), pmN = D.light.partyMap(Bnt), missed = 0, far1c = 0;
+        for (var iN = 0; iN < pmN.v.length; iN++) { if (pmN.v[iN] !== 2 || !Bnt.map.sq[iN].open) continue; /* (the LIT squares the party sees) */ var xN = iN % Bnt.map.w, yN = (iN - xN) / Bnt.map.w; if (Math.hypot(xN - tN.x, yN - tN.y) > Fog2.DAY) far1c++; if (!fN.now[iN]) missed++; }
+        okG2('light against the fog: at 19:15 the floor dark ' + dusk1c + ' (dusk: no light drawn, fog or none); by night with a torch lit, ' + far1c + ' lit squares the party sees past 7, fogged ' + missed, dusk1c === false && far1c > 0 && missed === 0);
+        Fog2.MEM = {}; var Bfz = floorG2('?roam=webgulch&hour=10&at=20,50'), cnt1c = function () { var n = 0, cx = { beginPath: function () {}, moveTo: function () {}, lineTo: function () {}, closePath: function () {}, fill: function () { n++; }, stroke: function () {} }; D.ui.farMarks(cx, Bfz); return n; };
+        Gu2.TRY.fog = true; var marksOn = cnt1c(); Gu2.TRY.fog = false; var marksOff = cnt1c(); Gu2.TRY.fog = true;
+        okG2('the far step\'s marks: ' + marksOn / 2 + ' figures marked with the fog on, ' + marksOff / 2 + ' with it off (the ettercap hidden ' + Fog2.hides(Bfz, Bfz.units.filter(function (u) { return u.npc === 'ettercap8'; })[0]) + ')', marksOn < marksOff && Fog2.hides(Bfz, Bfz.units.filter(function (u) { return u.npc === 'ettercap8'; })[0]) === true);
         // 2. in a game: kept in the save, and back after a load
         H2.playing = false; H2.cur = null; var rec = H2.fresh('barley'); rec.at = { town: 'webgulch', gate: 'north', sq: [20, 50], dir: null }; H2.begin(rec, 0);
         var B3f = D.top(); if (B3f && B3f.baking) { B3f.baking = false; B3f.enter(); } for (var k3f = 0; k3f < 44; k3f++) D.update(); B3f = D.top(); D.battle = B3f; Fog2.see(B3f);

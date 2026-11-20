@@ -560,10 +560,14 @@
     if (R0.fogNow && R0.fogNow.k === k) return R0.fogNow;
     if (!R0.fogSeen || R0.fogSeen.length !== m.w * m.h) R0.fogSeen = Fog.recall(m.w * m.h);
     var now = new Uint8Array(m.w * m.h), pm = B.dark && D.light ? D.light.partyMap(B) : null, r = Fog.DAY;
+    // by night every LIT square the party has a line to, however far (a torch's or a Light's whole ring, the cutters' fire seen from down the gully: the light pass's own map,
+    // L.partyMap, 2) -- 11-20, his "is the fog thing completely undoing the lighting settings - I cast light on barley and detected no change": the fog had capped it at
+    // the day's 7 squares, painting a torch's or Light's dim ring (8) black past it. What darkvision alone sees in the dark (1) keeps the day's reach, Fog.DAY
+    if (pm) for (var ip = 0; ip < pm.v.length; ip++) { if (pm.v[ip] === 2 && m.sq[ip] && m.sq[ip].open) now[ip] = 1; }
     eyes.forEach(function (e) {
       for (var y = Math.max(0, e.y - r); y <= Math.min(m.h - 1, e.y + r); y++) for (var x = Math.max(0, e.x - r); x <= Math.min(m.w - 1, e.x + r); x++) {
         var i = y * m.w + x, s = m.sq[i]; if (!s || !s.open || now[i]) continue;
-        if (Math.hypot(x - e.x, y - e.y) <= r && (pm ? pm.v[i] > 0 : G.losPoint(e.x, e.y, x, y))) now[i] = 1; // (by night what the party sees, out to the day's reach at most)
+        if (Math.hypot(x - e.x, y - e.y) <= r && (pm ? pm.v[i] > 0 : G.losPoint(e.x, e.y, x, y))) now[i] = 1;
       }
       now[e.y * m.w + e.x] = 1;
     });
