@@ -2681,6 +2681,9 @@
       var rw = rn > 1 && D.spr.anim(att.sheet, rk + rn) ? rk + rn : rk;
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
       else if (rn > 1 && D.spr.anim(att.sheet, 'attack' + rn)) att.anim = 'attack' + rn; // (a sheet's attack2: the second blow of a turn where no row is named for the weapon -- Extra Attack, or the blow after an Action Surge: Barley's FlailOverhead, ART-75, 10-20)
+      // (THE PIKE RANK's thrust, 11-20 -- Soldiering, js/features.js: a trained piker's pike through a set shield wall, or its thrust when the wall pushes, plays the sheet's
+      // `pikerank` row where it has one -- the pike trooper's, trooperpike_p2: over the shoulders of the rank in front)
+      if (melee && D.spr.anim(att.sheet, 'pikerank') && D.features && D.features.pikeThrough && D.features.pikeThrough(att, atk) && ((o && o.pikeRank) || (G.dist(att, tgt) > 5 && G.los(att, tgt).wall))) att.anim = 'pikerank';
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
       if (att.surprise && this.round === 1 && melee && rn === 1 && Battle.caught(tgt, att) && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush'; // (on one it surprised: Battle.caught, 11-10)
       // (aloft, a blow's flying row where the sheet has one -- the wyvern's `airattack`, `airsting`: its ground rows with the legs cut off, 11-15, Griz at the parade:

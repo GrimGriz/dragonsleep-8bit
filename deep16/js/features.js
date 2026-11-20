@@ -1303,7 +1303,7 @@
       }
       p.reaction = 0;
       B.card(['  {y}' + p.name + '{/} thrusts past the wall  {g}(its reaction){/}'], 200);
-      yield* B.attack(p, t, p.weapon);
+      yield* B.attack(p, t, F.pikeOf(p), { pikeRank: true });
       yield 8;
     }
   };
