@@ -755,6 +755,7 @@
     // the fight above it, up a face (10-05, Griz, the Skylights benched: "bench party doesn't climb, even with a rope already up"): the brute's way up (ai.js ropeUp) -- a rope
     // hanging from up there, or its own thrown from the foot under the lip nearest the foe, or one out of the bucket first; the walk, below, is for a foe on its own level
     if (AI.ropeUp && (yield* AI.ropeUp(B, u, near))) return;
+    if ((D.features && D.features.wallSet && D.features.wallSet(u)) || (T && T.rankHeld)) return; // (a set shield wall, or a pike holding the rank behind it, keeps its square: no walk, no Dash -- the wall moves by MARCH. Soldiering, 11-20: the AI's round-1 wall dashed itself apart)
     var bd = TX.bonusDash(u); // (the bonus action's Dash, Expeditious Retreat's or the rogue's Cunning Action: taken before the action's, which may keep)
     var rm = G.reach(u, T.move + (T.action ? u.speed : 0) + (bd ? u.speed : 0));
     var e = AI.approach(u, near, rm, G.armOf(u));

@@ -1415,7 +1415,7 @@
     yield* B.exec(u, { do: 'move', x: to[0], y: to[1] });
     return spots.some(function (q) { return q[0] === u.x && q[1] === u.y; });
   }
-  function holdRank(u) { if (u.turn) u.turn.move = 0; }
+  function holdRank(u) { if (u.turn) { u.turn.move = 0; u.turn.rankHeld = true; } } // (rankHeld: tactics.js walks it nowhere, no Dash either -- 11-20)
   F.aiWall = function* (B, u) {
     if (mine(u) || !u.turn || u.dead || u.hp <= 0) return;
     if (F.pikeReady(u) && !F.bearsShield(u)) { // (a piker: to the rank)
