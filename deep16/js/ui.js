@@ -2685,7 +2685,7 @@
         var dR = G.range(u, w), rngd = B.tool === 'spell' && B.spell && B.spell.g ? !D.magic.touchRange(B.spell.g) && (B.spell.g.range || 5) > 5 : !!(u.weapon && u.weapon.ranged);
         var bits = [(rngd ? dR : d) + ' ft' + (dR !== d ? ' {g}(' + (rngd ? d + ' by squares' : dR + ' true') + '){/}' : '') + (!sp && B.canHit(u, w) ? (u.weapon && u.weapon.ranged ? ' {n}in range{/}' : ' {n}in reach{/}') : '')];
         if (!l.clear) bits.push('{o}no line{/}');
-        else if (l.cover && d > 5) bits.push('{c}half cover (+2): ' + l.why + '{/}');
+        else if (l.cover && d > 5) bits.push('{c}' + (l.cover >= 5 ? 'three-quarters cover (+5)' : 'half cover (+2)') + ': ' + l.why + '{/}'); // (+5: the shield wall's, 11-20)
         if (e.adv.length) bits.push('{n}adv: ' + e.adv.join(', ') + '{/}');
         if (e.dis.length) bits.push('{o}dis: ' + e.dis.join(', ') + '{/}');
         if (e.pen) bits.push('{o}' + e.penWhy + ' ' + e.pen + '{/}');

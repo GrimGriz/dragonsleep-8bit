@@ -1207,6 +1207,16 @@
     var who = B.units.filter(function (w) { return w !== s && !w.dead && w.hp > 0 && !w.riding && w.x === x && w.y === y; })[0] || null;
     return { x: x, y: y, who: who };
   };
+  // THE COVER BEHIND THE WALL (G.los asks it of each creature in a line): a joined member w, and of the two the line joins the one behind w (against the wall's facing) --
+  // 5 (three-quarters) in the first square behind, 2 (half) in the second; one larger than w, 2 in the first and none of the wall's past it. The one in front gets nothing
+  // of the wall's own (the ordinary half a creature in the line gives stays G.los's)
+  F.wallCover = function (w, a, b) {
+    if (!F.joined(w)) return 0;
+    var fc = w.conds.wall.face, h = [a, b].filter(function (u) { return u && (u.x - w.x) * fc[0] + (u.y - w.y) * fc[1] < 0; })[0];
+    if (!h) return 0;
+    var n = Math.max(Math.abs(h.x - w.x), Math.abs(h.y - w.y)), big = (h.size || 1) > (w.size || 1);
+    return n === 1 ? (big ? 2 : 5) : n === 2 && !big ? 2 : 0;
+  };
   F.canPush = function (B, u) { return !!(u && u.turn && u.turn.bonus > 0 && F.joined(u, B)); };
   F.wallPush = function* (B, u) {
     if (!F.canPush(B, u)) return;

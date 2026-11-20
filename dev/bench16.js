@@ -18033,6 +18033,52 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preSw);
     return;
   }
+  // THE COVER BEHIND THE WALL (mode=wallcover1120; Soldiering's, the leveling lane's 2026-11-20 sections -- RULED, Griz: "if we're still letting the shield wallers attack what's
+  // in front of them, reduce my cover to your model", "shooters yes"): a goblin out front shooting along a column at a friend behind two joined members -- three-quarters (5) in
+  // the first square behind, half (2) in the second, the wall's nothing past it (the ordinary half a creature in the line gives); both ways (the friend shooting out takes the
+  // same); a Large friend: half in the first; the wall broken (the mate gone): the ordinary half; the hit's AC reads it (the ring's words say three-quarters)
+  if (get('mode', '') === 'wallcover1120') {
+    var repWc = { checks: [], errors: [] }, FWc = D.features, RUWc = D.rules, Gw = D.grid;
+    function okWc(what, v) { repWc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runWc(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } }
+    // the wall f, m at (X, Y), (X+1, Y), facing up; the shooter goblin g at (X, Y-4); the friend c behind, moved down the column; a 2 x 9 block open
+    function mkWc() {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], c = ps[2], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      ps.forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = u.src.equip || {}; u.src.equip.shield = u.src.equip.shield || 'shield'; u.conds = {}; });
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; });
+      Gw.setup(B.map, []); var spot = null, W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30;
+      for (var y = 5; y < H - 4 && !spot; y++) for (var x = 1; x < W - 3 && !spot; x++) { var all = true; for (var yy = y - 4; yy <= y + 4 && all; yy++) for (var xx = x; xx <= x + 1 && all; xx++) all = Gw.canStand(f, xx, yy) && Math.abs(Gw.gzAt(f, xx, yy) - Gw.gzAt(f, x, y)) < 2; if (all) spot = [x, y]; }
+      var X = spot[0], Y = spot[1];
+      f.x = X; f.y = Y; m.x = X + 1; m.y = Y; c.x = X; c.y = Y + 1; gs[0].x = X; gs[0].y = Y - 4; gs[1].x = 1; gs[1].y = 1;
+      Gw.setup(B.map, B.units);
+      [f, m].forEach(function (u) { RUWc.startTurn(u); B.active = u; runWc(B.exec(u, { do: 'setshields' })); });
+      return { B: B, f: f, m: m, c: c, g: gs[0], X: X, Y: Y, ok: !!spot };
+    }
+    function put(h, u, x, y) { u.x = x; u.y = y; Gw.setup(h.B.map, h.B.units); }
+    try {
+      D.seed = 1120;
+      var h = mkWc(), faces = JSON.stringify(h.f.conds.wall && h.f.conds.wall.face);
+      var l1 = Gw.los(h.g, h.c); put(h, h.c, h.X, h.Y + 2); var l2 = Gw.los(h.g, h.c); put(h, h.c, h.X, h.Y + 3); var l3 = Gw.los(h.g, h.c);
+      okWc('the goblin shooting down the column (placed ' + h.ok + ', the wall faces ' + faces + ', joined ' + FWc.joined(h.f) + '): the first square behind ' + l1.cover + ' (' + l1.why + '), the second ' + l2.cover + ' (' + l2.why + '), the third ' + l3.cover + ' (' + l3.why + ')',
+        h.ok && FWc.joined(h.f) && l1.cover === 5 && /shield wall/.test(l1.why) && l2.cover === 2 && /shield wall/.test(l2.why) && l3.cover === 2 && !/shield wall/.test(l3.why));
+      put(h, h.c, h.X, h.Y + 1); var o1 = Gw.los(h.c, h.g); put(h, h.c, h.X, h.Y + 2); var o2 = Gw.los(h.c, h.g);
+      okWc('both ways, the friend shooting out: from the first square ' + o1.cover + ', from the second ' + o2.cover, o1.cover === 5 && o2.cover === 2);
+      // the hit's AC: the goblin's blow at the friend in the first square reads +5 (battle.js attack: RU.ac + cover)
+      put(h, h.c, h.X, h.Y + 1); var acC = RUWc.ac(h.c), seenAc = null, roll0 = D.d; D.d = function (n) { return n === 20 ? 10 : roll0(n); };
+      var n0 = (h.B.log || []).length; h.B.active = h.g; RUWc.startTurn(h.g); var wp = h.g.weapon; h.g.weapon = { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', ranged: true, range: [80, 320], reach: 5 };
+      runWc(h.B.exec(h.g, { do: 'attack', target: h.c })); D.d = roll0; h.g.weapon = wp;
+      var lg = (h.B.log || []).slice(n0).join(' / ').replace(/\{\/?[a-z]*\}/g, ''), mAc = lg.match(/vs AC (\d+) \+(\d+) cover/);
+      okWc('the goblin\'s arrow at the friend in the first square: the friend\'s AC ' + acC + ', the roll read against ' + (mAc ? mAc[1] + ' +' + mAc[2] : '?') + ' ("' + (lg.match(/d20[^/]*/) || [''])[0].slice(0, 120) + '")', mAc && +mAc[1] === acC && +mAc[2] === 5);
+      // a Large friend in the first square: half; the mate gone (the wall broken): the ordinary half
+      h.c.size = 2; put(h, h.c, h.X, h.Y + 1); var lb = Gw.los(h.g, h.c); h.c.size = 1;
+      put(h, h.c, h.X, h.Y + 1); delete h.m.conds.wall; var lu = Gw.los(h.g, h.c);
+      okWc('a Large friend in the first square ' + lb.cover + ' (' + lb.why + '); the mate out of the wall, the first square ' + lu.cover + ' (' + lu.why + ')', lb.cover === 2 && /shield wall/.test(lb.why) && lu.cover === 2 && !/shield wall/.test(lu.why));
+    } catch (e) { repWc.errors.push(String(e && e.stack || e)); }
+    var preWc = document.createElement('pre'); preWc.id = 'out'; preWc.textContent = 'BENCH16 ' + JSON.stringify(repWc);
+    document.body.appendChild(preWc);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;

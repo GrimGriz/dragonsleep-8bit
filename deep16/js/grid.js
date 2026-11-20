@@ -431,14 +431,18 @@
     };
     return one(a, pa, b, pb) || one(b, pb, a, pa);
   }
-  // creature to creature: { clear, cover (0 or 2), why } -- the best line over both footprints
+  // creature to creature: { clear, cover (0, 2 or 5), why, wall } -- the best line over both footprints. 5, three-quarters: the shield wall's (Soldiering, ours, 11-20 --
+  // RULED, Griz: "if we're still letting the shield wallers attack what's in front of them, reduce my cover to your model" and "shooters yes"): a line that crosses a joined
+  // member's square gives three-quarters to the one in the first square behind that member and half in the second, both ways (the shooter behind the wall takes the same);
+  // one larger than the wall's member, half in the first and none of the wall's past it (js/features.js F.wallCover). `wall`: the cover is the wall's, and nothing else's
+  // stands in that line but its members (the pike rank looks through it: battle.js)
   G.los = function (a, b, ax, ay, hide) { // (hide: b is hiding -- a creature in the line is cover only if it is a size larger than b, SRD 5.1; 10-04)
     var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' }, tl = G.tall(), zOf = function (u, p) { return u.hang && G.hanging && G.hanging(u) && p[0] === u.x && p[1] === u.y ? u.hang.z : u.fz != null ? Math.max(u.fz, G.map.gz(p[0], p[1])) : G.map.gz(p[0], p[1]); };
     fa.forEach(function (pa) {
       fb.forEach(function (pb) {
         var par = parapet(a, pa, b, pb); // (one at the lip, one clinging to the face under it: the lip is a low wall between them, half cover -- not the wall the floor test makes of it)
         if (tl && !par && G.overFloor(pa[0], pa[1], zOf(a, pa) + G.eyeZ(a), pb[0], pb[1], zOf(b, pb) + G.eyeZ(b))) return; // (a floor above the line: height is a wall)
-        var L = G.line(pa[0], pa[1], pb[0], pb[1]), cover = par ? 2 : 0, why = par ? 'the parapet' : '', clear = true;
+        var L = G.line(pa[0], pa[1], pb[0], pb[1]), cover = par ? 2 : 0, why = par ? 'the parapet' : '', clear = true, wallC = 0, other = par;
         for (var i = 0; i < L.length; i++) {
           var x = L[i][0], y = L[i][1];
           if (x === pa[0] && y === pa[1]) continue;
@@ -448,11 +452,14 @@
           var inB = x >= b.x && y >= b.y && x < b.x + (b.size || 1) && y < b.y + (b.size || 1);
           if (inA || inB) continue;
           var wl = G.wallAt && G.wallAt(x, y); if (wl && wl.sight) { clear = false; break; } // (a wall of fire, thorns or stone: js/walls.js)
-          if (s.pillar) { cover = 2; why = s.stands || 'a stalagmite'; }
+          if (s.pillar) { cover = 2; why = s.stands || 'a stalagmite'; other = true; }
           var w = G.occupant(x, y);
+          var wc = w && w !== a && w !== b && !hide && D.features && D.features.wallCover ? D.features.wallCover(w, a, b) : 0; // (the shield wall's: Soldiering, 11-20)
+          if (wc > wallC) { wallC = wc; if (wc > cover) { cover = wc; why = w.name + '\'s shield wall'; } }
+          else if (w && w !== a && w !== b && !(D.features && D.features.joined && D.features.joined(w))) other = true;
           if (w && w !== a && w !== b && cover < 2 && (!hide || (w.size || 1) > (b.size || 1))) { cover = 2; why = w.name; }
         }
-        if (clear && (!best.clear || cover < best.cover)) best = { clear: true, cover: cover, why: why };
+        if (clear && (!best.clear || cover < best.cover)) best = { clear: true, cover: cover, why: why, wall: wallC > 0 && !other };
       });
     });
     if (!best.clear) best.cover = 0;
