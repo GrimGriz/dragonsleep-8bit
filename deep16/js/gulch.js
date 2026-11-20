@@ -184,7 +184,7 @@
   // (Gu.TRY.lad false; a door's &ladgrid) until he has seen this one
   Gu.TRY = { lad: !/[?&]ladgrid\b/.test(String(window.location && window.location.search)), fog: !/[?&]nofog\b/.test(String(window.location && window.location.search)) };
   Gu.LAD = {
-    rect: [21, 52, 5, 5], // (the hollow's mouth round him, off the road's side: a step in is reaching him -- the road itself, x 19-20, never)
+    rect: [23, 51, 5, 7], // (his column and the hollow behind him: a step in is reaching him -- never the road, x 19-20, nor its shoulder, x 21-22, where a walk down the gully may step: the inn's walkthrough benches, walk1113 and walkbarn1113, crossed it on 11-20)
     foes: [['wolfspider', 27, 50], ['giantspider', 26, 52], ['wolfspider', 28, 56]], // (the grid fight's three, 6 to 9 squares off the party as its squares are there: data/fights.js snared)
     webDC: 11, // (the grid fight's: data/maps.js gulch, the strung end's silk)
     webBox: [18, 47, 13, 14] // (the silk counted as the fight's hazard: the floor's own webFloor squares in this box)

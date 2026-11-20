@@ -2655,7 +2655,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 2. THE HOLLOW AND THE STEP
       var B2 = floorGL('?roam=webgulch&hour=10&at=20,50'), tr2 = ((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).filter(function (t) { return /^snared/.test(t.id); }).map(function (t) { return t.id + ' ' + t.on + ' ' + t.rect.join(','); });
       var hollow = [[27, 50], [26, 52], [27, 53], [28, 56]].map(function (q) { var s = B2.map.at(q[0], q[1]); return q.join(',') + (s && s.walk ? ' walk' : ' rock'); });
-      okGL('the hollow behind him open (' + hollow.join('; ') + '); his triggers: ' + tr2.join('; '), hollow.every(function (h) { return / walk$/.test(h); }) && tr2.length === 2 && tr2.some(function (t) { return /^snaredstep step 21,52,5,5$/.test(t); }));
+      okGL('the hollow behind him open (' + hollow.join('; ') + '); his triggers: ' + tr2.join('; '), hollow.every(function (h) { return / walk$/.test(h); }) && tr2.length === 2 && tr2.some(function (t) { return /^snaredstep step 23,51,5,7$/.test(t); }));
       // 3. FIGHT, on the gully
       var F3 = D.fight('snared'), grid3 = F3.foes.map(function (f) { return f.kind; }).sort(), entry3 = (D.MAPS[F3.map] || {}).entry || [], gridGap = F3.foes.map(function (f) { return Math.min.apply(null, entry3.map(function (e) { return Math.max(Math.abs(e[0] - f.at[0]), Math.abs(e[1] - f.at[1])); })); });
       var B3 = floorGL('?roam=webgulch&hour=10&at=21,54'), sv3 = D.counter.state(B3).silver(), w3 = B3.webs, r3 = runGL(B3, GuGL.snared(B3, true), ['FIGHT']), fg = r3.fight || {};
