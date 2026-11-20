@@ -53,8 +53,8 @@
     '#########.....t"x...,,...x....x.########', '##########.xx..""...,,.......x..########', '###########..""."...,,.......b...#######', '##########...""".x..,,""..x..x..########',
     '###########x........,,"".t...xx..#######', '################.....,,".....x...#######', '################.....,,"...x....########', '################.....,,......x""########',
     '################.....,,..x..".."########', '#####.x.x.######x.x..,,.....""xx########', '####.x.xxxx#####x.x..,,...x."..#########', '###x.xxxx.xx####.....,,.....x"x#########',
-    '##.xbxx.x.xx.###.....,,..x.....#########', '##.xx....x.x.###.....,,........#########', '##x.......x......""..,,.......x#########', '##xx........b..."x""..,,......##########',
-    '##..x.x.x........"x"..,,.......#########', '##xxxbxx.x.x.###"""...,,.......#########', '###.xxx..bxx####""....,,"""....#########', '####x..x..x#####......,,"."...##########',
+    '##.xbxx.x.xx.###.....,,..x.....#########', '##.xx....x.x.###.....,,........#########', '##x.......x.x....""..,,.......x#########', '##xx........bx.."x""..,,......##########',
+    '##..x.x.x...####."x"..,,.......#########', '##xxxbxx.x.x.###"""...,,.......#########', '###.xxx..bxx####""....,,"""....#########', '####x..x..x#####......,,"."...##########',
     '#####xx.x.#######.....,,""....##########', '################...x..,,""....##########', '#################.....,,"..x...#########', '#################..x..,,......##########',
     '##################....,,....x.##########', '#################.....,,...xx..#########', '##################....,,......##########', '#################.....,,......##########',
     '##################....,,......##########', '##################.".",,.......#########', '#################."."",,.......#########', '#################."..",,.......#########',
@@ -115,11 +115,12 @@
     flags = flags || {}; var ph = Gu.phase(hour), rows = Gu.ROWS.slice();
     if (flags['trig:snared']) rows[Gu.SNARE[1]] = rows[Gu.SNARE[1]].slice(0, Gu.SNARE[0]) + 'x' + rows[Gu.SNARE[1]].slice(Gu.SNARE[0] + 1); // (cut down: the silk left between the trees)
     var npcs = Gu.PEOPLE.map(function (p) { return { id: p.id, x: p[ph][0], y: p[ph][1], look: p.look, dir: p.dir[ph] }; });
-    if (Gu.alive(flags)) npcs.push({ id: 'ettercap8', x: Gu.ETTERCAP[0], y: Gu.ETTERCAP[1], look: 'ettercap', dir: 'right' });
+    var ec = Gu.TRY && Gu.TRY.lair ? Gu.LAIR.seat : Gu.ETTERCAP; // (in its lair it braids at the back: the try of 11-20)
+    if (Gu.alive(flags)) npcs.push({ id: 'ettercap8', x: ec[0], y: ec[1], look: 'ettercap', dir: 'right' });
     var trig = [{ id: 'gulchfire', rect: [Gu.FIRE[0], Gu.FIRE[1], 1, 1], on: 'use', script: 'gulchFire' }]; // (the cutters' fire a camp: Gu.fire, 11-20)
     if (!flags['trig:snared']) trig.push({ id: 'snared', rect: [Gu.SNARE[0], Gu.SNARE[1], 1, 1], on: 'use', script: 'gulchSnared', once: true });
     if (!flags['trig:snared'] && Gu.TRY && Gu.TRY.lad) trig.push({ id: 'snaredstep', rect: Gu.LAD.rect.slice(), on: 'step', script: 'gulchSnared' }); // (the try of 11-20: a step into his hollow is reaching him)
-    if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: Gu.STRUNG.slice(), on: 'step', script: 'gulchEttercap' });
+    if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: (Gu.TRY && Gu.TRY.lair ? Gu.LAIR.rect : Gu.STRUNG).slice(), on: 'step', script: 'gulchEttercap' }); // (in the try, its lair's neck)
     return { id: 'gulch', name: 'Web Gulch', rows: rows, legend: Gu.LEGEND, music: 'dungeon', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: ph === 'night',
       lights: [{ id: 'gulchfire', kind: 'map', x: Gu.FIRE[0], y: Gu.FIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }],
       npcs: npcs, triggers: trig, zones: [{ zone: ph === 'day' ? 'gulch' : 'gulch_' + ph, rect: Gu.ZONE.slice() }], chests: Gu.CHESTS.map(function (c) { return Object.assign({}, c); }) };
@@ -195,34 +196,34 @@
     for (var y = bx[1]; y < bx[1] + bx[3]; y++) for (var x = bx[0]; x < bx[0] + bx[2]; x++) { var r = rows[y]; if (r && r.charAt(x) === 'x') out.push([x, y]); }
     return out;
   };
+  // a set fight's foes seated on their own squares after the spill (the encounter first set them round its spot): all lifted off the floor, then each seated -- one could
+  // stand on another's square (a giant spider's two by two) and be left beside the party, the desk's merged runs of 11-20 -- its fallback a ring search nearest its square,
+  // never nearer the party than minGap. Returns where the fight opens (read before initiative: a wolf spider that wins it is at the party by the first hero's turn)
+  Gu.seatOn = function (B2, spec, minGap) {
+    var G = D.grid, t = B2.roam.token, used = [], mine = [], fs = B2.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.roamAside && /^roam/.test(String(u.id)); });
+    var home = {}; fs.forEach(function (u) { home[u.id] = [u.x, u.y]; u.x = -99; u.y = -99; });
+    var ours = B2.units.filter(function (w) { return w.side === 'party' && !w.look && G.standing(w) && w.x >= 0; }), gapOf = function (x, y) { return Math.min.apply(null, ours.map(function (o) { return Math.max(Math.abs(o.x - x), Math.abs(o.y - y)); }).concat([99])); };
+    var seat = function (u, to) {
+      if (G.canStand(u, to[0], to[1]) && gapOf(to[0], to[1]) >= minGap) return to;
+      for (var r = 1; r <= 6; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; var x = to[0] + dx, y = to[1] + dy; if (G.canStand(u, x, y) && gapOf(x, y) >= minGap) return [x, y]; }
+      return null;
+    };
+    spec.forEach(function (f) { var u = fs.filter(function (w) { return w.kind === f[0] && used.indexOf(w) < 0; })[0]; if (!u) return; used.push(u); var sq = seat(u, [f[1], f[2]]) || home[u.id]; u.x = sq[0]; u.y = sq[1]; u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); mine.push(u); });
+    fs.forEach(function (u) { if (used.indexOf(u) < 0 && u.x < 0) { u.x = home[u.id][0]; u.y = home[u.id][1]; } }); // (any not in the list back where it was)
+    G.setup(G.map, B2.units);
+    var gs = mine.map(function (u) { return gapOf(u.x, u.y); });
+    return { foes: mine.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }), kinds: mine.map(function (u) { return u.kind; }).sort(), gap: Math.min.apply(null, gs), far: Math.max.apply(null, gs) };
+  };
   Gu.snaredInPlace = function* (B, step) {
     var R = D.roam, R0 = B.roam, t = R0.token, G = D.grid, F0 = D.fight && D.fight('snared');
     D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
     var a = yield { prompt: { who: t, title: 'WEB GULCH', lines: R.wrap([].concat(L('gulch.snared'))), opts: [{ label: 'FIGHT', value: 0 }, { label: 'LEAVE IT', value: 1 }] } };
     if (a !== 0) { if (step) M.stepBack(B); return; }
-    var w0 = B.webs, mine = [];
+    var w0 = B.webs;
     B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.ladWebs(B), dc: Gu.LAD.webDC, ground: true }]);
     var set = { list: Gu.LAD.foes.map(function (f) { return f[0]; }), at: Gu.SNARE.slice(), how: 'out of the silk behind him', flag: 'trig:snared', trig: ['snared', 'snaredstep'], // (both spent at the win: the party gathers inside the hollow after, and its step must not ask again)
       line: (F0 && F0.intro) || 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
-      onSpill: function (B2) { // (the three on their squares behind him, as the grid fight seats its own: the encounter set them round his square first)
-        var fs = B2.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.roamAside && /^roam/.test(String(u.id)); }), used = [];
-        // (all three lifted off the floor first, then each seated: where the encounter had set them round his square, one could still stand on another's -- the giant's
-        // two by two -- and be left one square from the party; the desk's merged runs, 11-20, three in four. Its fallback a ring search of the floor's own, nearest to
-        // its square and never nearer the party than Gu.LAD.minGap)
-        var home = {}; fs.forEach(function (u) { home[u.id] = [u.x, u.y]; u.x = -99; u.y = -99; });
-        var ours = B2.units.filter(function (w) { return w.side === 'party' && !w.look && G.standing(w) && w.x >= 0; }), gapOf = function (x, y) { return Math.min.apply(null, ours.map(function (o) { return Math.max(Math.abs(o.x - x), Math.abs(o.y - y)); }).concat([99])); };
-        var seat = function (u, to) {
-          if (G.canStand(u, to[0], to[1]) && gapOf(to[0], to[1]) >= Gu.LAD.minGap) return to;
-          for (var r = 1; r <= 6; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; var x = to[0] + dx, y = to[1] + dy; if (G.canStand(u, x, y) && gapOf(x, y) >= Gu.LAD.minGap) return [x, y]; }
-          return null;
-        };
-        Gu.LAD.foes.forEach(function (f) { var u = fs.filter(function (w) { return w.kind === f[0] && used.indexOf(w) < 0; })[0]; if (!u) return; used.push(u); var sq = seat(u, [f[1], f[2]]) || home[u.id]; u.x = sq[0]; u.y = sq[1]; u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); mine.push(u); });
-        fs.forEach(function (u) { if (used.indexOf(u) < 0 && u.x < 0) { u.x = home[u.id][0]; u.y = home[u.id][1]; } }); // (any not in the list back where it was)
-        G.setup(G.map, B2.units);
-        // (where the fight opens, kept for a bench: read before initiative -- a wolf spider that wins it is at the party before the first hero's turn, 40 ft a move)
-        var gs = mine.map(function (u) { return gapOf(u.x, u.y); });
-        set.opening = { foes: mine.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }), kinds: mine.map(function (u) { return u.kind; }).sort(), gap: Math.min.apply(null, gs), far: Math.max.apply(null, gs) };
-      } };
+      onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAD.foes, Gu.LAD.minGap); } }; // (the three on their squares behind him, as the grid fight seats its own)
     Gu.ladLast = set;
     try { yield* M.inPlace(B, 'snared', set); }
     finally { B.webs = w0 || []; } // (the hollow's silk the fight's alone: on the walk the floor's webbing is a look, as it was)
@@ -235,9 +236,46 @@
     yield* Gu.set(B, { fight: 'snared', trig: 'snared', title: 'WEB GULCH', lines: [].concat(L('gulch.snared')), away: 'LEAVE IT',
       after: function* (B2) { D.counter.state(B2).silver(12); D.sfx('coin'); M.relay(B2); B2.card(D.roam.wrap([].concat(L('gulch.snaredFree'), [L('g.foundSilver', { n: 12 })])), 300); yield 30; } });
   };
+  // THE BRAIDING ETTERCAP IN ITS LAIR ON THE GULLY (a TRY, 11-20, the gulch seat -- Griz: "2 - meanwhile, given gully roam present - play around with the shaping of the ettercap's
+  // lair and party placement (entrance) - and match the roam to your new shape rather than dictated by first grid fight"): the strung end shaped as a lair -- a round
+  // chamber off the west bank (x 2-12, rows 81-92) reached by one neck two squares wide (x 13-15, rows 86-87; row 88 closed), the silk strung across the neck. The party
+  // comes in by the neck: a step into it and the ettercap stops braiding (FIGHT or BACK AWAY), the fight on the gully's own squares (js/mines.js M.inPlace) -- the party
+  // bunched in the neck, the ettercap braiding at the chamber's back wall, the giant spider up in the silk to the north, a wolf spider each side of the way in to flank them
+  // as they come; the chamber's silk at the ettercap's DC 11. The ettercap on the floor sits at the back now, where it fights from. Kept from the first grid fight: its
+  // four (the story's half again), its DC 11, its words and its spoils (the fangs, the Braided Cord); dropped: its map -- the 38 strung squares, the ledge and the slab.
+  // The field's story fight behind &lairgrid (Gu.TRY.lair false) until he has seen this one
+  Gu.TRY.lair = !/[?&]lairgrid\b/.test(String(window.location && window.location.search));
+  Gu.LAIR = {
+    rect: [13, 86, 3, 2],  // (the neck: a step in is the ettercap seeing you)
+    seat: [4, 86],         // (where it braids, at the chamber's back)
+    foes: [['ettercap', 4, 86], ['giantspider', 5, 82], ['wolfspider', 9, 84], ['wolfspider', 7, 90]],
+    webDC: 11,             // (SRD 5.1 Ettercap, Web: DC 11 Strength -- the first grid fight's, his 09-30 "11")
+    webBox: [2, 81, 14, 12], // (the chamber and its neck: their silk the fight's hazard)
+    minGap: 4
+  };
+  Gu.lairInPlace = function* (B, step) {
+    var R = D.roam, R0 = B.roam, t = R0.token, f = R0.flags, F0 = D.fight && D.fight('ettercap'); if (!Gu.alive(f)) return;
+    D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
+    var a = yield { prompt: { who: t, title: 'THE STRUNG END', lines: R.wrap([].concat(L('gulch.ettercap'))), opts: [{ label: 'FIGHT', value: 0 }, { label: 'BACK AWAY', value: 1 }] } };
+    if (a !== 0) { if (step) M.stepBack(B); return; }
+    B.units = B.units.filter(function (u) { return u.npc !== 'ettercap8'; }); D.grid.setup(D.grid.map, B.units); // (the braiding figure off the floor: the fight's own ettercap comes in its place)
+    var w0 = B.webs, bx = Gu.LAIR.webBox, sq = [];
+    for (var y = bx[1]; y < bx[1] + bx[3]; y++) for (var x = bx[0]; x < bx[0] + bx[2]; x++) if (Gu.ROWS[y] && Gu.ROWS[y].charAt(x) === 'x') sq.push([x, y]);
+    B.webs = (w0 || []).concat([{ by: 'the gully\'s silk, the ettercap\'s', sq: sq, dc: Gu.LAIR.webDC, ground: true }]);
+    var set = { list: Gu.LAIR.foes.map(function (e) { return e[0]; }), at: Gu.LAIR.seat.slice(), how: 'from its strand at the back', flag: 'trig:ettercap', trig: ['ettercap'],
+      line: (F0 && F0.intro) || 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
+      onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAIR.foes, Gu.LAIR.minGap); } };
+    Gu.lairLast = set;
+    try { yield* M.inPlace(B, 'ettercap', set); }
+    finally { B.webs = w0 || []; }
+    if (R0.flags['trig:ettercap']) { var st2 = D.counter.state(B); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); }
+    M.relay(B, null, true); // (the floor's people stood again: the ettercap gone if it is dead, back braiding if the party got away)
+    if (R0.flags['trig:ettercap']) { B.card(R.wrap([].concat(L('gulch.fangs'))), 360); yield 30; }
+  };
   // the braiding ettercap (S.ettercap): it stops braiding when it sees you; won, its fangs for Hessle's board
   Gu.ettercap = function* (B, step) {
     var f = B.roam.flags; if (!Gu.alive(f)) return;
+    if (Gu.TRY.lair) { yield* Gu.lairInPlace(B, step); return; }
     yield* Gu.set(B, { fight: 'ettercap', trig: 'ettercap', title: 'THE STRUNG END', lines: [].concat(L('gulch.ettercap')), away: 'BACK AWAY', step: step,
       after: function* (B2) { var st2 = D.counter.state(B2); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); /* (and its braid, the Braided Cord: Ned's wand, 11-16 -- js/counter.js C.nedWand) */ M.relay(B2, null, true); B2.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; } });
   };
@@ -384,6 +422,15 @@
   // black past what they have seen; a step east into the hollow is reaching him, FIGHT on the gully's own squares
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchlad', label: 'THE SNARED LAD, fought where you stand (the try)', note: 'On the road above the lad\'s hollow by day, the fog of war on. Walk south and step east into the hollow: FIGHT, and the three come out of the silk behind him on the gully itself.', key: 'webgulch', at: [20, 50], hour: 10,
     pin: function () { Gu.TRY.lad = true; Gu.TRY.fog = true; } });
+  // the ettercap's lair, shown (?isoshow&beat=gulchlair&lvl=3): on the gully's bed east of the strung end's neck by day; west into the neck and it stops braiding
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchlair', label: 'THE ETTERCAP\'S LAIR, fought where you stand (the try)', note: 'On the bed by day, the strung end\'s neck just west. Step into the neck: the ettercap stops braiding at the back of its lair -- FIGHT, in the neck, the spiders coming at you out of the silk.', key: 'webgulch', at: [18, 86], hour: 10,
+    pin: function () { Gu.TRY.lair = true; Gu.TRY.fog = true; } });
+  // a random fight on the gully, shown (?isoshow&beat=gulchrandom&lvl=3): by night midway down, the next few steps bringing one (the count pinned short) -- walking in out of the dark
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchrandom', label: 'A RANDOM FIGHT ON THE GULLY, by night (the try)', note: 'Midway down the gully by night, the fog on. Walk south a few steps: spiders come out of the dark and walk in, and the fight is where you meet them -- no field.', key: 'webgulch', at: [20, 40], hour: 22,
+    pin: function () { Gu.TRY.random = true; Gu.TRY.fog = true; Gu.encSoon = 3; } });
+  // the fog kept, shown (?isoshow&beat=gulchfog&lvl=3): at the north mouth by day in a game -- walk a way down, out by the north mouth onto the road, and back in: what was seen stays
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchfog', label: 'THE FOG REMEMBERED, out and back in (the try)', note: 'At the north mouth by day. Walk down past the camp, go back up out of the north mouth, then step back in: the gully you walked is still uncovered; only the new is black.', key: 'webgulch', at: [17, 3], hour: 10,
+    pin: function () { Gu.TRY.fog = true; } });
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {
     if (trig.script === 'gulchFire'){ yield* Gu.fire(B); return; }
@@ -486,7 +533,7 @@
     var R0 = B.roam, t = R0.token, m = B.map, G = D.grid; if (!t || !m) return null;
     var k = t.x + ',' + t.y + '|' + (B.dark ? 1 : 0) + '|' + m.w + 'x' + m.h;
     if (R0.fogNow && R0.fogNow.k === k) return R0.fogNow;
-    if (!R0.fogSeen || R0.fogSeen.length !== m.w * m.h) R0.fogSeen = new Uint8Array(m.w * m.h);
+    if (!R0.fogSeen || R0.fogSeen.length !== m.w * m.h) R0.fogSeen = Fog.recall(m.w * m.h);
     var now = new Uint8Array(m.w * m.h), pm = B.dark && D.light ? D.light.partyMap(B) : null, r = Fog.DAY;
     for (var y = Math.max(0, t.y - r); y <= Math.min(m.h - 1, t.y + r); y++) for (var x = Math.max(0, t.x - r); x <= Math.min(m.w - 1, t.x + r); x++) {
       var i = y * m.w + x, s = m.sq[i]; if (!s || !s.open) continue;
@@ -496,8 +543,25 @@
     // (the rock and the things standing at the edge of what is seen: seen with it, so the banks are drawn where the floor is)
     var edge = []; for (var j = 0; j < now.length; j++) if (now[j] === 1) { var ex = j % m.w, ey = (j - ex) / m.w; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var nx = ex + dx, ny = ey + dy; if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) continue; var ni = ny * m.w + nx; if (!now[ni] && !(m.sq[ni] || {}).open) edge.push(ni); } }
     edge.forEach(function (ni) { now[ni] = 2; });
-    for (var q = 0; q < now.length; q++) if (now[q]) R0.fogSeen[q] = 1;
+    var grew = false; for (var q = 0; q < now.length; q++) if (now[q] && !R0.fogSeen[q]) { R0.fogSeen[q] = 1; grew = true; }
+    if (grew) Fog.keep(R0.fogSeen);
     return (R0.fogNow = { k: k, now: now });
+  };
+  // SEEN STAYS SEEN (11-20, Griz, asked whether the fog was the Wet's to have too: "4 - unless this is bad, it's only the party's first time through they get the fog, correct?"
+  // -- as first built it came back on every visit): what the party has seen of a floor is kept in the save (H.cur.fog[<floor>], four squares a hex digit) in the house, and
+  // for the page's life on a test door (Fog.MEM); read back as the floor is walked again. A NEW GAME's party starts with the gully dark
+  Fog.MEM = {};
+  Fog.store = function () { var H = D.house, key = D.roam && D.roam.def && D.roam.def.key; if (!key) return null; if (H && H.playing && H.cur && D.roam.house && D.roam.house()) { H.cur.fog = H.cur.fog || {}; return { o: H.cur.fog, k: key }; } return { o: Fog.MEM, k: key }; };
+  Fog.keep = function (seen) {
+    var st = Fog.store(); if (!st) return; var s = '';
+    for (var i = 0; i < seen.length; i += 4) s += ((seen[i] ? 8 : 0) | (seen[i + 1] ? 4 : 0) | (seen[i + 2] ? 2 : 0) | (seen[i + 3] ? 1 : 0)).toString(16);
+    st.o[st.k] = s.length + ':' + s; // (its length first: a floor repainted to a new size starts dark again, not misread)
+  };
+  Fog.recall = function (n) {
+    var out = new Uint8Array(n), st = Fog.store(), v = st && st.o[st.k]; if (typeof v !== 'string') return out;
+    var c = v.indexOf(':'), s = v.slice(c + 1); if (+v.slice(0, c) !== Math.ceil(n / 4)) return out;
+    for (var i = 0; i < s.length; i++) { var d = parseInt(s.charAt(i), 16); for (var b = 0; b < 4; b++) if (d & (8 >> b) && i * 4 + b < n) out[i * 4 + b] = 1; }
+    return out;
   };
   Fog.hides = function (B, u) { // (a figure on a square never seen is not drawn: the party's own never hidden)
     if (!Fog.on(B) || !u || u.side === 'party' && !u.npc && !u.look) return false;
@@ -518,6 +582,31 @@
       if (!seen[i] && !s.open) { ctx.fillRect(Math.round(p.x - iso.TW / 2), Math.round(p.y - 40), iso.TW, 40); } // (a bank's rock never seen: its face too, not its top alone)
     }
     ctx.restore();
+  };
+  // ---------------------------------------------------------------- THE GULLY'S RANDOM FIGHTS IN PLACE (11-20, Griz: "3 - we're gonna get it working in the gulch and learn before
+  // doing the road instead" -- the 11-05 "keep the field" reversed for the gulch, a try): a random encounter on the gully is the Wet's own (js/roam.js R.encounter: a group seen
+  // at the edge of sight, 30 to 60 ft off, walking in, the fight where they meet), not a field cut. The two things the field kept (the iso roam combat lane, item 6): the
+  // camp's people and the lad kept out of it -- the floor's folk are never dealt into the order (R.fight: `look`), nobody's target and in no area (THE GULCH'S CHILDREN, below);
+  // the lad is a square, no one -- and the gully's silk the fight's hazard: every webFloor square within Gu.RANDOM.webReach of the party at a giant spider's DC 12, as the field
+  // cut carried it (M.fieldDef above), laid as the fight opens and lifted as it ends (the walk on the floor keeps its webbing a look). The field's way behind &gulchfield
+  // (Gu.TRY.random false). The camp's watches and the story's set fights keep their own ways
+  Gu.TRY.random = !/[?&]gulchfield\b/.test(String(window.location && window.location.search));
+  Gu.RANDOM = { webReach: 12, webDC: 12 };
+  Gu.webSq = function (cx, cy, r) { var out = []; for (var y = Math.max(0, cy - r); y <= Math.min(Gu.ROWS.length - 1, cy + r); y++) for (var x = Math.max(0, cx - r); x <= cx + r; x++) if (Gu.ROWS[y].charAt(x) === 'x') out.push([x, y]); return out; };
+  var resetGu0 = D.roam.resetEnc; // (a show's count pinned short: the next fight a few steps off -- Gu.encSoon, once)
+  if (resetGu0) D.roam.resetEnc = function (R0) { var def = D.roam.def; if (Gu.encSoon && def && def.key === Gu.KEY) { var n = Gu.encSoon; Gu.encSoon = 0; return n; } return resetGu0.apply(this, arguments); };
+  var encGu0 = D.roam.encounter;
+  D.roam.encounter = function* (B, why, set) {
+    var def = D.roam.def;
+    if (!set && def && def.key === Gu.KEY && Gu.TRY.random) { yield* M.inPlace(B, why, set); return; }
+    yield* encGu0.apply(this, arguments);
+  };
+  var fightGu0 = D.roam.fight;
+  D.roam.fight = function* (B, foes, lurk) {
+    var def = D.roam.def, t = B.roam && B.roam.token;
+    if (!def || def.key !== Gu.KEY || !t || (B.webs || []).some(function (w) { return /gully/.test(w.by); })) { return yield* fightGu0.apply(this, arguments); } // (the lad's fight lays its own: Gu.snaredInPlace)
+    var w0 = B.webs; B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.webSq(t.x, t.y, Gu.RANDOM.webReach), dc: Gu.RANDOM.webDC, ground: true }]);
+    try { return yield* fightGu0.apply(this, arguments); } finally { B.webs = w0 || []; }
   };
   var edgeOut0 = M.edgeOut;
   M.edgeOut = function* (B, sq) { if (D.roam.def && D.roam.def.key === Gu.KEY) { yield* Gu.out(B, sq); return; } yield* edgeOut0.apply(this, arguments); };
