@@ -1276,7 +1276,11 @@
     if (!F.canPush(B, u)) return;
     var face = u.conds.wall.face, wall = F.wallOf(B, u), pushers = F.pushers(B, u), dc = F.pushDC(B, u), foes = F.lineFoes(B, wall, face);
     u.turn.bonus = 0; pushers.forEach(function (w) { if (w !== u) w.reaction = 0; }); wall.forEach(function (w) { w.conds.wall.pushed = B.round; });
-    B.card(['{y}' + u.name + '{/} calls the push: the wall of ' + wall.length + ' shoves as one, STR DC ' + dc + '  {g}(' + u.name + '\'s bonus action; ' + (pushers.length - 1) + ' mate' + (pushers.length === 2 ? '\'s' : 's\'') + ' reaction' + (pushers.length === 2 ? '' : 's') + '){/}'], 240);
+    // (the price on the card and over each head, 11-20 -- Griz at his door: "The wall push isn't costing anything for the guys who didn't call the push": it cost each
+    // pushing mate its reaction, said only as a count; now named, a mate with none left named too, and "reaction spent" floated over each who paid)
+    var mts = pushers.filter(function (w) { return w !== u; }), idle = wall.filter(function (w) { return w !== u && pushers.indexOf(w) < 0; });
+    B.card(['{y}' + u.name + '{/} calls the push: the wall of ' + wall.length + ' shoves as one, STR DC ' + dc + '  {g}(' + u.name + '\'s bonus action' + (mts.length ? '; the reactions of ' + mts.map(function (w) { return w.name; }).join(', ') : '') + (idle.length ? '; ' + idle.map(function (w) { return w.name; }).join(', ') + ' with no reaction left, not pushing' : '') + '){/}'], 260);
+    if (FX && FX.float) mts.forEach(function (w) { FX.float('reaction spent', w, D.PAL.ramps.silver ? D.PAL.ramps.silver[5] : '#ccc'); });
     D.sfx('confirm'); yield 10;
     // THE PUSH ROW (11-20: the first drawn, Halldor's `push` on halldor_p2 -- six frames, the shove on the fourth): every pusher whose sheet has one plays it toward the front
     // together, and the saves fall on its release frame; a sheet without one stands as before
