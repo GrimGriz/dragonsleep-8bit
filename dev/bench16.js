@@ -7170,6 +7170,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // man" after the spiders -- the gulch's drummer boy and silk-cutter drawn on the fight's ground from the fight's camera for two frames after E on the last card)
       pinRB(19);
       if (D.simple) D.simple.on = function () { return false; };
+      if (D.gulch && D.gulch.TRY) D.gulch.TRY.lair = false; // (the field's fights this section reads: the ettercap's own behind &lairgrid since 11-20 -- its lair on the gully is mode=gulchlair1120)
       ['spiders', 'ettercap'].forEach(function (which) {
         var R10 = D.roam, I10 = D.input, B10 = R10.make('?roam=webgulch&hour=9&at=9,84'), k10;
         D.scenes.length = 0; D.push(B10);
