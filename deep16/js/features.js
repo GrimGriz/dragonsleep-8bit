@@ -1472,8 +1472,18 @@
     if (F.pikeReady(u) && !F.bearsShield(u)) { // (a piker: to the rank)
       if (!F.formGuard(B, u) || foeWithin(B, u, 5)) return; // (a foe at its elbow: it fights as it can)
       var set = sideWalls(B, u);
-      if (!set.length) { if (B.round === 1) { holdRank(u); B.card(['{g}' + u.name + ' holds, waiting for the wall to form.{/}'], 160); yield 6; } return; }
-      var inRank = yield* walkTo(B, u, rankSpots(B, u, set));
+      // NO WALL YET, ROUND ONE: TO WHERE THE RANK WILL FORM (RULED 2026-11-20 "for test AI", Griz: "4 - good for test AI", on the formation seat's lean that "waits holding for
+      // the wall to form" would want a Ready -- a trial to watch): no Ready, no waiting; the piker walks to the square behind a Shield that will set, across the front it will
+      // take (F.faceOf -- toward the nearest foe, or a set mate's), and holds there for the pike's 10 ft. Till 11-20 it held where it stood and threw its handaxes
+      // (round one, the wall half-formed: the squares behind the Shields still to set count too -- one set with its back to the map's edge has no rank behind it, seed 1)
+      if (!set.length && B.round !== 1) return;
+      var spots = rankSpots(B, u, set);
+      if (B.round === 1) B.units.forEach(function (m) {
+        if (m === u || m.side !== u.side || F.wallSet(m) || !F.wallReady(m) || !F.bearsShield(m)) return;
+        var f = F.faceOf(B, m), q = [m.x - f[0], m.y - f[1]]; if ((q[0] === u.x && q[1] === u.y) || (!G.occupant(q[0], q[1]) && G.canStand(u, q[0], q[1]))) spots.push(q);
+      });
+      var inRank = yield* walkTo(B, u, spots);
+      if (inRank && B.round === 1 && !(u.turn && u.turn.rankHeld)) { B.card(['{g}' + u.name + ' takes the rank behind the shields, pike levelled.{/}'], 160); yield 6; }
       if (inRank) holdRank(u);
       return;
     }

@@ -204,9 +204,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   if (get('mode', '') === 'watchwall1120') {
     var repWw = { checks: [], fights: [], errors: [] }, Fw = D.features;
     function okWw(what, v) { repWw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    var cur = null, aiW0 = Fw.aiWall, dash0 = D.Battle.prototype.exec, wheel0w = Fw.wheel;
+    // (and since 11-20, RULED "for test AI", Griz: "4 - good for test AI": the pikers walk in round one to where the rank will form, no Ready, and throw nothing from the rank --
+    // per fight the pike turns ending in the rank in round one, every attack a piker in the rank makes with a thrown or shot weapon, and any "holds, waiting" card)
+    var G16w = D.grid, cur = null, aiW0 = Fw.aiWall, dash0 = D.Battle.prototype.exec, wheel0w = Fw.wheel, att0w = D.Battle.prototype.attack, dbgWw = get('dbg', ''), dbgNw = +get('dbgn', '120');
     Fw.aiWall = function* (B, u) {
-      var setBefore = Fw.wallSet(u);
+      var setBefore = Fw.wallSet(u), pk1 = cur && B.round === 1 && Fw.pikeReady(u) && !Fw.bearsShield(u) && !u.dead && u.hp > 0;
+      var elbow1 = pk1 && B.units.some(function (w) { return G16w.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G16w.dist(u, w) <= 5; });
+      // (a rank square to go to: open, standable, behind a set Shield of its side or one that will set -- none when the shields stand with their backs to the map's edge, seed 1)
+      var spot1 = pk1 && B.units.some(function (m) { if (m === u || m.side !== u.side || !(Fw.wallSet(m) || (Fw.wallReady(m) && Fw.bearsShield(m)))) return false; var f = m.conds.wall ? m.conds.wall.face : Fw.faceOf(B, m), x = m.x - f[0], y = m.y - f[1]; return (x === u.x && y === u.y) || (!G16w.occupant(x, y) && G16w.canStand(u, x, y)); });
       yield* aiW0.apply(this, arguments);
       if (!cur) return;
       var walls = B.units.filter(function (w) { return w.side === u.side && Fw.wallSet(w); }), big = 0;
@@ -214,27 +219,35 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (big > cur.biggest) cur.biggest = big;
       if (big >= 2 && !cur.joinedRound) cur.joinedRound = B.round;
       if (Fw.pikeReady(u) && !Fw.bearsShield(u) && walls.some(function (m) { var f = m.conds.wall.face; return u.x === m.x - f[0] && u.y === m.y - f[1]; })) cur.pikeInRank++;
+      if (pk1 && dbgWw === String(cur.seed)) (cur.trace = cur.trace || []).push(u.name + ' at ' + u.x + ',' + u.y + ' held ' + !!(u.turn && u.turn.rankHeld) + '; set: ' + B.units.filter(function (w) { return w.side === u.side && Fw.wallSet(w); }).map(function (w) { return w.name + '@' + w.x + ',' + w.y + ' face ' + w.conds.wall.face; }).join(' ') + '; foes: ' + B.units.filter(function (w) { return G16w.hostile(u, w) && !w.dead; }).map(function (w) { return w.x + ',' + w.y + ' d' + G16w.dist(u, w); }).join(' '));
+      if (pk1) { if (u.turn && u.turn.rankHeld) cur.rankR1++; else if (elbow1) cur.elbowR1++; else if (!spot1) cur.norankR1++; else cur.otherR1++; } // (a piker's round-one turn: in the rank, a foe at its elbow, or neither)
     };
+    D.Battle.prototype.attack = function (a, t, wp) { if (cur && a && a.turn && a.turn.rankHeld && wp && wp.ranged) cur.rankThrows++; return att0w.apply(this, arguments); };
     D.Battle.prototype.exec = function (u, c) { if (cur && c && /^(dash|cdash)$/.test(c.do) && Fw.wallSet(u)) cur.setDashes++; return dash0.apply(this, arguments); };
     Fw.wheel = function (B, a, f) { if (cur && (Fw.wallSet(a) || Fw.wallSet(f)) && !(a.side === 'party' && !a.guest)) cur.setWheels++; return wheel0w.apply(this, arguments); };
     try {
       for (var sd = 1; sd <= 6; sd++) {
         var q = '?npc=ogre,ogre,ogre,ogre&formation=4,4&lvl=3&watch&seed=' + sd;
-        cur = { seed: sd, joinedRound: 0, biggest: 0, pikeInRank: 0, setDashes: 0, setWheels: 0, pushes: 0, result: null, rounds: 0, record: null };
+        cur = { seed: sd, joinedRound: 0, biggest: 0, pikeInRank: 0, rankR1: 0, elbowR1: 0, norankR1: 0, otherR1: 0, rankThrows: 0, setDashes: 0, setWheels: 0, pushes: 0, result: null, rounds: 0, record: null };
         var Bw = D.npcFight(q, Object.assign({ bench: true }, D.npcRecord(q))); D.battle = Bw; Bw.enter();
         cur.record = Bw.rec ? Bw.rec.name : null;
         cur.result = drive(Bw); cur.rounds = Bw.round;
         cur.pushes = (Bw.log || []).filter(function (s) { return /calls the push/.test(s); }).length;
         cur.dashLines = (Bw.log || []).filter(function (s) { return /Shield \d dashes/.test(s); }).length;
+        if (dbgWw === String(sd)) cur.log = (Bw.log || []).slice(0, dbgNw); // (the fight's log, one seed's: &dbg=<seed>)
+        cur.waits = (Bw.log || []).filter(function (s) { return /waiting for the wall to form/.test(s); }).length;
         repWw.fights.push(cur);
       }
     } catch (e) { repWw.errors.push(String(e && e.stack || e)); }
-    Fw.aiWall = aiW0; D.Battle.prototype.exec = dash0; Fw.wheel = wheel0w; cur = null;
+    Fw.aiWall = aiW0; D.Battle.prototype.exec = dash0; Fw.wheel = wheel0w; D.Battle.prototype.attack = att0w; cur = null;
     var fs = repWw.fights;
     okWw('every seed joins a wall by round 2: ' + fs.map(function (f) { return 's' + f.seed + ' R' + f.joinedRound + ' (wall of ' + f.biggest + ')'; }).join(', '), fs.length === 6 && fs.every(function (f) { return f.joinedRound >= 1 && f.joinedRound <= 2; }));
     okWw('no set member dashes or wheels: dashes ' + fs.map(function (f) { return f.setDashes; }).join(',') + '; wheels ' + fs.map(function (f) { return f.setWheels; }).join(','), fs.every(function (f) { return !f.setDashes && !f.setWheels; }));
     okWw('pushes ' + fs.map(function (f) { return f.pushes; }).join(',') + '; pike turns in the rank ' + fs.map(function (f) { return f.pikeInRank; }).join(','), fs.some(function (f) { return f.pushes > 0; }) && fs.some(function (f) { return f.pikeInRank > 0; }));
     okWw('the watched fight records: ' + JSON.stringify(fs[0] && fs[0].record), fs.length && /^Watched -- /.test(fs[0].record || ''));
+    okWw('the pikes to the rank in round one, no Ready: the pikers\' round-one turns, in the rank / a foe at the elbow (it fights where it stands) / no rank square open behind a shield / a square it did not take ' + fs.map(function (f) { return f.rankR1 + '/' + f.elbowR1 + '/' + f.norankR1 + '/' + f.otherR1; }).join(', ') + '; "waiting" cards ' + fs.map(function (f) { return f.waits; }).join(','),
+      fs.length === 6 && fs.every(function (f) { return !f.otherR1 && !f.waits; }) && fs.filter(function (f) { return f.rankR1 > 0; }).length >= 4 && fs.some(function (f) { return f.rankR1 >= 3; }));
+    okWw('no throw from the rank: thrown or shot attacks by a piker in the rank ' + fs.map(function (f) { return f.rankThrows; }).join(','), fs.length === 6 && fs.every(function (f) { return !f.rankThrows; }));
     var preWw = document.createElement('pre'); preWw.id = 'out'; preWw.textContent = 'BENCH16 ' + JSON.stringify(repWw);
     document.body.appendChild(preWw);
     return;

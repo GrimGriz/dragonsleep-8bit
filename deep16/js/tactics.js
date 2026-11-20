@@ -186,7 +186,8 @@
     var out = [];
     if (u.conds.disarmed) return out; // (dropped: Command's DROP, Fear, Heat Metal)
     if (u.weapon && u.weapon.name) out.push(u.weapon);
-    if (u.alt && u.alt.name && !(carriedThrow(u, u.alt) && !canDraw(u))) out.push(u.alt);
+    // (a piker holding the rank behind its shield wall throws nothing: its pike is the rank's -- RULED 2026-11-20 "for test AI", Griz: "4 - good for test AI"; js/features.js F.aiWall)
+    if (u.alt && u.alt.name && !(carriedThrow(u, u.alt) && !canDraw(u)) && !(u.turn && u.turn.rankHeld && u.alt.ranged)) out.push(u.alt);
     return out;
   }
   // a carried weapon thrown (the ALT: the kit's handaxes, a card's dagger) is drawn first -- a hand free for it and the turn's one free object interaction (the throw, RULED 11-11,
