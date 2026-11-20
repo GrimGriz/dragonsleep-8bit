@@ -18290,6 +18290,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4. a trained piker with no trained shield-bearer about: no forming -- its move untouched, it stays a free fighter
       var h4 = mkFm(false, false, true, true); var c4 = h4.c.x + ',' + h4.c.y; turnFm(h4, h4.c);
       okFm('a piker alone among the untrained: ' + c4 + ' -> ' + h4.c.x + ',' + h4.c.y + ', its move ' + h4.c.turn.move, h4.c.x + ',' + h4.c.y === c4 && h4.c.turn.move > 0);
+      // 6. THE WHOLE TURN HOLDS (11-20, the desk's find in his AI fight: "Shield 1 sets shields, facing north, alone" then "Shield 1 dashes." -- the class AI's approach dashed the
+      // round-1 wall apart): the class AI's whole turn, round 1, the foe 25 ft off -- the shield sets and keeps its square, no Dash; the piker in the rank keeps its square
+      var h6 = mkFm(true, true, true, true), n6 = (h6.B.log || []).length, at6 = function (u) { return u.x + ',' + u.y; };
+      var fullFm = function (u) { RUFm.startTurn(u); h6.B.active = u; runFm(D.tactics.turn(h6.B, u)); };
+      fullFm(h6.a); var a6 = at6(h6.a), s6 = FFm.wallSet(h6.a); fullFm(h6.b); fullFm(h6.c); var c6 = at6(h6.c);
+      var l6 = (h6.B.log || []).slice(n6).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
+      okFm('the whole AI turn, round 1: the first set ' + s6 + ' at ' + a6 + ' (from ' + (h6.X + 1) + ',' + h6.Y + '), still set ' + FFm.wallSet(h6.a) + '; the second set ' + FFm.wallSet(h6.b) + '; the piker at ' + c6 + '; a Dash on the log ' + /dashes/.test(l6),
+        s6 && a6 === (h6.X + 1) + ',' + h6.Y && FFm.wallSet(h6.a) && FFm.wallSet(h6.b) && !/dashes/.test(l6) && [h6.a, h6.b].some(function (m) { return h6.c.x === m.x && h6.c.y === m.y + 1; }));
       // 5. ONE PUSH A ROUND: the wall pushes (a goblin holds, so the line and the goblins stay); the mate's own call the same round is refused and says why; the next round, allowed
       var h5 = mkFm(true, true, false, false); h5.a.guest = h5.b.guest = false; h5.b.x = h5.a.x + 1; h5.b.y = h5.a.y; h5.g[0].x = h5.a.x; h5.g[0].y = h5.a.y - 1; h5.g[1].x = h5.b.x; h5.g[1].y = h5.b.y - 1; Gf.setup(h5.B.map, h5.B.units);
       [h5.a, h5.b].forEach(function (u) { RUFm.startTurn(u); h5.B.active = u; runFm(h5.B.exec(u, { do: 'setshields' })); });
