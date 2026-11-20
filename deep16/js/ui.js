@@ -266,6 +266,11 @@
   // the Channel Divinity's options, one list of their own beside SPELLS (RULED 09-30, Griz: "should the channel divinity be a button similar to
   // spells?" -- "yes"): they draw on one use (u.feats.channel), and the list says how many are left
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
+  // the PLAYS, a tab of their own as CHANNEL DIVINITY is (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", "3 - agreed, doe plays get their own tab like
+  // channel divinity or something?"): the Drillyard's plays readied before the swing, CALL THE MARK, and Soldiering's WHEEL -- js/features.js F.playCommands. The tab counts the openings
+  var PLAYS = { callmark: 1, play_pinshield: 1, play_bind: 1, play_breakstride: 1, play_wheel: 1 };
+  function playsTab(u, pl) { var dr = D.features && D.features.drill && D.features.drill(u), left = (u.feats && u.feats.openings) || 0, on = pl.some(function (x) { return / \(READIED\)$/.test(x.label); });
+    return { id: 'plays', label: 'PLAYS' + (dr ? ' (' + left + ')' : '') + (on ? ' *' : ''), cost: 'F', ok: pl.some(function (x) { return x.ok; }), why: dr && !left ? 'no openings left (a short rest)' : 'nothing to ready now', sub: 'plays', icon: 'attack', items: pl, note: 'readied before the swing, carried out on the hit' }; }
   // a command's `front` (10-08): true puts it on the first ring whatever its state (DENIM DAMAGE), 'live' only while it can be used (MONKEY FLURRY -- 10-07, Griz: "put denny's flurry on the
   // bar when it activates for use please"; 10-08: "yes, with denim damage there and flurry popping up"); a class file places its own that way and this file names no class for it. `under`
   // folds commands into one icon on whichever ring they land on -- SCUTTLE's DASH, DISENGAGE and HIDE (10-08, Griz: "'scuttle' feels like the icon I should click on and have 3 come up
@@ -295,7 +300,8 @@
     // it can), and pull twin-strike from the wheel once the bonus action is gone" -- the click and the pull were built 11-05 and 11-12; the one-weapon swing is up front again, after it)
     var tw = c.some(function (x) { return x.id === 'twinstrike'; });
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    var pl = [];
+    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (PLAYS[x.id]) { pl.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
@@ -303,6 +309,7 @@
     ['twinstrike', 'attack', 'throwpick', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (throwpick: THROW <it> beside ATTACK once one is thrown in the fight -- the throw, 11-11) (offhand: two-weapon fighting's swing beside the Attack, 10-15)
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
+    if (pl.length) out.push(playsTab(u, pl));
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     // SHOVE beside GRAPPLE under ACTIONS (RULED 11-16, Griz on the lanes order's 23: "Y - consider whether we need subcategories on the ring."; the menus lane §2.8, found 10-16: SHOVE
     // (10-13) was in neither ACTIONS nor the first ring's list, so the classic RING never showed it -- RING2 had it among the actions by its cost): the SRD's two special melee attacks
@@ -332,9 +339,10 @@
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
-    var tw = c.some(function (x) { return x.id === 'twinstrike'; }); // (TWIN STRIKE up front, ATTACK among the actions -- as UI.cmds, 11-05)
+    var tw = c.some(function (x) { return x.id === 'twinstrike'; }), pl = []; // (TWIN STRIKE up front, ATTACK among the actions -- as UI.cmds, 11-05)
     c.forEach(function (x) {
       if (CHANNEL[x.id]) { cd.push(x); return; }
+      if (PLAYS[x.id]) { pl.push(x); return; }
       if (x.id === 'spells') return; // (SPELLS by the cost first: one on each ring, below)
       if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; }
       if (x.id === 'twinstrike') { top.twinstrike = x; return; }
@@ -358,6 +366,7 @@
     ['twinstrike', 'attack', 'throwpick', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    if (pl.length) out.push(playsTab(u, pl)); // (RING2: the PLAYS on the first ring too -- they ride the swing, not one pool)
     if (A.length) out.push({ id: 'actions', label: 'ACTIONS' + poolTag(u, 'A'), cost: 'A', ok: A.some(function (x) { return x.ok; }), why: 'nothing to do with the action now', sub: 'actions', icon: 'actions2', items: A, ring2: 'A', note: 'everything that costs the action, the yellow A on the bar' });
     if (Bn.length) out.push({ id: 'bonuses', label: 'BONUSES' + poolTag(u, 'B'), cost: 'B', ok: Bn.some(function (x) { return x.ok; }), why: 'nothing to do with the bonus action now', sub: 'bonuses', icon: 'bonuses', items: Bn, ring2: 'B', note: 'everything that costs the bonus action, the blue B -- and the free moves' });
     return out.concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
@@ -1404,7 +1413,7 @@
           if (!gu) return [];
           if (kind === 'items') { var fastI = gu.subclass === 'Thief' && gu.turn.bonus > 0; return B.itemList(gu).map(function (e) { e.cost = e.cost || (e.use.effect !== 'rope' && fastI ? 'B' : 'A'); return e; }); } // (its cost, for the menu's colour: Fast Hands the bonus -- battle.js commands' ITEM)
           if (kind === 'spells') return D.magic.list(B, gu);
-          return B.commands(gu).filter(function (c) { return CHANNEL[c.id] || SKILLS[c.id] || c.skill || FRONT[gu.cls] === c.id; }); // (the ring's SKILLS and CHANNEL DIVINITY, and a martial's feature off the first ring: UI.cmds)
+          return B.commands(gu).filter(function (c) { return CHANNEL[c.id] || PLAYS[c.id] || SKILLS[c.id] || c.skill || FRONT[gu.cls] === c.id; }); // (the ring's SKILLS and CHANNEL DIVINITY, and a martial's feature off the first ring: UI.cmds)
         },
         pick: function (kind, e) {
           if (!gu) return;

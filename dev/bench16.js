@@ -18436,7 +18436,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var okM = false; for (var ey = -1; ey <= 1 && !okM; ey++) for (var ex = -1; ex <= 1 && !okM; ex++) { var x2 = f.x + ex, y2 = f.y + ey; if ((ex || ey) && !(x2 === g.x && y2 === g.y) && D.grid.canStand(m, x2, y2)) { m.x = x2; m.y = y2; okM = true; } }
       D.grid.setup(B.map, B.units); D.rules.startTurn(f); D.rules.startTurn(m); B.active = f; return { B: B, f: f, m: m, g: g, ok: ok && okM };
     }
-    function hitWh(h, want, seen) { D.d = function (n) { return n === 20 ? 15 : d0Wh(n); }; runWh(h.B.exec(h.f, { do: 'attack', target: h.g }), want, seen); D.d = d0Wh; }
+    // WHEEL readied on the ring's PLAYS first (the friend picked there, `want` answering it -- RULED 11-20, "3 - agreed"), then the hit, whose own prompts are counted: none
+    var hitAskWh = 0;
+    function hitWh(h, want, seen) { runWh(h.B.exec(h.f, { do: 'play_wheel' }), want, seen); D.d = function (n) { return n === 20 ? 15 : d0Wh(n); }; var sh = []; runWh(h.B.exec(h.f, { do: 'attack', target: h.g }), want, sh); hitAskWh += sh.length; if (seen) sh.forEach(function (x) { seen.push(x); }); D.d = d0Wh; }
     var wantW = function (o) { return o.value === 1 || /WHEEL/.test(o.label); };
     try {
       D.seed = 1120;
@@ -18464,7 +18466,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 7. WHICH FRIEND, ON THE FLOOR (11-20, Griz: "it wasn't clear which ally I'd wheel-with when wheel presented as an option"): one friend in reach -- the ask is a pick on
       // the grid, the friend in its pick list and named with where it stands; two in reach -- both offered and lit, and the second picked trades with the second
       var pr7 = null, h7 = mkWh(true, true); D.d = function (n) { return n === 20 ? 15 : d0Wh(n); };
-      runWh(h7.B.exec(h7.f, { do: 'attack', target: h7.g }), function (o, pr) { if (!pr7) pr7 = pr; return o.value === 0; }); D.d = d0Wh;
+      runWh(h7.B.exec(h7.f, { do: 'play_wheel' }), function (o, pr) { if (!pr7) pr7 = pr; return o.value === 0; }); D.d = d0Wh;
       var B7 = D.npcFight('?npc=goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3', {}); D.battle = B7; B7.enter(); while (!B7.order.length) B7.co.next(); B7.dark = false;
       var p7 = B7.units.filter(function (w) { return w.side === 'party'; }), g7 = B7.units.filter(function (w) { return w.side === 'foe'; })[0];
       p7.forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.conds = {}; }); g7.maxhp = g7.hp = 999; g7.conds = {};
@@ -18472,13 +18474,32 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       for (var y7 = 2; y7 < H7 - 2 && !sp7; y7++) for (var x7 = 2; x7 < W7 - 2 && !sp7; x7++) { var ok7 = true; for (var yy7 = y7 - 1; yy7 <= y7 + 1 && ok7; yy7++) for (var xx7 = x7 - 1; xx7 <= x7 + 1 && ok7; xx7++) ok7 = D.grid.canStand(p7[0], xx7, yy7); if (ok7) sp7 = [x7, y7]; }
       p7[0].x = sp7[0]; p7[0].y = sp7[1]; g7.x = sp7[0]; g7.y = sp7[1] - 1; p7[1].x = sp7[0] - 1; p7[1].y = sp7[1]; p7[2].x = sp7[0] + 1; p7[2].y = sp7[1] + 1; D.grid.setup(B7.map, B7.units);
       p7.forEach(function (u) { D.rules.startTurn(u); }); B7.active = p7[0]; var pr7b = null, at2 = p7[2].x + ',' + p7[2].y; D.d = function (n) { return n === 20 ? 15 : d0Wh(n); };
-      runWh(B7.exec(p7[0], { do: 'attack', target: g7 }), function (o, pr) { if (!pr7b) pr7b = pr; return o.value === 2; }); D.d = d0Wh;
+      runWh(B7.exec(p7[0], { do: 'play_wheel' }), function (o, pr) { if (!pr7b) pr7b = pr; return o.value === 2; }); var sh7 = []; runWh(B7.exec(p7[0], { do: 'attack', target: g7 }), null, sh7); hitAskWh += sh7.length; D.d = d0Wh;
       okWh('one friend: asked "' + (pr7 && pr7.title) + '", a pick on the floor ' + !!(pr7 && pr7.pick && pr7.pick[0] === h7.m) + ', offered ' + JSON.stringify(pr7 && pr7.opts.map(function (o) { return o.label; })) + '; two friends: offered ' + JSON.stringify(pr7b && pr7b.opts.map(function (o) { return o.label; })) + ', both lit ' + !!(pr7b && pr7b.pick && pr7b.pick.length === 2) + '; the second picked: the hitter now at ' + p7[0].x + ',' + p7[0].y + ' (the second stood at ' + at2 + ')',
         pr7 && pr7.pick && pr7.pick[0] === h7.m && /WHEEL WITH WHOM/.test(pr7.title) && pr7.opts.length === 2 && / -- [A-Z]/.test(pr7.opts[0].label) && pr7b && pr7b.pick && pr7b.pick.length === 2 && pr7b.opts.length === 3 && p7[0].x + ',' + p7[0].y === at2);
       // 6. a block's trait: a goblin trained by the unit's own flag (u.soldiering), one by D.FOES; a plain goblin not
       var g6 = h5.g, g6b = h5.B.units.filter(function (w) { return w.side === 'foe' && w !== g6; })[0], t0 = D.features.soldiering(g6); g6.soldiering = true; var t1 = D.features.soldiering(g6);
       var keep = D.FOES[g6b.kind].soldiering; D.FOES[g6b.kind].soldiering = true; var t2 = D.features.soldiering(g6b); D.FOES[g6b.kind].soldiering = keep;
       okWh('trained by a trait: a plain goblin ' + t0 + ', with u.soldiering ' + t1 + ', its kind\'s block ' + t2, !t0 && t1 && t2);
+      // 8. A CHOSEN MOVE (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", then "3 - agreed, doe plays get their own tab like channel divinity or something?"):
+      // WHEEL on the ring's PLAYS tab, the friend picked there; readied, the tab names the friend; a miss asks nothing and keeps it, nobody moves; the next hit trades with no
+      // prompt; picked again, it is set down; the friend stepped away: the hit keeps it and says so; and no hit in this bench asked anything
+      var h8 = mkWh(true, true); h8.f.attacks = 2; var ring8 = D.ui.cmds(h8.B, h8.f), tab8 = ring8.filter(function (x) { return x.id === 'plays'; })[0], f8 = h8.f.x + ',' + h8.f.y, m8 = h8.m.x + ',' + h8.m.y;
+      runWh(h8.B.exec(h8.f, { do: 'play_wheel' }), function (o) { return o.value === 1; }); var ar8 = h8.f.turn.armWheel === h8.m, lab8 = (D.ui.cmds(h8.B, h8.f).filter(function (x) { return x.id === 'plays'; })[0] || { items: [] }).items.map(function (x) { return x.label; }).join();
+      D.d = function (n) { return n === 20 ? 1 : d0Wh(n); }; var sm8 = []; runWh(h8.B.exec(h8.f, { do: 'attack', target: h8.g }), null, sm8); D.d = d0Wh; var miss8 = h8.f.x + ',' + h8.f.y === f8 && !!h8.f.turn.armWheel;
+      D.d = function (n) { return n === 20 ? 15 : d0Wh(n); }; var sh8 = []; runWh(h8.B.exec(h8.f, { do: 'attack', target: h8.g }), null, sh8); D.d = d0Wh; hitAskWh += sm8.length + sh8.length;
+      var h9 = mkWh(true, true); runWh(h9.B.exec(h9.f, { do: 'play_wheel' }), function (o) { return o.value === 1; }); runWh(h9.B.exec(h9.f, { do: 'play_wheel' })); var down9 = !h9.f.turn.armWheel;
+      runWh(h9.B.exec(h9.f, { do: 'play_wheel' }), function (o) { return o.value === 1; }); h9.m.x = 1; h9.m.y = 2; D.grid.setup(h9.B.map, h9.B.units); var n9 = (h9.B.log || []).length, f9 = h9.f.x + ',' + h9.f.y;
+      D.d = function (n) { return n === 20 ? 15 : d0Wh(n); }; var s9 = []; runWh(h9.B.exec(h9.f, { do: 'attack', target: h9.g }), null, s9); D.d = d0Wh; hitAskWh += s9.length; var l9 = (h9.B.log || []).slice(n9).join(' ');
+      okWh('the PLAYS tab: "' + (tab8 && tab8.label) + '" holding ' + (tab8 ? tab8.items.map(function (x) { return x.id; }).join(',') : '-') + '; readied with the friend ' + ar8 + ' (' + lab8 + '); a miss: asked ' + sm8.length + ', nobody moved, still readied ' + miss8 + '; the hit: asked ' + sh8.length + ', the fighter ' + f8 + ' -> ' + h8.f.x + ',' + h8.f.y + ' (the friend stood at ' + m8 + '); picked twice, set down ' + down9 + '; the friend stepped away: ' + f9 + ' -> ' + h9.f.x + ',' + h9.f.y + ', kept ' + !!h9.f.turn.armWheel + ', said so ' + /kept for the next hit/.test(l9),
+        tab8 && tab8.label === 'PLAYS' && tab8.items.length === 1 && tab8.items[0].id === 'play_wheel' && ar8 && /WHEEL WITH .* \(READIED\)/.test(lab8) && !sm8.length && miss8 && !sh8.length && h8.f.x + ',' + h8.f.y === m8 && down9 && h9.f.x + ',' + h9.f.y === f9 && !!h9.f.turn.armWheel && /kept for the next hit/.test(l9));
+      okWh('no hit asked anything: ' + hitAskWh + ' prompt(s) from the hits', hitAskWh === 0);
+      // 9. the eyes row's door (eyes-plays-wheel-1120b): his formation fight by hand -- a Shield there with a trained mate beside has WHEEL on the PLAYS tab, ready to pick
+      var B10 = D.npcFight('?npc=ogre,ogre&formation=4,4&lvl=3', {}); D.battle = B10; B10.enter(); while (!B10.order.length) B10.co.next();
+      var u10 = B10.units.filter(function (w) { return w.side === 'party' && !w.guest && D.features.wheelFriends(B10, w).length; })[0]; if (u10) { D.rules.startTurn(u10); B10.active = u10; }
+      var t10 = u10 && D.ui.cmds(B10, u10).filter(function (x) { return x.id === 'plays'; })[0];
+      okWh('the eyes door: ' + (u10 ? u10.name + ' has a trained mate beside' : 'nobody with a mate beside') + '; the tab "' + (t10 && t10.label) + '" holding ' + (t10 ? t10.items.map(function (x) { return x.id + (x.ok ? '' : '(no)'); }).join(',') : '-'),
+        u10 && t10 && t10.items.some(function (x) { return x.id === 'play_wheel' && x.ok; }));
     } catch (e) { repWh.errors.push(String(e && e.stack || e)); }
     D.d = d0Wh;
     var preWh = document.createElement('pre'); preWh.id = 'out'; preWh.textContent = 'BENCH16 ' + JSON.stringify(repWh);
@@ -18733,7 +18754,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   if (get('mode', '') === 'drill1030') {
     var repDr = { checks: [], errors: [] }, d0Dr = D.d, RDr = window.DS.R, RUDr = D.rules;
     function okDr(what, v) { repDr.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    function runDr(g, want) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts, pr = st.value.prompt, o = os.filter(function (x) { return want && want(x, pr); })[0] || os[os.length - 1]; v = o.value; } } }
+    var nPrDr = 0, hitAskDr = 0; // (prompts seen; prompts asked by a hit -- none since 11-20: the plays are chosen moves)
+    function runDr(g, want) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { nPrDr++; var os = st.value.prompt.opts, pr = st.value.prompt, o = os.filter(function (x) { return want && want(x, pr); })[0] || os[os.length - 1]; v = o.value; } } }
     function plainDr(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
     function mkDr(lvl, plays) {
       var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=fighter:' + lvl + ',fighter:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
@@ -18743,7 +18765,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var okM = false; for (var ey = -1; ey <= 1 && !okM; ey++) for (var ex = -1; ex <= 1 && !okM; ex++) { var x2 = f.x + ex, y2 = f.y + ey; if ((ex || ey) && !(x2 === g.x && y2 === g.y) && D.grid.canStand(m, x2, y2) && D.grid.dist({ x: x2, y: y2 }, g) <= 5) { m.x = x2; m.y = y2; okM = true; } }
       D.grid.setup(B.map, B.units); D.rules.startTurn(f); B.active = f; return { B: B, f: f, m: m, g: g, ok: ok && okM };
     }
-    function hitDr(h, want) { D.d = function (n) { return n === 20 ? 15 : d0Dr(n); }; var n0 = (h.B.log || []).length; runDr(h.B.exec(h.f, { do: 'attack', target: h.g }), want); D.d = d0Dr; return (h.B.log || []).slice(n0).map(plainDr).join(' / '); }
+    // a hit, the play its `want` names readied first on the ring's PLAYS (RULED 11-20, Griz: "Rather than a hit reaction, a chosen move?", "3 - agreed"); the hit's own prompts counted
+    function hitDr(h, want) {
+      var n0 = (h.B.log || []).length;
+      ['pinshield', 'bind', 'breakstride', 'wheel'].forEach(function (id) { if (want && want({ value: id, label: '' }, {}) && !h.f.turn.armPlay) runDr(h.B.exec(h.f, { do: 'play_' + id }), function () { return false; }); });
+      D.d = function (n) { return n === 20 ? 15 : d0Dr(n); }; var p0 = nPrDr; runDr(h.B.exec(h.f, { do: 'attack', target: h.g }), want); D.d = d0Dr; hitAskDr += nPrDr - p0;
+      return (h.B.log || []).slice(n0).map(plainDr).join(' / ');
+    }
     try {
       D.seed = 1030;
       // 1. the register and the maker's asks
@@ -18791,6 +18819,24 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 7. no opening: no prompt
       var h6 = mkDr(3, ['bind', 'breakstride', 'pinshield']); h6.f.feats.openings = 0; h6.g.reaction = 1; var l6 = hitDr(h6, function (o) { return o.value === 'bind'; });
       okDr('no opening left: the hit plays nothing (reaction ' + h6.g.reaction + ')', h6.g.reaction === 1 && !/BIND/.test(l6));
+      // 8. A CHOSEN MOVE (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", then "3 - agreed, doe plays get their own tab like channel divinity or something?"):
+      // the ring has a PLAYS tab with the plays the fighter knows and CALL THE MARK in it, none among SKILLS; BIND readied, a miss keeps it readied and the opening, the hit binds
+      // with no prompt; picked again, it is set down; and no hit in this bench asked anything
+      var h8 = mkDr(3, ['bind', 'callmark', 'breakstride']); h8.g.reaction = 1; var ring8 = D.ui.cmds(h8.B, h8.f), tab8 = ring8.filter(function (x) { return x.id === 'plays'; })[0];
+      var sk8 = ring8.filter(function (x) { return x.id === 'skills'; })[0], in8 = tab8 ? tab8.items.map(function (x) { return x.id; }) : [];
+      runDr(h8.B.exec(h8.f, { do: 'play_bind' })); var ar8 = h8.f.turn.armPlay, lab8 = D.ui.cmds(h8.B, h8.f).filter(function (x) { return x.id === 'plays'; })[0];
+      D.d = function (n) { return n === 20 ? 1 : d0Dr(n); }; var p8 = nPrDr; runDr(h8.B.exec(h8.f, { do: 'attack', target: h8.g })); D.d = d0Dr; var miss8 = nPrDr - p8, keep8 = h8.f.turn.armPlay, op8 = h8.f.feats.openings;
+      D.rules.startTurn(h8.f); h8.B.active = h8.f; runDr(h8.B.exec(h8.f, { do: 'play_bind' })); runDr(h8.B.exec(h8.f, { do: 'play_bind' })); var down8 = h8.f.turn.armPlay;
+      runDr(h8.B.exec(h8.f, { do: 'play_bind' })); var l8 = hitDr(h8, function () { return false; });
+      okDr('the PLAYS tab: "' + (tab8 && tab8.label) + '" holding ' + in8.join(',') + ' (SKILLS holds ' + (sk8 ? sk8.items.map(function (x) { return x.id; }).join(',') : 'nothing') + '); readied ' + ar8 + ', the tab "' + (lab8 && lab8.label) + '"; a miss asked ' + miss8 + ', kept ' + keep8 + ', openings ' + op8 + '; picked twice, set down (' + down8 + '); readied and hit: "' + (l8.match(/BIND[^/]*/) || [''])[0].slice(0, 60) + '", reaction ' + h8.g.reaction + ', openings ' + h8.f.feats.openings,
+        tab8 && /^PLAYS \(2\)$/.test(tab8.label) && in8.join() === 'callmark,play_bind,play_breakstride' && !(sk8 && sk8.items.some(function (x) { return x.id === 'callmark' || /^play_/.test(x.id); })) && ar8 === 'bind' && lab8 && / \*$/.test(lab8.label) && !miss8 && keep8 === 'bind' && op8 === 2 && !down8 && /BIND/.test(l8) && h8.g.reaction === 0 && h8.f.feats.openings === 1);
+      okDr('no hit asked anything: ' + hitAskDr + ' prompt(s) from the hits', hitAskDr === 0);
+      // 9. the eyes row's door (eyes-plays-drillyard-1120): Drill there is a Drillyard of 3 with the PLAYS tab, BIND in it
+      var q9 = '?npc=hobgoblin,hobgoblin,hobgoblin&vs=~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger,aurdin:3&lvl=3';
+      var B9 = D.npcFight(q9, {}); D.battle = B9; B9.enter(); while (!B9.order.length) B9.co.next(); var u9 = B9.units.filter(function (w) { return w.name === 'Drill'; })[0];
+      if (u9) { D.rules.startTurn(u9); B9.active = u9; } var t9 = u9 && D.ui.cmds(B9, u9).filter(function (x) { return x.id === 'plays'; })[0];
+      okDr('the eyes door: Drill ' + (u9 ? u9.subclass + ' ' + u9.lvl + ', plays ' + JSON.stringify(u9.plays) : 'missing') + '; the tab "' + (t9 && t9.label) + '" holding ' + (t9 ? t9.items.map(function (x) { return x.id; }).join(',') : '-'),
+        u9 && D.features.drill(u9) && t9 && /^PLAYS \(2\)/.test(t9.label) && t9.items.some(function (x) { return x.id === 'play_bind' && x.ok; }));
     } catch (e) { repDr.errors.push(String(e && e.stack || e)); }
     D.d = d0Dr;
     var preDr = document.createElement('pre'); preDr.id = 'out'; preDr.textContent = 'BENCH16 ' + JSON.stringify(repDr);

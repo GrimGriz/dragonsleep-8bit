@@ -442,11 +442,13 @@
       }
     }
     // a swing at t (the first on the turn as it stands when keep, a fresh turn else), again up to tries times till it lands
-    function* swing(c, t, tries, keep) {
+    // (arm: a play readied on the ring's PLAYS before each swing that has none readied -- the Drillyard's plays and Soldiering's WHEEL are chosen moves since 11-20, his "3 - agreed")
+    function* swing(c, t, tries, keep, arm) {
       var u = c.hero; t = t || c.foes[0] || c.skel[0]; if (!t) return false;
       for (var i = 0; i < (tries || 3); i++) {
         if (i || !keep) D.rules.startTurn(u);
         B.active = u;
+        if (arm && !(arm === 'play_wheel' ? u.turn.armWheel : u.turn.armPlay)) { yield* fire(B.exec(u, { do: arm })); yield 30; }
         var hp0 = t.hp + (t.temp || 0);
         yield* fire(B.exec(u, { do: 'attack', target: t }));
         if (t.dead || t.hp + (t.temp || 0) < hp0) return true;
@@ -598,12 +600,12 @@
       setagainst: function* (c) { c.hero.reaction = 0; yield* foeWalk(c, c.foes[0], 4); yield 20; yield* swing(c, c.foes[0], 3, true); },
       thickpelt: function* (c) { D.features.wearBeast(B, c.hero, ['claws']); yield 30; yield* swing(c, null, 3, true); }, // (the claws on, the temporary HP, a blow with them)
       twoparts: function* (c) { D.features.wearBeast(B, c.hero, ['hide', 'claws']); yield 30; yield* swing(c, null, 3, true); }, // (hide and claws on one use, a blow with magical claws)
-      setplays: swings(4),
+      setplays: function* (c) { yield* swing(c, null, 4, false, 'play_' + ((c.hero.plays || []).filter(function (p) { return /^(pinshield|bind|breakstride)$/.test(p); })[0] || 'bind')); }, // (readied on the ring's PLAYS, then the hit carries it -- 11-20)
       // the feat Soldiering (ours, 11-20; js/features.js): WHEEL -- the fighter hurt to half, a trained friend beside, a hit, and the two trade squares; THE WALL -- a trained mate set
       // beside the fighter, a foe before each, a trained piker behind the fighter, the next round THE PUSH with the dice pinned (re-cut 11-20, his "a unified movement of the
       // wall"): both foes fail, the line steps forward as one, the piker steps with it and thrusts past the wall (its reaction); THE PIKE
       // RANK -- two trained mates set before the piker, the foe 10 ft off beyond them, the pike's blow with no cover
-      soldiering_wheel: function* (c) { var u = c.hero, t = c.foes[0], m = make('fighter:5', 'party', 'g-mate', u.x - 1, u.y, 4); m.soldiering = true; B.units.push(m); D.grid.setup(D.grid.map, B.units); u.hp = Math.floor(u.maxhp / 2); yield 30; yield* swing(c, t, 4, true); yield 40; },
+      soldiering_wheel: function* (c) { var u = c.hero, t = c.foes[0], m = make('fighter:5', 'party', 'g-mate', u.x - 1, u.y, 4); m.soldiering = true; B.units.push(m); D.grid.setup(D.grid.map, B.units); u.hp = Math.floor(u.maxhp / 2); yield 30; yield* swing(c, t, 4, true, 'play_wheel'); yield 40; },
       soldiering_wall: function* (c) {
         var u = c.hero, f0 = c.foes[0], f1 = c.foes[1], m = make('fighter:5', 'party', 'g-mate', u.x + 1, u.y, 4); m.soldiering = true; m.src = m.src || {}; m.src.equip = Object.assign({}, m.src.equip || {}, { shield: 'shield' });
         u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); B.units.push(m); f0.x = u.x; f0.y = u.y - 1; f1.x = m.x; f1.y = m.y - 1;

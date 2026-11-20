@@ -1098,12 +1098,15 @@
     // and the play stood; only a target the blow leaves unable to react is cut)
     if (F.knowsPlay(att, 'bind') && tgt.reaction > 0 && RU.canAct(tgt)) opts.push({ label: 'BIND: no reactions till its turn', value: 'bind' });
     if (F.knowsPlay(att, 'breakstride') && !tgt.conds.stride) opts.push({ label: 'BREAK STRIDE: 10 ft less speed', value: 'breakstride' });
-    if (!opts.length) return;
     var pick;
-    if (!mine(att)) pick = opts[0].value; // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride. WHEEL left for the feat Soldiering, 11-20: F.wheel)
+    if (!mine(att)) { if (!opts.length) return; pick = opts[0].value; } // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride. WHEEL left for the feat Soldiering, 11-20: F.wheel)
     else {
-      opts.push({ label: 'NO PLAY', value: 0 });
-      pick = yield { prompt: { who: att, title: att.name + ': A PLAY? (' + att.feats.openings + ' opening' + (att.feats.openings === 1 ? '' : 's') + ' left)', lines: ['The blow lands on ' + (tgt.side === 'foe' ? 'the ' : '') + tgt.name + '.'], opts: opts } };
+      // A CHOSEN MOVE, NOT A HIT'S QUESTION (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", then "3 - agreed"): the player readies the play on the ring's
+      // PLAYS before the swing (F.readyPlay, below), and the hit carries it out with no prompt; a miss keeps it readied for the turn's next swing, and the opening is spent only on
+      // the hit. A readied play that has nothing in this hit (BIND on one that cannot react, PIN THE SHIELD on one with no shield) stays readied and says so
+      var arm = att.turn.armPlay; if (!arm) return;
+      if (!opts.some(function (o) { return o.value === arm; })) { B.card(['  {g}' + PLAY_WORD[arm] + ' readied: nothing in it on ' + D.Battle.nm(tgt) + ' -- kept for the next hit{/}'], 160); return; }
+      pick = arm; delete att.turn.armPlay;
     }
     if (!pick) return;
     spendPlay(att); D.sfx('confirm');
@@ -1111,6 +1114,15 @@
     else if (pick === 'bind') { tgt.reaction = 0; B.card(['  {y}BIND{/}: ' + D.Battle.nm(tgt) + ' is bound up  {g}(no reactions till its next turn){/}'], 220); }
     else if (pick === 'breakstride') { tgt.conds.stride = { by: att.id }; B.card(['  {y}BREAK STRIDE{/}: ' + D.Battle.nm(tgt) + ' is slowed  {g}(10 ft less speed through its next turn){/}'], 220); }
     yield 12;
+  };
+  var PLAY_WORD = { pinshield: 'PIN THE SHIELD', bind: 'BIND', breakstride: 'BREAK STRIDE' };
+  var PLAY_NOTE = { pinshield: 'on your next hit, its shield\'s +2 off its AC till your next turn', bind: 'on your next hit, it takes no reactions till its next turn', breakstride: 'on your next hit, 10 ft less speed through its next turn' };
+  F.PLAY_WORD = PLAY_WORD;
+  // readying a play (the player's, on the ring's PLAYS): picked again, it is set down. Free -- the opening goes on the hit
+  F.readyPlay = function (B, u, id) {
+    if (u.turn.armPlay === id) { delete u.turn.armPlay; B.card(['{g}' + u.name + ' sets down ' + PLAY_WORD[id] + '.{/}'], 140); return; }
+    u.turn.armPlay = id; D.sfx('confirm');
+    B.card(['{y}' + u.name + '{/} readies {y}' + PLAY_WORD[id] + '{/}  {g}(' + PLAY_NOTE[id] + '; an opening, spent on the hit -- a miss keeps it readied){/}'], 200);
   };
   // ------------------------------------------------------------------ the feat Soldiering (ours -- js/rules.js R.FEATS.soldiering; the leveling lane's 2026-11-20 sections, the
   // formation training: RULED, Griz: "1 one feat", "1 wheel leaves", "2 - trained only, they'll have to use a feat slot if they want to do it with the party, but should work with
@@ -1145,22 +1157,50 @@
   M.onWeaponHit = function* (B, att, tgt, atk, crit) {
     if (onWeaponHitW) yield* onWeaponHitW(B, att, tgt, atk, crit);
     if (!F.soldiering(att) || B.active !== att || att.dead || att.hp <= 0 || !tgt || atk.spell || tgt.side === att.side || !RU.canAct(att)) return;
-    var friends = F.wheelFriends(B, att); if (!friends.length) return;
+    var friends = F.wheelFriends(B, att);
     var f = null;
     if (mine(att)) {
-      // WHICH FRIEND, ON THE FLOOR (11-20, Griz at his door: "it wasn't clear which ally I'd wheel-with when wheel presented as an option"): the ask is a pick on the grid
-      // even with one friend in reach -- each trained friend's square lit, the cursor on the first, a click or its number takes it -- and each named with where it stands
-      // from the hitter (NORTH, BEHIND...); STAY keeps the squares
-      var wv = yield { prompt: { who: att, title: att.name + ': WHEEL WITH WHOM?', lines: ['Trade places with a trained friend beside you, lit on the floor (its reaction; no opportunity attacks).'],
-        opts: friends.map(function (w, i) { return { label: Nm(B, w).toUpperCase() + ' -- ' + F.whereFrom(att, w), value: i + 1 }; }).concat([{ label: 'STAY', value: 0, no: true }]), pick: friends } };
-      f = wv ? friends[wv - 1] : null;
-    } else f = F.wheelWant(B, att, friends);
+      // A CHOSEN MOVE (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", then "3 - agreed"): the friend is picked when WHEEL is readied on the ring's PLAYS
+      // (F.readyWheel, below -- on the floor, as his "it wasn't clear which ally I'd wheel-with" asked), and the hit makes the trade with no prompt; a miss keeps it readied.
+      // The friend no longer beside, or its reaction gone: kept, and said
+      var aw = att.turn.armWheel; if (!aw) return;
+      if (friends.indexOf(aw) < 0) { B.card(['  {g}WHEEL readied with ' + aw.name + ', who is ' + (aw.dead || aw.hp <= 0 ? 'down' : !(aw.reaction > 0) ? 'out of reactions' : 'not beside you') + ' -- kept for the next hit{/}'], 160); return; }
+      f = aw; delete att.turn.armWheel;
+    } else { if (!friends.length) return; f = F.wheelWant(B, att, friends); }
     if (!f) return;
     if (mine(f) && !mine(att)) { // (the player's friend asked, and may refuse -- the hitter lit on the floor, a click on it the yes)
       var yes = yield { prompt: { who: f, title: f.name + ': WHEEL WITH ' + att.name.toUpperCase() + '?', lines: [att.name + ', ' + F.whereFrom(f, att) + ', calls the wheel: trade places (your reaction; no opportunity attacks).'], opts: [{ label: 'WHEEL WITH ' + att.name.toUpperCase(), value: 1 }, { label: 'REFUSE', value: 0, no: true }], pick: [att] } };
       if (!yes) return;
     }
     F.wheel(B, att, f); yield 12;
+  };
+  // readying WHEEL (the player's, on the ring's PLAYS): which friend, on the floor -- each trained friend beside with its reaction lit, named with where it stands (NORTH,
+  // BEHIND...); STAY readies nothing. Readied already: picked again, it is set down
+  F.readyWheel = function* (B, u) {
+    if (u.turn.armWheel) { B.card(['{g}' + u.name + ' sets down the WHEEL with ' + u.turn.armWheel.name + '.{/}'], 140); delete u.turn.armWheel; return; }
+    var friends = F.wheelFriends(B, u); if (!friends.length) return;
+    var wv = yield { prompt: { who: u, title: u.name + ': WHEEL WITH WHOM?', lines: ['On your next hit, trade places with a trained friend beside you, lit on the floor (its reaction; no opportunity attacks).'],
+      opts: friends.map(function (w, i) { return { label: Nm(B, w).toUpperCase() + ' -- ' + F.whereFrom(u, w), value: i + 1 }; }).concat([{ label: 'STAY', value: 0, no: true }]), pick: friends } };
+    var f = wv ? friends[wv - 1] : null; if (!f) return;
+    u.turn.armWheel = f; D.sfx('confirm');
+    B.card(['{y}' + u.name + '{/} readies the {y}WHEEL{/} with ' + f.name + ' (' + F.whereFrom(u, f).toLowerCase() + ')  {g}(on the next hit the two trade places -- ' + f.name + '\'s reaction; a miss keeps it readied){/}'], 200);
+  };
+  // the ring's PLAYS (RULED 2026-11-20 with the chosen move -- his question, "doe plays get their own tab like channel divinity or something?": yes, a tab of their own, as
+  // CHANNEL DIVINITY is; js/ui.js PLAYS): the Drillyard's on-hit plays it knows, CALL THE MARK (its bonus-action play), and Soldiering's WHEEL. Each readied one reads READIED
+  F.playCommands = function (B, u) {
+    var T = u.turn, out = [], swing = T.action > 0 || T.attacksLeft > 0;
+    if (F.drill(u)) ['pinshield', 'bind', 'breakstride'].forEach(function (id) {
+      if (!F.knowsPlay(u, id)) return;
+      var on = T.armPlay === id;
+      out.push({ id: 'play_' + id, label: PLAY_WORD[id] + (on ? ' (READIED)' : ''), cost: 'F', icon: 'attack', skill: true, ok: on || (canPlay(u) && swing),
+        why: !feat(u, 'openings') ? 'no openings left (a short rest)' : T.playDone ? 'a play this turn already' : 'no swing left this turn', note: on ? 'readied: pick it again to set it down' : PLAY_NOTE[id] + '; ' + ((u.feats && u.feats.openings) || 0) + ' openings left' });
+    });
+    if (F.soldiering(u)) {
+      var aw = T.armWheel, fr = F.wheelFriends(B, u);
+      out.push({ id: 'play_wheel', label: aw ? 'WHEEL WITH ' + aw.name.toUpperCase() + ' (READIED)' : 'WHEEL', cost: 'F', icon: 'attack', skill: true, ok: !!aw || (swing && fr.length > 0),
+        why: !swing ? 'no swing left this turn' : 'no trained friend beside you with its reaction', note: aw ? 'readied: pick it again to set it down' : 'on your next hit, trade places with a trained friend beside you (its reaction; no opportunity attacks)' });
+    }
+    return out;
   };
   // THE SHIELD WALL (Soldiering's; Griz: "a 'shield wall' feat that cost a bonus action to 'create, join or leave' and your reaction when you do, but does a +2 AC and 1d6 blunt
   // damage shove each round, pushing back what's in front of the shield wall 5 ft and moving the wall into the square they just cleared"; "4 - save"; the members keep their own
@@ -1700,6 +1740,7 @@
     if (F.knowsPlay(u, 'callmark')) out.push({ id: 'callmark', label: 'CALL THE MARK', cost: 'B', icon: 'attack', skill: true, ok: T.bonus > 0 && canPlay(u) && F.markTargets(B, u).length > 0,
       why: !feat(u, 'openings') ? 'no openings left (a short rest)' : T.playDone ? 'a play this turn already' : !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe within 60 ft',
       note: 'each friend\'s first hit on one foe +2 till your next turn; ' + ((u.feats && u.feats.openings) || 0) + ' openings left' }); // (the Drillyard's, 10-30)
+    F.playCommands(B, u).forEach(function (x) { out.push(x); }); // (the plays readied before the swing, and WHEEL: the ring's PLAYS, 11-20)
     if (u.cls === 'barbarian') {
       out.push({ id: 'rage', label: 'RAGE', cost: 'B', icon: 'surge', skill: true, ok: T.bonus > 0 && feat(u, 'rage') && !u.conds.raging && !u.conds.incapacitated,
         why: u.conds.raging ? 'raging already' : !feat(u, 'rage') ? 'no rage left (a long rest)' : 'the bonus action is spent',
@@ -1860,6 +1901,8 @@
         return;
       }
       case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
+      case 'play_pinshield': case 'play_bind': case 'play_breakstride': { var pid = c.do.slice(5); if (F.knowsPlay(u, pid) && (u.turn.armPlay === pid || canPlay(u))) { F.readyPlay(B, u, pid); yield 8; } return; } // (the ring's PLAYS: readied before the swing, 11-20)
+      case 'play_wheel': if (F.soldiering(u)) { yield* F.readyWheel(B, u); yield 8; } return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');
         if (t) { F.callMark(B, u, t); yield 10; }
