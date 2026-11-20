@@ -1658,6 +1658,16 @@
       case 'setshields': if (F.canSet(u)) { F.setShields(B, u); yield 10; } return; // (Soldiering's, 11-20)
       case 'leavewall': if (F.wallSet(u) && u.turn.bonus > 0 && u.reaction > 0) { F.leaveWall(B, u); yield 8; } return;
       case 'wallpush': yield* F.wallPush(B, u); return;
+      case 'wallmove': { // (a move click with shields set: asked -- LEAVE THE WALL? Yes leaves at LEAVE's cost and walks there; no holds. Griz, 11-20; ui.js actAt)
+        if (!F.wallSet(u)) return;
+        if (!(u.turn.bonus > 0 && u.reaction > 0)) { D.sfx('error'); B.card(['{o}' + u.name + ' holds the wall: leaving it takes a bonus action and the reaction, and ' + (!(u.turn.bonus > 0) ? 'the bonus action' : 'the reaction') + ' is spent.{/}'], 180); return; }
+        var lv = yield { prompt: { who: u, title: u.name + ': LEAVE THE WALL?', lines: ['Shields are set: your square is held.', 'Leave the wall (your bonus action and your reaction) and go there?'], opts: [{ label: 'LEAVE AND GO', value: 1 }, { label: 'HOLD THE WALL', value: 0, no: true }] } };
+        if (!lv) return;
+        F.leaveWall(B, u); yield 6;
+        var rmW = G.reach(u, u.turn.move), spot = rmW[c.x + ',' + c.y];
+        yield* B.exec(u, { do: spot && spot.stand ? 'move' : 'dashmove', x: c.x, y: c.y });
+        return;
+      }
       case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');
