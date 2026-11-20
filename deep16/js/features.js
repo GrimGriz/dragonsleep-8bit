@@ -1127,7 +1127,15 @@
   F.wheelFriends = function (B, att) {
     return B.units.filter(function (w) { return w !== att && w.side === att.side && !w.dead && w.hp > 0 && !w.object && !w.riding && F.soldiering(w) && w.reaction > 0 && RU.canAct(w) && G.dist(w, att) <= 5 && !(G.aloft && (G.aloft(w) || G.aloft(att))); });
   };
-  F.wheelWant = function (B, att, friends) { return null; }; // (the AI's: none till the formation's AI is built -- set below it)
+  F.wheelWant = function (B, att, friends) { return null; };
+  // where w stands from u, in words: the eight ways on the map, and BEHIND / IN FRONT for a set member's own front
+  F.whereFrom = function (u, w) {
+    var dx = Math.sign(w.x - u.x), dy = Math.sign(w.y - u.y), word = { '0,-1': 'north', '0,1': 'south', '1,0': 'east', '-1,0': 'west', '1,-1': 'north-east', '-1,-1': 'north-west', '1,1': 'south-east', '-1,1': 'south-west' }[dx + ',' + dy] || 'here';
+    var fc = u.conds && u.conds.wall && u.conds.wall.face;
+    if (fc && dx === fc[0] && dy === fc[1]) word += ', in front';
+    else if (fc && dx === -fc[0] && dy === -fc[1]) word += ', behind';
+    return word.toUpperCase();
+  }; // (the AI's: none till the formation's AI is built -- set below it)
   F.wheel = function (B, a, f) {
     var ax = a.x, ay = a.y; a.x = f.x; a.y = f.y; f.x = ax; f.y = ay; f.reaction = 0; D.sfx('confirm');
     if (G.setup && B.map) G.setup(B.map, B.units);
@@ -1140,12 +1148,16 @@
     var friends = F.wheelFriends(B, att); if (!friends.length) return;
     var f = null;
     if (mine(att)) {
-      f = friends.length > 1 ? yield* pickOne(B, att, 'WHEEL', friends, 'Trade places with a trained friend (its reaction).') : friends[0];
-      if (f && friends.length === 1) { var go = yield { prompt: { who: att, title: att.name + ': WHEEL?', lines: ['Trade places with ' + f.name + ' (its reaction; no opportunity attacks).'], opts: [{ label: 'WHEEL', value: 1 }, { label: 'STAY', value: 0, no: true }] } }; if (!go) return; }
+      // WHICH FRIEND, ON THE FLOOR (11-20, Griz at his door: "it wasn't clear which ally I'd wheel-with when wheel presented as an option"): the ask is a pick on the grid
+      // even with one friend in reach -- each trained friend's square lit, the cursor on the first, a click or its number takes it -- and each named with where it stands
+      // from the hitter (NORTH, BEHIND...); STAY keeps the squares
+      var wv = yield { prompt: { who: att, title: att.name + ': WHEEL WITH WHOM?', lines: ['Trade places with a trained friend beside you, lit on the floor (its reaction; no opportunity attacks).'],
+        opts: friends.map(function (w, i) { return { label: Nm(B, w).toUpperCase() + ' -- ' + F.whereFrom(att, w), value: i + 1 }; }).concat([{ label: 'STAY', value: 0, no: true }]), pick: friends } };
+      f = wv ? friends[wv - 1] : null;
     } else f = F.wheelWant(B, att, friends);
     if (!f) return;
-    if (mine(f) && !mine(att)) { // (the player's friend asked, and may refuse)
-      var yes = yield { prompt: { who: f, title: f.name + ': WHEEL WITH ' + att.name.toUpperCase() + '?', lines: [att.name + ' calls the wheel: trade places (your reaction; no opportunity attacks).'], opts: [{ label: 'WHEEL', value: 1 }, { label: 'REFUSE', value: 0, no: true }] } };
+    if (mine(f) && !mine(att)) { // (the player's friend asked, and may refuse -- the hitter lit on the floor, a click on it the yes)
+      var yes = yield { prompt: { who: f, title: f.name + ': WHEEL WITH ' + att.name.toUpperCase() + '?', lines: [att.name + ', ' + F.whereFrom(f, att) + ', calls the wheel: trade places (your reaction; no opportunity attacks).'], opts: [{ label: 'WHEEL WITH ' + att.name.toUpperCase(), value: 1 }, { label: 'REFUSE', value: 0, no: true }], pick: [att] } };
       if (!yes) return;
     }
     F.wheel(B, att, f); yield 12;

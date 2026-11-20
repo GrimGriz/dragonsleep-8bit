@@ -18361,6 +18361,20 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 5. the Drillyard no longer wheels: a fighter of it that still knows the old play, neither trained -- its prompt has no WHEEL, and nothing moves
       var h5 = mkWh(false, false); h5.f.subclass = 'the Drillyard'; h5.f.plays = ['wheel', 'bind', 'breakstride']; h5.f.feats.openings = 2; h5.g.reaction = 1; var f5 = h5.f.x + ',' + h5.f.y, s5 = []; hitWh(h5, wantW, s5);
       okWh('a Drillyard fighter that knew WHEEL: asked ' + (s5.join(' / ') || 'nothing') + '; ' + f5 + ' -> ' + h5.f.x + ',' + h5.f.y, h5.f.x + ',' + h5.f.y === f5 && !s5.some(function (t) { return /WHEEL/.test(t); }));
+      // 7. WHICH FRIEND, ON THE FLOOR (11-20, Griz: "it wasn't clear which ally I'd wheel-with when wheel presented as an option"): one friend in reach -- the ask is a pick on
+      // the grid, the friend in its pick list and named with where it stands; two in reach -- both offered and lit, and the second picked trades with the second
+      var pr7 = null, h7 = mkWh(true, true); D.d = function (n) { return n === 20 ? 15 : d0Wh(n); };
+      runWh(h7.B.exec(h7.f, { do: 'attack', target: h7.g }), function (o, pr) { if (!pr7) pr7 = pr; return o.value === 0; }); D.d = d0Wh;
+      var B7 = D.npcFight('?npc=goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3', {}); D.battle = B7; B7.enter(); while (!B7.order.length) B7.co.next(); B7.dark = false;
+      var p7 = B7.units.filter(function (w) { return w.side === 'party'; }), g7 = B7.units.filter(function (w) { return w.side === 'foe'; })[0];
+      p7.forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.conds = {}; }); g7.maxhp = g7.hp = 999; g7.conds = {};
+      D.grid.setup(B7.map, []); var sp7 = null, W7 = B7.map.w || 40, H7 = B7.map.h || 30;
+      for (var y7 = 2; y7 < H7 - 2 && !sp7; y7++) for (var x7 = 2; x7 < W7 - 2 && !sp7; x7++) { var ok7 = true; for (var yy7 = y7 - 1; yy7 <= y7 + 1 && ok7; yy7++) for (var xx7 = x7 - 1; xx7 <= x7 + 1 && ok7; xx7++) ok7 = D.grid.canStand(p7[0], xx7, yy7); if (ok7) sp7 = [x7, y7]; }
+      p7[0].x = sp7[0]; p7[0].y = sp7[1]; g7.x = sp7[0]; g7.y = sp7[1] - 1; p7[1].x = sp7[0] - 1; p7[1].y = sp7[1]; p7[2].x = sp7[0] + 1; p7[2].y = sp7[1] + 1; D.grid.setup(B7.map, B7.units);
+      p7.forEach(function (u) { D.rules.startTurn(u); }); B7.active = p7[0]; var pr7b = null, at2 = p7[2].x + ',' + p7[2].y; D.d = function (n) { return n === 20 ? 15 : d0Wh(n); };
+      runWh(B7.exec(p7[0], { do: 'attack', target: g7 }), function (o, pr) { if (!pr7b) pr7b = pr; return o.value === 2; }); D.d = d0Wh;
+      okWh('one friend: asked "' + (pr7 && pr7.title) + '", a pick on the floor ' + !!(pr7 && pr7.pick && pr7.pick[0] === h7.m) + ', offered ' + JSON.stringify(pr7 && pr7.opts.map(function (o) { return o.label; })) + '; two friends: offered ' + JSON.stringify(pr7b && pr7b.opts.map(function (o) { return o.label; })) + ', both lit ' + !!(pr7b && pr7b.pick && pr7b.pick.length === 2) + '; the second picked: the hitter now at ' + p7[0].x + ',' + p7[0].y + ' (the second stood at ' + at2 + ')',
+        pr7 && pr7.pick && pr7.pick[0] === h7.m && /WHEEL WITH WHOM/.test(pr7.title) && pr7.opts.length === 2 && / -- [A-Z]/.test(pr7.opts[0].label) && pr7b && pr7b.pick && pr7b.pick.length === 2 && pr7b.opts.length === 3 && p7[0].x + ',' + p7[0].y === at2);
       // 6. a block's trait: a goblin trained by the unit's own flag (u.soldiering), one by D.FOES; a plain goblin not
       var g6 = h5.g, g6b = h5.B.units.filter(function (w) { return w.side === 'foe' && w !== g6; })[0], t0 = D.features.soldiering(g6); g6.soldiering = true; var t1 = D.features.soldiering(g6);
       var keep = D.FOES[g6b.kind].soldiering; D.FOES[g6b.kind].soldiering = true; var t2 = D.features.soldiering(g6b); D.FOES[g6b.kind].soldiering = keep;
