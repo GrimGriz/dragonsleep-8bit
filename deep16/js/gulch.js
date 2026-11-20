@@ -187,6 +187,7 @@
     rect: [23, 51, 5, 7], // (his column and the hollow behind him: a step in is reaching him -- never the road, x 19-20, nor its shoulder, x 21-22, where a walk down the gully may step: the inn's walkthrough benches, walk1113 and walkbarn1113, crossed it on 11-20)
     foes: [['wolfspider', 27, 50], ['giantspider', 26, 52], ['wolfspider', 28, 56]], // (the grid fight's three, 6 to 9 squares off the party as its squares are there: data/fights.js snared)
     webDC: 11, // (the grid fight's: data/maps.js gulch, the strung end's silk)
+    minGap: 4, // (no spider seated nearer the party than this, in squares: the hollow's 4 to 6 against the grid fight's 6 to 8 -- the hollow is narrower)
     webBox: [18, 47, 13, 14] // (the silk counted as the fight's hazard: the floor's own webFloor squares in this box)
   };
   Gu.ladWebs = function (B) {
@@ -205,8 +206,22 @@
       line: (F0 && F0.intro) || 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
       onSpill: function (B2) { // (the three on their squares behind him, as the grid fight seats its own: the encounter set them round his square first)
         var fs = B2.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.roamAside && /^roam/.test(String(u.id)); }), used = [];
-        Gu.LAD.foes.forEach(function (f) { var u = fs.filter(function (w) { return w.kind === f[0] && used.indexOf(w) < 0; })[0]; if (!u) return; used.push(u); var sq = G.canStand(u, f[1], f[2]) ? [f[1], f[2]] : D.Battle.nearSq(u, [f[1], f[2]]); if (sq) { u.x = sq[0]; u.y = sq[1]; } u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); mine.push(u); });
+        // (all three lifted off the floor first, then each seated: where the encounter had set them round his square, one could still stand on another's -- the giant's
+        // two by two -- and be left one square from the party; the desk's merged runs, 11-20, three in four. Its fallback a ring search of the floor's own, nearest to
+        // its square and never nearer the party than Gu.LAD.minGap)
+        var home = {}; fs.forEach(function (u) { home[u.id] = [u.x, u.y]; u.x = -99; u.y = -99; });
+        var ours = B2.units.filter(function (w) { return w.side === 'party' && !w.look && G.standing(w) && w.x >= 0; }), gapOf = function (x, y) { return Math.min.apply(null, ours.map(function (o) { return Math.max(Math.abs(o.x - x), Math.abs(o.y - y)); }).concat([99])); };
+        var seat = function (u, to) {
+          if (G.canStand(u, to[0], to[1]) && gapOf(to[0], to[1]) >= Gu.LAD.minGap) return to;
+          for (var r = 1; r <= 6; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; var x = to[0] + dx, y = to[1] + dy; if (G.canStand(u, x, y) && gapOf(x, y) >= Gu.LAD.minGap) return [x, y]; }
+          return null;
+        };
+        Gu.LAD.foes.forEach(function (f) { var u = fs.filter(function (w) { return w.kind === f[0] && used.indexOf(w) < 0; })[0]; if (!u) return; used.push(u); var sq = seat(u, [f[1], f[2]]) || home[u.id]; u.x = sq[0]; u.y = sq[1]; u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); mine.push(u); });
+        fs.forEach(function (u) { if (used.indexOf(u) < 0 && u.x < 0) { u.x = home[u.id][0]; u.y = home[u.id][1]; } }); // (any not in the list back where it was)
         G.setup(G.map, B2.units);
+        // (where the fight opens, kept for a bench: read before initiative -- a wolf spider that wins it is at the party before the first hero's turn, 40 ft a move)
+        var gs = mine.map(function (u) { return gapOf(u.x, u.y); });
+        set.opening = { foes: mine.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }), kinds: mine.map(function (u) { return u.kind; }).sort(), gap: Math.min.apply(null, gs), far: Math.max.apply(null, gs) };
       } };
     Gu.ladLast = set;
     try { yield* M.inPlace(B, 'snared', set); }

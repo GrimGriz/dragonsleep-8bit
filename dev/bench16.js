@@ -2690,8 +2690,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B3 = floorGL('?roam=webgulch&hour=10&at=21,54'), sv3 = D.counter.state(B3).silver(), w3 = B3.webs, r3 = runGL(B3, GuGL.snared(B3, true), ['FIGHT']), fg = r3.fight || {};
       okGL('a step into the hollow asks: ' + r3.asked.join(' / '), /^WEB GULCH: FIGHT\|LEAVE IT > FIGHT/.test(r3.asked[0] || ''));
       okGL('fought where they stand: no scene pushed (' + !r3.pushed + '), the floor\'s battle and grid (' + fg.onFloor + ')', !r3.pushed && fg.onFloor === true);
-      okGL('the grid fight\'s three: ' + (fg.kinds || []).join(',') + ' (the grid\'s ' + grid3.join(',') + ') at ' + (fg.foes || []).join(' '), (fg.kinds || []).join() === grid3.join());
-      okGL('their spread: ' + fg.gap + ' to ' + fg.far + ' squares from the nearest of the party (the grid\'s ' + gridGap.join(',') + ' from its entry)', fg.gap >= 3 && fg.far <= 10);
+      // (where the fight OPENS, read at the spill -- the set's `opening`: at the first hero's turn a wolf spider that won initiative has run up already, 40 ft a move; the desk's
+      // merged runs of 11-20 read "1 to 5" there, three in four)
+      var op3 = (GuGL.ladLast && GuGL.ladLast.opening) || {};
+      okGL('the grid fight\'s three: ' + (op3.kinds || []).join(',') + ' (the grid\'s ' + grid3.join(',') + ') seated at ' + (op3.foes || []).join(' ') + ' (at the first hero\'s turn ' + (fg.foes || []).join(' ') + ')', (op3.kinds || []).join() === grid3.join() && (op3.foes || []).join(' ') === 'wolfspider@27,50 giantspider@26,52 wolfspider@28,56');
+      okGL('their spread as the fight opens: ' + op3.gap + ' to ' + op3.far + ' squares from the nearest of the party (the grid\'s ' + gridGap.join(',') + ' from its entry)', op3.gap >= 4 && op3.far <= 10);
       okGL('the silk: ' + (fg.webs || []).join('; ') + ' -- the grid\'s DC ' + ((D.MAPS[F3.map] || {}).webDC), fg.dc === (D.MAPS[F3.map] || {}).webDC);
       okGL('won: his flag ' + !!B3.roam.flags['trig:snared'] + ', twelve silver (' + sv3 + ' -> ' + D.counter.state(B3).silver() + '), his triggers gone (' + ((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).filter(function (t) { return /^snared/.test(t.id); }).length + '), the silk the fight\'s alone after (' + (B3.webs || []).length + ')',
         !!B3.roam.flags['trig:snared'] && D.counter.state(B3).silver() >= sv3 + 12 /* (his twelve, and the fight's own spoils as the field's way pays them) */ && !((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).some(function (t) { return /^snared/.test(t.id); }) && (B3.webs || []).length === (w3 || []).length);
