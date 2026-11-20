@@ -21124,7 +21124,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var NPCr = D.npc, PKr = D.pocket;
       // 1. the roster's named cards (its stock and the DM's) and Gennet: the figure each is built in, and the card's own (NPC.lookOf)
       var wantRl = { talmok: 'talmokroad_p2', willem: 'willemglass_p2', katarina: 'katarina_p2', torvald: 'torvald_p0', higertha: 'npcdruid_p0', amara: 'amara_p2', pyro: 'pyro_p2',
-        greyfang: 'greyfang_p1', eldermage: 'eldermage_p1', matriarch: 'gnollmatriarch_p1', matriarchlama: 'gnollmatriarch_p1', gennet: 'gennet_p2', nellvey: 'nellvey_p2', // (Nell Vey, 11-20: the art desk's villain, cutter-1120)
+        greyfang: 'greyfang_p1', eldermage: 'eldermage_p1', matriarch: 'gnollmatriarch_p1', matriarchlama: 'gnollmatriarch_p1', gennet: 'gennet_p2',
         denny: 'denny_p3', beholda: 'beholda_p3', rascal: 'rascal_p2', goose: 'goose_p1' }; // (the Mascots on the DM's roster: js/mpmon.js, their own since 10-07)
       var onRl = (PKr.STOCK || []).map(function (s) { return s.w; }).filter(function (w) { return NPCr.NAMED[w] && !NPCr.NAMED[w].overlay; }).concat(['gennet']);
       var gotRl = onRl.map(function (w) { var u = NPCr.build(w, 5, 'foe'), lk = NPCr.lookOf(NPCr.NAMED[w]); return { w: w, sheet: u && u.sheet, card: lk, ok: !!u && u.sheet === wantRl[w] && lk === wantRl[w] && !!D.SHEETS[wantRl[w]] }; });

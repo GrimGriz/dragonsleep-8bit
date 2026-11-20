@@ -348,10 +348,10 @@ PEOPLE = {
         + [('asdis/2026-11-18-ART-83/portrait-pages-1440x810/HEAD-%02d-%s.png' % (h, act.title()), [1], [act]) for h, act in [
             (2, 'attentive'), (3, 'welcoming'), (4, 'remembering'), (5, 'grave'), (6, 'firm')]]}),
     # NELL VEY, the Stand-In, the art desk's own villain for the road (the memorial painter at the old weighhouse; 11-20, the cutter seat cutter-1120 on the lanes desk's
-    # start, his "yes, straight to pocket DM villain"): the art desk's NELL-VEY-CUTTER-HANDOFF, sorted to deep16/_src/nell-vey/2026-11-19-NELL-VEY/ -- Idle 6 (top 1-3,
+    # start, his "yes, straight to pocket DM villain", then "keep her off the roster until the rows come"): the art desk's NELL-VEY-CUTTER-HANDOFF, sorted to deep16/_src/nell-vey/2026-11-19-NELL-VEY/ -- Idle 6 (top 1-3,
     # bottom 4-6; the blink on 4) and five stills: appraising (the ochre thumb at arm's length), bargaining, caught, commanding (palm down), bereaved (her gaze down at
-    # the shield). Waist-up, no counter (Asdis's way); looks screen left. Her red-ochre thumb and handprint keep the reds. She speaks nowhere yet: the Pocket DM's villain
-    'nellvey': ('nell-vey/2026-11-19-NELL-VEY/source/portrait', 'NELL-VEY', 'the Pocket DM\'s villain (js/classes.js NPC.NAMED.nellvey); her weighhouse not built', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout': [
+    # the shield). Waist-up, no counter (Asdis's way); looks screen left. Her red-ochre thumb and handprint keep the reds. She speaks nowhere yet
+    'nellvey': ('nell-vey/2026-11-19-NELL-VEY/source/portrait', 'NELL-VEY', 'no one yet: off the Pocket DM\'s roster until her rows come; her weighhouse not built', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout': [
         ('nell-vey/2026-11-19-NELL-VEY/source/portrait/NELL-VEY-HEAD-1-IDLE-6.png', [3, 3], ['idle'] * 6)]
         + [('nell-vey/2026-11-19-NELL-VEY/source/portrait/NELL-VEY-HEAD-%d-%s.png' % (h, act.upper()), [1], [act]) for h, act in [
             (2, 'appraising'), (3, 'bargaining'), (4, 'caught'), (5, 'commanding'), (6, 'bereaved')]]}),

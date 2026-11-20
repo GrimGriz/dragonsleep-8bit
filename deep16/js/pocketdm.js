@@ -32,9 +32,7 @@
   PK.STOCK.splice(pyAt < 0 ? PK.STOCK.length : pyAt, 0, { w: 'greyfang', lo: 1, hi: 11, dm: true }, { w: 'eldermage', lo: 1, hi: 12, dm: true }, // (the elder mage, 11-07: js/classes.js NPC.NAMED.eldermage, the DM's figure on his map)
     // the story's villains of a class on the play roster at the DM's table (10-17, step C; Griz: "allows villains in the play roster in that mode also"): the Gray
     // Keeping's two matriarchs, clerics of the Keeping by js/classes.js NPC.NAMED (their bestiary blocks on THE VILLAINS' shelf, gnollmatriarcheldest and -lama)
-    { w: 'matriarch', lo: 1, hi: 12, dm: true, villain: true }, { w: 'matriarchlama', lo: 1, hi: 12, dm: true, villain: true },
-    // Nell Vey, the Stand-In, the art desk's villain for the road (11-20, cutter-1120, on Griz's "yes, straight to pocket DM villain"): a fighter 7 by js/classes.js NPC.NAMED.nellvey
-    { w: 'nellvey', lo: 1, hi: 9, dm: true, villain: true });
+    { w: 'matriarch', lo: 1, hi: 12, dm: true, villain: true }, { w: 'matriarchlama', lo: 1, hi: 12, dm: true, villain: true });
   if (MP && MP.unlocked) { var unl0 = MP.unlocked; MP.unlocked = function (st, w) { return !!(st && st.dm) || unl0(st, w); }; }
 
   // ------------------------------------------------------------------ the campaign's store (st.camp, kept with the rest in deep16.pocket and in SAVE CAMPAIGN's file)

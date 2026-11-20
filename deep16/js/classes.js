@@ -306,16 +306,6 @@
       known: ['mageArmor', 'shield', 'protectionfromevilandgood', 'dispelmagic', 'counterspell', 'protectionfromenergy'],
       equip: { weapon: null, armor: null }, alt: null, grimlock: true, twoActions: true,
       naturals: { claw: { name: 'Claw', dice: '1d6', type: 'slashing' }, bite: { name: 'Bite', dice: '1d8', type: 'piercing' } }, combo: ['claw', 'claw', 'bite'] },
-    // Nell Vey, the Stand-In (11-20, the cutter seat cutter-1120, on Griz's "yes, straight to pocket DM villain"): the art desk's own villain for the road, the memorial
-    // painter at the old weighhouse (its sheet, deep16/_src/nell-vey/reference/Nell-Vey-The-Stand-In.md; the realm wiki has her PROPOSED, TarlynsPit/wiki/nell-vey.md;
-    // invented.json #nell-vey-1120). Her block from SRD pieces alone (the game is SRD-clean, RULED 10-17): fighter 7, the Champion (Improved Critical; Remarkable
-    // Athlete at 7), Dueling, a warhammer in one hand with chain mail and a shield (AC 18, the warhammer +7 for 1d8 + 6 at her 7th), a human. Her sheet's two feats --
-    // Hold the Pose at 4 and Stand-In at 6 -- are PROPOSED, not ruled (the leveling lane, 11-19): not built. The seat's calls, standing for his overrule: her scores her
-    // sheet's at the 7th as printed (STR 18 DEX 12 CON 16 INT 13 WIS 12 CHA 12), the feat's +1 STR and the sheet's "four added points" read as the fighter's two Ability
-    // Score Improvements (SRD, at 4 and 6) in the feats' place, so her table line is her sheet's (+7, 1d8 + 6); the SRD's average HP (67 at 7, the sheet's "fixed fighter
-    // HP"); her levels the fighter's 1 to 9 on the DM's roster, her sheet's 7 the default. Her figure: nellvey_p2 (tools/nellvey-sheet.py), Hold the Pose alone drawn
-    nellvey: { name: 'Nell Vey', named: true, cls: 'fighter', lvl: 7, race: 'human', subclass: 'Champion', look: 'nellvey_p2', style: 'dueling',
-      abil: { str: 18, dex: 12, con: 16, int: 13, wis: 12, cha: 12 }, equip: { weapon: 'warhammer', armor: 'chainmail', shield: 'shield' }, alt: null },
     ingrith: { overlay: true, name: 'Ingrith', named: true, look: 'ingrith_p0', cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }

@@ -13397,11 +13397,11 @@
 },
 "name": "Nell Vey",
 "hold": [
-"drawn so far: Hold the Pose 6 alone; her idle is its frame 1, and every other row (walk, the hammer blow, Stand-In, flinch, fall, prone) plays it",
+"drawn so far: Hold the Pose 6 alone, her idle its frame 1; still wanted: Ready, Walk, Hammer, Flinch, Fall, Prone (and the town Idle, Walk, Sight Sitter)",
 "the mirrors (SW W NW) carry the hammer to her left hand and the shield to her right forearm (the art desk's own note)",
 "the red thumb against the hammer in the rear views (the art desk's own note: check at 1x)"
 ],
-"source": "drawn by the art desk (NELL-VEY-CUTTER-HANDOFF, 11-19: its own villain, Hold the Pose in five views), cut by tools/nellvey-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by the Pocket DM's villain (js/classes.js NPC.NAMED.nellvey)"
+"source": "drawn by the art desk (NELL-VEY-CUTTER-HANDOFF, 11-19: its own villain, Hold the Pose in five views), cut by tools/nellvey-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one: off the roster until her rows come (Griz, 11-20)"
 },
 "newlandrider_p1": {
 "image": "art/newlandrider_p1.png?v=8be35b91e8",
@@ -22315,7 +22315,7 @@ false
 }
 },
 "art": "NELL-VEY",
-"door": "the Pocket DM's villain (js/classes.js NPC.NAMED.nellvey); her weighhouse not built",
+"door": "no one yet: off the Pocket DM's roster until her rows come; her weighhouse not built",
 "source": "deep16/_src/nell-vey/2026-11-19-NELL-VEY/source/portrait (the art desk's NELL-VEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_nerisse": {
