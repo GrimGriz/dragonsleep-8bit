@@ -600,15 +600,17 @@
       twoparts: function* (c) { D.features.wearBeast(B, c.hero, ['hide', 'claws']); yield 30; yield* swing(c, null, 3, true); }, // (hide and claws on one use, a blow with magical claws)
       setplays: swings(4),
       // the feat Soldiering (ours, 11-20; js/features.js): WHEEL -- the fighter hurt to half, a trained friend beside, a hit, and the two trade squares; THE WALL -- a trained mate set
-      // beside the fighter, a foe before each, the next round THE PUSH with the dice pinned: the fighter's foe fails and is driven back, the mate's holds (the wall bends); THE PIKE
+      // beside the fighter, a foe before each, a trained piker behind the fighter, the next round THE PUSH with the dice pinned (re-cut 11-20, his "a unified movement of the
+      // wall"): both foes fail, the line steps forward as one, the piker steps with it and thrusts past the wall (its reaction); THE PIKE
       // RANK -- two trained mates set before the piker, the foe 10 ft off beyond them, the pike's blow with no cover
       soldiering_wheel: function* (c) { var u = c.hero, t = c.foes[0], m = make('fighter:5', 'party', 'g-mate', u.x - 1, u.y, 4); m.soldiering = true; B.units.push(m); D.grid.setup(D.grid.map, B.units); u.hp = Math.floor(u.maxhp / 2); yield 30; yield* swing(c, t, 4, true); yield 40; },
       soldiering_wall: function* (c) {
         var u = c.hero, f0 = c.foes[0], f1 = c.foes[1], m = make('fighter:5', 'party', 'g-mate', u.x + 1, u.y, 4); m.soldiering = true; m.src = m.src || {}; m.src.equip = Object.assign({}, m.src.equip || {}, { shield: 'shield' });
-        u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); B.units.push(m); D.grid.setup(D.grid.map, B.units); f0.x = u.x; f0.y = u.y - 1; f1.x = m.x; f1.y = m.y - 1;
+        u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); B.units.push(m); f0.x = u.x; f0.y = u.y - 1; f1.x = m.x; f1.y = m.y - 1;
+        var pk = make('fighter:5', 'party', 'g-pike', u.x, u.y + 1, 4); pk.soldiering = true; pk.src = pk.src || {}; pk.src.equip = Object.assign({}, pk.src.equip || {}, { weapon: 'pike', shield: null }); pk.weapon = D.save.weaponOf(pk.src); B.units.push(pk); D.grid.setup(D.grid.map, B.units);
         D.rules.startTurn(u); B.active = u; yield* fire(B.exec(u, { do: 'setshields' })); yield 40;
         D.rules.startTurn(m); B.active = m; yield* fire(B.exec(m, { do: 'setshields' })); yield 40;
-        D.rules.startTurn(m); D.rules.startTurn(u); B.active = u; var d0 = D.d, k = 0; D.d = function (n) { return n === 20 ? (k++ ? 20 : 1) : d0(n); };
+        D.rules.startTurn(m); D.rules.startTurn(pk); D.rules.startTurn(u); B.active = u; var d0 = D.d, k = 0; D.d = function (n) { return n === 20 ? (k++ < 2 ? 1 : 15) : d0(n); };
         try { yield* fire(B.exec(u, { do: 'wallpush' })); } finally { D.d = d0; }
         yield 60;
       },
