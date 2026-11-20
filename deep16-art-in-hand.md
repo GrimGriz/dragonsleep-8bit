@@ -4107,3 +4107,41 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: First Lamp (not yet built in the second game). Cut as: `ulf_p1` in all eight facings, SW, W and NW mirrored.
+
+### Thyra Silversands -- the town figure, in all five views -- IN HAND: **Thyra IN HAND 2026-11-20** (the art desk's ART-151-THYRA-SILVERSANDS-TOWN-CUTTER-HANDOFF, ten pages on his approved South Idle redraw, five views of Idle 4 and Walk 8: cut into `thyra_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on his *"a cutter can start on non-combatants"*; worn by no one yet, Second Lamp not on the grid)
+ATTACH `ART-WANTED-87-THYRA-HEAD-01-IDLE.png` (your own Idle page of her: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of THYRA SILVERSANDS, the warden of a road's midway lamp-station -- draw this same dwarf woman head to foot, the same face, hair and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
+
+THYRA SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on her back, a warhammer or a battleaxe at her belt (whichever the portrait pages give). Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing at ease by her station's lamp, a small breath); Walk (8: a brisk, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Second Lamp (not yet built in the second game). Cut as: `thyra_p1` in all eight facings, SW, W and NW mirrored.
+
+### Geir Silversands -- the town figure, in all five views -- IN HAND: **Geir IN HAND 2026-11-20** (the art desk's ART-152-GEIR-SILVERSANDS-TOWN-CUTTER-HANDOFF, ten pages on his approved South Idle, five views of Idle 4 and Walk 8: cut into `geir_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on his *"a cutter can start on non-combatants"*; worn by no one yet, Third Lamp not on the grid)
+ATTACH `ART-WANTED-87-GEIR-HEAD-01-IDLE.png` (your own Idle page of this dwarf: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
+```text
+Attached: your own Idle portrait page of GEIR SILVERSANDS, the warden of a road's last lamp-station -- draw this same dwarf head to foot, the same face, beard and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
+
+GEIR SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on the back, a warhammer or a battleaxe at the belt (whichever the portrait pages give). Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing among the station's crates, an ear on the dark road, a small breath); Walk (8: a steady, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Third Lamp (not yet built in the second game). Cut as: `geir_p1` in all eight facings, SW, W and NW mirrored.

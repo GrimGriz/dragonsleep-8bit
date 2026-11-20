@@ -16,8 +16,10 @@ art desk measured them (its "~40 px" counts the outline); the walk page matched 
 walk's small vertical variation"); SW W NW the mirrors of SE E NE (RULED 10-14; the notes: "a reflected runtime cell also reflects gear"); boxed down,
 snapped to the 64 (fire left out, the trooper's way; red kept where a figure wears it -- Ulf's shield), outlined.
 """
-import csv, importlib.util, os
+import csv, importlib.util, json, os
+import numpy as np
 from PIL import Image
+from scipy import ndimage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _sp = importlib.util.spec_from_file_location('vivian_sheet', os.path.join(ROOT, 'tools', 'vivian-sheet.py'))
@@ -26,20 +28,56 @@ VS = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(VS)
 PAD = 14
 
 
+GAP, DOWN = 30, 6          # (source pixels: a braid or a heel may stand apart from the body; a printed number stands well below the feet -- tools/asdis-town-sheet.py)
+
+
+def tight(d, fn, win):
+    """a crop window drawn tight round the figure: the largest piece and the pieces near it (a printed number below, a speck beside, fall away) -- the drawing's
+    own box in page terms, for a delivery whose map gives cells, not boxes (Thyra's ART-151)"""
+    x0, y0, x1, y1 = win
+    a = np.asarray(Image.open(os.path.join(d, fn)).convert('RGB').crop(win)).astype(np.float32)
+    fl, n = ndimage.label(VS.figure(a))
+    objs = ndimage.find_objects(fl)
+    big = objs[int(np.argmax(ndimage.sum(fl > 0, fl, range(1, n + 1))))]
+    ya, yb, xa, xb = big[0].start, big[0].stop, big[1].start, big[1].stop
+    grew = True
+    while grew:
+        grew = False
+        for o in objs:
+            if o[0].start < yb + DOWN and o[0].stop > ya - GAP and o[1].start < xb + GAP and o[1].stop > xa - GAP:
+                nb = (min(ya, o[0].start), max(yb, o[0].stop), min(xa, o[1].start), max(xb, o[1].stop))
+                if nb != (ya, yb, xa, xb):
+                    (ya, yb, xa, xb), grew = nb, True
+    return (x0 + xa, y0 + ya, x0 + xb, y0 + yb)
+
+
+def map_rows(d):
+    """(file, view, row, frame number, box, is-a-window) from the delivery's frame map: Ulf's FRAME-MAP.csv (`source_bbox_xyxy_exclusive`, the drawing's box),
+    Geir's FRAME-MAP.json (`pages` -> `frames` `source_box`, the drawing's box) or Thyra's (`pages` -> `frames` `window_xyxy`, a crop cell)"""
+    if os.path.exists(os.path.join(d, 'FRAME-MAP.csv')):
+        for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
+            yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+        return
+    fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
+    for pg in fm['pages']:
+        for f in pg['frames']:
+            box = f.get('source_box') or f.get('window_xyxy')
+            yield pg['source'], pg['facing'], pg['action'].lower(), int(f.get('frame') or f.get('number')), tuple(int(v) for v in box), 'source_box' not in f
+
+
 def frame_windows(src, batch):
-    """[(batch, view, row, frame index, file, window, box)] from the delivery's FRAME-MAP.csv"""
+    """[(batch, view, row, frame index, file, window, box)] from the delivery's frame map"""
     d = os.path.join(VS.pix.SRC, src, batch)
     if not os.path.isdir(d):
         return []
     out, sizes = [], {}
-    for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
-        fn = r['file']
+    for fn, view, row, num, box, cell in map_rows(d):
         if fn not in sizes:
             sizes[fn] = Image.open(os.path.join(d, fn)).size
         W, H = sizes[fn]
-        x0, y0, x1, y1 = (int(v) for v in r['source_bbox_xyxy_exclusive'].split())
+        x0, y0, x1, y1 = tight(d, fn, box) if cell else box
         win = (max(0, x0 - PAD), max(0, y0 - PAD), min(W, x1 + PAD), min(H, y1 + PAD))
-        out.append((batch, r['facing'], r['action'].lower(), int(r['frame']) - 1, fn, win, (x0, y0, x1, y1)))
+        out.append((batch, view, row, num - 1, fn, win, (x0, y0, x1, y1)))
     rows = {}
     for w in out:
         rows.setdefault((w[1], w[2]), []).append(w[3])
@@ -63,6 +101,21 @@ road('ulf_p1', 'ulf', '2026-11-19-ART-150', 'Ulf', 'ART-150-ULF-SILVERSANDS-TOWN
      ['the mirrors (SW W NW) carry the axe to his left hip and the shield to the other shoulder, as every mirrored costume detail (the art desk\'s own note)',
       'the rear NE walk turns nearer a back view than its idle (the art desk\'s own note)'],
      'worn by no one yet: First Lamp is not on the grid')
+
+# Thyra Silversands, Second Lamp (the art desk's ART-151; its notes: the compact steel warhammer at her right hip, the braid over her left shoulder, the shield
+# strapped to her back; North Idle's shield "reads browner than North Walk" in its own diagnostic). Not worn yet: Second Lamp (content/maps/highway_2.json
+# `thyra`, the first game's road) is not on the grid. Its map gives crop cells, not boxes: tight() finds her in each.
+road('thyra_p1', 'thyra', '2026-11-19-ART-151', 'Thyra', 'ART-151-THYRA-SILVERSANDS-TOWN-CUTTER-HANDOFF',
+     ['the mirrors (SW W NW) carry the hammer to her left hip and the braid to the other shoulder (the art desk\'s own note)',
+      'North Idle\'s shield may read browner than North Walk\'s (the art desk\'s own note)'],
+     'worn by no one yet: Second Lamp is not on the grid')
+
+# Geir Silversands, Third Lamp (the art desk's ART-152; its notes: steel cap, pale pointed beard, red quilted sleeves under mail, the round red shield on his
+# back, the short iron hammer at his right hip; he listens with a slight head tilt). Not worn yet: Third Lamp is not on the grid.
+road('geir_p1', 'geir', '2026-11-19-ART-152', 'Geir', 'ART-152-GEIR-SILVERSANDS-TOWN-CUTTER-HANDOFF',
+     ['the mirrors (SW W NW) carry the hammer to his left hip (the art desk\'s own note)',
+      'E and rear NE are fresh redraws whose diagonal strides reach further than the trooper\'s (the art desk\'s own note)'],
+     'worn by no one yet: Third Lamp is not on the grid')
 
 
 if __name__ == '__main__':

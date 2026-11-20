@@ -6353,6 +6353,40 @@
 ],
 "source": "drawn by the art desk (ART-141-GATE-WATCH-COMBAT, 11-12: the generic dwarf's gate watch in five views), cut by tools/gatewatch-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"geir_p1": {
+"image": "art/geir_p1.png?v=5dc1eedbd5",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Geir",
+"hold": [
+"the mirrors (SW W NW) carry the hammer to his left hip (the art desk's own note)",
+"E and rear NE are fresh redraws whose diagonal strides reach further than the trooper's (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-152-GEIR-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Third Lamp is not on the grid"
+},
 "generalgrim_p1": {
 "image": "art/generalgrim_p1.png?v=1731d8a1c2",
 "fw": 36,
@@ -31982,6 +32016,40 @@ true
 },
 "source": "deep16/_src/tam/ART-100/ART-100_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:tam"
+},
+"thyra_p1": {
+"image": "art/thyra_p1.png?v=58c3849cb3",
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Thyra",
+"hold": [
+"the mirrors (SW W NW) carry the hammer to her left hip and the braid to the other shoulder (the art desk's own note)",
+"North Idle's shield may read browner than North Walk's (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-151-THYRA-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Second Lamp is not on the grid"
 },
 "toptiles_p1": {
 "image": "art/toptiles_p1.png?v=50c99d61ce",

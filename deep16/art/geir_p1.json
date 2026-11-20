@@ -1,0 +1,34 @@
+{
+ "image": "art/geir_p1.png",
+ "fw": 32,
+ "fh": 64,
+ "ax": 16,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 32,
+   "fh": 64,
+   "ax": 16,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 38,
+   "fh": 64,
+   "ax": 19,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Geir",
+ "hold": [
+  "the mirrors (SW W NW) carry the hammer to his left hip (the art desk's own note)",
+  "E and rear NE are fresh redraws whose diagonal strides reach further than the trooper's (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-152-GEIR-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Third Lamp is not on the grid"
+}

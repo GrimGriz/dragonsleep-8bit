@@ -953,7 +953,7 @@ Draw every page with the image generator, never with code: no Pillow, no script-
 ```
 Where: `pt_dagny` (section 87); this block replaces section 87's Dagny block, whose IDLE asked her seated at her grille. Cut as: section 87's.
 
-## 91. The road's speakers who do not fight: a town (world) figure each for Ketil, Ulf, Thyra, Geir, Ragna, Gudrun and Dagny, in all five views (added 11-19, the seat road-art-1119, on his word) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it -- IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19-<name>-town-figure/` for ketil, ulf, thyra, geir, ragna, gudrun and dagny, each with its `.zip` -- the portrait and town-figure zips SENT 2026-11-19, carried by Griz (*"art dept has zips"*; now under `deep16/_src/art-desk/sent/`); the fight sheets stay held for the combat seat -- **Ulf IN HAND 2026-11-20** (the art desk's ART-150-ULF-SILVERSANDS-TOWN-CUTTER-HANDOFF, ten pages on his approved South Idle, five views of Idle 4 and Walk 8: cut into `ulf_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on his *"a cutter can start on non-combatants"*; worn by no one yet, First Lamp not on the grid)
+## 91. The road's speakers who do not fight: a town (world) figure each for Ketil, Ulf, Thyra, Geir, Ragna, Gudrun and Dagny, in all five views (added 11-19, the seat road-art-1119, on his word) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it -- IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19-<name>-town-figure/` for ketil, ulf, thyra, geir, ragna, gudrun and dagny, each with its `.zip` -- the portrait and town-figure zips SENT 2026-11-19, carried by Griz (*"art dept has zips"*; now under `deep16/_src/art-desk/sent/`); the fight sheets stay held for the combat seat -- **Ulf IN HAND 2026-11-20** (the art desk's ART-150-ULF-SILVERSANDS-TOWN-CUTTER-HANDOFF, ten pages on his approved South Idle, five views of Idle 4 and Walk 8: cut into `ulf_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on his *"a cutter can start on non-combatants"*; worn by no one yet, First Lamp not on the grid) -- **Thyra IN HAND 2026-11-20** (the art desk's ART-151-THYRA-SILVERSANDS-TOWN-CUTTER-HANDOFF, ten pages on his approved South Idle redraw, five views of Idle 4 and Walk 8: cut into `thyra_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on his *"a cutter can start on non-combatants"*; worn by no one yet, Second Lamp not on the grid) -- **Geir IN HAND 2026-11-20** (the art desk's ART-152-GEIR-SILVERSANDS-TOWN-CUTTER-HANDOFF, ten pages on his approved South Idle, five views of Idle 4 and Walk 8: cut into `geir_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on his *"a cutter can start on non-combatants"*; worn by no one yet, Third Lamp not on the grid)
 
 His words, 2026-11-19, in the seat's window, on its question whether the seven who do not fight get town figures: *"5. yes"*; on whether a town figure travels in the same ask as a fight sheet: *"7. yes, follow each portrait"* -- each figure follows that person's talking portrait (ours 86 and 87, the art desk's §87 and §88): drawn from the portrait pages once approved, the Idle checkpoint page attached as the identity. The kit is his ruled table (*"1. yes to both"*, 11-19): Ketil the garrison's battleaxe and shield; the three wardens shield and hammer or axe; Ragna, Gudrun and Dagny no weapon. Whoever has no he or she in the sources is gendered by the cutter from the pages (his *"i guess we'll have the cutter assign gender based on what comes back"*); these blocks say "the dwarf".
 
@@ -975,44 +975,6 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: Sólskaft's vault doors beside Pyro (`deep16/js/solskaft.js` SK.FOLK `ketil`, on `trooper_p1` today). Cut as: `ketil_p1` in all eight facings, SW, W and NW mirrored.
-
-### Thyra Silversands -- the town figure, in all five views
-ATTACH `ART-WANTED-87-THYRA-HEAD-01-IDLE.png` (your own Idle page of her: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
-```text
-Attached: your own Idle portrait page of THYRA SILVERSANDS, the warden of a road's midway lamp-station -- draw this same dwarf woman head to foot, the same face, hair and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
-
-THYRA SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on her back, a warhammer or a battleaxe at her belt (whichever the portrait pages give). Exactly the size of the attached town figure.
-
-HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing at ease by her station's lamp, a small breath); Walk (8: a brisk, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
-HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
-
-All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
-Send previews for Griz's OK first; full sheets only after it.
-Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
-```
-Where: Second Lamp (not yet built in the second game). Cut as: `thyra_p1` in all eight facings, SW, W and NW mirrored.
-
-### Geir Silversands -- the town figure, in all five views
-ATTACH `ART-WANTED-87-GEIR-HEAD-01-IDLE.png` (your own Idle page of this dwarf: the identity), `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`.
-```text
-Attached: your own Idle portrait page of GEIR SILVERSANDS, the warden of a road's last lamp-station -- draw this same dwarf head to foot, the same face, beard and colouring, in the steel cap and mail the page shows; the walking town figure you drew of a trooper of the same hold, for the format, the camera and the size; a size reference.
-
-GEIR SILVERSANDS, walking: the garrison's kit as the page shows it -- steel cap, coat of mail, the round shield slung on the back, a warhammer or a battleaxe at the belt (whichever the portrait pages give). Exactly the size of the attached town figure.
-
-HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing among the station's crates, an ear on the dark road, a small breath); Walk (8: a steady, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
-HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
-
-All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
-Send previews for Griz's OK first; full sheets only after it.
-Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
-```
-Where: Third Lamp (not yet built in the second game). Cut as: `geir_p1` in all eight facings, SW, W and NW mirrored.
 
 ### Ragna Copperbottom -- the town figure, in all five views
 ATTACH `ART-WANTED-88-pt_ragna-HEAD-1-IDLE.png` (your own Idle page of her: the identity), `folkdwarf_p1-town-figure-the-format-reference.png` (a dwarf of the same hold in plain clothes, the town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`.
