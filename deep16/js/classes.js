@@ -137,7 +137,6 @@
     // the Drillyard's set plays (a fighter of ours, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; js/features.js F.drill): three known at 3,
     // five at 7; `sub` keeps the tab and the ask to that archetype
     fighter: [{ key: 'plays', word: 'PLAYS', at: 3, sub: 'the Drillyard', count: function (L) { return L >= 7 ? 5 : 3; }, opts: [
-      { id: 'wheel', name: 'Wheel', desc: 'on a hit, trade places with a friend within 5 ft; no opportunity attacks' },
       { id: 'bind', name: 'Bind', desc: 'on a hit, the creature takes no reactions till its next turn' },
       { id: 'breakstride', name: 'Break Stride', desc: 'on a hit, its speed 10 ft less through its next turn' },
       { id: 'pinshield', name: 'Pin the Shield', desc: 'on a hit, its shield adds nothing to its AC till your next turn' },
@@ -452,7 +451,7 @@
     // sorcerer's metamagic (3: two options, a third at 10, a fourth at 17), the Hunter's Defensive Tactics (7: Escape the Horde unless the spec
     // says 'multiattack' or 'steelwill'), the warlock's Pact Boon (3: below)
     if (sub === 'The Fiend' && lvl >= 6) h.feats.darkLuck = 1;
-    if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = lvl >= 7 ? 3 : 2; h.plays = (spec.plays || ['wheel', 'bind', 'breakstride', 'pinshield', 'callmark']).slice(0, lvl >= 7 ? 5 : 3); } // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
+    if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = lvl >= 7 ? 3 : 2; h.plays = (window.DS.R.playsFix(spec.plays) || ['bind', 'breakstride', 'pinshield', 'callmark', 'holdground']).slice(0, lvl >= 7 ? 5 : 3); } // (WHEEL gone to the feat Soldiering, 11-20: R.playsFix) // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
     if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
     if (sub === 'the Lampwright' && cls === 'rogue' && lvl >= 3) h.known = (h.known || []).concat(['light', 'dancinglights'].filter(function (id) { return (h.known || []).indexOf(id) < 0; })); // (Wick-Lore: Light and Dancing Lights, INT -- ours, 11-03)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
@@ -661,7 +660,7 @@
       u.weapon = combo[0]; u.combo = combo.length > 1 ? combo : null; u.alt = null;
     }
     if (h.twoActions) u.twoActions = true; // (two actions a turn, never two spells: js/tactics.js TX.turn)
-    u.plays = h.plays || null; u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.prey = h.prey || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
+    u.plays = window.DS.R.playsFix(h.plays) || null; u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.prey = h.prey || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
     // Pact of the Blade (SRD 5.1): proficient with the pact weapon while she wields it, and it counts as magical
     if (h.pact === 'blade' && u.weapon) { u.weapon = Object.assign({}, u.weapon, { magic: true, pact: true, name: u.weapon.name + ' (pact)' }); if (!R.isProfWeapon(h, R.weaponOf(h))) u.weapon.atk += R.prof(h.lvl); }
     u.invocations = h.invocations || null;

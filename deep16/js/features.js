@@ -1098,23 +1098,57 @@
     // and the play stood; only a target the blow leaves unable to react is cut)
     if (F.knowsPlay(att, 'bind') && tgt.reaction > 0 && RU.canAct(tgt)) opts.push({ label: 'BIND: no reactions till its turn', value: 'bind' });
     if (F.knowsPlay(att, 'breakstride') && !tgt.conds.stride) opts.push({ label: 'BREAK STRIDE: 10 ft less speed', value: 'breakstride' });
-    if (F.knowsPlay(att, 'wheel') && friends.length) opts.push({ label: 'WHEEL: trade places with a friend', value: 'wheel' });
     if (!opts.length) return;
     var pick;
-    if (!mine(att)) pick = opts[0].value === 'wheel' ? 0 : opts[0].value; // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride; never the wheel, which wants a plan)
+    if (!mine(att)) pick = opts[0].value; // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride. WHEEL left for the feat Soldiering, 11-20: F.wheel)
     else {
       opts.push({ label: 'NO PLAY', value: 0 });
       pick = yield { prompt: { who: att, title: att.name + ': A PLAY? (' + att.feats.openings + ' opening' + (att.feats.openings === 1 ? '' : 's') + ' left)', lines: ['The blow lands on ' + (tgt.side === 'foe' ? 'the ' : '') + tgt.name + '.'], opts: opts } };
     }
     if (!pick) return;
-    var f = null;
-    if (pick === 'wheel') { f = friends.length > 1 && mine(att) ? yield* pickOne(B, att, 'WHEEL', friends, 'The friend to trade places with.') : friends[0]; if (!f) return; }
     spendPlay(att); D.sfx('confirm');
     if (pick === 'pinshield') { tgt.conds.shieldPinned = { by: att.id }; B.card(['  {y}PIN THE SHIELD{/}: ' + D.Battle.nm(tgt) + '\'s shield is pinned  {g}(-2 AC till ' + att.name + '\'s next turn){/}'], 220); }
     else if (pick === 'bind') { tgt.reaction = 0; B.card(['  {y}BIND{/}: ' + D.Battle.nm(tgt) + ' is bound up  {g}(no reactions till its next turn){/}'], 220); }
     else if (pick === 'breakstride') { tgt.conds.stride = { by: att.id }; B.card(['  {y}BREAK STRIDE{/}: ' + D.Battle.nm(tgt) + ' is slowed  {g}(10 ft less speed through its next turn){/}'], 220); }
-    else if (pick === 'wheel') { var ax = att.x, ay = att.y; att.x = f.x; att.y = f.y; f.x = ax; f.y = ay; B.card(['  {y}WHEEL{/}: ' + att.name + ' and ' + f.name + ' trade places  {g}(no opportunity attacks){/}'], 220); }
     yield 12;
+  };
+  // ------------------------------------------------------------------ the feat Soldiering (ours -- js/rules.js R.FEATS.soldiering; the leveling lane's 2026-11-20 sections, the
+  // formation training: RULED, Griz: "1 one feat", "1 wheel leaves", "2 - trained only, they'll have to use a feat slot if they want to do it with the party, but should work with
+  // NPCs that have it"; his principle, "properly balanced compared to the feats offered in the 2014 PHB/DMG"). TRAINED: a hero by the feat (and STR 13, as the other feats read
+  // theirs); a monster or an NPC by a trait on its block (`soldiering: true` in D.FOES) or on the unit itself (u.soldiering: a fight's roster, a bench)
+  F.soldiering = function (u) {
+    if (!u || u.dead || u.object) return false;
+    if (u.soldiering || (u.kind && D.FOES && D.FOES[u.kind] && D.FOES[u.kind].soldiering)) return true;
+    var h = u.src; return !!(h && window.DS.R.hasFeat(h, 'soldiering') && (u.abil || h.abil).str >= 13);
+  };
+  // WHEEL: on its own weapon hit on its own turn (not a spell, a foe), the trained one and a trained friend within 5 ft who has a reaction trade places; the friend's reaction
+  // is spent; no opportunity attacks; no openings, no once-a-turn. A player's friend is asked and may refuse; an AI friend agrees. A player's hitter is asked first (the hit
+  // is its turn's); the AI's hitter wheels by F.wheelWant (the formation's AI, below). The friends: as the Drillyard's were -- standing, not aloft, not riding, no object
+  F.wheelFriends = function (B, att) {
+    return B.units.filter(function (w) { return w !== att && w.side === att.side && !w.dead && w.hp > 0 && !w.object && !w.riding && F.soldiering(w) && w.reaction > 0 && RU.canAct(w) && G.dist(w, att) <= 5 && !(G.aloft && (G.aloft(w) || G.aloft(att))); });
+  };
+  F.wheelWant = function (B, att, friends) { return null; }; // (the AI's: none till the formation's AI is built -- set below it)
+  F.wheel = function (B, a, f) {
+    var ax = a.x, ay = a.y; a.x = f.x; a.y = f.y; f.x = ax; f.y = ay; f.reaction = 0; D.sfx('confirm');
+    if (G.setup && B.map) G.setup(B.map, B.units);
+    B.card(['  {y}WHEEL{/}: ' + a.name + ' and ' + f.name + ' trade places  {g}(' + f.name + '\'s reaction; no opportunity attacks){/}'], 220);
+  };
+  var onWeaponHitW = M.onWeaponHit;
+  M.onWeaponHit = function* (B, att, tgt, atk, crit) {
+    if (onWeaponHitW) yield* onWeaponHitW(B, att, tgt, atk, crit);
+    if (!F.soldiering(att) || B.active !== att || att.dead || att.hp <= 0 || !tgt || atk.spell || tgt.side === att.side || !RU.canAct(att)) return;
+    var friends = F.wheelFriends(B, att); if (!friends.length) return;
+    var f = null;
+    if (mine(att)) {
+      f = friends.length > 1 ? yield* pickOne(B, att, 'WHEEL', friends, 'Trade places with a trained friend (its reaction).') : friends[0];
+      if (f && friends.length === 1) { var go = yield { prompt: { who: att, title: att.name + ': WHEEL?', lines: ['Trade places with ' + f.name + ' (its reaction; no opportunity attacks).'], opts: [{ label: 'WHEEL', value: 1 }, { label: 'STAY', value: 0, no: true }] } }; if (!go) return; }
+    } else f = F.wheelWant(B, att, friends);
+    if (!f) return;
+    if (mine(f) && !mine(att)) { // (the player's friend asked, and may refuse)
+      var yes = yield { prompt: { who: f, title: f.name + ': WHEEL WITH ' + att.name.toUpperCase() + '?', lines: [att.name + ' calls the wheel: trade places (your reaction; no opportunity attacks).'], opts: [{ label: 'WHEEL', value: 1 }, { label: 'REFUSE', value: 0, no: true }] } };
+      if (!yes) return;
+    }
+    F.wheel(B, att, f); yield 12;
   };
   F.markTargets = function (B, u) { return hostileNear(B, u, 60).filter(function (w) { return !w.dead && w.hp > 0 && !w.object && !(w.conds.calledMark && w.conds.calledMark.by === u.id); }); };
   F.callMark = function (B, u, t) {

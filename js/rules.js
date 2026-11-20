@@ -318,7 +318,7 @@
     // Champion is the SRD's (R.champion: its Improved Critical and Remarkable Athlete), the Threshing Floor ours -- deep16/js/rules.js RU.hardGround, RU.startTurn, battle.js
     fighter: { at: 3, word: 'MARTIAL ARCHETYPE', opts: [
       { id: 'champion', name: 'Champion', srd: true, desc: 'Improved Critical: a critical on a 19 or 20. At 7, Remarkable Athlete: half proficiency to STR, DEX and CON checks and to initiative.' },
-      { id: 'drillyard', name: 'the Drillyard', desc: "Ours, the drill yard's set plays. Two openings a short rest (three at 7), one play a turn, three plays known (five at 7): WHEEL (trade places with a friend beside), BIND (no reactions), BREAK STRIDE (10 ft less speed), PIN THE SHIELD (its shield off its AC), CALL THE MARK (friends' first hits +2), HOLD GROUND (not pushed, not knocked flat)." },
+      { id: 'drillyard', name: 'the Drillyard', desc: "Ours, the drill yard's set plays. Two openings a short rest (three at 7), one play a turn, three plays known (all five at 7): BIND (no reactions), BREAK STRIDE (10 ft less speed), PIN THE SHIELD (its shield off its AC), CALL THE MARK (friends' first hits +2), HOLD GROUND (not pushed, not knocked flat)." },
       { id: 'threshing', name: 'the Threshing Floor', desc: "Barley's road, ours. Hard Ground: prone is no trouble -- no disadvantage on its own blows from the ground, no advantage for one beside it, up for 5 ft. Up Off the Floor: once a long rest, dropped to 0, it rises at its next turn with its fighter level + CON in HP, its first blow at advantage. At 7, Threshing: once a turn, one more weapon die on a prone foe." }] },
     // the paladin's (10-30, the leveling lane §8 D; leveling-srd-by-class.md §2.2; Griz: "i'd say yes", the oath after the Threshing Floor): Devotion is the SRD's (Sacred
     // Weapon, Turn the Unholy, its spells, the Aura of Devotion -- R.devotion, RU.devoted), the Green Return ours -- deep16/js/features.js F.greenAgain, M.onKill, F.holdGround
@@ -392,11 +392,26 @@
     untempled: { name: 'Untempled', cha: 13, lay: true, cls: [], any: true, second: true, desc: 'Your Lay on Hands pool comes back by half at a short rest. (CHA 13, and Lay on Hands.)' },
     suddendark: { name: 'Sudden Dark', dex: 13, cls: [], any: true, second: true, desc: 'A bonus action: one flame you can see within 30 ft that no magic made goes out -- a torch, a lantern, a candle, a brazier. (DEX 13.)' },
     standin: { name: 'Stand In', str: 13, cls: [], any: true, second: true, desc: 'Your reaction when an attack hits a friend within 5 ft of you: you lean in and take it -- the attack hits you instead if it beats your AC; else it misses. Neither of you moves. (STR 13.)' },
+    // Soldiering (ours -- the name RULED 2026-11-20, Griz: "'Soldiering' is the feat name. Give it to the dwarves for now and see if it impacts combat art asks";
+    // the leveling lane's 2026-11-20 sections, the formation training; RULED, Griz: "1 one feat", "2 - trained only, they'll have to use a
+    // feat slot if they want to do it with the party, but should work with NPCs that have it", "1 wheel leaves" -- WHEEL off the Drillyard and onto this; the shield wall, its
+    // cover and the pike rank with it; "properly balanced compared to the feats offered in the 2014 PHB/DMG"). Nothing alone: each part wants another trained one. A monster
+    // or an NPC is trained by a trait on its block (deep16/js/features.js F.soldiering). `second`: the grid's alone
+    soldiering: { name: 'Soldiering', str: 13, cls: [], any: true, second: true, desc: 'Formation training: each part works only beside others who are trained. WHEEL -- on your weapon hit on your turn, trade places with a trained friend within 5 ft who spends its reaction; no opportunity attacks. THE SHIELD WALL -- with a shield, a bonus action and your reaction set or leave it; joined to a trained mate beside, +2 AC, cover for those behind, and THE PUSH (a bonus action: each mate spends its reaction and shoves the foe ahead, STR save or 1d6 and 5 ft back, the wall stepping in). THE PIKE RANK -- a pike strikes through the wall at no penalty. (STR 13.)' },
     // Second Draft (ours, 10-31 -- the leveling lane §8 item 4, RULED 10-30 "Second Draft next leveling session"; leveling-srd-by-class.md 2.3, near Ritual Caster's role): once a
     // long rest, at the end of a short rest, one prepared spell let go and another the hero could prepare taken up -- the second game's house (deep16/js/house.js H.secondDraft,
     // after THE WORLD's hour); the use spent is h.feats.drafted, gone at a long rest (R.refresh). `prep`: one who prepares spells (R.featWant)
     seconddraft: { name: 'Second Draft', int: 13, prep: true, cls: [], any: true, second: true, desc: 'Once a long rest, at the end of a short rest: let one prepared spell go and prepare another you could prepare in its place. (INT 13, and spells prepared.)' },
     grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
+  };
+  // the Drillyard's plays, WHEEL gone to the feat Soldiering (11-20, his "1 wheel leaves"): a sheet, a save or a card's word that still names it takes the first play it lacks in
+  // its place (the formation seat's call, his to overrule) -- deep16/js/classes.js NPC.sheet and the unit, R.picksParse's card
+  R.PLAYS = ['bind', 'breakstride', 'pinshield', 'callmark', 'holdground'];
+  R.playsFix = function (ps) {
+    if (!ps || ps.indexOf('wheel') < 0) return ps;
+    var out = ps.filter(function (p) { return p !== 'wheel'; });
+    ps.forEach(function (p) { if (p === 'wheel') { var g = R.PLAYS.filter(function (q) { return out.indexOf(q) < 0; })[0]; if (g) out.push(g); } });
+    return out;
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
   // a feat on a hero's pick: its own class's, or one any class may take whose prerequisite the hero meets on the scores before this increase (`took`)
@@ -465,7 +480,7 @@
       }
       ['asi', 'spells', 'cantrip', 'expertise'].forEach(function (k) { if (ch[k] != null && made[k] != null) { asks.push({ kind: k, need: 0, took: made[k] }); c[k] = ch[k]; } });
       if (asks.length) R.applyPick(h, { lvl: L, asks: asks }, c);
-      if (ch.plays != null) h.plays = [].concat(ch.plays); // (the sheet's own options a card's word names: the Drillyard's plays, 11-03)
+      if (ch.plays != null) h.plays = R.playsFix([].concat(ch.plays)); // (the sheet's own options a card's word names: the Drillyard's plays, 11-03)
       if (ch.style != null && L === R.STYLE_AT[h.cls]) h.style = ch.style;
     });
     R.subFeats(h); // (an archetype the word gave: its uses and its plays -- the Drillyard's openings, the Threshing Floor's rise)

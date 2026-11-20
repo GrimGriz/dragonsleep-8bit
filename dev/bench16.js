@@ -17074,12 +17074,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var t1 = tabsSa(mD), k1 = marksSa(mD); hitSa(mD, 'the Drillyard'); confSa(mD); var t2 = tabsSa(mD), k2 = marksSa(mD), sub2 = bD.subclass;
       hitSa(mD, 'breakstride'); hitSa(mD, 'holdground'); confSa(mD); var uD = D.save.unitOf(bD, false, null);
       okSa('the Drillyard on the page: ' + t1 + ' (marked "' + k1 + '"), then ' + t2 + ' (marked ' + k2 + ', the subclass ' + sub2 + '); Hold Ground for Break Stride -- done ' + doneD + ', the plays ' + JSON.stringify(bD.plays) + ', openings ' + bD.feats.openings + ', chose ' + JSON.stringify(bD.chose && bD.chose[3]) + ', the figure knows HOLD GROUND ' + D.features.knowsPlay(uD, 'holdground'),
-        t1 === 'MARTIAL ARCHETYPE' && k1 === '' && t2 === 'PLAYS' && k2 === 'wheel,bind,breakstride' && sub2 === 'the Drillyard' && doneD && (bD.plays || []).join() === 'wheel,bind,holdground' && bD.feats.openings === 2 && !!bD.chose && bD.chose[3].archetype === 'the Drillyard' && (bD.chose[3].plays || []).join() === 'wheel,bind,holdground' && D.features.knowsPlay(uD, 'holdground') && !RSa.picksDue(bD));
+        t1 === 'MARTIAL ARCHETYPE' && k1 === '' && t2 === 'PLAYS' && k2 === 'bind,breakstride,pinshield' && sub2 === 'the Drillyard' && doneD && (bD.plays || []).join() === 'bind,pinshield,holdground' && bD.feats.openings === 2 && !!bD.chose && bD.chose[3].archetype === 'the Drillyard' && (bD.chose[3].plays || []).join() === 'bind,pinshield,holdground' && D.features.knowsPlay(uD, 'holdground') && !RSa.picksDue(bD));
       window.DS.autoPicks = true; var m7 = [];
       for (var lv = 4; lv <= 7; lv++) { bD.xp = RSa.XP_LEVEL[lv]; m7 = RSa.levelUp(bD); }
       var a7 = [].concat.apply([], (bD.picks || []).filter(function (r) { return r.lvl === 7; }).map(function (r) { return r.asks; })).filter(function (a) { return a.key === 'plays'; })[0];
       okSa('at 7: PLAYS asked again, ' + (a7 && a7.need) + ' in all, his marked first (' + (a7 && a7.took.join(',')) + '); openings ' + bD.feats.openings + '; the line ' + JSON.stringify(m7.filter(function (m) { return /Plays|Remarkable|Threshing/.test(m); })),
-        !!a7 && a7.need === 5 && a7.took.join() === 'wheel,bind,holdground,breakstride,pinshield' && bD.feats.openings === 3 && m7.some(function (m) { return /^More Plays/.test(m); }) && !m7.some(function (m) { return /Remarkable|Threshing/.test(m); }));
+        !!a7 && a7.need === 5 && a7.took.join() === 'bind,pinshield,holdground,breakstride,callmark' && bD.feats.openings === 3 && m7.some(function (m) { return /^More Plays/.test(m); }) && !m7.some(function (m) { return /Remarkable|Threshing/.test(m); }));
       RSa.autoPicks(bD); var flD = window.DS.MENU.featureLines(bD).map(function (f) { return f.t; });
       okSa('settled at 7: the plays ' + (bD.plays || []).join(',') + '; STATUS ' + JSON.stringify(flD),
         (bD.plays || []).length === 5 && flD.some(function (t) { return /^the Drillyard/.test(t); }) && flD.some(function (t) { return /^More Plays/.test(t); }) && flD.some(function (t) { return /^Fighting Style: Great Weapon Fighting/.test(t); }) && !flD.some(function (t) { return /Champion|Remarkable|Threshing/.test(t); }));
@@ -17141,11 +17141,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var byM = {}; pty.forEach(function (h) { byM[h.id] = h; });
       okSa('three16\'s morning: levels ' + pty.map(function (h) { return h.id + ' ' + h.lvl; }).join(', ') + '; the pages ' + seqM.join(' / ') + '; then Barley ' + byM.barley.subclass + ' ' + JSON.stringify(byM.barley.plays) + ', Lymen ' + byM.lymen.subclass + ', Vivian ' + byM.vivian.subclass + ', Aurdin ' + byM.aurdin.subclass,
         pty.every(function (h) { return h.lvl === 3 && !RSa.picksDue(h); }) && seqM.join(' / ') === 'Barley MARTIAL ARCHETYPE / Barley PLAYS / Aurdin L1,L2 / Vivian ARCHETYPE / Lymen SACRED OATH' &&
-        byM.barley.subclass === 'the Drillyard' && (byM.barley.plays || []).join() === 'wheel,bind,breakstride' && byM.barley.feats.openings === 2 && byM.lymen.subclass === 'the Oath of the Green Return' && byM.vivian.subclass === 'Cutthroat' && byM.aurdin.subclass === 'School of Evocation');
+        byM.barley.subclass === 'the Drillyard' && (byM.barley.plays || []).join() === 'bind,breakstride,pinshield' && byM.barley.feats.openings === 2 && byM.lymen.subclass === 'the Oath of the Green Return' && byM.vivian.subclass === 'Cutthroat' && byM.aurdin.subclass === 'School of Evocation');
       // 10. THE POCKET DM: a card's word carries the plays ('^3q:'), and its Barley wears them
       var wd = RSa.picksWord({ 3: { archetype: 'the Drillyard', plays: ['wheel', 'bind', 'holdground'] } }), pp = RSa.picksParse(wd), shP = D.npc.heroSheet({ hero: 'barley', lvl: 5, picks: pp });
       okSa('a card\'s word ' + JSON.stringify(wd) + ': its Barley at 5 ' + shP.subclass + ', plays ' + JSON.stringify(shP.plays) + ', openings ' + (shP.feats && shP.feats.openings),
-        wd.join() === '^3r:the_Drillyard,^3q:wheel-bind-holdground' && shP.subclass === 'the Drillyard' && (shP.plays || []).join() === 'wheel,bind,holdground' && shP.feats.openings === 2);
+        wd.join() === '^3r:the_Drillyard,^3q:wheel-bind-holdground' && shP.subclass === 'the Drillyard' && (shP.plays || []).join() === 'bind,holdground,breakstride' && shP.feats.openings === 2);
       var his = Object.keys(memSa).filter(function (k) { return /^(deep16\.game\.|ds8-save-|deep16\.handoff$|deep16\.world$)/.test(k); });
       okSa('his slots: written ' + (his.join(', ') || 'nothing'), !his.length);
     } catch (e) { repSa.errors.push(String(e && e.stack || e).slice(0, 900)); }
@@ -17909,6 +17909,58 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preIv);
     return;
   }
+  // WHEEL ON THE FEAT (mode=wheel1120; the leveling lane's 2026-11-20 sections, the formation training -- RULED, Griz: "1 wheel leaves", "2 - trained only, they'll have to use a
+  // feat slot if they want to do it with the party, but should work with NPCs that have it"): the feat Soldiering in the register (STR 13, the grid's alone); the Drillyard's PLAYS
+  // without WHEEL, a sheet or a card that still names it given the play it lacks; on a hit, a trained one and a trained friend within 5 ft trade places and the friend's reaction
+  // is spent; an untrained friend, a friend with no reaction, an untrained hitter: nothing; a Drillyard fighter that still knows the old WHEEL is offered nothing; a block's trait trains
+  if (get('mode', '') === 'wheel1120') {
+    var repWh = { checks: [], errors: [] }, d0Wh = D.d, RWh = window.DS.R;
+    function okWh(what, v) { repWh.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runWh(g, want, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts, pr = st.value.prompt; if (seen) seen.push(pr.title + ' [' + os.map(function (o) { return o.label; }).join('|') + ']'); var o = os.filter(function (x) { return want && want(x, pr); })[0] || os[os.length - 1]; v = o.value; } } }
+    function mkWh(trainF, trainM) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], gs = B.units.filter(function (w) { return w.side === 'foe'; }), g = gs[0], ok = false;
+      [[f, trainF], [m, trainM]].forEach(function (p) { var u = p[0]; u.abil.str = u.src.abil.str = 15; u.src.featIds = p[1] ? ['soldiering'] : []; u.subclass = null; u.plays = null; });
+      g.maxhp = g.hp = 999; g.conds = {}; gs[1].x = 1; gs[1].y = 1;
+      for (var dy = -1; dy <= 1 && !ok; dy++) for (var dx = -1; dx <= 1 && !ok; dx++) { var x = g.x + dx, y = g.y + dy; if ((dx || dy) && D.grid.canStand(f, x, y)) { f.x = x; f.y = y; ok = B.canHit(f, g); } }
+      var okM = false; for (var ey = -1; ey <= 1 && !okM; ey++) for (var ex = -1; ex <= 1 && !okM; ex++) { var x2 = f.x + ex, y2 = f.y + ey; if ((ex || ey) && !(x2 === g.x && y2 === g.y) && D.grid.canStand(m, x2, y2)) { m.x = x2; m.y = y2; okM = true; } }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(f); D.rules.startTurn(m); B.active = f; return { B: B, f: f, m: m, g: g, ok: ok && okM };
+    }
+    function hitWh(h, want, seen) { D.d = function (n) { return n === 20 ? 15 : d0Wh(n); }; runWh(h.B.exec(h.f, { do: 'attack', target: h.g }), want, seen); D.d = d0Wh; }
+    var wantW = function (o) { return o.value === 1 || /WHEEL/.test(o.label); };
+    try {
+      D.seed = 1120;
+      // 1. the register: the feat, and the Drillyard's plays without WHEEL
+      var fd = RWh.FEATS.soldiering, po = ((D.npc.OPTIONS.fighter || [])[0] || {}).opts || [], s7 = D.npc.sheet(Object.assign(D.npc.spec('fighter:7'), { subclass: 'the Drillyard' }));
+      var fx1 = RWh.playsFix(['wheel', 'bind', 'holdground']), wd = RWh.picksParse(RWh.picksWord({ 3: { archetype: 'the Drillyard', plays: ['wheel', 'bind', 'holdground'] } })), shP = D.npc.heroSheet({ hero: 'barley', lvl: 5, picks: wd });
+      okWh('the register: Soldiering ' + (fd && fd.name) + ' STR ' + (fd && fd.str) + ' second ' + (fd && fd.second) + '; the PLAYS offered ' + po.map(function (o) { return o.id; }).join(',') + '; at 7 ' + JSON.stringify(s7.plays) + '; an old list wheel,bind,holdground -> ' + fx1 + '; a card\'s Barley ' + JSON.stringify(shP.plays),
+        fd && fd.str === 13 && fd.second && po.length === 5 && !po.some(function (o) { return o.id === 'wheel'; }) && s7.plays.join() === 'bind,breakstride,pinshield,callmark,holdground' && fx1.join() === 'bind,holdground,breakstride' && (shP.plays || []).join() === 'bind,holdground,breakstride');
+      // 2. both trained: the hit asks, the two trade squares, the friend's reaction spent, the hitter's kept
+      var h1 = mkWh(true, true), f1 = h1.f.x + ',' + h1.f.y, m1 = h1.m.x + ',' + h1.m.y, s1 = []; hitWh(h1, wantW, s1);
+      okWh('both trained (placed ' + h1.ok + '): the fighter ' + f1 + ' -> ' + h1.f.x + ',' + h1.f.y + ', the friend ' + m1 + ' -> ' + h1.m.x + ',' + h1.m.y + ', the friend\'s reaction ' + h1.m.reaction + ', the hitter\'s ' + h1.f.reaction + '; asked ' + s1.join(' / '),
+        h1.ok && h1.f.x + ',' + h1.f.y === m1 && h1.m.x + ',' + h1.m.y === f1 && h1.m.reaction === 0 && h1.f.reaction === 1 && s1.some(function (t) { return /WHEEL/.test(t); }));
+      // 3. STAY: asked and declined, nothing moves, the reaction kept
+      var h1b = mkWh(true, true), f1b = h1b.f.x + ',' + h1b.f.y; hitWh(h1b, function (o) { return o.value === 0; });
+      okWh('declined: the fighter stays at ' + f1b + ' (' + h1b.f.x + ',' + h1b.f.y + '), the friend\'s reaction ' + h1b.m.reaction, h1b.f.x + ',' + h1b.f.y === f1b && h1b.m.reaction === 1);
+      // 4. the friend untrained; the hitter untrained; the friend with no reaction: nothing asked, nothing moves
+      var h2 = mkWh(true, false), f2 = h2.f.x + ',' + h2.f.y, s2 = []; hitWh(h2, wantW, s2);
+      var h3 = mkWh(false, true), f3 = h3.f.x + ',' + h3.f.y, s3 = []; hitWh(h3, wantW, s3);
+      var h4 = mkWh(true, true); h4.m.reaction = 0; var f4 = h4.f.x + ',' + h4.f.y, s4 = []; hitWh(h4, wantW, s4);
+      okWh('the friend untrained: ' + f2 + ' -> ' + h2.f.x + ',' + h2.f.y + ' asked ' + s2.length + '; the hitter untrained: ' + f3 + ' -> ' + h3.f.x + ',' + h3.f.y + ' asked ' + s3.length + '; the friend with no reaction: ' + f4 + ' -> ' + h4.f.x + ',' + h4.f.y + ' asked ' + s4.length,
+        h2.f.x + ',' + h2.f.y === f2 && !s2.length && h3.f.x + ',' + h3.f.y === f3 && !s3.length && h4.f.x + ',' + h4.f.y === f4 && !s4.length);
+      // 5. the Drillyard no longer wheels: a fighter of it that still knows the old play, neither trained -- its prompt has no WHEEL, and nothing moves
+      var h5 = mkWh(false, false); h5.f.subclass = 'the Drillyard'; h5.f.plays = ['wheel', 'bind', 'breakstride']; h5.f.feats.openings = 2; h5.g.reaction = 1; var f5 = h5.f.x + ',' + h5.f.y, s5 = []; hitWh(h5, wantW, s5);
+      okWh('a Drillyard fighter that knew WHEEL: asked ' + (s5.join(' / ') || 'nothing') + '; ' + f5 + ' -> ' + h5.f.x + ',' + h5.f.y, h5.f.x + ',' + h5.f.y === f5 && !s5.some(function (t) { return /WHEEL/.test(t); }));
+      // 6. a block's trait: a goblin trained by the unit's own flag (u.soldiering), one by D.FOES; a plain goblin not
+      var g6 = h5.g, g6b = h5.B.units.filter(function (w) { return w.side === 'foe' && w !== g6; })[0], t0 = D.features.soldiering(g6); g6.soldiering = true; var t1 = D.features.soldiering(g6);
+      var keep = D.FOES[g6b.kind].soldiering; D.FOES[g6b.kind].soldiering = true; var t2 = D.features.soldiering(g6b); D.FOES[g6b.kind].soldiering = keep;
+      okWh('trained by a trait: a plain goblin ' + t0 + ', with u.soldiering ' + t1 + ', its kind\'s block ' + t2, !t0 && t1 && t2);
+    } catch (e) { repWh.errors.push(String(e && e.stack || e)); }
+    D.d = d0Wh;
+    var preWh = document.createElement('pre'); preWh.id = 'out'; preWh.textContent = 'BENCH16 ' + JSON.stringify(repWh);
+    document.body.appendChild(preWh);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;
@@ -17951,9 +18003,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.rules.startTurn(h2.f); h2.B.active = h2.f; hitDr(h2, function (o) { return o.value === 'breakstride'; }); var sp0 = h2.g.speed;
       D.rules.startTurn(h2.g); var spT = h2.g.turn.move; D.rules.startTurn(h2.g); var spT2 = h2.g.turn.move;
       okDr('BREAK STRIDE: its move ' + spT + ' on its next turn (speed ' + sp0 + '), ' + spT2 + ' the turn after', spT === sp0 - 10 && spT2 === sp0);
-      // 4. WHEEL: the fighter and the friend beside trade squares
-      var h3 = mkDr(3, ['wheel', 'bind', 'breakstride']), fx = h3.f.x + ',' + h3.f.y, mx = h3.m.x + ',' + h3.m.y; hitDr(h3, function (o) { return o.value === 'wheel'; });
-      okDr('WHEEL: the fighter ' + fx + ' -> ' + h3.f.x + ',' + h3.f.y + ', the friend ' + mx + ' -> ' + h3.m.x + ',' + h3.m.y, h3.f.x + ',' + h3.f.y === mx && h3.m.x + ',' + h3.m.y === fx);
+      // 4. WHEEL left the Drillyard for the feat Soldiering (11-20, his "1 wheel leaves"; mode=wheel1120 proves it there): a fighter of it that still knows the old play is not
+      // offered it, and the two keep their squares (moved, not deleted -- this check proved the trade till then)
+      var h3 = mkDr(3, ['wheel', 'bind', 'breakstride']), fx = h3.f.x + ',' + h3.f.y, mx = h3.m.x + ',' + h3.m.y, l3 = hitDr(h3, function (o) { return o.value === 'wheel'; });
+      okDr('WHEEL gone from the Drillyard: the fighter ' + fx + ' -> ' + h3.f.x + ',' + h3.f.y + ', the friend ' + mx + ' -> ' + h3.m.x + ',' + h3.m.y, h3.f.x + ',' + h3.f.y === fx && h3.m.x + ',' + h3.m.y === mx && !/WHEEL/.test(l3));
       // 5. CALL THE MARK: the button, the mark, the friend's first hit +2 and not the second
       var h4 = mkDr(3, ['callmark', 'bind', 'breakstride']), cmd4 = h4.B.commands(h4.f).filter(function (c) { return c.id === 'callmark'; })[0];
       runDr(h4.B.exec(h4.f, { do: 'callmark' }), function (o, pr) { return !!(pr.pick && pr.pick[o.value - 1] === h4.g); });
