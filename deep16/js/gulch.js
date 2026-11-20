@@ -232,7 +232,24 @@
     finally { B.webs = w0 || []; } // (the hollow's silk the fight's alone: on the walk the floor's webbing is a look, as it was)
     if (R0.flags['trig:snared']) { // (won: the first game's thanks, as the field's way gives it)
       D.counter.state(B).silver(12); D.sfx('coin'); M.relay(B); B.card(R.wrap([].concat(L('gulch.snaredFree'), [L('g.foundSilver', { n: 12 })])), 300); yield 30;
+      yield* Gu.ladRuns(B);
     }
+  };
+  // THE LAD RUNS (11-20, Griz, walking the gulch: "no reason not to have a traveler run off screen when the cocoon comes down"): cut down, he gets up off the silk at his
+  // square and goes -- to the road and down it at a run, south toward the inn, Gu.LAD.runSteps squares, off the screen at the floor's zoom -- and then off the floor. Nobody
+  // vanishes where he stands: he walks out. A townsman's figure (the commoner's), no one's target, in no area
+  Gu.LAD.runTo = [20, 68]; Gu.LAD.runSteps = 16;
+  Gu.ladRuns = function* (B) {
+    var G = D.grid, kind = D.FOES.commoner ? 'commoner' : 'bandit', u = B.makeFoe({ id: 'snaredlad', kind: kind, at: Gu.SNARE.slice(), side: 'party', ally: true }), ran = { from: Gu.SNARE.slice(), steps: 0, at: null, gone: false };
+    u.name = 'The traveler'; u.look = true; u.npc = 'snaredlad'; u.bystander = true; u.noArea = true; u.attacks = {}; u.hp = u.maxhp = 4; u.anim = 'idle'; u.animT = B.t;
+    B.units.push(u); G.setup(G.map, B.units);
+    var path = (D.Battle.route(u, Gu.LAD.runTo) || []).slice(0, Gu.LAD.runSteps);
+    for (var i = 0; i < path.length; i++) {
+      var q = path[i]; u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: 6, mode: null }; u.facing = D.spr.facingFor(q[0] - u.x, q[1] - u.y); u.anim = 'walk'; u.x = q[0]; u.y = q[1]; ran.steps++;
+      yield 6; // (a square every six frames: at a run)
+    }
+    ran.at = [u.x, u.y]; B.units = B.units.filter(function (w) { return w !== u; }); G.setup(G.map, B.units); ran.gone = true; // (off the screen: off the floor)
+    Gu.ladRan = ran;
   };
   Gu.snared = function* (B, step) {
     yield* Gu.snaredInPlace(B, step);
