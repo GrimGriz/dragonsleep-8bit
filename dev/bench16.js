@@ -18258,6 +18258,67 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preFm);
     return;
   }
+  // THE PIKE TROOPER AND THE DRAWN ROWS (mode=rows1120; 11-20, Griz: "we're holding off wiring the pike guys on the soldiering or?"; his "wanna wait til we have the visuals
+  // proper before I work test it more"): the pike trooper's block (the trooper's body, one pike, no shield, trained) on his own sheet, in the Pocket DM's pot, striking at 10 ft;
+  // a trained piker's thrust through a set wall plays its sheet's `pikerank` row, and its thrust when the wall pushes; the ordinary blow beside it does not; Hedda's `push` row
+  // plays on hedda_p2 as Halldor's does; the sect's blade's second shortsword of a turn plays `attack2`; his door's eight wear halldor_p2 and trooperpike_p2
+  if (get('mode', '') === 'rows1120') {
+    var repRw = { checks: [], errors: [] }, FRw = D.features, RURw = D.rules, Gr = D.grid, d0Rw = D.d;
+    function okRw(what, v) { repRw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function rowsSeen(g, u, ans) { var seen = [], v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (u.anim && seen[seen.length - 1] !== u.anim) seen.push(u.anim); if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[ans === 'last' ? st.value.prompt.opts.length - 1 : 0].value; } return seen; }
+    function openRw(B, u, w, h) { Gr.setup(B.map, []); var W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30; for (var y = 3; y < H - h; y++) for (var x = 1; x < W - w; x++) { var all = true; for (var yy = y; yy < y + h && all; yy++) for (var xx = x; xx < x + w && all; xx++) all = Gr.canStand(u, xx, yy) && Math.abs(Gr.gzAt(u, xx, yy) - Gr.gzAt(u, x, y)) < 2; if (all) return [x, y]; } return null; }
+    try {
+      D.seed = 1120;
+      // 1. the block
+      var PT = D.FOES.trooperpike, pa = PT && PT.attacks.pike;
+      var Bp = D.npcFight('?npc=trooperpike,goblin&vs=fighter:3&lvl=3', {}); D.battle = Bp; Bp.enter(); while (!Bp.order.length) Bp.co.next(); Bp.dark = false;
+      var pt = Bp.units.filter(function (w) { return w.kind === 'trooperpike'; })[0], ft = Bp.units.filter(function (w) { return w.side === 'party'; })[0];
+      var o1 = openRw(Bp, pt, 4, 3); pt.x = o1[0]; pt.y = o1[1]; ft.x = o1[0] + 2; ft.y = o1[1]; Bp.units.forEach(function (w) { if (w !== pt && w !== ft) { w.x = 1; w.y = 1; } }); Gr.setup(Bp.map, Bp.units);
+      var pot = D.pocket.pot(['fighter:3'], (Bp.fight && Bp.fight.map) || 'hex', false);
+      okRw('the pike trooper: ' + (PT && PT.name) + ', AC ' + (PT && PT.ac) + ', shield ' + !!(PT && PT.shield) + ', the pike +' + (pa && pa.atk) + ' ' + (pa && pa.dice) + '+' + (pa && pa.mod) + ' reach ' + (pa && pa.reach) + '; on ' + pt.sheet + ', trained ' + FRw.soldiering(pt) + ', a piker ' + FRw.pikeReady(pt) + '; reaches the fighter 10 ft off ' + Bp.canHit(pt, ft) + '; in the Pocket DM\'s pot ' + (pot.indexOf('trooperpike') >= 0) + '; a garrison rank ' + D.Battle.isTroop(pt),
+        PT && PT.ac === 16 && !PT.shield && pa && pa.atk === 3 && pa.dice === '1d10' && pa.reach === 10 && pt.sheet === 'trooperpike_p2' && FRw.soldiering(pt) && FRw.pikeReady(pt) && Bp.canHit(pt, ft) && pot.indexOf('trooperpike') >= 0 && D.Battle.isTroop(pt));
+      // 2. his door, two shields and a pike: the sheets; the pike's thrust through the set wall plays `pikerank`; its blow at a foe beside it plays `attack`
+      var Bd = D.npcFight('?npc=goblin,goblin&formation=2,1&lvl=3', {}); D.battle = Bd; Bd.enter(); while (!Bd.order.length) Bd.co.next(); Bd.dark = false;
+      var sh = Bd.units.filter(function (w) { return /^Shield/.test(w.name); }), pk = Bd.units.filter(function (w) { return /^Pike/.test(w.name); })[0], gs = Bd.units.filter(function (w) { return w.side === 'foe'; });
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; });
+      var o2 = openRw(Bd, sh[0], 2, 4), X = o2[0], Y = o2[1] + 2;
+      sh[0].x = X; sh[0].y = Y; sh[1].x = X + 1; sh[1].y = Y; pk.x = X; pk.y = Y + 1; gs[0].x = X; gs[0].y = Y - 1; gs[1].x = X + 1; gs[1].y = Y - 1; Gr.setup(Bd.map, Bd.units);
+      sh.forEach(function (u) { RURw.startTurn(u); Bd.active = u; rowsSeen(Bd.exec(u, { do: 'setshields' }), u); });
+      RURw.startTurn(pk); Bd.active = pk; D.d = function (n) { return n === 20 ? 15 : d0Rw(n); }; var thr = rowsSeen(Bd.exec(pk, { do: 'attack', target: gs[0] }), pk, 'last'); D.d = d0Rw; // ('last': STAY, not the WHEEL the hit offers with the trained Shield before it)
+      okRw('his door: the shields on ' + sh.map(function (w) { return w.sheet; }).join(', ') + ', the pike on ' + pk.sheet + '; the pike through the set wall played ' + JSON.stringify(thr),
+        sh.every(function (w) { return w.sheet === 'halldor_p2'; }) && pk.sheet === 'trooperpike_p2' && thr.indexOf('pikerank') >= 0);
+      // 3. the wall's push: the shields play `push` (Halldor's), the pike behind thrusts on `pikerank`
+      Bd.round = 2; sh.forEach(function (u) { RURw.startTurn(u); }); RURw.startTurn(pk); Bd.active = sh[0]; var i3 = 0; D.d = function (n) { return n === 20 ? (i3++ < 2 ? 1 : 15) : (n === 6 ? 4 : d0Rw(n)); };
+      var shRows = [], pkRows = [], g3 = Bd.exec(sh[0], { do: 'wallpush' }), v3, k3 = 0, s3;
+      while (k3++ < 6000) { s3 = g3.next(v3); v3 = undefined; if (sh[0].anim && shRows[shRows.length - 1] !== sh[0].anim) shRows.push(sh[0].anim); if (pk.anim && pkRows[pkRows.length - 1] !== pk.anim) pkRows.push(pk.anim); if (s3.done) break; if (s3.value && s3.value.prompt) v3 = s3.value.prompt.opts[0].value; }
+      D.d = d0Rw;
+      okRw('the push (can ' + FRw.canPush(Bd, sh[0]) + ', set ' + FRw.wallSet(sh[0]) + ', joined ' + FRw.joined(sh[0], Bd) + ', foes ahead ' + FRw.lineFoes(Bd, FRw.wallOf(Bd, sh[0]), (sh[0].conds.wall || {}).face || [0, -1]).length + ', bonus ' + sh[0].turn.bonus + '): the caller played ' + JSON.stringify(shRows) + ', the pike behind ' + JSON.stringify(pkRows), shRows.indexOf('push') >= 0 && pkRows.indexOf('pikerank') >= 0);
+      // 4. a pike's blow at a foe beside it, no wall between: the ordinary row, not `pikerank`
+      var Bn = D.npcFight('?npc=goblin&formation=0,1&lvl=3', {}); D.battle = Bn; Bn.enter(); while (!Bn.order.length) Bn.co.next(); Bn.dark = false;
+      var pn = Bn.units.filter(function (w) { return /^Pike/.test(w.name); })[0], gn = Bn.units.filter(function (w) { return w.side === 'foe'; })[0]; gn.maxhp = gn.hp = 999;
+      var o4 = openRw(Bn, pn, 3, 2); pn.x = o4[0]; pn.y = o4[1]; gn.x = o4[0] + 1; gn.y = o4[1]; Gr.setup(Bn.map, Bn.units); RURw.startTurn(pn); Bn.active = pn;
+      D.d = function (n) { return n === 20 ? 15 : d0Rw(n); }; var near4 = rowsSeen(Bn.exec(pn, { do: 'attack', target: gn }), pn); D.d = d0Rw;
+      okRw('a pike at a foe beside it, no wall: ' + JSON.stringify(near4), near4.indexOf('pikerank') < 0 && near4.indexOf('attack') >= 0);
+      // 5. Hedda's push row on her own sheet
+      var Bh = D.npcFight('?npc=goblin,goblin&formation=2,0&lvl=3', {}); D.battle = Bh; Bh.enter(); while (!Bh.order.length) Bh.co.next(); Bh.dark = false;
+      var hs = Bh.units.filter(function (w) { return /^Shield/.test(w.name); }), hg = Bh.units.filter(function (w) { return w.side === 'foe'; }); hs[0].sheet = 'hedda_p2';
+      hg.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; });
+      var o5 = openRw(Bh, hs[0], 2, 3); hs[0].x = o5[0]; hs[0].y = o5[1] + 1; hs[1].x = o5[0] + 1; hs[1].y = o5[1] + 1; hg[0].x = o5[0]; hg[0].y = o5[1]; hg[1].x = o5[0] + 1; hg[1].y = o5[1]; Gr.setup(Bh.map, Bh.units);
+      hs.forEach(function (u) { RURw.startTurn(u); Bh.active = u; rowsSeen(Bh.exec(u, { do: 'setshields' }), u); }); Bh.round = 2; hs.forEach(function (u) { RURw.startTurn(u); }); Bh.active = hs[0];
+      D.d = function (n) { return n === 20 ? 20 : d0Rw(n); }; var hRows = rowsSeen(Bh.exec(hs[0], { do: 'wallpush' }), hs[0]); D.d = d0Rw;
+      okRw('Hedda\'s push row on ' + hs[0].sheet + ': ' + JSON.stringify(hRows), hs[0].sheet === 'hedda_p2' && hRows.indexOf('push') >= 0);
+      // 6. the sect's blade's two shortswords in a turn: `attack`, then `attack2`
+      var Ba = D.npcFight('?npc=assassin&vs=fighter:5&lvl=5', {}); D.battle = Ba; Ba.enter(); while (!Ba.order.length) Ba.co.next(); Ba.dark = false;
+      var as = Ba.units.filter(function (w) { return w.kind === 'assassin'; })[0], af = Ba.units.filter(function (w) { return w.side === 'party'; })[0]; af.maxhp = af.hp = 999;
+      var o6 = openRw(Ba, as, 3, 2); as.x = o6[0]; as.y = o6[1]; af.x = o6[0] + 1; af.y = o6[1]; Gr.setup(Ba.map, Ba.units); RURw.startTurn(as); Ba.active = as;
+      var a1 = rowsSeen(Ba.attack(as, af, as.attacks.shortsword), as), a2 = rowsSeen(Ba.attack(as, af, as.attacks.shortsword), as);
+      okRw('the sect\'s blade, two shortswords in a turn: ' + JSON.stringify(a1) + ' then ' + JSON.stringify(a2) + ' (on ' + as.sheet + ')', as.sheet === 'sectblade_p2' && a1.indexOf('attack') >= 0 && a2.indexOf('attack2') >= 0);
+    } catch (e) { repRw.errors.push(String(e && e.stack || e)); }
+    D.d = d0Rw;
+    var preRw = document.createElement('pre'); preRw.id = 'out'; preRw.textContent = 'BENCH16 ' + JSON.stringify(repRw);
+    document.body.appendChild(preRw);
+    return;
+  }
   // WHEEL ON THE FEAT (mode=wheel1120; the leveling lane's 2026-11-20 sections, the formation training -- RULED, Griz: "1 wheel leaves", "2 - trained only, they'll have to use a
   // feat slot if they want to do it with the party, but should work with NPCs that have it"): the feat Soldiering in the register (STR 13, the grid's alone); the Drillyard's PLAYS
   // without WHEEL, a sheet or a card that still names it given the play it lacks; on a hit, a trained one and a trained friend within 5 ft trade places and the friend's reaction
