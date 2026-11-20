@@ -18575,6 +18575,97 @@ true
 "door": "npc:dace (the cloak worn as the magic item)",
 "source": "deep16/_src/dace/ART-123-DACE-DISPLACEMENT (the art desk's ART-123-DACE-DISPLACEMENT, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_dagny": {
+"image": "art/pt_dagny.png?v=42263f34ca",
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 157,
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"counting": {
+"y": 314,
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"remembering": {
+"y": 471,
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"firm": {
+"y": 628,
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"warm": {
+"y": 785,
+"fw": 140,
+"fh": 157,
+"ax": 79,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-WANTED-88",
+"door": "no one yet: the threshold is not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-20-AW88-TORVALD-DAGNY/Portraits (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_davos": {
 "image": "art/pt_davos.png?v=81a214a658",
 "fw": 177,
@@ -24312,6 +24403,97 @@ false
 "art": "ART-WANTED-87",
 "door": "no one yet: Second Lamp is not on the grid",
 "source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_torvald": {
+"image": "art/pt_torvald.png?v=09e531fddd",
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"healing": {
+"y": 312,
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"evasive": {
+"y": 468,
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"afraid": {
+"y": 624,
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"stern": {
+"y": 780,
+"fw": 213,
+"fh": 156,
+"ax": 122,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-WANTED-88",
+"door": "no one yet: the made road is not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-20-AW88-TORVALD-DAGNY/Portraits (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_ulf": {
 "image": "art/pt_ulf.png?v=979362ecd3",

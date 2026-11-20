@@ -1,0 +1,91 @@
+{
+ "image": "art/pt_torvald.png",
+ "fw": 213,
+ "fh": 156,
+ "ax": 122,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 213,
+   "fh": 156,
+   "ax": 122,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 213,
+   "fh": 156,
+   "ax": 122,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "healing": {
+   "y": 312,
+   "fw": 213,
+   "fh": 156,
+   "ax": 122,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "evasive": {
+   "y": 468,
+   "fw": 213,
+   "fh": 156,
+   "ax": 122,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "afraid": {
+   "y": 624,
+   "fw": 213,
+   "fh": 156,
+   "ax": 122,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "stern": {
+   "y": 780,
+   "fw": 213,
+   "fh": 156,
+   "ax": 122,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-WANTED-88",
+ "door": "no one yet: the made road is not on the grid",
+ "source": "deep16/_src/road-portraits/2026-11-20-AW88-TORVALD-DAGNY/Portraits (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

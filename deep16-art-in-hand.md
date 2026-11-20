@@ -4402,3 +4402,85 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: a new Pike Trooper foe or ally (`deep16/data/foes.js`, not yet made: the pike wall is his thinking, laned not built). Cut as: a fight sheet `trooperpike_p2` in the shape of `trooper_p2`, the attack at reach 10.
+
+## 87. The road's other speakers: talking portraits -- its blocks below came back one by one; each one's line on the section's header in `deep16-art-wanted.md`
+
+### Dagny Scalebeam, at the toll-grille of Deepholm's door -- a talking portrait -- IN HAND: **Dagny's talking portrait IN HAND 2026-11-20, whole** (the art desk's ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS: the revised Idle 6, standing, the ledger on her left forearm, Rekknar's brooch, no furniture, and attentive, counting, remembering, firm, warm: cut into `pt_dagny` by `tools/portrait-sheet.py`, by the cutter seat cutter-1120b, on the lanes desk's message carrying his *"it gave me another 88 zip and said that was completed torvald"*; worn by no one yet)
+ATTACH `ART-142-HEAD-01-PAGE-1-TROOPER.png` (a trooper of a dwarf hold, for a dwarf -- not this dwarf's face and not her clothes), `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face).
+```text
+Attached: a portrait of a trooper of a dwarf mountain hold, from the same game, for a dwarf -- not this dwarf's face and not her clothes. Two portrait pages from the same game, for the format only.
+
+DAGNY SCALEBEAM -- a DWARF WOMAN of the trader clan, who keep the doors at both ends of the road: she sits behind the toll-grille beside a great door three dwarves tall, at the end of a four-day road under the mountain, and takes the tolls, checks the weights, and counts who goes by, both ways. Exact, patient, with a long memory. She says: "Dagny Scalebeam, at the grille. Tolls, weights, and the count of who goes by. Ingrith's kin, if you're wondering. We keep the doors at both ends." -- "The last surface folk through this gate paid in coin with a king's face on it that nobody's seen since." -- "The seasons change at this gate. Two score up, two score down, every three years. I count them both ways." -- "The Cleric goes through. You don't. That's not me. That's the ledger."
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, seated at her grille, a ledger open before her; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): looking up from the ledger, weighing the viewer.
+HEAD 3 -- COUNTING (1): pen moving, eyes down, lips moving on a number.
+HEAD 4 -- REMEMBERING (1): eyes off to one side at something a long time gone: a king's face on old coin.
+HEAD 5 -- FIRM (1): a hand flat on the ledger: "That's not me. That's the ledger."
+HEAD 6 -- WARM (1): a rare small smile, holding something out through the grille: a gift.
+
+All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: she stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HER eye level (a dwarf: do not draw her looked down on), looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the made road's end, Deepholm's door: the tolls, the consult, the Sunshaft Staff (the story build lane's J.4, the consult as built). Cut as: `pt_dagny`. Her office the wiki's (`solskaft.md`: the toll-grille, the trader clan keeps the doors at both ends); no age, no kit. IDLE is drawn seated at the grille (her office), the one portrait here not standing; the format line's "she stands" holds for every other page.
+
+### Torvald Greyseam, the cleric on the made road -- a talking portrait -- IN HAND: **Torvald's talking portrait IN HAND 2026-11-20, whole** (the art desk's ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS: the revised Idle 6 under Dvalgarda's ward-knot disc with the closed eye, no cross, and attentive, healing, evasive, afraid, stern: cut into `pt_torvald` by `tools/portrait-sheet.py`, by the cutter seat cutter-1120b, on the lanes desk's message carrying his *"it gave me another 88 zip and said that was completed torvald"*; worn by no one yet)
+ATTACH `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face).
+```text
+Attached: two portrait pages from the same game, for the format only.
+
+TORVALD GREYSEAM -- a DWARF cleric of the goddess of the vigil, the dormant's ward, of the deep city's old Greyseam clan; no longer young. He meets travellers coming up the last stretch of road under the mountain from the deep city's door: a cleric's coat under a traveling cloak, a pack on his back, walking fast, looking back once. A holy symbol; a mace; a healer's kit. In a hurry and hiding why, but decent: he offers to heal. He says: "I'll do this much for the road: stand still, and I'll close what it opened in you. The best a cleric of my years can do."
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with the pack's straps in both hands, weight forward, impatient to go; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): listening, but his eyes flick back over his shoulder.
+HEAD 3 -- HEALING (1): one hand raised, a soft light at the palm: "Stand still."
+HEAD 4 -- EVASIVE (1): a quick smile that does not reach the eyes, looking away.
+HEAD 5 -- AFRAID (1): eyes wide, glancing back down the road: someone is coming.
+HEAD 6 -- STERN (1): the mace up, the holy symbol out: he will not be stopped.
+
+All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HIS eye level (a dwarf: do not draw him looked down on), looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the made road below Third Lamp, his scene and his fight (the threshold, `torvald`, the timeline's torvald-scene). Cut as: `pt_torvald`. His office the wiki's (`the-copper-egg.md`: Torvald Greyseam, cleric 5 of Dvalgarda; `who-casts-what.md`); his coat, cloak and pack the first game's line (`deep.tvCome`), his age its *"a cleric of my years"* (`deep.tv1`); the mace the first game's sheet (`monsters.json` torvald), the healer's kit and holy symbol his pack (`deep.tvDead`). He fights if the party makes him: a fight figure follows the portrait (his answer 2).
+
+## 90. The road speakers' Idle checkpoint, two answers: Torvald's holy symbol, and Dagny without furniture (added 11-19, the seat road-art-1119, on his word to the lanes desk) -- an answer to the art desk's §88 checkpoint (our section 87), under that number, no new one -- IN THE OUTBOX 2026-11-19, waiting to go (`deep16/_src/outbox/ASK-2026-11-19-road-checkpoint-torvald-dagny/` and its `.zip`) -- the portrait and town-figure zips SENT 2026-11-19, carried by Griz (*"art dept has zips"*; now under `deep16/_src/art-desk/sent/`); the fight sheets stay held for the combat seat -- **BOTH ANSWERED 2026-11-20**: the art desk's ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS drew both to these answers (`pt_torvald`, `pt_dagny`, section 87)
+
+What came back 11-19: the Idle checkpoints of sections 86 and 87 (`deep16/_src/Fresh/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT.zip` and `ART-WANTED-88-ROAD-SPEAKERS-IDLE-CHECKPOINT.zip` -- the art desk numbered them 87 and 88; ours are 86 and 87, and the numbering is his to settle with the art desk). His words to the lanes desk, verbatim: *"the ask said only "a holy symbol"; the art desk chose a cross - we've chosen one of the 3 dwarven holy symbols, of course blank holy symbol comes off of 'most common' cross - please design symbols for the other two dwarven deities and choose the best fit for torvald and include the description of that symbol in the new ask"*; and on Dagny's desk and scale stand, *"2 - without furniture"*. Then, in the seat's window: *"include asdis and ingrith in the dagny ask"*, and *"3. yes"* to the seat's question whether Dagny's brooch is Rekknar's sign, her clan's god's (`invented.json` rekknar-sign-1119). This section carries those two answers only; the rest of the checkpoint's answer waits on his word (*"we'll wait on our own seats before responding to the checkpoints"*).
+
+The symbol: the realm's dwarven triad is Dvalgarda, Ward of the Dormant; Mótsognir, the Forge-Father; and Rekknar, the Reckoner (`TarlynsPit/wiki/pantheon.md`). The one sign chosen is Rekknar's (`invented.json` rekknar-sign-1119, filed 11-19 on his word). The seat drafted the other two (`invented.json` dvalgarda-sign-1119, motsognir-sign-1119, PROPOSED for his word) and gives Torvald Dvalgarda's: he is her cleric (`the-copper-egg.md`: Torvald Greyseam, cleric 5 of Dvalgarda), and her sign's ward-knot is the mark the game already puts on her sect's blades.
+
+### Torvald Greyseam -- the talking portrait again, with Dvalgarda's sign in place of the cross -- IN HAND: **Torvald's talking portrait IN HAND 2026-11-20, whole** (the art desk's ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS: the revised Idle 6 under Dvalgarda's ward-knot disc with the closed eye, no cross, and attentive, healing, evasive, afraid, stern: cut into `pt_torvald` by `tools/portrait-sheet.py`, by the cutter seat cutter-1120b, on the lanes desk's message carrying his *"it gave me another 88 zip and said that was completed torvald"*; worn by no one yet)
+ATTACH `ART-WANTED-88-pt_torvald-HEAD-1-IDLE.png` (your own Idle page of him: keep everything but the symbols).
+```text
+Attached: your own Idle page of TORVALD GREYSEAM, the dwarf cleric. Keep him exactly as drawn -- the face, the beard, the coat, the cloak, the pack, the straps, the mace, the pose and the six-frame loop -- with ONE change, and draw every later page of his portrait (HEADs 2 to 6 of the ask) with the same change.
+
+THE CHANGE: he is a cleric of DVALGARDA, the Ward of the Dormant, a dwarven goddess -- NOT a cross. Take every cross off him: the cross pendant on his chest, the cross on his cloak's clasp, the crosses on his pouches. In the pendant's place, on the same cord at his chest, her sign: a round disc of dark, unpolished iron about the size of a large coin; on it a WARD-KNOT -- one unbroken cord looped over and under itself into four rounded lobes, a square knot with no end showing -- and at the knot's heart a single CLOSED EYE, the lid shut and level. Plain, old and dark; not gold, not jewelled. The cloak's clasp becomes a plain round iron button; the pouches plain leather. The sign must read at portrait size as a dark round disc with a knot and a shut eye, never as a cross or a star.
+
+Every page: the same format as your attached page -- 16-bit pixel-art cut-scene portrait animation, waist-up, no counter, a stable three-quarter front camera at his eye level, looking screen left, flat dark navy background, 1440 x 810, the six-frame action in two bands of three, the title and numbers clear of the drawings.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: `pt_torvald` (section 87). The same sign goes on his town figure and fight sheet (section 89: the holy symbol in his left hand is this disc). Cut as: section 87's.
+
+### Dagny Scalebeam -- the talking portrait again, standing, without the furniture -- IN HAND: **Dagny's talking portrait IN HAND 2026-11-20, whole** (the art desk's ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS: the revised Idle 6, standing, the ledger on her left forearm, Rekknar's brooch, no furniture, and attentive, counting, remembering, firm, warm: cut into `pt_dagny` by `tools/portrait-sheet.py`, by the cutter seat cutter-1120b, on the lanes desk's message carrying his *"it gave me another 88 zip and said that was completed torvald"*; worn by no one yet)
+ATTACH `ART-WANTED-88-pt_dagny-HEAD-1-IDLE.png` (your own Idle page of her: keep her, take away the furniture), `ART-141-INGRITH_HEAD-01_PAGE-1_IDLE.png` and `ART-WANTED-83-ASDIS_HEAD-01-IDLE.png` (two of her clan you drew, Ingrith and Ásdís Scalebeam: the family's likeness).
+```text
+Attached: your own Idle page of DAGNY SCALEBEAM, the dwarf woman of the toll-grille. Keep HER exactly as drawn -- the face, the grey-streaked braided hair, the dark green coat with its braided trim, the brooch -- and take away ALL the furniture: no desk, no chair, no inkwell, no quill, no scale stand, no ironwork behind her. She stands in the open like the other portraits, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at HER eye level (a dwarf: do not draw her looked down on), looking screen left. The ledger stays, as a thing she carries: a thick bound ledger held closed in the crook of her left arm.
+
+Also attached: the portraits you drew of two of her clan, the Scalebeams -- Ingrith, her cousin, and Ásdís, an old kinswoman. Keep Dagny's own face as your page draws it, brought into the family's likeness: the same colouring and family features, NOT their faces. Her brooch is the sign of Rekknar, her clan's god, as Ásdís wears hers: a round disc of dull steel about the size of a large coin, a level balance beam across its middle (a plain horizontal bar on a short centre post, no hanging pans), and three short ruled lines beneath the beam, like lines in a ledger; plain and old, worn smooth at the edge, not jewelled and not gold.
+
+Draw all six pages of her portrait again this way:
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing, the ledger in the crook of her arm, her other hand resting on its cover; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): looking up, weighing the viewer.
+HEAD 3 -- COUNTING (1): the ledger open along her forearm, eyes down, a finger running down a column, lips moving on a number.
+HEAD 4 -- REMEMBERING (1): eyes off to one side at something a long time gone: a king's face on old coin.
+HEAD 5 -- FIRM (1): her hand flat on the ledger's closed cover: "That's not me. That's the ledger."
+HEAD 6 -- WARM (1): a rare small smile, holding something out toward the viewer: a gift.
+
+Every page: 16-bit pixel-art cut-scene portrait animation, the same format as your attached page -- flat dark navy background (a deep blue, not grey and not black), 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters, the title and frame numbers kept well clear of the drawings. No scenery, no furniture, no UI or border. The head and body the same size on every page as on the Idle page.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: `pt_dagny` (section 87); this block replaces section 87's Dagny block, whose IDLE asked her seated at her grille. Cut as: section 87's.

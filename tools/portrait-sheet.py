@@ -365,7 +365,7 @@ PEOPLE = {
 # Geir, Halldor, Brann; its CUTTER-NOTES give the map: a 1440x810 page, two bands of three 480x405 cells, the title and numerals outside the cut) and
 # ART-WANTED-88-ROAD-SPEAKERS-IDLE-CHECKPOINT (our 87: no notes, the same page and cells assumed, as its pages show) -- sorted to deep16/_src/road-portraits/.
 # HEAD 1 Idle 6 each; HEADs 2 to 6 (the moods) still wanted. Torvald's (a cross on his chest; art-wanted 90 answered "Dvalgarda's sign, no crosses") and Dagny's
-# (seated at a desk with the ledger, quill and grille; answered "without furniture") HELD, not cut. Worn by no one yet: no scene names their faces.
+# (seated at a desk with the ledger, quill and grille; answered "without furniture") not cut from it: superseded the same day, below. Worn by no one yet.
 _AW87 = 'road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages/ART-WANTED-87-%s-HEAD-01-IDLE.png'
 _AW88 = 'road-portraits/2026-11-19-AW88/ART-WANTED-88-pt_%s-HEAD-1-IDLE.png'
 for _key, _pat, _pg, _door in [
@@ -376,6 +376,17 @@ for _key, _pat, _pg, _door in [
         ('ragna', _AW88, 'ragna', 'no one yet: DEEP16\'s Solskaft has no stand for her'), ('sectblade', _AW88, 'sectblade', 'no one yet: the rest past Torvald talks on cards')]:
     PEOPLE[_key] = (os.path.dirname(_pat), 'ART-WANTED-87' if _pat is _AW87 else 'ART-WANTED-88', _door,
                     {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout': [(_pat % _pg, [3, 3], ['idle'] * 6)]})
+# TORVALD AND DAGNY WHOLE (the same seat, on the lanes desk's next message: Griz, "it gave me another 88 zip and said that was completed torvald"): the art desk's
+# ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS, sorted to deep16/_src/road-portraits/2026-11-20-AW88-TORVALD-DAGNY/ -- a revised Idle 6 and five
+# stills each, answering section 90: Torvald under Dvalgarda's ward-knot disc with the closed eye, no cross (HEAD 3's light at his palm; HEAD 6 the disc in his
+# left hand, the mace in his right); Dagny standing, the ledger on her left forearm, Rekknar's brooch, no furniture (HEAD 3 the ledger open; HEAD 6 a gift held
+# out). The old checkpoint's two Idles are in deep16/_src/torvald/superseded/ and dagny/superseded/. Its town checkpoints are the South Idle sources torvald_p1
+# and dagny_p1 were cut from, byte for byte: nothing to re-cut. Worn by no one yet.
+_TD = 'road-portraits/2026-11-20-AW88-TORVALD-DAGNY/Portraits/ART-WANTED-88-pt_%s-HEAD-%d-%s.png'
+for _key, _moods, _door in [('torvald', ['attentive', 'healing', 'evasive', 'afraid', 'stern'], 'no one yet: the made road is not on the grid'),
+                            ('dagny', ['attentive', 'counting', 'remembering', 'firm', 'warm'], 'no one yet: the threshold is not on the grid')]:
+    PEOPLE[_key] = (os.path.dirname(_TD), 'ART-WANTED-88', _door, {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout':
+                    [(_TD % (_key, 1, 'IDLE-REV'), [3, 3], ['idle'] * 6)] + [(_TD % (_key, h, m.upper()), [1], [m]) for h, m in enumerate(_moods, 2)]})
 
 
 def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):
