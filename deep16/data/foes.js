@@ -609,6 +609,22 @@
     multi: 1, resist: ['poison'], resilient: true,
     src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail and a shield AC 18, the battleaxe +3 1d8+1, two handaxes thrown +3 1d6+1 20/60 (srd/04-equipment.md); CR 1/4 beside the Guard and the Hobgoblin; content/npcs.json drill1-4 (the Troopers)'
   },
+  // THE PIKE TROOPER (11-20; RULED 11-19, Griz on the seat road-art-1119's kit table and its pike trooper for the pike wall's second rank, "1. yes to both"; wired 11-20 on his
+  // "we're holding off wiring the pike guys on the soldiering or?"; art-wanted 93, deep16-art-in-hand.md): the trooper's body (the SRD 5.1 Guard as a dwarf of the hold) with one
+  // ash pike and no shield -- chain mail, AC 16; the SRD's pike two-handed, heavy, reach 10 ft, +3 1d10+1 piercing (STR 13). Trained in Soldiering as the dwarven troops are ("Give
+  // it to the dwarves for now"): behind a set shield it strikes through the wall at no penalty and thrusts when the wall pushes, its sheet's `pikerank` row (js/features.js). The
+  // formation seat's calls where the kit table is silent: no thrown handaxes (both hands on the pike); CR 1/4 as the trooper (the same 11 HP and +3, a heavier blow, 2 less AC);
+  // no sidearm. His sheet trooperpike_p2 (the cutter's 2f16d202); his portrait the generic dwarf's `pikeman` (pt_dwarf), for when he speaks -- no fight wears a foe's portrait
+  trooperpike: {
+    name: 'Pike Trooper', type: 'humanoid', sheet: 'trooperpike_p2', humanoid: true, soldiering: true, cr: '1/4', ac: 16, metalArmor: 'chain mail', hp: 11, speed: 25, size: 1, reach: 10, darkvision: 60, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: {
+      pike: { name: 'Pike', atk: 3, dice: '1d10', mod: 1, type: 'piercing', reach: 10, kind: 'pike', props: ['heavy', 'reach', 'two-handed'] }
+    },
+    multi: 1, resist: ['poison'], resilient: true, portrait: { sheet: 'pt_dwarf', row: 'pikeman' },
+    src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit, the second rank of the pike wall (11-20): chain mail AC 16, no shield, the pike +3 1d10+1 reach 10 ft (srd/04-equipment.md: two-handed, heavy, reach); CR 1/4 as the trooper; art-wanted 93'
+  },
   // THE CROSSBOW TROOPER (the first two out of the falls carry crossbows -- 10-05, Griz: "at least the first two out ... should have crossbows and bolts"): the trooper with the shield slung
   // on his back (no shield bonus: chain mail, AC 16), the HEAVY crossbow two-handed (11-12, the hold's kit; srd/04-equipment.md: 1d10, 100/400, loading -- one bolt an action, whatever the
   // attacks) at the Guard's +3 (DEX 12, proficient: 1d10+1, as the SRD Veteran's own +3 1d10+1), the battleaxe for one who makes the top. CR 1/4 as the trooper: the Thug's heavy crossbow

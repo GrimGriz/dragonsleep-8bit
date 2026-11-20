@@ -1345,8 +1345,10 @@
   // THE PIKE RANK (Soldiering's; RULED, Griz: "2 pikes only no attack penalty, but let other pole-arms work with cover penalty", "3 - no adjusting to your cover model"): a
   // trained one with a pike in hand strikes through the wall's members at no penalty (battle.js attack: G.los's `wall` -- the line's only cover the wall's); any other reach
   // weapon takes the cover as it stands; the piker's own cover stays what it is
+  F.pikeOf = function (u) { if (u.weapon && (u.weapon.kind === 'pike' || /^pike$/i.test(u.weapon.name || ''))) return u.weapon; var ks = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k]; return a.kind === 'pike' || /^pike$/i.test(a.name || ''); }); return ks.length ? u.attacks[ks[0]] : u.weapon; };
   F.pikeThrough = function (u, atk) {
-    var w = atk && !atk.spell ? atk : u && u.weapon;
+    var pa = !atk && u && !u.weapon && u.attacks ? Object.keys(u.attacks).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a.kind === 'pike' || /^pike$/i.test(a.name || ''); })[0] : null; // (a block's pike: the pike trooper, 11-20)
+    var w = atk && !atk.spell ? atk : pa || (u && u.weapon);
     return !!(F.soldiering(u) && w && !w.ranged && (w.kind === 'pike' || /^pike$/i.test(w.name || '')));
   };
   // THE FORMATION'S AI (Soldiering's, 11-20; the push re-cut the same day; THE FORMING his, the same day -- "make it a default for a trained group to use their training on the
