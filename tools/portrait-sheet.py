@@ -303,7 +303,11 @@ PEOPLE = {
               # block 1, his "5 - ask follow up, does also have melee weapon?"): the art desk's SOLSKAFT-ROAD-PATROL-AND-FILE-LEADER-PORTRAITS, sorted to deep16/_src/ of that
               # name -- the ranger of the road with the longbow over his head, the hood down; the trooper's kit with the brass comb on the cap and one yellow chevron
               + [('SOLSKAFT-ROAD-PATROL-AND-FILE-LEADER-PORTRAITS/sources/SOLSKAFT-%s-PORTRAIT.png' % pg, [1], [act]) for pg, act in [
-                  ('ROAD-PATROL', 'roadpatrol'), ('FILE-LEADER', 'fileleader')]],
+                  ('ROAD-PATROL', 'roadpatrol'), ('FILE-LEADER', 'fileleader')]]
+              # the pike trooper (11-20, the cutter seat cutter-1120b, on the lanes desk's message; art-wanted section 93, the garrison's pike wall): the art desk's
+              # PIKE-TROOPER-CUTTER-HANDOFF, sorted to deep16/_src/trooperpike/2026-11-20-PIKE-TROOPER/ -- the trooper's cap, mail and red quilted sleeves, the ash pike
+              # upright in both hands and standing past the frame (`propfree`); its notes: "Route the approved portrait to pt_dwarf / pikeman"
+              + [('trooperpike/2026-11-20-PIKE-TROOPER/sources/PIKE-TROOPER-PORTRAIT-APPROVED.png', [1], ['pikeman'])],
               'avoid': {'*': ['fire', '#e8624a'], 'gatewatch': ['#e8624a'], 'lampwarden': ['#e8624a']}}),
     # GENERAL GRIMLOCK GRIM (11-10, the cutter of 11-10, on the lanes desk's queue -- Griz: "they can churn through fresh one at a time as they complete at your discretion
     # as to next cut"; the General of the road redraft from his Beholda stream table, his 10-28 "was decided re: General Grimlock Grim beholda scripting for road redraft"):
@@ -356,6 +360,22 @@ PEOPLE = {
         + [('nell-vey/2026-11-19-NELL-VEY/source/portrait/NELL-VEY-HEAD-%d-%s.png' % (h, act.upper()), [1], [act]) for h, act in [
             (2, 'appraising'), (3, 'bargaining'), (4, 'caught'), (5, 'commanding'), (6, 'bereaved')]]}),
 }
+# THE ROAD'S SPEAKERS, THEIR IDLES ONLY (11-20, the cutter seat cutter-1120b, on the lanes desk's message carrying his "if we don't have portrait idles for those
+# characters, have the cutter cut those"): the art desk's two Idle checkpoints -- ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT (our art-wanted 86: Ketil, Ulf, Thyra,
+# Geir, Halldor, Brann; its CUTTER-NOTES give the map: a 1440x810 page, two bands of three 480x405 cells, the title and numerals outside the cut) and
+# ART-WANTED-88-ROAD-SPEAKERS-IDLE-CHECKPOINT (our 87: no notes, the same page and cells assumed, as its pages show) -- sorted to deep16/_src/road-portraits/.
+# HEAD 1 Idle 6 each; HEADs 2 to 6 (the moods) still wanted. Torvald's (a cross on his chest; art-wanted 90 answered "Dvalgarda's sign, no crosses") and Dagny's
+# (seated at a desk with the ledger, quill and grille; answered "without furniture") HELD, not cut. Worn by no one yet: no scene names their faces.
+_AW87 = 'road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages/ART-WANTED-87-%s-HEAD-01-IDLE.png'
+_AW88 = 'road-portraits/2026-11-19-AW88/ART-WANTED-88-pt_%s-HEAD-1-IDLE.png'
+for _key, _pat, _pg, _door in [
+        ('ketil', _AW87, 'KETIL', 'no one yet: Ketil at Solskaft\'s vault doors speaks on his card (SK.WORDS)'), ('ulf', _AW87, 'ULF', 'no one yet: First Lamp is not on the grid'),
+        ('thyra', _AW87, 'THYRA', 'no one yet: Second Lamp is not on the grid'), ('geir', _AW87, 'GEIR', 'no one yet: Third Lamp is not on the grid'),
+        ('halldor', _AW87, 'HALLDOR', 'no one yet: the muster yard and the halls are not on the grid'), ('brann', _AW87, 'BRANN', 'no one yet: the muster yard is not on the grid'),
+        ('gudrun', _AW88, 'gudrun', 'no one yet: Second Lamp\'s stores are not on the grid'), ('hedda', _AW88, 'hedda', 'no one yet: the halls are not on the grid'),
+        ('ragna', _AW88, 'ragna', 'no one yet: DEEP16\'s Solskaft has no stand for her'), ('sectblade', _AW88, 'sectblade', 'no one yet: the rest past Torvald talks on cards')]:
+    PEOPLE[_key] = (os.path.dirname(_pat), 'ART-WANTED-87' if _pat is _AW87 else 'ART-WANTED-88', _door,
+                    {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout': [(_pat % _pg, [3, 3], ['idle'] * 6)]})
 
 
 def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):

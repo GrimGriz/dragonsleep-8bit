@@ -1,0 +1,31 @@
+{
+ "image": "art/pt_ketil.png",
+ "fw": 164,
+ "fh": 156,
+ "ax": 83,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 164,
+   "fh": 156,
+   "ax": 83,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "art": "ART-WANTED-87",
+ "door": "no one yet: Ketil at Solskaft's vault doors speaks on his card (SK.WORDS)",
+ "source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

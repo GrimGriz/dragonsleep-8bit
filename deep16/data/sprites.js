@@ -9018,6 +9018,88 @@
 ],
 "source": "drawn by the art desk (ART-146-HEDDA-GREYSEAM-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the muster yard and the halls are not on the grid"
 },
+"hedda_p2": {
+"image": "art/hedda_p2.png?v=ba3282155b",
+"fw": 42,
+"fh": 80,
+"ax": 21,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 42,
+"fh": 80,
+"ax": 21,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 42,
+"fh": 80,
+"ax": 21,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 54,
+"fh": 80,
+"ax": 27,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"push": {
+"y": 1920,
+"fw": 64,
+"fh": 80,
+"ax": 32,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2560,
+"fw": 44,
+"fh": 80,
+"ax": 22,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 68,
+"fh": 80,
+"ax": 34,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3840,
+"fw": 68,
+"fh": 80,
+"ax": 34,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Hedda",
+"hold": [
+"push: cut and in hand, the same row name as Halldor's so the one hook serves both (deep16/js/features.js THE PUSH, the Soldiering seat's)",
+"walk: SE, E and rear NE on the art desk's own hold -- the same stride at 1 and 5 (deep16-dream-polish.md)",
+"push, rear NE: the chest overlap may read as the right arm driving the shield (the art desk's own gear check)"
+],
+"source": "drawn by the art desk (ART-146-COMBAT, 11-20: art-wanted section 88, Hedda Greyseam with warhammer and shield in five views, the Attack and the Push over the mannequin's guides), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "hellhound_p1": {
 "image": "art/hellhound_p1.png?v=9878b4548a",
 "fw": 82,
@@ -17790,6 +17872,37 @@ false
 "door": "the open screen in his coat (js/counter.js C.heroFull)",
 "source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_brann": {
+"image": "art/pt_brann.png?v=70eb646938",
+"fw": 164,
+"fh": 156,
+"ax": 90,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 164,
+"fh": 156,
+"ax": 90,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-87",
+"door": "no one yet: the muster yard is not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_brennan": {
 "image": "art/pt_brennan.png?v=32a1aed5d3",
 "fw": 167,
@@ -18739,20 +18852,20 @@ false
 "source": "deep16/_src/ART-139/source (the art desk's ART-139-DORAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_dwarf": {
-"image": "art/pt_dwarf.png?v=65c43bc6f7",
+"image": "art/pt_dwarf.png?v=164d4ddfdf",
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
-"top": 155,
+"ay": 156,
+"top": 156,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 6,
 "fps": 3,
 "ledge": [
@@ -18765,11 +18878,11 @@ false
 ]
 },
 "sergeant": {
-"y": 157,
+"y": 159,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18777,11 +18890,11 @@ false
 ]
 },
 "gatewatch": {
-"y": 314,
+"y": 318,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18789,11 +18902,11 @@ false
 ]
 },
 "quartermaster": {
-"y": 471,
+"y": 477,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18801,11 +18914,11 @@ false
 ]
 },
 "smith": {
-"y": 628,
+"y": 636,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18813,11 +18926,11 @@ false
 ]
 },
 "smelter": {
-"y": 785,
+"y": 795,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18825,11 +18938,11 @@ true
 ]
 },
 "yardhand": {
-"y": 942,
+"y": 954,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18837,11 +18950,11 @@ false
 ]
 },
 "shaftwatch": {
-"y": 1099,
+"y": 1113,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18849,11 +18962,11 @@ false
 ]
 },
 "shroom": {
-"y": 1256,
+"y": 1272,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18861,11 +18974,11 @@ true
 ]
 },
 "lampwarden": {
-"y": 1413,
+"y": 1431,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18873,11 +18986,11 @@ false
 ]
 },
 "mason": {
-"y": 1570,
+"y": 1590,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18885,11 +18998,11 @@ true
 ]
 },
 "trooper": {
-"y": 1727,
+"y": 1749,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18897,11 +19010,11 @@ true
 ]
 },
 "crossbowman": {
-"y": 1884,
+"y": 1908,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18909,11 +19022,11 @@ false
 ]
 },
 "roadpatrol": {
-"y": 2041,
+"y": 2067,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
@@ -18921,15 +19034,27 @@ true
 ]
 },
 "fileleader": {
-"y": 2198,
+"y": 2226,
 "fw": 173,
-"fh": 157,
+"fh": 159,
 "ax": 92,
-"ay": 155,
+"ay": 156,
 "frames": 1,
 "fps": 1,
 "ledge": [
 true
+]
+},
+"pikeman": {
+"y": 2385,
+"fw": 173,
+"fh": 159,
+"ax": 92,
+"ay": 156,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
 ]
 }
 },
@@ -19320,6 +19445,37 @@ true
 "art": "ART-123-FALSTAFF",
 "door": "keeper:falstaff",
 "source": "deep16/_src/falstaff/ART-123-FALSTAFF (the art desk's ART-123-FALSTAFF, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_geir": {
+"image": "art/pt_geir.png?v=8a030b8d68",
+"fw": 163,
+"fh": 155,
+"ax": 83,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 163,
+"fh": 155,
+"ax": 83,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-87",
+"door": "no one yet: Third Lamp is not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_generalgrim": {
 "image": "art/pt_generalgrim.png?v=ba95af2ce5",
@@ -20055,6 +20211,37 @@ false
 "door": "the kept child under the glamour (js/inn.js In.barnS, S.who of the child; no id wears it yet)",
 "source": "deep16/_src/ART-139/source (the art desk's ART-139-GLAMOUR, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_gudrun": {
+"image": "art/pt_gudrun.png?v=7b8fcd8417",
+"fw": 139,
+"fh": 156,
+"ax": 73,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 139,
+"fh": 156,
+"ax": 73,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-88",
+"door": "no one yet: Second Lamp's stores are not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_gull": {
 "image": "art/pt_gull.png?v=7071820dad",
 "fw": 221,
@@ -20151,6 +20338,37 @@ true
 "door": "talk:gull",
 "source": "deep16/_src/gull/ART-104 (the art desk's ART-104, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_halldor": {
+"image": "art/pt_halldor.png?v=919f48062f",
+"fw": 148,
+"fh": 157,
+"ax": 74,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 148,
+"fh": 157,
+"ax": 74,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-87",
+"door": "no one yet: the muster yard and the halls are not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_harrow": {
 "image": "art/pt_harrow.png?v=dbcadc90d0",
 "fw": 198,
@@ -20246,6 +20464,37 @@ true
 "art": "ART-123-HARROW",
 "door": "council:harrow",
 "source": "deep16/_src/harrow/ART-123-HARROW (the art desk's ART-123-HARROW, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_hedda": {
+"image": "art/pt_hedda.png?v=d437ef9750",
+"fw": 164,
+"fh": 156,
+"ax": 79,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 164,
+"fh": 156,
+"ax": 79,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-88",
+"door": "no one yet: the halls are not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_hessle": {
 "image": "art/pt_hessle.png?v=540878fd2e",
@@ -21239,6 +21488,37 @@ true
 "art": "ART-83",
 "door": "shop:kessler",
 "source": "deep16/_src/kessler/ART-83 (the art desk's ART-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_ketil": {
+"image": "art/pt_ketil.png?v=90c63e0fe5",
+"fw": 164,
+"fh": 156,
+"ax": 83,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 164,
+"fh": 156,
+"ax": 83,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-87",
+"door": "no one yet: Ketil at Solskaft's vault doors speaks on his card (SK.WORDS)",
+"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_korvin": {
 "image": "art/pt_korvin.png?v=ea44e228a2",
@@ -23350,6 +23630,37 @@ false
 "door": "npc:pyro (Solskaft's vault doors, js/solskaft.js SK.PEOPLE pyro; js/counter.js not wired)",
 "source": "deep16/_src/ART-141-PYRO/PORTRAITS/sources (the art desk's ART-141-PYRO, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_ragna": {
+"image": "art/pt_ragna.png?v=d4a373fd5c",
+"fw": 135,
+"fh": 157,
+"ax": 61,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 135,
+"fh": 157,
+"ax": 61,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-88",
+"door": "no one yet: DEEP16's Solskaft has no stand for her",
+"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_sabeth": {
 "image": "art/pt_sabeth.png?v=f729b20776",
 "fw": 236,
@@ -23445,6 +23756,37 @@ true
 "art": "ART-123-SABETH",
 "door": "npc:sabeth",
 "source": "deep16/_src/sabeth/ART-123-SABETH (the art desk's ART-123-SABETH, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_sectblade": {
+"image": "art/pt_sectblade.png?v=5753709b9f",
+"fw": 162,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 162,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-88",
+"door": "no one yet: the rest past Torvald talks on cards",
+"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_signy": {
 "image": "art/pt_signy.png?v=fc6d68a236",
@@ -23939,6 +24281,68 @@ true
 "art": "ART-100",
 "door": "keeper:tam",
 "source": "deep16/_src/tam/ART-100 (the art desk's ART-100, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_thyra": {
+"image": "art/pt_thyra.png?v=28b3c83809",
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-87",
+"door": "no one yet: Second Lamp is not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_ulf": {
+"image": "art/pt_ulf.png?v=979362ecd3",
+"fw": 162,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 162,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-WANTED-87",
+"door": "no one yet: First Lamp is not on the grid",
+"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_venhale": {
 "image": "art/pt_venhale.png?v=e40547870a",
@@ -26020,6 +26424,88 @@ true
 "the rear NE walk overlaps its boots at 1 and 5 and jumps a little at 8 to 1 (the art desk's own note)"
 ],
 "source": "drawn by the art desk (ART-148-SECT-BLADE-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the made road is not on the grid; their fights keep assassin_p1"
+},
+"sectblade_p2": {
+"image": "art/sectblade_p2.png?v=89ac9ec8d4",
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 46,
+"fh": 80,
+"ax": 23,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 58,
+"fh": 80,
+"ax": 29,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"attack2": {
+"y": 1920,
+"fw": 62,
+"fh": 80,
+"ax": 31,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"flinch": {
+"y": 2560,
+"fw": 60,
+"fh": 80,
+"ax": 30,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 72,
+"fh": 80,
+"ax": 36,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3840,
+"fw": 72,
+"fh": 80,
+"ax": 36,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Sect Blade",
+"hold": [
+"attack2: the left-hand thrust, in hand; a fight plays `attack` for every shortsword blow until the second blow asks for its own row",
+"attack, attack2: S and N are foreshortened; the left lead hides behind the torso in the side and rear windups (the art desk's own notes)",
+"walk: E's legs overlap tightly (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-148-COMBAT, 11-20: art-wanted section 89, the sect's blade with two shortswords in five views, the thrusts over the mannequin's guide and its mirror), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "seeptiles_p1": {
 "image": "art/seeptiles_p1.png?v=f682db98f6",
@@ -33100,6 +33586,88 @@ true
 "attack: the mannequin's guard holds the axe higher than the low combat Idle -- the Idle to Attack and Attack to Idle joins (the art desk's own note); passing steps close in the rear walks"
 ],
 "source": "drawn by the art desk (ART-142-TROOPER-COMBAT, 11-12: art-wanted section 55 block 2, the garrison trooper with battleaxe and shield in five views, the Attack and Throw over the mannequin's guides), cut by tools/trooper-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
+"trooperpike_p2": {
+"image": "art/trooperpike_p2.png?v=6eda2f2610",
+"fw": 104,
+"fh": 80,
+"ax": 52,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 104,
+"fh": 80,
+"ax": 52,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 102,
+"fh": 80,
+"ax": 51,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 110,
+"fh": 80,
+"ax": 55,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"pikerank": {
+"y": 1920,
+"fw": 128,
+"fh": 80,
+"ax": 64,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2560,
+"fw": 102,
+"fh": 80,
+"ax": 51,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 116,
+"fh": 80,
+"ax": 58,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3840,
+"fw": 100,
+"fh": 80,
+"ax": 50,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Pike Trooper",
+"hold": [
+"pikerank: cut and in hand, played by nothing yet (deep16/js/features.js, the Soldiering seat's)",
+"walk: E and rear NE hard to tell the lead change at 1 and 5; N repeats its foot shapes (the art desk's own notes)",
+"prone: the last Fall cel held"
+],
+"source": "drawn by the art desk (PIKE-TROOPER-CUTTER-HANDOFF, 11-20: art-wanted section 93, the garrison's pike trooper in five views, the thrust and the rank over the mannequin's guides), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "trooperxbow_p2": {
 "image": "art/trooperxbow_p2.png?v=99a778ed48",
