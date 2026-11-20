@@ -33,7 +33,7 @@
   Gu.ROWS = [
     '################.,,..###################', '##############...,,....#################', '############......,,.....###############', '###########"......,,......##############',
     '##########."......,,........############', '########""."......,,..........##########', '#######."""....."",,............########', '#####...........".,,.............#######',
-    '######...k..k..."",,.............#######', '######.........."",,....".........######', ':::::::::...o...".,,...."........#######', ':::::::::.........,,...".........#######',
+    '######...k..k..k"",,.............#######', '######.........."",,....".........######', ':::::::::...o...".,,...."........#######', ':::::::::.........,,...".........#######',
     '#####.....c...c...,,..."".........######', '#####""...........,,...."".....""#######', '#####""............,,..b......""""######', '######".....x......,,.........""."######',
     '######"......x.....,,.........".""######', '#####......".".....,,.........."..######', '#####x....x".".....,,............#######', '######.....""".....,,............#######',
     '#######..x."""x....,,........xx..#######', '######....."".....",,............#######', '#######x....x.x...",,"....x.....########', '#######...x.x.....",,"..........########',
@@ -71,8 +71,23 @@
   Gu.CHESTS = [{ x: 9, y: 83, item: 'potion', n: 1 }, { x: 28, y: 74, item: 'kit', n: 2 }]; // (the first game's two: a potion by the ettercap, two kits off the bed)
   // the cutter and the boy where the hour puts them: at the camp, out at the near webs at noon, by the fire at night
   Gu.PEOPLE = [{ id: 'silkcutter', look: 'worker', day: [11, 9], noon: [13, 27], night: [11, 11], dir: { day: 'right', noon: 'left', night: 'right' } },
-    { id: 'drummer', look: 'boy', day: [11, 12], noon: [14, 28], night: [13, 10], dir: { day: 'left', noon: 'left', night: 'left' } }]; // (by night beside the fire to its east: on the diamonds 13,11 stood straight in front of it, the flames on his head -- 10-29)
-  Gu.KINDS = { drummer: 'commonerchild', ettercap8: 'ettercap' }; // (the boy a child's figure; the ettercap its own, braiding till it is woken -- js/ui.js)
+    { id: 'drummer', look: 'boy', day: [11, 12], noon: [14, 28], night: [13, 10], dir: { day: 'left', noon: 'left', night: 'left' } }, // (by night beside the fire to its east: on the diamonds 13,11 stood straight in front of it, the flames on his head -- 10-29)
+    // THE CUTTERS' CAMP, FOUR KEEPERS AND THREE TENTS (RULED 11-16, Griz: "yes on the leans - what's there now NPC wise, one guy and a drummer boy? We'd want to shuffle things
+    // around if need be and total 3 tents with two more NPCs to sell secured workers camp"; ..\handoff-2026-10-21-the-warrens-and-galleries-on-the-tiles.md, its 11-16 section;
+    // built 11-20 by the gulch seat): the third tent at (15,8) in Gu.ROWS; the camp's guard (the folk `guard` costume) out on the camp's south edge by night, the gully's way
+    // in, and out at the webs with the cutters at noon; the crew boss (his own figure, crewboss_p1, data/foes.js crewboss) by the fire by night, with the cutters at noon
+    { id: 'gulchguard', look: 'guard', day: [16, 11], noon: [15, 26], night: [12, 14], dir: { day: 'down', noon: 'down', night: 'down' } },
+    { id: 'gulchboss', look: 'worker', day: [9, 11], noon: [12, 25], night: [10, 10], dir: { day: 'right', noon: 'down', night: 'right' } }];
+  Gu.KINDS = { drummer: 'commonerchild', ettercap8: 'ettercap', gulchboss: 'crewboss' }; // (the boy a child's figure; the ettercap its own, braiding till it is woken -- js/ui.js; the crew boss the SRD's thug in his own figure)
+  // their costumes (js/counter.js C.GENERIC, the unnamed in the job's clothes: the figure folk<man>_<costume>_p1, the portrait pt_genman's row): the silk-cutter in `hired`
+  // (THE SILK-CUTTER's own costume waits on the dream list -- deep16-dream-polish.md, the art desk at its ceiling), the guard in `guard`; the crew boss his own figure, the
+  // generic man's `crewboss` row his portrait (js/counter.js C.FIG, C.VENDORS)
+  (function () {
+    var C = D.counter; if (!C || !C.GENERIC) return;
+    C.GENERIC.silkcutter = ['man', 'hired']; C.GENERIC.gulchguard = ['man', 'guard'];
+    if (C.FIG) C.FIG.gulchboss = 'crewboss_p1';
+    if (C.VENDORS) { C.VENDORS.silkcutter = C.VENDORS.silkcutter || { sheet: 'pt_genman', look: 'hired', wait: '' }; C.VENDORS.gulchguard = { sheet: 'pt_genman', look: 'guard', wait: '' }; C.VENDORS.gulchboss = { sheet: 'pt_genman', look: 'crewboss', wait: '' }; }
+  })();
   Gu.phase = function (h) { return M.night(h) ? 'night' : h >= Gu.NOON[0] && h < Gu.NOON[1] ? 'noon' : 'day'; };
   Gu.LINES = { // (the seat's: invented.json web-gulch-floor)
     noon: 'Noon in the gulch: the silk-cutters go out to the webs, and the boy starts drumming. The spiders sulk in the heat.',
@@ -83,6 +98,18 @@
     hello: 'The Pit road runs down its bed: north up out of it to the fork, south to the Halfway Inn. The banks are a way up where they open.'
   };
   Gu.line = function (h) { var p = Gu.phase(h); return p === 'day' ? (h < Gu.NOON[0] ? Gu.LINES.morning : Gu.LINES.after) : Gu.LINES[p]; };
+  // the two new keepers' words by the hour (the seat's drafts, 11-20: invented.json web-gulch-camp-keepers); a word with either is M.talk's, their portrait the generic man's
+  Gu.KEEPER_LINES = {
+    gulchguard: { day: ['"The road\'s yours and the camp\'s the cutters\'. Keep to the one and you\'re welcome at the other."'],
+      noon: ['"I go out with them at noon. The spiders sulk in the heat, but sulking isn\'t sleeping."'],
+      night: ['"Sit by the fire if you\'re stopping. Anything comes up the gully, the boy hears it before I do."'] },
+    gulchboss: { day: ['"Skeins go up to Silverton every third day. Fangs off the far end, Hessle\'s board pays for, if you\'ve the stomach for it."'],
+      noon: ['"Cut it clean and roll it tight. Dirty silk sells for rope."'],
+      night: ['"Sleeping at our fire? Then you stand a watch like the rest of us. Anything comes up out of the silk, I\'m in it with you."'] }
+  };
+  Object.keys(Gu.KEEPER_LINES).forEach(function (id) {
+    M.SCENES[id] = function* (sc, B) { var Ls = Gu.KEEPER_LINES[id]; yield sc.say(Ls[Gu.phase(M.hourNow(D.roam.q, B))] || Ls.day); };
+  });
   // the first game's shape of a map for the hour (js/mines.js M.floor reads it as it reads theirs): the people where the hour puts them, the fights by the hour, the dark by night
   Gu.map = function (hour, flags) {
     flags = flags || {}; var ph = Gu.phase(hour), rows = Gu.ROWS.slice();
