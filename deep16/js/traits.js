@@ -866,4 +866,8 @@
     if (u.legendary) u.legLeft = u.legendary.n || 3;
     if (u.breath && u.breathSpent && !u.dead && u.hp > 0) { var rc = D.d(6), back = rc >= (u.breath.recharge || 5); if (back) u.breathSpent = false; if (D.battle) D.battle.card(['{g}' + Nm(D.battle, u) + ': ' + (u.breath.name || 'its breath') + (back ? ' is back' : ' not yet') + ' (d6 ' + rc + ', ' + (u.breath.recharge || 5) + '-6){/}'], 160); }
   };
+  // a breath's DEX saves take the cover between the breather and each one caught (11-20 -- js/rules.js RU.save, SRD 5.1 Cover; his "granted shield-wall cover works like
+  // standard cover with regard to dex saves", for all cover on the lanes desk's reading): the breather is the point of origin of its cone or line
+  var breathe0 = M.breathe;
+  M.breathe = function* (B, u) { var k = B.saveFrom; B.saveFrom = { src: u }; try { return yield* breathe0.apply(this, arguments); } finally { B.saveFrom = k; } };
 })();

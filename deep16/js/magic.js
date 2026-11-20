@@ -683,7 +683,13 @@
   };
 
   // every area spell: the squares, one damage roll, each creature's save (Evasion for a DEX save), conditions
+  // (the point of origin for its DEX saves' cover, 11-20 -- js/rules.js RU.save, SRD 5.1 Cover: the caster for a cone, a line, a wave or round it; the square aimed at for the rest)
   function* area(B, u, id, sp, g, slot, cx, cy, head, cz) {
+    var fm = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around', keep = B.saveFrom;
+    B.saveFrom = fm ? { src: u } : { x: cx, y: cy, size: 1, conds: {} };
+    try { return yield* area0(B, u, id, sp, g, slot, cx, cy, head, cz); } finally { B.saveFrom = keep; }
+  }
+  function* area0(B, u, id, sp, g, slot, cx, cy, head, cz) {
     var sq = M.area(u, g, cx, cy, cz), dc = B.itemCast && B.itemCast.by === u.id && B.itemCast.spell === id ? B.itemCast.dc : u.spellDC; // (a spell from an item: its own DC -- the Wand of Web's 15, 11-15)
     var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'acid' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }

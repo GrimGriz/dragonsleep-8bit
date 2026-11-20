@@ -203,6 +203,11 @@
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, lk = 0;
     if (u.lucky) { if (r1 === 1) { r1 = D.d(20); lk++; } if (r2 === 1) { r2 = D.d(20); lk++; } } // (Lucky, the halfling's: a 1 on the d20 rolled again, the new roll kept -- 11-14)
     var d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
+    // COVER ON A DEX SAVE (SRD 5.1, Cover: half cover "+2 bonus to AC and Dexterity saving throws", three-quarters +5; RULED 11-20, Griz: "granted shield-wall cover works like
+    // standard cover with regard to dex saves", the lanes desk's reading for all cover): an effect whose point of origin the caster's code names (D.battle.saveFrom -- js/magic.js
+    // area: the caster for a cone, a line or a wave, the centre square for a sphere or a cube; js/grimoire.js saveAll: the caster, or o.from) gives the cover G.los finds from there
+    var cvS = 0, sfr = ab === 'dex' && D.battle && D.battle.saveFrom;
+    if (sfr && !u.object && sfr.src !== u && G.los) { var lsS = G.los(sfr.src || sfr, u); cvS = lsS.clear && lsS.cover < 9 ? lsS.cover : 0; bonus += cvS; }
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
     var bn = c.baned ? D.d(4) : 0; bonus -= bn;
@@ -210,6 +215,7 @@
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
     var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0, pfp: pfp && adv && !dis ? 1 : 0, atx: atx, resil: resil && adv && !dis ? 1 : 0, heads: heads && adv && !dis ? 1 : 0 };
     if (shk) res.shaken = shk;
+    if (cvS) res.cover = cvS; // (cover on a DEX save, above: named on the card)
     if (dwf && !pfp && adv && !dis) res.dwarf = 1;
     if (lk) res.lucky = lk; if (brave && adv && !dis) res.brave = 1; if (cunning && adv && !dis) res.cunning = 1; // (named on the card, RU.saveText) // (named on the card, RU.saveText -- unless the ward or the antitoxin already is)
     // Bardic Inspiration (js/features.js): the die on a save it would turn
@@ -373,7 +379,7 @@
   RU.saveText = function (sv) {
     if (sv.auto) return '{o}auto-fail{/} (held, asleep or down)';
     if (sv.careful) return '{c}spared{/} (Careful Spell)';
-    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.shaken) bits.push('fear -' + sv.shaken); if (sv.resist) bits.push('resistance +' + sv.resist); if (sv.due) bits.push('fortune\'s due +' + sv.due);
+    var bits = []; if (sv.cover) bits.push((sv.cover >= 5 ? 'three-quarters' : 'half') + ' cover +' + sv.cover); if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.shaken) bits.push('fear -' + sv.shaken); if (sv.resist) bits.push('resistance +' + sv.resist); if (sv.due) bits.push('fortune\'s due +' + sv.due);
     if (sv.legendary != null) bits.push('LEGENDARY RESISTANCE: it succeeds instead, ' + sv.legendary + ' left'); // (js/traits.js, 10-08)
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push(sv.atx ? 'advantage: antitoxin' : 'advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
     if (sv.dwarf) bits.push('advantage: dwarven resilience');

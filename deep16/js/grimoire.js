@@ -27,8 +27,13 @@
   }
   E._attack = spellAttack;
   // one damage roll, each creature's save (half, or none), a line each; the hurt after the card; o.cond: laid on a failed save
+  // (a DEX save's cover, 11-20 -- js/rules.js RU.save: from o.from, a square { x, y }, else from the caster; o.noCover for a spell whose words say cover is no help)
   function* saveAll(B, u, list, ab, dc, dexpr, type, half, head, o) {
     o = o || {};
+    var keepSF = B.saveFrom; B.saveFrom = o.noCover || !u ? null : o.from ? { x: o.from.x, y: o.from.y, size: 1, conds: {} } : { src: u };
+    try { return yield* saveAll0(B, u, list, ab, dc, dexpr, type, half, head, o); } finally { B.saveFrom = keepSF; }
+  }
+  function* saveAll0(B, u, list, ab, dc, dexpr, type, half, head, o) {
     // Potent Cantrip (the evoker, 6): a cantrip saved against still deals half
     if (o.cantrip && u.subclass === 'School of Evocation' && u.lvl >= 6) half = true;
     var r = dexpr ? D.roll(dexpr) : null, lines = [head + (r ? '  ' + dexpr + ' ' + RU.fmtRolls(r.rolls) + ' = {o}' + r.total + '{/} ' + type : '') + '  ' + ab.toUpperCase() + ' DC ' + dc], hits = [], failed = [];
@@ -187,7 +192,7 @@
     if (roost) { B.card(['{y}' + u.name + '{/}: HELLISH REBUKE -- {r}the hellfire catches, under the roost.{/}'], 200); if (!B.roostBroken) B.roostBroken = 'fire'; return; } // (the one law, broken by the player's choice: the fight over 'roost', its RoostFail after)
     FX.sparkle(att, 'fire', 18);
     var cl0 = B.castLevel; B.castLevel = 1; // (a 1st-level spell, whatever cast it came in the middle of: the globe counts that)
-    try { yield* saveAll(B, u, [att], 'dex', u.spellDC, (1 + lv) + 'd10', 'fire', true, '{y}' + u.name + '{/}: HELLISH REBUKE (L' + lv + ') -- hellfire about ' + nm(B, att)); } finally { B.castLevel = cl0; }
+    try { yield* saveAll(B, u, [att], 'dex', u.spellDC, (1 + lv) + 'd10', 'fire', true, '{y}' + u.name + '{/}: HELLISH REBUKE (L' + lv + ') -- hellfire about ' + nm(B, att), { noCover: true }); } finally { B.castLevel = cl0; }
   };
   // Spirit Guardians: the ring about the caster; a foe of his entering it (the first time in a turn) or starting there saves WIS
   function guardians(B, u, how) {
@@ -280,7 +285,7 @@
   };
   E.sacredflame = {
     summary: function (e, u) { return 'a foe in sight within 60 ft · DEX (cover no help) · ' + dice(e.sp, u, 0) + ' radiant'; },
-    cast: function* (B, u, t, slot, head, x) { FX.sparkle(t, 'gold', 16); yield* saveAll(B, u, [t], 'dex', x.dc, dice(x.sp, u, 0), 'radiant', false, head + ' on ' + nm(B, t), { cantrip: true }); },
+    cast: function* (B, u, t, slot, head, x) { FX.sparkle(t, 'gold', 16); yield* saveAll(B, u, [t], 'dex', x.dc, dice(x.sp, u, 0), 'radiant', false, head + ' on ' + nm(B, t), { cantrip: true, noCover: true }); },
     ai: function (B, u, e, slot, fs) { var best = null, d = avg(dice(e.sp, u, 0)); fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t)) return; var sc = TX().worth(TX().pFail(t, 'dex', u.spellDC) * d, t); if (!best || sc > best.score) best = { score: sc, t: t }; }); return best; }
   };
   E.shillelagh = {
@@ -492,7 +497,7 @@
     cast: function* (B, u, t, slot, head, x) {
       var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'grease', sq: sq, by: u.id, dc: x.dc, difficult: true, till: 10 };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'stone');
-      yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return !w.noProne && !RU.immuneTo(w, 'prone'); }), 'dex', x.dc, null, '', false, head + ': slick grease over the ground', { failText: 'down', cond: function (w) { w.conds.prone = true; } });
+      yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return !w.noProne && !RU.immuneTo(w, 'prone'); }), 'dex', x.dc, null, '', false, head + ': slick grease over the ground', { from: t, failText: 'down', cond: function (w) { w.conds.prone = true; } });
     },
     ai: function (B, u, e, slot, fs) { return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if (w.noProne) return; sc += (G.hostile(u, w) ? 1 : -1.3) * (TX().pFail(w, 'dex', u.spellDC) * 3 + 1.5); }); return sc; }); }
   };
@@ -927,7 +932,7 @@
     summary: function () { return '20-ft cube within 60 ft · DEX or outlined: attacks at them with advantage, no hiding (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
       var sq = M.area(u, x.g, t.x, t.y, t.z), lit = []; FX.bloom(t.x, t.y, sq, 'violet');
-      yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, null, '', false, head + ': violet light', { failText: 'outlined', cond: function (w) { w.conds.faerie = { by: u.id }; delete w.conds.hidden; lit.push(w); } });
+      yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, null, '', false, head + ': violet light', { from: t, failText: 'outlined', cond: function (w) { w.conds.faerie = { by: u.id }; delete w.conds.hidden; lit.push(w); } });
       if (lit.length) M.concentrate(B, u, 'faeriefire', 'Faerie Fire', function () { lit.forEach(function (w) { if (w.conds.faerie && w.conds.faerie.by === u.id) delete w.conds.faerie; }); });
     },
     ai: function (B, u, e, slot, fs, allies) {
@@ -1317,7 +1322,7 @@
     cast: function* (B, u, t, slot, head, x) {
       if (!x.g.again) { u.conds.storm = { dice: more('3d10', up(x.sp, slot)) }; M.concentrate(B, u, 'calllightning', 'Call Lightning', function () { delete u.conds.storm; }); }
       var sq = G.sphere(t.x, t.y, 5); FX.bloom(t.x, t.y, sq, 'glow');
-      yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, u.conds.storm.dice, 'lightning', true, head + ': lightning out of the cloud');
+      yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, u.conds.storm.dice, 'lightning', true, head + ': lightning out of the cloud', { noCover: true });
     },
     ai: function (B, u, e, slot, fs) { var d = avg(u.conds.storm ? u.conds.storm.dice : more('3d10', Math.max(0, slot - 3))); var g2 = Object.assign({}, e.g, { shape: 'sphere', r: 5 }); var b = TX().bestArea(B, u, Object.assign({}, e, { g: g2, sp: Object.assign({}, e.sp, { dmg: '3d10', save: 'dex', half: true }) }), fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: u.conds.storm ? u.conds.storm.dice : '3d10', save: 'dex', half: true, dmg2: null }) }), 0, caught); }); if (b && !e.g.again) { b.score *= 2; b.keep = b.score / 3; } return b; }
   };
@@ -1812,7 +1817,7 @@
     cast: function* (B, u, t, slot, head, x) {
       var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'tentacles', sq: sq, by: u.id, dc: x.dc, difficult: true };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'violet');
-      yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, '3d6', 'bludgeoning', false, head + ': black tentacles fill the ground', { failText: 'seized', cond: function (w) { if (!RU.immuneTo(w, 'restrained')) w.conds.restrained = { dc: x.dc, by: u.id, kind: 'tentacles' }; } });
+      yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, '3d6', 'bludgeoning', false, head + ': black tentacles fill the ground', { from: t, failText: 'seized', cond: function (w) { if (!RU.immuneTo(w, 'restrained')) w.conds.restrained = { dc: x.dc, by: u.id, kind: 'tentacles' }; } });
       M.concentrate(B, u, 'blacktentacles', 'Black Tentacles', function () { removeGround(B, rec); B.units.forEach(function (w) { var r = w.conds.restrained; if (r && r.kind === 'tentacles' && r.by === u.id) delete w.conds.restrained; }); B.card(['{g}The tentacles sink away.{/}'], 240); });
     },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { var pf = TX().pFail(w, 'dex', u.spellDC); sc += (G.hostile(u, w) ? 1 : -1.5) * (pf * 10.5 + pf * (TX().dpr(w) * 0.6 + 6) * 1.5); }); return sc; }); }
