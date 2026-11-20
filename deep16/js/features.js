@@ -1328,7 +1328,13 @@
   // stopping where a foe comes ahead of it or the ground will not take the whole line. The formation seat's calls, standing for his overrule: any joined member calls it and
   // spends its own (held) move; the mates spend nothing (their moves stay held as ever); once a round for a wall; the pikers behind step with it, as with a push; the bonus
   // action is left, so a march that brings the line up to a foe can be followed by the push; difficult ground is not read (a square is a square)
-  F.marchFt = function (B, u) { var wall = F.wallOf(B, u); return wall.length ? 5 * Math.floor(Math.min.apply(null, wall.map(function (w) { return RU.speedNow(w) || w.speed || 30; })) / 2 / 5) : 0; };
+  // (half the slowest one's speed ROUNDED UP to a whole square -- RULED 11-20, Griz: "do the round up on the march": a dwarf wall's 25 ft marches 15 ft, not 10. F.marchPace, a bench's
+  // switch only -- dev/bench16.js soldier1120 measure=half|up|full -- to set the three paces side by side)
+  F.marchFt = function (B, u) {
+    var wall = F.wallOf(B, u); if (!wall.length) return 0;
+    var slow = Math.min.apply(null, wall.map(function (w) { return RU.speedNow(w) || w.speed || 30; }));
+    return F.marchPace === 'full' ? 5 * Math.floor(slow / 5) : F.marchPace === 'half' ? 5 * Math.floor(slow / 2 / 5) : 5 * Math.ceil(slow / 2 / 5);
+  };
   F.canMarch = function (B, u) {
     if (!u || !u.turn || !F.joined(u, B) || !(u.turn.wallMove > 0)) return false;
     var wall = F.wallOf(B, u), face = u.conds.wall.face;
@@ -1341,7 +1347,7 @@
     u.turn.wallMove = 0; wall.forEach(function (w) { w.conds.wall.marched = B.round; w.conds.wall.shotRounds = 0; w.conds.wall.shot = false; }); // (his "reset after a march move")
     D.sfx('confirm');
     while (n * 5 < ft && !F.lineFoes(B, wall, face).length && lineCanStep(B, wall, face)) { stepLine(B, wall, face); n++; yield 10; }
-    B.card(['{y}' + u.name + '{/} calls MARCH: the wall of ' + wall.length + ' moves ' + n * 5 + ' ft ' + (FACE_WORD[face.join(',')] || 'forward') + ', as one  {g}(half the slowest one\'s speed: ' + ft + ' ft; ' + u.name + '\'s move' + (n * 5 < ft ? '; it stops ' + (F.lineFoes(B, wall, face).length ? 'with a foe ahead' : 'where the ground stops it') : '') + '){/}'], 240);
+    B.card(['{y}' + u.name + '{/} calls MARCH: the wall of ' + wall.length + ' moves ' + n * 5 + ' ft ' + (FACE_WORD[face.join(',')] || 'forward') + ', as one  {g}(half the slowest one\'s speed, rounded up: ' + ft + ' ft; ' + u.name + '\'s move' + (n * 5 < ft ? '; it stops ' + (F.lineFoes(B, wall, face).length ? 'with a foe ahead' : 'where the ground stops it') : '') + '){/}'], 240);
     yield 8;
   };
   F.wallAdvance = F.wallMarch;
@@ -1735,7 +1741,7 @@
         var jW = F.joined(u, B), fW = jW ? F.lineFoes(B, F.wallOf(B, u), u.conds.wall.face).length : 0;
         if (!jW || fW) out.push({ id: 'wallpush', label: 'THE PUSH', cost: 'B', icon: 'shove', skill: true, ok: F.canPush(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : !jW ? 'no set mate beside you' : F.wallPushedNow(B, F.wallOf(B, u)) ? 'the wall has pushed this round' : 'no foe ahead of the wall',
           note: 'the whole wall shoves as one (each mate its reaction): STR DC ' + F.pushDC(B, u) + '; every foe ahead fails and the line steps 5 ft, any holds and nobody steps (the failed take 1d6 either way)' });
-        else out.push({ id: 'wallmarch', label: 'MARCH', cost: 'M', icon: 'move', skill: true, ok: F.canMarch(B, u), why: !(u.turn.wallMove > 0) ? 'your move is spent' : F.wallOf(B, u).some(function (w) { return w.conds.wall.marched === B.round; }) ? 'the wall has marched this round' : 'no room ahead', note: 'no foe ahead: the whole wall moves ' + F.marchFt(B, u) + ' ft forward together (half the slowest one\'s speed; your move)' });
+        else out.push({ id: 'wallmarch', label: 'MARCH', cost: 'M', icon: 'move', skill: true, ok: F.canMarch(B, u), why: !(u.turn.wallMove > 0) ? 'your move is spent' : F.wallOf(B, u).some(function (w) { return w.conds.wall.marched === B.round; }) ? 'the wall has marched this round' : 'no room ahead', note: 'no foe ahead: the whole wall moves ' + F.marchFt(B, u) + ' ft forward together (half the slowest one\'s speed, rounded up; your move)' });
         out.push({ id: 'leavewall', label: 'LEAVE THE WALL', cost: 'B', icon: 'shield', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'a bonus action: your move back' });
       }
     }

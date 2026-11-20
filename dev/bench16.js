@@ -136,7 +136,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     Fs.setShields = function () { cnt.set++; return set0.apply(this, arguments); };
     Fs.wallPush = function* () { cnt.push++; return yield* push0.apply(this, arguments); };
     Fs.wheel = function () { cnt.wheel++; return wheel0.apply(this, arguments); };
-    var keepS = D.FOES[FK].soldiering;
+    var keepS = D.FOES[FK].soldiering, pace0 = Fs.marchPace; if (get('measure', '')) Fs.marchPace = get('measure', ''); resS.pace = Fs.marchPace || 'up'; // (measure=half|up|full: the march's pace, his three to compare, 11-20)
     [true, false].forEach(function (tr) {
       D.FOES[FK].soldiering = tr; cnt.set = cnt.push = cnt.wheel = cnt.march = cnt.breaks = 0;
       var won = 0, lost = 0, rounds = 0, left = 0;
@@ -150,7 +150,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       }
       resS[tr ? 'trained' : 'untrained'] = { bandWins: won, bandLosses: lost, bandWinPct: Math.round(100 * won / n), rounds: +(rounds / n).toFixed(1), foesStandingAvg: +(left / n).toFixed(2), sets: cnt.set, pushes: cnt.push, wheels: cnt.wheel, marches: cnt.march, leaves: cnt.breaks };
     });
-    D.FOES[FK].soldiering = keepS; Fs.setShields = set0; Fs.wallPush = push0; Fs.wheel = wheel0; Fs.wallMarch = march0; Fs.leaveWall = leave0;
+    Fs.marchPace = pace0; D.FOES[FK].soldiering = keepS; Fs.setShields = set0; Fs.wallPush = push0; Fs.wheel = wheel0; Fs.wallMarch = march0; Fs.leaveWall = leave0;
     var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(resS);
     document.body.appendChild(preS);
     return;
@@ -18550,7 +18550,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 17. MARCH's measure: half the SLOWEST member's speed -- the mate slowed to 20 ft, the line goes 10 ft though the way is open; once a round for the wall
       var h17 = mkSw(); h17.g1.x = h17.X + 3; h17.g1.y = h17.Y - 3; h17.g2.x = h17.X + 3; h17.g2.y = h17.Y - 3; D.grid.setup(h17.B.map, h17.B.units); h17.m.speed = 20; wallSw(h17);
       var ft17 = D.features.marchFt(h17.B, h17.f); runSw(h17.B.exec(h17.f, { do: 'wallmarch' })); RUSw.startTurn(h17.m); var again17 = D.features.canMarch(h17.B, h17.m);
-      okSw('the slowest sets the pace: ' + ft17 + ' ft; the wall ' + at(h17.f) + ' ' + at(h17.m) + '; the mate may march again this round ' + again17, ft17 === 10 && at(h17.f) === h17.X + ',' + (h17.Y - 2) && at(h17.m) === (h17.X + 1) + ',' + (h17.Y - 2) && !again17);
+      h17.m.speed = 25; var ft17b = D.features.marchFt(h17.B, h17.f); h17.m.speed = 20; // (his "do the round up on the march", 11-20: a dwarf's 25 marches 15, not 10)
+      okSw('the slowest sets the pace: ' + ft17 + ' ft (a dwarf\'s 25: ' + ft17b + ' ft, rounded up); the wall ' + at(h17.f) + ' ' + at(h17.m) + '; the mate may march again this round ' + again17, ft17 === 10 && ft17b === 15 && at(h17.f) === h17.X + ',' + (h17.Y - 2) && at(h17.m) === (h17.X + 1) + ',' + (h17.Y - 2) && !again17);
       // 18. THE MISSILES (his "2 - 2 rounds, reset after a march move"): a goblin's arrow at a set member marks it; on the AI, two of its rounds under fire with nothing in its reach
       // and it leaves the wall; a march between them resets the count
       var h18 = mkSw(); h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; h18.g2.x = h18.X + 1; h18.g2.y = h18.Y + 2; h18.g1.x = h18.X - 0; D.grid.setup(h18.B.map, h18.B.units); wallSw(h18); h18.f.guest = h18.m.guest = true; h18.f.classAI = h18.m.classAI = true;
