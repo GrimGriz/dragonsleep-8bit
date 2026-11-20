@@ -607,7 +607,7 @@
       soldiering_wall: function* (c) {
         var u = c.hero, f0 = c.foes[0], f1 = c.foes[1], m = make('fighter:5', 'party', 'g-mate', u.x + 1, u.y, 4); m.soldiering = true; m.src = m.src || {}; m.src.equip = Object.assign({}, m.src.equip || {}, { shield: 'shield' });
         u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); B.units.push(m); f0.x = u.x; f0.y = u.y - 1; f1.x = m.x; f1.y = m.y - 1;
-        var pk = make('fighter:5', 'party', 'g-pike', u.x, u.y + 1, 4); pk.soldiering = true; pk.src = pk.src || {}; pk.src.equip = Object.assign({}, pk.src.equip || {}, { weapon: 'pike', shield: null }); pk.weapon = D.save.weaponOf(pk.src); B.units.push(pk); D.grid.setup(D.grid.map, B.units);
+        var pk = make('fighter:5', 'party', 'g-pike', u.x, u.y + 1, 4); pk.soldiering = true; pk.src = pk.src || {}; pk.src.equip = Object.assign({}, pk.src.equip || {}, { weapon: 'pike', shield: null }); pk.weapon = D.save.weaponOf(pk.src); B.units.push(pk); u.sheet = m.sheet = 'halldor_p2'; pk.sheet = 'trooperpike_p2'; D.grid.setup(D.grid.map, B.units); // (the drawn rows, 11-20: Halldor's `push`, the pike trooper's `pikerank`)
         D.rules.startTurn(u); B.active = u; yield* fire(B.exec(u, { do: 'setshields' })); yield 40;
         D.rules.startTurn(m); B.active = m; yield* fire(B.exec(m, { do: 'setshields' })); yield 40;
         D.rules.startTurn(m); D.rules.startTurn(pk); D.rules.startTurn(u); B.active = u; var d0 = D.d, k = 0; D.d = function (n) { return n === 20 ? (k++ < 2 ? 1 : 15) : d0(n); };
