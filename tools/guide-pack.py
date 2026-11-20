@@ -1,7 +1,7 @@
 """The pose guides of 2026-11-20, packaged for the art desk (the pose seat). Griz to the lanes desk: "fable poses with plate help for every
 strip we've already sent to art desk, then the new ones". Plain Python.
 
-    python tools/guide-pack.py [outbox]      every guide below -> <outbox>/GUIDE-2026-11-20-<move>/ and its .zip
+    python tools/guide-pack.py [outbox] [move ...]   the guides below (all, or the moves named) -> <outbox>/GUIDE-<date>-<move>/ and its .zip
                                              (outbox: deep16/_src/outbox of THIS tree unless given -- a worktree passes the shared checkout's)
 
 Reads what tools/twinmace-blend.py rendered and tools/twinmace-sheet.py laid: deep16/art-src/<name>/ (the strips: the striker ALONE -- his
@@ -12,6 +12,7 @@ import json, os, shutil, sys, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'deep16', '_src', 'outbox')
+ONLY = sys.argv[2:]          # (a guide once carried to the art desk is not packed again under its old name: name the moves to pack)
 VIEWS = ['S', 'SE', 'E', 'NE', 'N']
 DATE = '2026-11-20'
 
@@ -137,25 +138,57 @@ axe still cocked up off a level arm at the cut).""",
 with the LEFT hand off the leading (left) foot.""",
          frames=["THE BAR SWING -- 1 the bar up in front, the knife low in the left hand. 2 the hips turned, the LEFT side forward and the knife out ahead at the enemy; the bar hand to the ear. 3 the hips coming round, the knees going down, the arm unfolding. 4 THE BLOW: the arm out long, the bar one line with the forearm, on the foe's neck at the shoulder. 5 through: the hips past the middle, the bar down and across, the knife hand back at the left hip. 6 nearly back.",
                  "THE KNIFE STAB -- 1 the same guard. 2 the knife fist drawn back to the LEFT hip, its point at the target; the right side and the bar turned forward, covering. 3 the drive: the knees going down, the hips coming round the other way. 4 THE STAB: the left hip and shoulder driven through, the left arm and the knife one straight line at the belly; the bar drawn back by the right shoulder. 5 straight back along the same line. 6 nearly back."]),
-    dict(move='pike-thrust', title='PIKE THRUST, two hands (dwarf)', replaces=None,
+    dict(move='pike-thrust', date='2026-11-20b', title='PIKE THRUST, two hands, along the hip (dwarf)', replaces='GUIDE-2026-11-20-pike-thrust (sent 11-20)',
          sets=[('pike-thrust-dwarf', 'PIKE-THRUST-DWARF', 'pike', 'pike-dwarf-%s', 'pike-dwarf-all', 'pike-dwarf', "the gate watch's fight figure (`gatewatch_p2`), the garrison trooper's size")],
          weapon="The long thin brown bar is the PIKE's shaft, MAGENTA at its head: 2.7 m, twice his height. His RIGHT fist holds the BUTT on every frame; his LEFT hand is ahead on the shaft, and the shaft SLIDES through it on the thrust.",
          hit='THE THRUST',
-         words='For the pike trooper of the garrison\'s pike wall, who thrusts over a front rank of shields. Posed on de Gheyn\'s pike drill of 1607 (the pike charged at the shoulder).',
-         changed="NEW.",
+         words='For the pike trooper of the garrison\'s pike wall. Griz, 11-20, asked whether the pike lifts to the shoulder or stays along the hip: "hip".',
+         changed="""WHAT CHANGED from the guide sent earlier on 11-20: FRAMES 2, 3 and 4. That guide lifted the pike to the shoulder on frame 2 and thrust
+from there. Now the pike stays ALONG THE HIP on every frame: drawn back at the hip, the step, and the thrust driven forward along the hip.
+Frames 1, 5 and 6 are as they were.""",
          frames=["THE GUARD -- side-on, the left side and the left foot forward; the pike level at the hip, the butt in the right fist behind the right hip, the left hand ahead on the shaft; the weight back.",
-                 "THE CHARGE -- the pike drawn back and lifted to the shoulder: the right arm straight back along the shaft to the butt, the left hand under the shaft at the chin, the shaft level across the top of the chest.",
-                 "THE STEP -- the weight going forward, the left foot off the floor; the pike still at the charge.",
-                 "THE THRUST -- the foot down; the right hand driven forward till it meets the left, the shaft run out through the left hand to its farthest reach; both arms long, the point level at the height of his own shoulder.",
-                 "Drawn back -- the shaft pulled back through the left hand, coming down toward the hip; the foot coming back.",
+                 "DRAWN BACK along the hip -- the rear arm long behind him, the butt well back, the weight on the rear leg. The pike does not rise.",
+                 "THE STEP -- the weight going forward, the left foot off the floor; the pike still drawn back at the hip.",
+                 "THE THRUST -- the foot down; the right hand driven forward along the hip till it meets the left, the shaft run out through the left hand to its farthest reach; both arms driving, the point level at the height of his hip.",
+                 "Drawn back -- the shaft pulled back through the left hand; the foot coming back.",
                  "The guard at the hip again."]),
+    dict(move='shield-wall-push', title="SHIELD WALL: shields set, and THE PUSH (dwarf) -- the Soldiering feat's row", replaces=None,
+         sets=[('shield-wall-push-dwarf', 'SHIELD-WALL-PUSH-DWARF', 'shieldpush', 'shieldpush-dwarf-%s', 'shieldpush-dwarf-all', 'shieldpush-dwarf', "the gate watch's fight figure (`gatewatch_p2`), the garrison trooper's size")],
+         weapon="The TEAL disc is the round SHIELD, its boss darker: it is strapped on the LEFT forearm (the mannequin carries it a little ahead of the fist so its face can be seen: draw it on the forearm, its face square to the enemy on every frame). The brown bar with the MAGENTA block is the weapon in the RIGHT fist, a warhammer here: draw the character's own. It never strikes in this row: it is carried cocked at the right shoulder throughout.",
+         hit='THE SHOVE',
+         words='Griz, 11-20, to the lanes desk: "yeah, start the pose seat on the predicted rows for the dwarves the soldiering feat would add please". Of the wall, to the feats seat: "does a +2 AC and 1d6 blunt damage shove each round, pushing back what\'s in front of the shield wall 5 ft and moving the wall into the square they just cleared".',
+         changed="""NEW. For every dwarf who bears a shield in the wall (Halldor and Hedda with warhammers; a trooper with a battleaxe makes the same move).
+FRAME 1 is also the stance a soldier stands in while shields are set: the row can be held on it. Posed on MS I.33 (1r, the shield led out
+to the full length of the arm with the weapon laid back over the right shoulder); I.33's shield is a buckler in the fist, ours is on the forearm.""",
+         frames=["SHIELDS SET -- the knees bent, the left side and the shield forward, the rim up at the chin; the weapon cocked at the right shoulder. The wall's standing pose.",
+                 "THE COIL -- sunk on both legs, the weight back, the shield drawn in tight to the left shoulder.",
+                 "THE DRIVE -- off the rear leg, the rear heel up, the left foot leaving the floor, the shoulder going in behind the shield.",
+                 "THE SHOVE -- the left foot down ahead; the shield punched out to the arm's length with the whole body behind it, the head down behind the rim. The enemy is thrown back a pace.",
+                 "THE STEP -- upright again over the forward foot, into the square the shove cleared, the shield coming back to the set. (The game moves him one square here; draw him in place.)",
+                 "SHIELDS SET again."]),
+    dict(move='pike-rank', title="PIKE RANK: the thrust through the wall, the feet planted (dwarf) -- the Soldiering feat's row", replaces=None,
+         sets=[('pike-rank-dwarf', 'PIKE-RANK-DWARF', 'pikerank', 'pikerank-dwarf-%s', 'pikerank-dwarf-all', 'pikerank-dwarf', "the gate watch's fight figure (`gatewatch_p2`), the garrison trooper's size")],
+         weapon="The long thin brown bar is the PIKE's shaft, MAGENTA at its head: 2.7 m. His RIGHT fist holds the BUTT on every frame; his LEFT hand is ahead on the shaft, and the shaft SLIDES through it.",
+         hit='THE THRUST',
+         words='Griz, 11-20, to the lanes desk: "yeah, start the pose seat on the predicted rows for the dwarves the soldiering feat would add please"; and of the pike, "hip". The rule: a soldier with a pike, standing in the square behind a shield-bearer, strikes through the wall.',
+         changed="""NEW. It is the pike thrust guide (GUIDE-2026-11-20b-pike-thrust) with ONE difference: a mate stands in the square ahead of him, so NEITHER
+FOOT LEAVES ITS PLACE. The reach comes from the arms, the hips and the lean. Frame 1 is the hold: the pike levelled along the hip and
+already out past the mate in front, the pose he stands in behind the wall.""",
+         frames=["THE HOLD -- side-on in a long planted stance, the left foot ahead; the pike levelled along the hip and out past the mate in front; the butt in the right fist behind the hip.",
+                 "DRAWN BACK through the left hand -- the rear arm long behind him, the weight on the rear leg. The feet do not move.",
+                 "THE COIL -- the knees sinking, the weight coming to the middle.",
+                 "THE THRUST -- the right hand driven forward along the hip to the left hand, the shaft run out through it; the hips turn and the body leans in behind it; the rear heel lifts, but neither foot leaves its place.",
+                 "Drawn back through the left hand.",
+                 "The hold again."]),
 ]
 
 
 def main():
     made = []
     for g in G:
-        name = 'GUIDE-%s-%s' % (DATE, g['move']); d = os.path.join(OUT, name)
+        if ONLY and g['move'] not in ONLY:
+            continue
+        date = g.get('date', DATE); name = 'GUIDE-%s-%s' % (date, g['move']); d = os.path.join(OUT, name)
         if os.path.isdir(d):
             shutil.rmtree(d)
         os.makedirs(d); sizes = []
@@ -168,7 +201,7 @@ def main():
             m = json.load(open(os.path.join(ROOT, 'deep16', '_src', work, 'render', 'meta.json')))
             sizes.append('- `%s/`: the mannequin stands exactly as tall as %s: %d pixel rows from crown to sole at the game\'s size. In the strips it is drawn at FOUR times that. `%s-poses.json` is the positions the strips were rendered from.'
                          % (folder, who, m['hero_rows'], pre.lower()))
-        T = ['# SPECIAL MOVE GUIDE -- %s, %s' % (g['title'], DATE), '',
+        T = ['# SPECIAL MOVE GUIDE -- %s, %s' % (g['title'], date), '',
              'From the engine team (DRAGONSLEEP, the second game; the pose seat, for the lanes desk). Not an ask by itself: a pose guide that travels beside the ask that names it.',
              ('**It REPLACES %s.** Use this one from here on.' % g['replaces']) if g['replaces'] else '**A new guide.**', '',
              g['words'], '',

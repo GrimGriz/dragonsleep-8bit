@@ -37,7 +37,9 @@ GARR = {'axe': ('axeshield', 'axecut', 'BATTLEAXE CUT, ROUND SHIELD', 'THE CUT')
         # the new kits of 11-20 (the pose seat): `hammer dwarf`, `twinshort dwarf`, `pike dwarf` laid as the garrison's; `bar` and `knife` (Hask's, the human build) as the greataxe
         'hammer': ('hammershield', 'hammer', 'WARHAMMER BLOW, ROUND SHIELD', 'THE BLOW'), 'twinshort': ('twinshort', 'stab', 'SHORTSWORD THRUST, A BLADE IN EACH HAND', 'THE STAB'),
         'bar': ('barknife', 'swing', 'ONE-HANDED BAR SWING, KNIFE IN THE LEFT HAND', 'THE BLOW'), 'knife': ('knifestab', 'stab', 'LEFT-HAND KNIFE STAB, BAR IN THE RIGHT', 'THE STAB'),
-        'pike': ('pike', 'thrust', 'PIKE THRUST, TWO HANDS', 'THE THRUST')}
+        'pike': ('pike', 'thrust', 'PIKE THRUST, TWO HANDS', 'THE THRUST'),
+        # Soldiering's rows (11-20): `shieldpush dwarf`, `pikerank dwarf`
+        'shieldpush': ('shieldpush', 'push', 'SHIELD WALL - SET SHIELDS AND THE PUSH', 'THE SHOVE'), 'pikerank': ('pikerank', 'thrust', 'PIKE RANK - THE THRUST THROUGH THE WALL, FEET PLANTED', 'THE THRUST')}
 for _k in GARR:
     if _k in sys.argv[1:]:
         NAME, ROW, MOVE, HIT = GARR[_k]
