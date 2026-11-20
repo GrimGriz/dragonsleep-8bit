@@ -1150,6 +1150,90 @@
     }
     F.wheel(B, att, f); yield 12;
   };
+  // THE SHIELD WALL (Soldiering's; Griz: "a 'shield wall' feat that cost a bonus action to 'create, join or leave' and your reaction when you do, but does a +2 AC and 1d6 blunt
+  // damage shove each round, pushing back what's in front of the shield wall 5 ft and moving the wall into the square they just cleared"; "4 - save"; "3 - we'll bend and see
+  // what happens in combat downstream"; the wall's members keep their own Attack action -- confirmed to him, the push spends the caller's bonus action and each mate's reaction).
+  // SET SHIELDS: a bonus action and the reaction, a shield borne, trained; anyone may set alone. Set, it faces the nearest foe (the push's way) and holds its square: its own
+  // move is held till it LEAVES (a bonus action and the reaction) -- the formation seat's call, his to overrule, so that leaving costs what he said. Pushed or traded out of its
+  // square, prone, or unable to act: out at no cost. JOINED: set, with a set mate of its side in one of the 8 squares beside -- only a joined one has the +2 (rules.js RU.ac),
+  // gives cover (G.los) and calls THE PUSH
+  F.wallSet = function (u) {
+    var w = u && u.conds && u.conds.wall;
+    return !!(w && !u.dead && u.hp > 0 && w.x === u.x && w.y === u.y && !u.conds.prone && RU.canAct(u) && F.bearsShield(u) && F.soldiering(u));
+  };
+  F.wallMates = function (B, u) {
+    if (!B || !F.wallSet(u)) return [];
+    return B.units.filter(function (w) { return w !== u && w.side === u.side && F.wallSet(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; });
+  };
+  F.joined = function (u, B) { B = B || D.battle; return F.wallMates(B, u).length > 0; };
+  // the wall a joined one stands in: every joined member linked to it through mates
+  F.wallOf = function (B, u) {
+    var out = [u], i = 0;
+    while (i < out.length) F.wallMates(B, out[i++]).forEach(function (w) { if (out.indexOf(w) < 0) out.push(w); });
+    return out.length > 1 ? out : [];
+  };
+  F.canSet = function (u) { return !!(u && F.soldiering(u) && F.bearsShield(u) && !F.wallSet(u) && !u.conds.prone && RU.canAct(u) && u.turn && u.turn.bonus > 0 && u.reaction > 0); };
+  F.faceOf = function (B, u) {
+    var foes = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); }), t = foes[0];
+    if (!t) return u.conds.wall ? u.conds.wall.face : [0, -1];
+    var dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y); return dx || dy ? [dx, dy] : [0, -1];
+  };
+  F.setShields = function (B, u) {
+    u.turn.bonus = 0; u.reaction = 0; u.conds.wall = { x: u.x, y: u.y, face: F.faceOf(B, u) };
+    u.turn.wallMove = u.turn.move; u.turn.move = 0; D.sfx('confirm');
+    var n = F.wallMates(B, u).length;
+    B.card(['{y}' + u.name + '{/} sets shields' + (n ? ', joined to ' + n + ' beside' : ', alone') + '  {g}(' + (n ? '+2 AC; cover behind; THE PUSH' : 'nothing till a trained mate sets beside it') + '; its square held till it leaves){/}'], 220);
+  };
+  F.leaveWall = function (B, u, free) {
+    if (!u.conds.wall) return;
+    delete u.conds.wall;
+    if (!free && u.turn) { u.turn.bonus = 0; u.reaction = 0; if (u.turn.wallMove != null) { u.turn.move = u.turn.wallMove; delete u.turn.wallMove; } }
+    if (B && B.card && !free) B.card(['{g}' + u.name + ' leaves the shield wall.{/}'], 180);
+  };
+  // the turn: a set one's move held (kept in turn.wallMove for a LEAVE); one no longer set (pushed off, prone, out of its shield) is out at no cost
+  var startTurnW = RU.startTurn;
+  RU.startTurn = function (u) {
+    var r = startTurnW.apply(this, arguments);
+    if (u && u.conds && u.conds.wall) { if (F.wallSet(u)) { u.turn.wallMove = u.turn.move; u.turn.move = 0; } else delete u.conds.wall; }
+    return r;
+  };
+  // THE PUSH: a joined one's bonus action on its turn. The caller shoves; each mate in the same wall that has a reaction spends it and shoves too -- each at the creature in
+  // the square ahead of it, the caller's facing for all. Large or smaller only. A STR save, DC 8 + the shover's proficiency + STR, +1 for each joined mate beside the shover:
+  // failed, pushed 5 ft (M.push: HOLD GROUND and the rest of its guards) and 1d6 bludgeoning, and the shover steps into the square if it was cleared; saved, nothing, and that
+  // member stays (the wall bends: his trial). Nowhere to go: the 1d6, and that member stays. An empty square ahead: the member steps. The steps provoke nothing
+  F.pushDC = function (B, s) { var ab = s.abil || (s.src && s.src.abil) || { str: 10 }; return 8 + (s.prof || 2) + D.mod(ab.str) + F.wallMates(B, s).length; };
+  F.ahead = function (B, s, face) {
+    var x = s.x + face[0], y = s.y + face[1];
+    var who = B.units.filter(function (w) { return w !== s && !w.dead && w.hp > 0 && !w.riding && w.x === x && w.y === y; })[0] || null;
+    return { x: x, y: y, who: who };
+  };
+  F.canPush = function (B, u) { return !!(u && u.turn && u.turn.bonus > 0 && F.joined(u, B)); };
+  F.wallPush = function* (B, u) {
+    if (!F.canPush(B, u)) return;
+    u.turn.bonus = 0;
+    var face = u.conds.wall.face, wall = F.wallOf(B, u), shovers = [u].concat(wall.filter(function (w) { return w !== u && w.reaction > 0 && RU.canAct(w); }));
+    B.card(['{y}' + u.name + '{/} calls the push!  {g}(' + shovers.length + ' of the wall shove; each mate its reaction){/}'], 200); D.sfx('confirm'); yield 10;
+    for (var i = 0; i < shovers.length; i++) {
+      var s = shovers[i]; if (!F.wallSet(s)) continue;
+      var a = F.ahead(B, s, face), f = a.who;
+      if (f && !G.hostile(s, f)) continue; // (a friend ahead: that member holds)
+      if (f && ((f.size || 1) > 2 || f.object)) continue; // (Large or smaller only)
+      if (s !== u) s.reaction = 0;
+      if (!f) { if (G.canStand(s, a.x, a.y)) { F.wallStep(B, s, a.x, a.y); yield 6; } continue; }
+      var dc = F.pushDC(B, s), sv = RU.save(f, 'str', dc), fx0 = f.x, fy0 = f.y; D.sfx(sv.ok ? 'miss' : 'hit');
+      if (sv.ok) { B.card(['  ' + Nm(B, s) + ' shoves ' + nm(B, f) + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  {n}IT HOLDS{/}  {g}(' + s.name + ' stays: the wall bends){/}'], 200); yield 8; continue; }
+      D.magic.push(B, s, f, 1);
+      var moved = f.x !== fx0 || f.y !== fy0, dmg = D.roll('1d6').total;
+      B.card(['  ' + Nm(B, s) + ' shoves ' + nm(B, f) + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  {o}' + (moved ? 'DRIVEN BACK' : 'NOWHERE TO GO') + '{/}  {r}' + dmg + '{/} bludgeoning'], 200);
+      B.hurt(f, dmg, 'bludgeoning', {});
+      yield 8;
+      if (moved && G.canStand(s, a.x, a.y)) { F.wallStep(B, s, a.x, a.y); yield 6; }
+    }
+  };
+  F.wallStep = function (B, s, x, y) {
+    var x0 = s.x, y0 = s.y; s.x = x; s.y = y; if (s.conds.wall) { s.conds.wall.x = x; s.conds.wall.y = y; }
+    s.tween = { fx: x0, fy: y0, fz: G.gzAt(s, x0, y0), t: 0, dur: B.pace ? B.pace(10, true) : 10 };
+  };
   F.markTargets = function (B, u) { return hostileNear(B, u, 60).filter(function (w) { return !w.dead && w.hp > 0 && !w.object && !(w.conds.calledMark && w.conds.calledMark.by === u.id); }); };
   F.callMark = function (B, u, t) {
     u.turn.bonus = 0; spendPlay(u); t.conds.calledMark = { by: u.id, side: u.side, hit: {} }; D.sfx('confirm');
@@ -1415,6 +1499,15 @@
       if (u.lvl >= 6 && u.subclass === 'Way of the Open Hand') out.push({ id: 'wholeness', label: 'WHOLENESS OF BODY', cost: 'A', icon: 'secondwind', skill: true, ok: act && feat(u, 'wholeness') && u.hp < u.maxhp,
         why: !feat(u, 'wholeness') ? 'used (a long rest brings it back)' : !act ? 'the action is spent' : 'unhurt', note: 'heal yourself ' + 3 * u.lvl + ' HP, once a long rest' });
     }
+    if (F.soldiering(u) && F.bearsShield(u)) { // (Soldiering's shield wall, ours: 11-20)
+      if (!F.wallSet(u)) out.push({ id: 'setshields', label: 'SET SHIELDS', cost: 'B', icon: 'shield', skill: true, ok: F.canSet(u),
+        why: !(T.bonus > 0) ? 'the bonus action is spent' : !(u.reaction > 0) ? 'the reaction is spent' : 'not now', note: 'a bonus action and your reaction: shields set facing the nearest foe; joined to a trained mate beside, +2 AC, cover behind, THE PUSH; your square held till you leave' });
+      else {
+        out.push({ id: 'wallpush', label: 'THE PUSH', cost: 'B', icon: 'shove', skill: true, ok: F.canPush(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : 'no set mate beside you',
+          note: 'you and each mate with a reaction shove the foe ahead: STR DC ' + F.pushDC(B, u) + ' or 5 ft back and 1d6, the wall stepping in' });
+        out.push({ id: 'leavewall', label: 'LEAVE THE WALL', cost: 'B', icon: 'shield', skill: true, ok: T.bonus > 0 && u.reaction > 0, why: !(T.bonus > 0) ? 'the bonus action is spent' : 'the reaction is spent', note: 'a bonus action and your reaction: your move back' });
+      }
+    }
     if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
     if (F.hasFeat(u, 'suddendark')) { var sdC = F.darkTargets(B, u); out.push({ id: 'suddendark', label: 'SUDDEN DARK', cost: 'B', icon: 'lantern', skill: true, ok: T.bonus > 0 && sdC.length > 0, // (the feat Sudden Dark, ours: 10-30)
@@ -1515,6 +1608,9 @@
         return;
       }
       case 'shedbeast': if (u.conds.pelt && u.turn.bonus > 0) { u.turn.bonus = 0; peltMove(B, u, function () { F.peltOff(B, u); }); yield 8; } return; // (HAUNCHES shed: its 10 ft off what is left of the move)
+      case 'setshields': if (F.canSet(u)) { F.setShields(B, u); yield 10; } return; // (Soldiering's, 11-20)
+      case 'leavewall': if (F.wallSet(u) && u.turn.bonus > 0 && u.reaction > 0) { F.leaveWall(B, u); yield 8; } return;
+      case 'wallpush': yield* F.wallPush(B, u); return;
       case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');

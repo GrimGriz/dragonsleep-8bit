@@ -14,7 +14,8 @@
     if (c.barkskin) ac = Math.max(ac, 16);
     if (c.pelt && c.pelt.parts.indexOf('hide') >= 0 && u.hp > 0) ac = Math.max(ac, 13 + D.mod(u.abil.wis) + (D.features && D.features.bearsShield && D.features.bearsShield(u) ? 2 : 0)); // (the Pelt's HIDE, ours: 13 + WIS at the least -- js/features.js, 10-30)
     var ward = D.battle && D.battle.doorWardOn && u.side === 'party' && u.hp > 0 ? 3 : 0; // the Door-Shield protects the party (battle.js doorWard)
-    return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward;
+    var wallAC = c.wall && D.features && D.features.joined && D.features.joined(u) ? 2 : 0; // (Soldiering's shield wall, joined: +2 -- js/features.js, 11-20)
+    return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward + wallAC;
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
   // (by: the one laying it, where the caller knows -- Nature's Ward, the druid's 10: no elemental or fey charms or frightens it)

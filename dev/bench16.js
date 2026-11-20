@@ -17961,6 +17961,78 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preWh);
     return;
   }
+  // THE SHIELD WALL (mode=shieldwall1120; Soldiering's, the leveling lane's 2026-11-20 sections -- Griz: "a 'shield wall' feat that cost a bonus action to 'create, join or
+  // leave' and your reaction when you do, but does a +2 AC and 1d6 blunt damage shove each round"; "4 - save"; "3 - we'll bend and see what happens in combat downstream"):
+  // set alone gives nothing; two set side by side are joined, +2 AC each; THE PUSH -- the caller and each mate with a reaction shove the foe ahead, failed: 5 ft back and 1d6,
+  // the wall steps in; a mate whose reaction went on setting this round does not shove; one foe holding, that member stays (the bend); a foe with nowhere to go takes the 1d6;
+  // a Huge one is not shoved; pushed out or prone, out; the members keep their Attack; LEAVE gives the move back; one untrained cannot set
+  if (get('mode', '') === 'shieldwall1120') {
+    var repSw = { checks: [], errors: [] }, d0Sw = D.d, FSw = D.features, RUSw = D.rules;
+    function okSw(what, v) { repSw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runSw(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } }
+    function pinSw(seq) { var i = 0; D.d = function (n) { return n === 20 ? seq[Math.min(i++, seq.length - 1)] : (n === 6 ? 4 : d0Sw(n)); }; }
+    // two fighters side by side (f, m), two goblins ahead of them (g1 before f, g2 before m), a third goblin parked far; every square of a 2 x 5 block open
+    function mkSw(train) {
+      var B = D.npcFight('?npc=goblin,goblin,goblin&lvl=3&vs=fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      ps.forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = train === false ? [] : ['soldiering']; u.src.equip = u.src.equip || {}; u.src.equip.shield = u.src.equip.shield || 'shield'; u.conds = {}; });
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; g.size = 1; });
+      D.grid.setup(B.map, []); var spot = null, W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30;
+      for (var y = 3; y < H - 2 && !spot; y++) for (var x = 1; x < W - 3 && !spot; x++) { var all = true; for (var yy = y - 3; yy <= y + 1 && all; yy++) for (var xx = x; xx <= x + 1 && all; xx++) all = D.grid.canStand(f, xx, yy) && Math.abs(D.grid.gzAt(f, xx, yy) - D.grid.gzAt(f, x, y)) < 2; if (all) spot = [x, y]; }
+      var X = spot[0], Y = spot[1];
+      f.x = X; f.y = Y; m.x = X + 1; m.y = Y; gs[0].x = X; gs[0].y = Y - 1; gs[1].x = X + 1; gs[1].y = Y - 1; gs[2].x = 1; gs[2].y = 1;
+      D.grid.setup(B.map, B.units); RUSw.startTurn(f); RUSw.startTurn(m); B.active = f;
+      return { B: B, f: f, m: m, g1: gs[0], g2: gs[1], g3: gs[2], X: X, Y: Y, ok: !!spot };
+    }
+    function setSw(h, u) { RUSw.startTurn(u); h.B.active = u; runSw(h.B.exec(u, { do: 'setshields' })); }
+    function pushSw(h, u) { h.B.active = u; runSw(h.B.exec(u, { do: 'wallpush' })); D.d = d0Sw; }
+    function at(u) { return u.x + ',' + u.y; }
+    try {
+      D.seed = 1120;
+      // 1. alone: set, nothing; the bonus, the reaction and the move spent; 2. a mate sets beside: joined, +2 AC each
+      var h1 = mkSw(), ac0 = RUSw.ac(h1.f), cmd1 = h1.B.commands(h1.f).filter(function (c) { return c.id === 'setshields'; })[0];
+      setSw(h1, h1.f); var set1 = FSw.wallSet(h1.f), j1 = FSw.joined(h1.f), ac1 = RUSw.ac(h1.f), T1 = h1.f.turn;
+      okSw('alone (placed ' + h1.ok + ' at ' + h1.X + ',' + h1.Y + '): the button ' + (cmd1 && cmd1.ok) + '; set ' + set1 + ', joined ' + j1 + ', AC ' + ac0 + ' -> ' + ac1 + '; bonus ' + T1.bonus + ', reaction ' + h1.f.reaction + ', move ' + T1.move,
+        h1.ok && cmd1 && cmd1.ok && set1 && !j1 && ac1 === ac0 && T1.bonus === 0 && h1.f.reaction === 0 && T1.move === 0);
+      var acM0 = RUSw.ac(h1.m); setSw(h1, h1.m);
+      okSw('a mate sets beside: joined ' + FSw.joined(h1.f) + ' / ' + FSw.joined(h1.m) + '; AC ' + ac0 + ' -> ' + RUSw.ac(h1.f) + ', the mate ' + acM0 + ' -> ' + RUSw.ac(h1.m) + '; the wall ' + FSw.wallOf(h1.B, h1.f).length,
+        FSw.joined(h1.f) && FSw.joined(h1.m) && RUSw.ac(h1.f) === ac0 + 2 && RUSw.ac(h1.m) === acM0 + 2 && FSw.wallOf(h1.B, h1.f).length === 2);
+      // 3. the wind-up: the next round the caller pushes; the mate set this round (its reaction spent) does not shove
+      RUSw.startTurn(h1.f); var mv3 = h1.f.turn.move; pinSw([1]); var g1a = at(h1.g1), g2a = at(h1.g2), hp1 = h1.g1.hp; pushSw(h1, h1.f);
+      okSw('the push, the mate wound up: the caller\'s move held ' + mv3 + '; its goblin ' + g1a + ' -> ' + at(h1.g1) + ' (' + (hp1 - h1.g1.hp) + ' bludgeoning), the caller ' + h1.X + ',' + h1.Y + ' -> ' + at(h1.f) + '; the mate\'s goblin ' + g2a + ' -> ' + at(h1.g2) + ', the mate ' + at(h1.m) + '; still joined ' + FSw.joined(h1.f),
+        mv3 === 0 && at(h1.g1) === h1.X + ',' + (h1.Y - 2) && hp1 - h1.g1.hp === 4 && at(h1.f) === h1.X + ',' + (h1.Y - 1) && at(h1.g2) === g2a && at(h1.m) === (h1.X + 1) + ',' + h1.Y && FSw.joined(h1.f) && h1.f.turn.bonus === 0);
+      // 4. both shove, both fail: the line steps up whole, the mate's reaction spent, the caller's kept
+      var h4 = mkSw(); setSw(h4, h4.f); setSw(h4, h4.m); RUSw.startTurn(h4.m); RUSw.startTurn(h4.f); pinSw([1, 1]); pushSw(h4, h4.f);
+      okSw('both shove, both fail: goblins ' + at(h4.g1) + ' ' + at(h4.g2) + ', the wall ' + at(h4.f) + ' ' + at(h4.m) + '; the mate\'s reaction ' + h4.m.reaction + ', the caller\'s ' + h4.f.reaction + '; joined ' + FSw.joined(h4.f) + ' / ' + FSw.joined(h4.m),
+        at(h4.g1) === h4.X + ',' + (h4.Y - 2) && at(h4.g2) === (h4.X + 1) + ',' + (h4.Y - 2) && at(h4.f) === h4.X + ',' + (h4.Y - 1) && at(h4.m) === (h4.X + 1) + ',' + (h4.Y - 1) && h4.m.reaction === 0 && h4.f.reaction === 1 && FSw.joined(h4.f) && FSw.joined(h4.m));
+      // 5. THE BEND: the caller's goblin fails, the mate's holds -- the caller steps, the mate stays, the two still joined on the slant
+      var h5 = mkSw(); setSw(h5, h5.f); setSw(h5, h5.m); RUSw.startTurn(h5.m); RUSw.startTurn(h5.f); var hp5 = h5.g2.hp; pinSw([1, 20]); pushSw(h5, h5.f);
+      okSw('the bend: the caller ' + at(h5.f) + ', the mate ' + at(h5.m) + ' (stays), its goblin ' + at(h5.g2) + ' unhurt ' + (h5.g2.hp === hp5) + '; joined ' + FSw.joined(h5.f) + ' / ' + FSw.joined(h5.m) + '; the mate\'s reaction ' + h5.m.reaction,
+        at(h5.f) === h5.X + ',' + (h5.Y - 1) && at(h5.m) === (h5.X + 1) + ',' + h5.Y && at(h5.g2) === (h5.X + 1) + ',' + (h5.Y - 1) && h5.g2.hp === hp5 && FSw.joined(h5.f) && FSw.joined(h5.m) && h5.m.reaction === 0);
+      // 6. nowhere to go: a third goblin behind the caller's -- the 1d6, nobody moves; 7. a Huge one ahead of the mate: not shoved, the mate's reaction kept
+      var h6 = mkSw(); h6.g3.x = h6.X; h6.g3.y = h6.Y - 2; h6.g2.size = 3; D.grid.setup(h6.B.map, h6.B.units); setSw(h6, h6.f); setSw(h6, h6.m); RUSw.startTurn(h6.m); RUSw.startTurn(h6.f);
+      var hp6 = h6.g1.hp, hp6b = h6.g2.hp; pinSw([1, 1]); pushSw(h6, h6.f);
+      okSw('nowhere to go: its goblin ' + at(h6.g1) + ' (' + (hp6 - h6.g1.hp) + ' bludgeoning), the caller stays ' + at(h6.f) + '; a Huge one before the mate: ' + at(h6.g2) + ' unhurt ' + (h6.g2.hp === hp6b) + ', the mate ' + at(h6.m) + ' its reaction ' + h6.m.reaction,
+        at(h6.g1) === h6.X + ',' + (h6.Y - 1) && hp6 - h6.g1.hp === 4 && at(h6.f) === h6.X + ',' + h6.Y && h6.g2.hp === hp6b && at(h6.m) === (h6.X + 1) + ',' + h6.Y && h6.m.reaction === 1);
+      // 8. the members keep their Attack: with shields set, ATTACK is on the ring and a blow is struck
+      var h8 = mkSw(); setSw(h8, h8.f); setSw(h8, h8.m); RUSw.startTurn(h8.f); h8.B.active = h8.f; var atk8 = h8.B.commands(h8.f).filter(function (c) { return c.id === 'attack'; })[0], n8 = (h8.B.log || []).length;
+      D.d = function (n) { return n === 20 ? 15 : d0Sw(n); }; runSw(h8.B.exec(h8.f, { do: 'attack', target: h8.g1 })); D.d = d0Sw; var hit8 = h8.g1.hp < 999;
+      okSw('the wall keeps its Attack: ATTACK on the ring ' + !!(atk8 && atk8.ok) + ', the blow landed ' + hit8 + ', the action ' + h8.f.turn.action + '; still joined ' + FSw.joined(h8.f), atk8 && atk8.ok && hit8 && FSw.joined(h8.f));
+      // 9. out at no cost: the mate pushed off its square -- the caller no longer joined, AC back; prone, the same; 10. LEAVE: the bonus and the reaction, the move back
+      var h9 = mkSw(); setSw(h9, h9.f); setSw(h9, h9.m); var ac9 = RUSw.ac(h9.f); D.magic.push(h9.B, h9.g2, h9.m, 1); var j9 = FSw.joined(h9.f), ac9b = RUSw.ac(h9.f), set9 = FSw.wallSet(h9.m);
+      var h9b = mkSw(); setSw(h9b, h9b.f); setSw(h9b, h9b.m); h9b.m.conds.prone = true; var j9b = FSw.joined(h9b.f);
+      okSw('out at no cost: the mate pushed to ' + at(h9.m) + ', set ' + set9 + ', the caller joined ' + j9 + ', AC ' + ac9 + ' -> ' + ac9b + '; the mate prone, the caller joined ' + j9b, !set9 && !j9 && ac9b === ac9 - 2 && !j9b);
+      var h10 = mkSw(); setSw(h10, h10.f); RUSw.startTurn(h10.f); var mv10 = h10.f.turn.move; runSw(h10.B.exec(h10.f, { do: 'leavewall' }));
+      okSw('LEAVE: set ' + FSw.wallSet(h10.f) + ', the move ' + mv10 + ' -> ' + h10.f.turn.move + ', bonus ' + h10.f.turn.bonus + ', reaction ' + h10.f.reaction, !FSw.wallSet(h10.f) && mv10 === 0 && h10.f.turn.move > 0 && h10.f.turn.bonus === 0 && h10.f.reaction === 0);
+      // 11. untrained: no SET SHIELDS on the ring, and none set
+      var h11 = mkSw(false), c11 = h11.B.commands(h11.f).filter(function (c) { return c.id === 'setshields'; })[0]; setSw(h11, h11.f);
+      okSw('untrained: SET SHIELDS on the ring ' + !!c11 + ', set ' + FSw.wallSet(h11.f), !c11 && !FSw.wallSet(h11.f));
+    } catch (e) { repSw.errors.push(String(e && e.stack || e)); }
+    D.d = d0Sw;
+    var preSw = document.createElement('pre'); preSw.id = 'out'; preSw.textContent = 'BENCH16 ' + JSON.stringify(repSw);
+    document.body.appendChild(preSw);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;
