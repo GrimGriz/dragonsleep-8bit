@@ -2356,6 +2356,7 @@
   In.barnYard = function* (B) {
     var Rm = D.roam, R0 = B.roam, f = R0.flags, BY = In.BY, A = D.secondact, C = D.counter, c = In.cycle(In.day(Rm.q)), Y = {}, P = BY.at;
     In.stage(B, P.party, null);
+    B.units.filter(function (u) { return u.npc === 'gennet'; }).forEach(function (u) { In.gone(B, u); }); // (one Gennet: the scene's -- by morning the floor's own stands at the well, 07:00 to 12:00, and the barn showed two; the end's lay puts her back. 11-20, as the wagon night's guard, :1778)
     var kid = function (at) { return In.unit(B, { id: 'barnKid', kind: f.glamourBroken ? In.keptKind() : 'glamourgoblin', at: (at || P.child).slice(), name: f.glamourBroken ? 'The child' : 'The goblin', face: [1, 1] }); };
     BY.exits = []; BY.stoodAt = null; Y.child = Y.kid = kid(); Y.swap = function () { var at = [Y.child.x, Y.child.y]; BY.exits.push({ id: 'barnKid', x: at[0], y: at[1], how: 'swap' }); In.gone(B, Y.child); Y.child = Y.kid = kid(at); }; // (the glamour breaking: the goblin's figure for the child's, on its own square; Y.kid: her figure kept for a face after she has joined the party)
     Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: P.from.slice(), name: In.named(f), face: [-1, -1] });
