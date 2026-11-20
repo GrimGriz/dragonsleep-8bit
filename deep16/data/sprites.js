@@ -32574,6 +32574,40 @@ true
 }
 }
 },
+"torvald_p1": {
+"image": "art/torvald_p1.png?v=5cc3f3082f",
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 42,
+"fh": 64,
+"ax": 21,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Torvald",
+"hold": [
+"Dvalgarda's sign on his chest is a pixel or two at game size",
+"the mirrors (SW W NW) carry the mace and the pack's asymmetry to the other side (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (his ART-147 pages), 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the made road is not on the grid; his fights keep torvald_p0"
+},
 "troll_p1": {
 "image": "art/troll_p1.png?v=0bec109335",
 "fw": 152,
