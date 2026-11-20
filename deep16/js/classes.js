@@ -147,7 +147,13 @@
     ranger: [{ key: 'prey', word: 'PREY', at: 3, sub: 'Hunter', opts: [
       { id: 'colossus', name: 'Colossus Slayer', desc: 'once a turn, a weapon hit on one already hurt deals 1d8 more' },
       { id: 'giantkiller', name: 'Giant Killer', desc: 'the reaction: an attack back at a Large or larger creature within 5 ft that swings at you' },
-      { id: 'hordebreaker', name: 'Horde Breaker', desc: 'once a turn, one more attack with the same weapon at another within 5 ft of the first' }] }],
+      { id: 'hordebreaker', name: 'Horde Breaker', desc: 'once a turn, one more attack with the same weapon at another within 5 ft of the first' }] },
+      // (Defensive Tactics, the Hunter's choice at 7: built 09-30 for a spec's `hunterDefense` alone -- on the maker and the level-up ask since 11-20, Griz: "fix the found
+      // not fixed please"; the key is the sheet's own field, `hunterDef`, which the maker and NPC.levelAsks read)
+      { key: 'hunterDef', word: 'DEFENSE', at: 7, sub: 'Hunter', opts: [
+        { id: 'horde', name: 'Escape the Horde', desc: 'opportunity attacks against you are made at disadvantage' },
+        { id: 'multiattack', name: 'Multiattack Defense', desc: 'a creature that hits you meets +4 AC from you for the rest of its turn' },
+        { id: 'steelwill', name: 'Steel Will', desc: 'advantage on saves against being frightened' }] }],
     druid: [{ key: 'land', word: 'LAND', at: 2, sub: 'Circle of the Land', opts: [ // (the Land's alone since the Pelt, 10-30)
       // (the Underdark is not one of the SRD 5.1's seven: RULED ours, 10-31, Griz: "I think the memetic penetration of R. A. Salvatore warrants the use of UnderDark and if a
       // session objects we can call it MantleCrust" -- invented.json #underdark-land)
@@ -450,7 +456,7 @@
     if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
     if (sub === 'the Lampwright' && cls === 'rogue' && lvl >= 3) h.known = (h.known || []).concat(['light', 'dancinglights'].filter(function (id) { return (h.known || []).indexOf(id) < 0; })); // (Wick-Lore: Light and Dancing Lights, INT -- ours, 11-03)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
-    if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = spec.hunterDefense || 'horde';
+    if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = ['horde', 'multiattack', 'steelwill'].indexOf(spec.hunterDef || spec.hunterDefense) >= 0 ? (spec.hunterDef || spec.hunterDefense) : 'horde'; // (spec.hunterDef: the maker's and the pick's, 11-20; hunterDefense: a hand-written spec's, as before)
     if (cls === 'ranger' && sub === 'Hunter' && lvl >= 3) h.prey = ['colossus', 'giantkiller', 'hordebreaker'].indexOf(spec.prey) >= 0 ? spec.prey : 'colossus'; // (the Hunter's Prey, 11-20: NPC.OPTIONS.ranger)
     if (cls === 'warlock' && lvl >= 3 && spec.pact === 'blade') { // the pact weapon in hand; what it carried takes the second place
       var carried = h.equip.weapon; h.pact = 'blade'; h.equip.weapon = spec.pactForm || 'rapier';

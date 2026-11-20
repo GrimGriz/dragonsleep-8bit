@@ -17595,6 +17595,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okPy('the unit\'s prey: a spec\'s ' + uG.prey + ', the generic Hunter\'s ' + uC.prey + ', a ranger 2\'s ' + u2.prey, uG.prey === 'giantkiller' && uC.prey === 'colossus' && !u2.prey);
       var wPy = RPy.picksWord({ 3: { prey: 'hordebreaker' } }), bPy = RPy.picksParse(wPy);
       okPy('the pick word: ' + wPy.join(' ') + ' and back (' + (bPy && bPy[3] && bPy[3].prey) + ')', wPy[0] === '^3h:hordebreaker' && bPy && bPy[3] && bPy[3].prey === 'hordebreaker');
+      // (Defensive Tactics, the Hunter's 7th: on the maker and the level-up ask too, 11-20 -- his "fix the found not fixed please")
+      var opDf = (D.npc.OPTIONS.ranger || [])[1] || {}, idsDf = (opDf.opts || []).map(function (o) { return o.id; }).join(',');
+      var a7Py = D.npc.levelAsks(D.npc.spec('ranger:7'), 7, { classDefaults: true }), q7Py = ((a7Py && a7Py.asks) || []).filter(function (a) { return a.key === 'hunterDef'; })[0];
+      var a6Py = D.npc.levelAsks(D.npc.spec('ranger:6'), 6, { classDefaults: true }), q6Py = ((a6Py && a6Py.asks) || []).filter(function (a) { return a.key === 'hunterDef'; })[0];
+      var uDf = D.npc.build({ id: 'pyd', cls: 'ranger', lvl: 7, hunterDef: 'steelwill' }, 7, 'party'), uDo = D.npc.build({ id: 'pye', cls: 'ranger', lvl: 7, hunterDefense: 'multiattack' }, 7, 'party');
+      var wDf = RPy.picksWord({ 7: { hunterDef: 'multiattack' } }), bDf = RPy.picksParse(wDf);
+      var ow = D.npc.optWord('ranger', { prey: 'giantkiller', hunterDef: 'steelwill' }), ob = {}; D.npc.optRead('ranger', ow, 7, ob);
+      okPy('Defensive Tactics on the maker: ' + opDf.key + ' at ' + opDf.at + ' (' + idsDf + '); level 7 asks it (' + (q7Py ? q7Py.rows.length + ' rows, marked ' + q7Py.took : 'none') + '), level 6 does not', opDf.key === 'hunterDef' && opDf.at === 7 && idsDf === 'horde,multiattack,steelwill' && !!q7Py && q7Py.rows.length === 3 && q7Py.took === 'horde' && !q6Py);
+      okPy('its sheet: the maker\'s field ' + uDf.hunterDef + ', a hand-written spec\'s ' + uDo.hunterDef + '; the pick word ' + wDf.join(' ') + ' and back (' + (bDf && bDf[7] && bDf[7].hunterDef) + '); the card\'s word ' + ow + ' and back (' + ob.prey + ', ' + ob.hunterDef + ')', uDf.hunterDef === 'steelwill' && uDo.hunterDef === 'multiattack' && wDf[0] === '^7t:multiattack' && bDf && bDf[7] && bDf[7].hunterDef === 'multiattack' && ob.prey === 'giantkiller' && ob.hunterDef === 'steelwill');
       okPy('the features list names them: ' + [D.FEATURES.giantkiller && D.FEATURES.giantkiller.name, D.FEATURES.hordebreaker && D.FEATURES.hordebreaker.name].join(', '), !!(D.FEATURES.giantkiller && D.FEATURES.hordebreaker));
 
       // 2. Colossus Slayer: the one that chose it, never the others
