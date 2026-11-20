@@ -881,12 +881,14 @@
   };
   // THE FORMATION DOOR (11-20, Griz: "Spin up a fight with a party of 4 shield wall guys and 4 pike guys vs 2 Ogres and let me play around with what we have please"):
   // &formation=<shields>,<pikes> on the class floor makes the party that many dwarf fighters of the fight's level, every one trained in Soldiering (js/features.js) --
-  // the shield-bearers with a longsword, a shield and the Defense style, the pikers with a pike and Great Weapon Fighting. No block of the bestiary carries a pike, so
-  // these are the class floor's fighters, not the garrison's blocks. &vs= is set aside; &watch puts them on the AI. deep16/?npc=ogre,ogre&formation=4,4&lvl=3
+  // the shield-bearers with a longsword, a shield and the Defense style, the pikers with a pike and Great Weapon Fighting. They are the class floor's fighters (the player's
+  // hands, his levels), not the garrison's blocks. &vs= is set aside; &watch puts them on the AI. deep16/?npc=ogre,ogre&formation=4,4&lvl=3. THE DRAWN ROWS (11-20, his
+  // "wanna wait til we have the visuals proper before I work test it more"): the shields wear halldor_p2 (its `push` row), the pikes the pike trooper's trooperpike_p2 (its
+  // `pikerank` row) -- the formation seat's call of the two sheets with a `push` row, Halldor's over Hedda's
   NPC.formation = function (nW, nP, L) {
     var out = [];
-    for (var i = 0; i < nW; i++) out.push({ cls: 'fighter', lvl: L, race: 'dwarf', name: 'Shield ' + (i + 1), style: 'defense', soldiering: true, equip: { weapon: 'longsword', shield: 'shield' } });
-    for (var j = 0; j < nP; j++) out.push({ cls: 'fighter', lvl: L, race: 'dwarf', name: 'Pike ' + (j + 1), style: 'gwf', soldiering: true, equip: { weapon: 'pike', shield: null } });
+    for (var i = 0; i < nW; i++) out.push({ cls: 'fighter', lvl: L, race: 'dwarf', name: 'Shield ' + (i + 1), style: 'defense', soldiering: true, look: 'halldor_p2', equip: { weapon: 'longsword', shield: 'shield' } });
+    for (var j = 0; j < nP; j++) out.push({ cls: 'fighter', lvl: L, race: 'dwarf', name: 'Pike ' + (j + 1), style: 'gwf', soldiering: true, look: 'trooperpike_p2', equip: { weapon: 'pike', shield: null } });
     return out;
   };
   var npcFight0 = D.npcFight;
