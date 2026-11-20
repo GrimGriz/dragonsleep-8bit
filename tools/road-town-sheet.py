@@ -56,7 +56,11 @@ def map_rows(d):
     Geir's FRAME-MAP.json (`pages` -> `frames` `source_box`, the drawing's box) or Thyra's (`pages` -> `frames` `window_xyxy`, a crop cell)"""
     if os.path.exists(os.path.join(d, 'FRAME-MAP.csv')):
         for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
-            yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+            if 'source_bbox_xyxy_exclusive' in r:
+                yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+            elif r['target'] == os.path.basename(os.path.dirname(d)) + '_p1':     # (Dagny's: the ART-147/155 map shared with Torvald, `target` names the sheet;
+                x, y, w, h = (int(r[k]) for k in ('source_x', 'source_y', 'source_width', 'source_height'))   # the drawing's box as x, y, width, height)
+                yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), (x, y, x + w, y + h), False
         return
     fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
     for pg in fm['pages']:
@@ -116,6 +120,14 @@ road('geir_p1', 'geir', '2026-11-19-ART-152', 'Geir', 'ART-152-GEIR-SILVERSANDS-
      ['the mirrors (SW W NW) carry the hammer to his left hip (the art desk\'s own note)',
       'E and rear NE are fresh redraws whose diagonal strides reach further than the trooper\'s (the art desk\'s own note)'],
      'worn by no one yet: Third Lamp is not on the grid')
+
+# Dagny Scalebeam (the art desk's ART-155, delivered in one zip with Torvald's ART-147, which waits in Fresh for the combat art: her pages only copied out;
+# its notes: the closed ledger in her left arm, Rekknar's brooch on her left shoulder; no weapon, in her clan's likeness, without furniture). Her pages hold
+# Idle above Walk on one image a view (S its own two), so one scale a page. Not worn yet: the threshold (content/maps/threshold.json `dagny`) is not on the grid.
+road('dagny_p1', 'dagny', '2026-11-19-ART-155', 'Dagny', 'ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (her ART-155 pages)',
+     ['the mirrors (SW W NW) carry the ledger to her right arm and the brooch to the other shoulder (the art desk\'s own note)',
+      'Rekknar\'s brooch is a pixel or two at game size, as Asdis\'s'],
+     'worn by no one yet: the threshold is not on the grid')
 
 
 if __name__ == '__main__':

@@ -3671,6 +3671,40 @@
 "source": "deep16/_src/dace/ART-123-DACE-DISPLACEMENT/ART-123-DACE-DISPLACEMENT_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-DACE-DISPLACEMENT, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:dace (the cloak worn as the magic item)"
 },
+"dagny_p1": {
+"image": "art/dagny_p1.png?v=a6e4d09a30",
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Dagny",
+"hold": [
+"the mirrors (SW W NW) carry the ledger to her right arm and the brooch to the other shoulder (the art desk's own note)",
+"Rekknar's brooch is a pixel or two at game size, as Asdis's"
+],
+"source": "drawn by the art desk (ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (her ART-155 pages), 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the threshold is not on the grid"
+},
 "darkmantle_p1": {
 "image": "art/darkmantle_p1.png?v=923c518246",
 "fw": 96,
