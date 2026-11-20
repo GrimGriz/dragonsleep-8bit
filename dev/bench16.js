@@ -2640,6 +2640,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       GuGC.watchRoll = function () { return false; };
       var B3b = floorGC('?roam=webgulch&hour=21&at=12,11'), n3b = nightGC(B3b, ['LONG REST: 8 HOURS'], false), wk3b = (n3b.seen.match(/WOKE [^/]*/) || [''])[0];
       okGC('a quiet night: no fight (' + n3b.fights.length + '), awake at ' + B3b.roam.hour + ', no word of the crew boss hurt ("' + wk3b.slice(0, 120) + '")', !n3b.fights.length && B3b.roam.hour === 5 && !/bandaged/.test(wk3b) && n3b.finished);
+      // (each quiet watch said: 11-20, his walk, "was a watch supposed to happen?" -- three had passed with nothing on the screen)
+      var qw3b = (n3b.seen.match(/CARD: THE (FIRST|SECOND|THIRD) WATCH: [^/]*/g) || []);
+      okGC('the quiet watches said, one card each: ' + qw3b.map(function (s) { return s.slice(6, 70); }).join(' | '), qw3b.length === 3 && /FIRST/.test(qw3b[0]) && /THIRD/.test(qw3b[2]) && qw3b.every(function (s) { return /passes quiet/.test(s); }) && (B3b.roam.campNight || {}).quiet === 3);
+      okGC('a watch fight\'s name in the play record: "' + ((GuGC.watchSet(B3b, 2, ['wolfspider'], [], 'the dark', {}).set || {}).recName) + '"', /^Web Gulch: the second watch, at the cutters' fire$/.test((GuGC.watchSet(B3b, 2, ['wolfspider'], [], 'the dark', {}).set || {}).recName || ''));
       // 3c. SHORT REST: AN HOUR
       var B3c = floorGC('?roam=webgulch&hour=21&at=12,11'), n3c = nightGC(B3c, ['SHORT REST: AN HOUR'], false);
       okGC('SHORT REST: an hour on (' + B3c.roam.hour + '), no watches (' + !/WATCHES/.test(n3c.seen) + '): "' + (n3c.seen.match(/An hour by the cutters[^/]*/) || [''])[0].slice(0, 90) + '"', B3c.roam.hour === 22 && !/WATCHES/.test(n3c.seen) && /An hour by the cutters' fire/.test(n3c.seen));

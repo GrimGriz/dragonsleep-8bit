@@ -1018,7 +1018,7 @@
       if (F.roost) { var hurt0 = b.hurt; b.hurt = function (u, amt, type) { if (type === 'fire' && this.active && this.active.side === 'party' && amt > 0) this.firedRoost = true; return hurt0.apply(this, arguments); }; } // (fire dealt by the party under the roost: M.roostBroke)
     };
     // its play record in the house, as the road's fights keep theirs (js/record.js; the house lane's 10-19 note 6, "the floor's fights keep no play record")
-    var rec = R.house() ? { fight: 'minefield', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: simple } : null;
+    var rec = R.house() ? { fight: 'minefield', name: (set && set.recName) || R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: simple } : null; // (set.recName: a set fight's own name -- Web Gulch's watches, 11-20)
     yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter, record: rec, ends: function (d) { return d === 'roost' || (d === 'lost' && M.vitalDown(fb)); } } }, [t.x, t.y]);
     delete R.party0.backTo; delete R.party0.straightBack;
     if (R0.pulled === 'roost') { yield* M.roostFail(B); return; }

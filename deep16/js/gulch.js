@@ -322,7 +322,7 @@
   // a watch's fight: the field cut round the fire, on the grid, the crew boss beside the party unless he is down already tonight
   Gu.watchSet = function (B, k, list, names, lit, night, off) {
     var st = { boss: null, fb: null, fell: false }, bare = (off || []).map(function (o) { return o.u.name; });
-    st.set = { list: list, grid: true, gap: 'rule', title: 'THE ' + Gu.WATCH[k - 1] + ' WATCH',
+    st.set = { list: list, grid: true, gap: 'rule', title: 'THE ' + Gu.WATCH[k - 1] + ' WATCH', recName: 'Web Gulch: the ' + Gu.WATCH[k - 1].toLowerCase() + ' watch, at the cutters\' fire', // (the play record's name: his 11-20 record had it only as the floor's, "the road down the cut")
       line: '{r}Out of ' + lit + '{/}: ' + (names.length ? names.join(' and ') + ' on the watch, the rest up from their blankets.' : 'the rest up from their blankets.') + (bare.length ? ' ' + bare.join(' and ') + ' with no time to buckle on armour.' : ''), // (THE WORLD's "the rest wake with their armor off", 11-20)
       enter: function (b) { st.fb = b; st.boss = b.units.filter(function (u) { return u.ally && u.kind === 'crewboss'; })[0] || null; if (st.boss && Gu.showBossHp) st.boss.hp = Gu.showBossHp; }, // (the show's crew boss comes to the fire hurt: Gu.showBossHp, the beat below)
       dress: function (F) {
@@ -391,7 +391,11 @@
     for (var k = 1; k <= Gu.WATCH.length; k++) {
       var hk = (h0 + (k - 0.5) * wh) % 24, nt = M.night(hk), ph = Gu.phase(hk), zone = ph === 'day' ? 'gulch' : 'gulch_' + ph;
       var p = Gu.watchRoll(k, nt) ? R.pick(zone, R0.flags) : null;
-      if (!p || !p.list.length) continue;
+      if (!p || !p.list.length) { // (a quiet watch said on its own card: 11-20, his walk, "was a watch supposed to happen?" -- three quiet watches had passed with nothing on the screen)
+        var on0 = party.filter(function (u) { return asg[u.key || u.id] === k; }).map(function (u) { return u.name; });
+        B.card(R.wrap(['{y}THE ' + Gu.WATCH[k - 1] + ' WATCH{/}: ' + (on0.length ? on0.join(' and ') + ' at the fire. ' : '') + Gu.LINES.camp.quiet]), 200); yield 40;
+        night.quiet = (night.quiet || 0) + 1; continue;
+      }
       var names = party.filter(function (u) { return asg[u.key || u.id] === k; }).map(function (u) { return u.name; }); // (keyed as H.watchDefault keys them)
       var lit = nt ? 'the dark' : M.night((hk + 1) % 24) || M.night((hk + 23) % 24) ? 'the half-light' : 'the daylight';
       var off = Gu.sleepersOff(B, party.filter(function (u) { return asg[u.key || u.id] !== k; }));
