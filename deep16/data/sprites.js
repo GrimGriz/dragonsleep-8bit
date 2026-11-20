@@ -32605,6 +32605,40 @@ true
 ],
 "source": "drawn by the art desk (ART-142-CROSSBOW-COMBAT, 11-12: art-wanted section 55 block 3, the garrison crossbowman in five views, the Shoot over the mannequin's guide; flinch, fall and prone from ART-142-TROOPER-COMBAT), cut by tools/trooperxbow-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"ulf_p1": {
+"image": "art/ulf_p1.png?v=59cd55bf5d",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Ulf",
+"hold": [
+"the mirrors (SW W NW) carry the axe to his left hip and the shield to the other shoulder, as every mirrored costume detail (the art desk's own note)",
+"the rear NE walk turns nearer a back view than its idle (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-150-ULF-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: First Lamp is not on the grid"
+},
 "venhale_p1": {
 "image": "art/venhale_p1.png?v=457e065ec2",
 "fw": 35,
