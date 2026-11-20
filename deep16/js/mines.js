@@ -1026,6 +1026,7 @@
     if (R0.pulled === 'won' && fb && fb.firedRoost) yield* M.roostBroke(B);
   };
   var enc0 = D.roam.encounter;
+  M.inPlace = function* (B, why, set) { yield* enc0.call(D.roam, B, why, set); }; // (the Wet's own encounter, fought on the floor's squares, for a floor whose fights are otherwise pulled onto a field: Web Gulch's snared lad, the try of 11-20 -- js/gulch.js)
   D.roam.encounter = function* (B, why, set) { if (D.roam.def && D.roam.def.mine) { yield* M.fieldFight(B, why, set); return; } yield* enc0.apply(this, arguments); };
 
   // ---------------------------------------------------------------- THE BUNKHOUSES (RULED 10-21 night, Griz to the desk: "the bunkhouses wouldn't need watching (watched by

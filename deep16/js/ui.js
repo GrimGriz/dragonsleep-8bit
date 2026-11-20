@@ -1538,7 +1538,7 @@
     wx.fillStyle = '#000'; wx.fillRect(0, 0, vw, vh);
     D.iso.inWorld = true; // (before the figures are placed: their positions are the world canvas's)
     try {
-      B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
+      B.units.forEach(function (u) { if (D.fog && D.fog.hides && D.fog.hides(B, u)) return; var o = unitObj(B, u); if (o) objs.push(o); }); // (one on a square never seen not drawn: D.fog, 11-20)
       UI.liftOverFallen(objs);
       D.light.props(B).forEach(function (o) { objs.push(o); }); // a torch on the floor, dancing lights, a daylight set at a point
       if (D.looks) D.looks.props(B).forEach(function (o) { objs.push(o); });
@@ -1563,6 +1563,7 @@
       fadeFaces(B);
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); if (B.floorMarks) B.floorMarks(c); }); // (B.floorMarks: a host's own marks on the floor, under the figures -- the roam's ORDER box, js/roam.js)
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
+      if (D.fog && D.fog.pass) D.fog.pass(wx, B, vw, vh); // (the fog of war on a roam that has it: what was never seen black -- js/gulch.js D.fog, the try of 11-20)
       if (B.marksOver) B.marksOver(wx); // (a host's own lines over the light: the roam's ORDER box, js/roam.js)
       drawPathDots(wx);
       drawPathMarks(wx);

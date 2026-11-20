@@ -2591,6 +2591,99 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preGC);
     return;
   }
+  // THE LAD LIKE THE WET, AND THE FOG OF WAR (mode=gulchlad1120; the gulch seat's try, on Griz's 11-20 "try the encounters like the Wet with fog of war, including reworking
+  // the gulch floor around the trapped lad, such that a wet-like encounter that matches the current grid fight is triggered"; js/gulch.js THE LAD LIKE THE WET, THE FOG OF
+  // WAR): 1. the fog: the gully black past what the token has seen, the far end's figures not drawn, seen kept as the party walks, by night by the party's eyes; 2. the hollow
+  // and the step into it; 3. FIGHT fought on the gully's own squares (no scene pushed, the floor's battle and grid), the grid fight's makeup set beside it -- the foes, their
+  // spread, the silk's DC; won, his flag, his trigger gone, the twelve silver, the silk the fight's alone; 4. LEAVE IT steps back; 5. the switch keeps the field's fight;
+  // 6. the eyes row's door, ?isoshow&beat=gulchlad&lvl=3
+  if (get('mode', '') === 'gulchlad1120') {
+    var repGL = { checks: [], errors: [], notes: [] }, memGL = {}, stGGL = D.store.get, stSGL = D.store.set, muGL = D.music, apGL = window.DS.autoPicks, GuGL = D.gulch, RGL = D.roam, MGL = D.mines, HGL = D.house, GGL = D.grid, FogGL = D.fog;
+    function okGL(what, v) { repGL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memGL[k] ? JSON.parse(memGL[k]) : null; }; D.store.set = function (k, v) { memGL[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    function floorGL(q) { var B = RGL.make(q); D.scenes.length = 0; D.push(B); for (var k = 0; k < 44; k++) D.update(); D.battle = B; return B; }
+    function cntGL(a) { var n = 0; for (var i = 0; i < a.length; i++) if (a[i]) n++; return n; }
+    // a generator run on the floor: prompts answered from `ans` by label; a fight on the floor's squares driven -- its first turn read (who, where, the silk), every foe then down
+    function runGL(B, g, ans) {
+      var q = ans.slice(), v, out = { asked: [], fight: null, pushed: false }, k = 0;
+      while (k++ < 200000) {
+        if (D.top() !== B) { out.pushed = true; break; }
+        var st = g.next(v); v = undefined; if (st.done) break; var y = st.value;
+        if (typeof y === 'number') { B.t += Math.max(1, y); continue; }
+        if (!y) continue;
+        if (y.prompt) { var ls = y.prompt.opts.map(function (o) { return o.label; }), a = q.length ? q.shift() : ls[0], i = ls.indexOf(a); if (i < 0) i = 0; out.asked.push(y.prompt.title + ': ' + ls.join('|') + ' > ' + ls[i]); v = y.prompt.opts[i].value; continue; }
+        if (y.turn) {
+          if (!out.fight) {
+            var foes = B.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.roamAside; }), ours = B.units.filter(function (u) { return u.side === 'party' && u.src && !u.look; });
+            out.fight = { foes: foes.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }), kinds: foes.map(function (u) { return u.kind; }).sort(), gap: Math.min.apply(null, foes.map(function (f) { return Math.min.apply(null, ours.map(function (o) { return Math.max(Math.abs(o.x - f.x), Math.abs(o.y - f.y)); })); })),
+              far: Math.max.apply(null, foes.map(function (f) { return Math.min.apply(null, ours.map(function (o) { return Math.max(Math.abs(o.x - f.x), Math.abs(o.y - f.y)); })); })), onFloor: D.battle === B && GGL.map === B.map && D.top() === B,
+              webs: (B.webs || []).map(function (w) { return w.by + ' ' + w.sq.length + ' at DC ' + w.dc; }), dc: ((B.webs || []).filter(function (w) { return /gully/.test(w.by); })[0] || {}).dc, dark: !!B.dark, lvl: (ours[0] && ours[0].src && ours[0].src.lvl) };
+          }
+          B.units.forEach(function (u) { if (u.side === 'foe' && !u.roamAside) { u.hp = 0; u.dead = true; } }); v = { do: 'end' }; continue;
+        }
+      }
+      return out;
+    }
+    try {
+      GuGL.TRY.lad = true; GuGL.TRY.fog = true;
+      // 1. THE FOG
+      var B1 = floorGL('?roam=webgulch&hour=10&at=20,50'), m1 = B1.map, f1 = FogGL.see(B1), seen1 = cntGL(B1.roam.fogSeen), all1 = m1.w * m1.h, at1 = function (x, y) { return B1.roam.fogSeen[y * m1.w + x]; };
+      var et1 = B1.units.filter(function (u) { return u.npc === 'ettercap8'; })[0], cut1 = B1.units.filter(function (u) { return u.npc === 'silkcutter'; })[0], tok1 = B1.roam.token;
+      okGL('the fog by day at 20,50: ' + seen1 + ' of ' + all1 + ' squares seen; the lad\'s square ' + at1(23, 54) + ', the north mouth ' + at1(17, 1) + ', the south mouth ' + at1(22, 110) + '; on ' + FogGL.on(B1),
+        FogGL.on(B1) && seen1 > 30 && seen1 < all1 / 4 && at1(23, 54) && !at1(17, 1) && !at1(22, 110));
+      okGL('figures on squares never seen not drawn: the ettercap at the far end hidden ' + FogGL.hides(B1, et1) + ', the silk-cutter at the camp hidden ' + FogGL.hides(B1, cut1) + ', the party never (' + FogGL.hides(B1, B1.roam.members[0]) + ')',
+        FogGL.hides(B1, et1) === true && FogGL.hides(B1, cut1) === true && FogGL.hides(B1, B1.roam.members[0]) === false);
+      var cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var cx1 = cv1.getContext('2d'), rh1 = 0, pz1 = 0, r0 = D.iso.rhombus, p0 = FogGL.pass; D.iso.rhombus = function () { rh1++; return r0.apply(this, arguments); };
+      FogGL.pass = function () { pz1++; return p0.apply(this, arguments); };
+      try { D.ui.drawBattle(cx1, B1); FogGL.pass(cx1, B1, D.W, D.H); } finally { D.iso.rhombus = r0; FogGL.pass = p0; }
+      okGL('drawn: the fog\'s pass called by the floor\'s draw (' + (pz1 - 1) + ') and laid ' + rh1 + ' squares of black or wash over the screen', pz1 >= 2 && rh1 > 20);
+
+      tok1.x = 20; tok1.y = 70; FogGL.see(B1); var seen1b = cntGL(B1.roam.fogSeen);
+      okGL('walked on to 20,70: ' + seen1b + ' seen (more than ' + seen1 + '), the lad\'s square still seen ' + at1(23, 54) + ', now the strung end\'s mouth 12,87 ' + at1(12, 87), seen1b > seen1 && at1(23, 54) === 1);
+      var B1n = floorGL('?roam=webgulch&hour=23&at=20,50'), f1n = FogGL.see(B1n), seen1n = cntGL(B1n.roam.fogSeen);
+      okGL('by night at 20,50 (dark ' + !!B1n.dark + '): ' + seen1n + ' seen, by the party\'s light and eyes (fewer than by day\'s ' + seen1 + ' or the same)', !!B1n.dark && seen1n > 0 && seen1n <= seen1);
+      var B1x = floorGL('?roam=webgulch&hour=10&at=20,50'); GuGL.TRY.fog = false; var off1 = !FogGL.on(B1x); GuGL.TRY.fog = true;
+      okGL('&nofog\'s switch (Gu.TRY.fog false): the fog off ' + off1, off1);
+      // 2. THE HOLLOW AND THE STEP
+      var B2 = floorGL('?roam=webgulch&hour=10&at=20,50'), tr2 = ((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).filter(function (t) { return /^snared/.test(t.id); }).map(function (t) { return t.id + ' ' + t.on + ' ' + t.rect.join(','); });
+      var hollow = [[27, 50], [26, 52], [27, 53], [28, 56]].map(function (q) { var s = B2.map.at(q[0], q[1]); return q.join(',') + (s && s.walk ? ' walk' : ' rock'); });
+      okGL('the hollow behind him open (' + hollow.join('; ') + '); his triggers: ' + tr2.join('; '), hollow.every(function (h) { return / walk$/.test(h); }) && tr2.length === 2 && tr2.some(function (t) { return /^snaredstep step 21,52,5,5$/.test(t); }));
+      // 3. FIGHT, on the gully
+      var F3 = D.fight('snared'), grid3 = F3.foes.map(function (f) { return f.kind; }).sort(), entry3 = (D.MAPS[F3.map] || {}).entry || [], gridGap = F3.foes.map(function (f) { return Math.min.apply(null, entry3.map(function (e) { return Math.max(Math.abs(e[0] - f.at[0]), Math.abs(e[1] - f.at[1])); })); });
+      var B3 = floorGL('?roam=webgulch&hour=10&at=21,54'), sv3 = D.counter.state(B3).silver(), w3 = B3.webs, r3 = runGL(B3, GuGL.snared(B3, true), ['FIGHT']), fg = r3.fight || {};
+      okGL('a step into the hollow asks: ' + r3.asked.join(' / '), /^WEB GULCH: FIGHT\|LEAVE IT > FIGHT/.test(r3.asked[0] || ''));
+      okGL('fought where they stand: no scene pushed (' + !r3.pushed + '), the floor\'s battle and grid (' + fg.onFloor + ')', !r3.pushed && fg.onFloor === true);
+      okGL('the grid fight\'s three: ' + (fg.kinds || []).join(',') + ' (the grid\'s ' + grid3.join(',') + ') at ' + (fg.foes || []).join(' '), (fg.kinds || []).join() === grid3.join());
+      okGL('their spread: ' + fg.gap + ' to ' + fg.far + ' squares from the nearest of the party (the grid\'s ' + gridGap.join(',') + ' from its entry)', fg.gap >= 3 && fg.far <= 10);
+      okGL('the silk: ' + (fg.webs || []).join('; ') + ' -- the grid\'s DC ' + ((D.MAPS[F3.map] || {}).webDC), fg.dc === (D.MAPS[F3.map] || {}).webDC);
+      okGL('won: his flag ' + !!B3.roam.flags['trig:snared'] + ', twelve silver (' + sv3 + ' -> ' + D.counter.state(B3).silver() + '), his triggers gone (' + ((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).filter(function (t) { return /^snared/.test(t.id); }).length + '), the silk the fight\'s alone after (' + (B3.webs || []).length + ')',
+        !!B3.roam.flags['trig:snared'] && D.counter.state(B3).silver() >= sv3 + 12 /* (his twelve, and the fight's own spoils as the field's way pays them) */ && !((RGL.def.src8 && RGL.def.src8.triggers) || RGL.def.triggers || []).some(function (t) { return /^snared/.test(t.id); }) && (B3.webs || []).length === (w3 || []).length);
+      repGL.notes.push('the grid fight: ' + F3.foes.map(function (f) { return f.kind + '@' + f.at.join(','); }).join(' ') + ' on ' + F3.map + ' (its silk ' + ((D.MAPS[F3.map] || {}).webs || []).length + ' squares at DC ' + (D.MAPS[F3.map] || {}).webDC + '), level ' + F3.level + ' (the party\'s own: Gu.set), lit; the try: ' + (fg.foes || []).join(' ') + ', the party at level ' + fg.lvl + ', ' + (fg.webs || []).join('; ') + ', dark ' + fg.dark);
+      // 4. LEAVE IT
+      var B4 = floorGL('?roam=webgulch&hour=10&at=21,54'), t4 = B4.roam.token, at4 = [t4.x, t4.y], r4 = runGL(B4, GuGL.snared(B4, true), ['LEAVE IT']);
+      okGL('LEAVE IT: no fight (' + !r4.fight + '), no flag (' + !B4.roam.flags['trig:snared'] + ')', !r4.fight && !r4.pushed && !B4.roam.flags['trig:snared']);
+      // 5. THE SWITCH: the field's fight as it was
+      GuGL.TRY.lad = false;
+      var B5 = floorGL('?roam=webgulch&hour=10&at=23,55'), r5 = runGL(B5, GuGL.snared(B5), ['FIGHT']), top5 = D.top();
+      okGL('the switch (Gu.TRY.lad false; &ladgrid): FIGHT pulls the field\'s fight -- a scene pushed ' + r5.pushed + ', its fight ' + (top5 && top5.fight && top5.fight.id), r5.pushed && top5 && top5.fight && top5.fight.id === 'snared');
+      GuGL.TRY.lad = true;
+      // 6. THE DOOR
+      var bt6 = (MGL.ISO_BEATS || []).filter(function (b) { return b.id === 'gulchlad'; })[0];
+      if (!bt6) okGL('the show\'s beat gulchlad', false);
+      else { HGL.freshLvl = 3; D.scenes.length = 0; try { MGL.isoPlay(bt6); } finally { HGL.freshLvl = 0; } var B6 = D.top(); if (B6 && B6.baking) { B6.baking = false; B6.enter(); } for (var k6 = 0; k6 < 44; k6++) D.update(); B6 = D.top(); D.battle = B6;
+        var t6 = B6.roam && B6.roam.token, lv6 = HGL.cur && HGL.cur.party.map(function (h) { return h.lvl; }).join(',');
+        okGL('the show door: ' + RGL.def.key + ' at ' + (t6 && t6.x + ',' + t6.y) + ', ' + D.world.hour() + ':00, the party at ' + lv6 + ', the fog on ' + FogGL.on(B6) + ', the lad\'s hollow 3 squares off',
+          RGL.def.key === 'webgulch' && t6 && t6.x === 20 && t6.y === 50 && D.world.hour() === 10 && /^3(,3)*$/.test(lv6) && FogGL.on(B6));
+        HGL.playing = false; HGL.cur = null; }
+    } catch (eGL) { repGL.errors.push(String(eGL && eGL.stack || eGL).slice(0, 900)); }
+    if (GuGL && GuGL.TRY) { GuGL.TRY.lad = true; GuGL.TRY.fog = true; }
+    D.store.get = stGGL; D.store.set = stSGL; D.music = muGL; window.DS.autoPicks = apGL;
+    if (errs.length) repGL.errors = repGL.errors.concat(errs);
+    var preGL = document.createElement('pre'); preGL.id = 'out'; preGL.textContent = 'BENCH16 ' + JSON.stringify(repGL);
+    document.body.appendChild(preGL);
+    return;
+  }
   if (get('mode', '') === 'glowseep1115') {
     var repN = { checks: [], errors: [] };
     function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -11158,7 +11251,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B4 = testU('?roam=webgulch&hour=9'), ch4 = (RU.def.src8.chests || []).map(function (c) { return c.item + ' x' + c.n + ' at ' + c.x + ',' + c.y; }), et4 = folk(B4, 'ettercap8'), w4 = D.town.say ? [].concat(D.town.say(B4, 'silkcutter') || []).join(' ') : '';
       okU('the camp\'s two at the north mouth, the ettercap braiding at the strung end (' + (et4 ? et4.kind + ' at ' + et4.x + ',' + et4.y : 'none') + '), the chests (' + ch4.join('; ') + '), the silk-cutter\'s word ("' + w4.slice(0, 60) + '")',
         !!folk(B4, 'silkcutter') && !!folk(B4, 'drummer') && !!et4 && et4.kind === 'ettercap' && ch4.length === 2 && /potion x1/.test(ch4[0]) && /kit x2/.test(ch4[1]) && /We cut at noon/.test(w4));
-      at(B4, 23, 55, [0, -1]); var s0 = B4.roam.silver || 0, use4 = RU.useAt(B4, 23, 54), f4 = beatU(B4, GU.snared(B4), 0, 'won');
+      at(B4, 23, 55, [0, -1]); var s0 = B4.roam.silver || 0, use4 = RU.useAt(B4, 23, 54), lad4 = GU.TRY && GU.TRY.lad; if (GU.TRY) GU.TRY.lad = false; /* (the field's fight behind the switch since 11-20, the lad like the Wet the try: mode=gulchlad1120) */ var f4 = beatU(B4, GU.snared(B4), 0, 'won'); if (GU.TRY) GU.TRY.lad = lad4;
       okU('the snared lad: E on the cocoon (' + (use4 && use4.script) + ') says "' + (f4.asked ? f4.asked.lines.join(' ').slice(0, 50) : '') + '" [' + (f4.asked ? f4.asked.opts.map(function (o) { return o.label; }).join(' | ') : '') + ']; FIGHT is the grid\'s ' + (f4.fight && f4.fight.id) + ' on ' + (f4.map && f4.map.def === D.MAPS.gulch ? 'the strung end\'s map' : 'another map') + ' (' + f4.foes + '); won, ' + ((B4.roam.silver || 0) - s0) + ' silver, the cocoon ' + RU.def.rows[54].charAt(23) + ', its trigger ' + (RU.useAt(B4, 23, 54) ? 'still there' : 'gone'),
         !!use4 && use4.script === 'gulchSnared' && !!f4.asked && /wrapped tight in silk/.test(f4.asked.lines.join(' ')) && !!f4.fight && f4.fight.id === 'snared' && f4.foes.join() === 'giantspider,wolfspider,wolfspider' && (B4.roam.silver || 0) - s0 === 12 && RU.def.rows[54].charAt(23) !== 'k' && !RU.useAt(B4, 23, 54) && !!B4.roam.flags['trig:snared']);
       at(B4, 13, 87, [-1, 0]); var tr4 = RU.triggerAt(B4, 12, 87, 'step'), aw = beatU(B4, GU.ettercap(B4, true), 1);
@@ -11457,7 +11550,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       B7 = testI('?roam=webgulch&hour=9&at=16,24'); m7 = B7.map; var k8 = kindsI(m7), tr8 = m7.sq.filter(function (s) { return s.stands === 'a tree'; }).length, te8 = m7.sq.filter(function (s) { return s.stands === 'the tent'; });
       var fi8 = (D.looks.props(B7) || []).filter(function (o) { return o.depth === GI.FIRE[0] + GI.FIRE[1] + 0.5 && o.draw; }).length, bl8 = m7.props.filter(function (p) { return p.kind === 'block' && te8.indexOf(p.sq) >= 0; }).length;
       okI('the gulch\'s pieces: trees ' + (k8.tree || 0) + ' (cover "a tree" ' + tr8 + '), tents ' + (k8.tent || 0) + ' (a woodpile under them ' + bl8 + '), the cocoon ' + (k8.cocoon || 0) + ', webs and bones ' + (k8.decal || 0) + ', crates ' + (k8.block || 0) + '; the fire at ' + GI.FIRE + ' in the sort ' + fi8,
-        k8.tree === 11 && tr8 === 11 && k8.tent === 3 && te8.length === 3 && !bl8 /* (three since 11-20: the camp's third tent, RULED 11-16 -- mode=gulchcamp1120) */ && k8.cocoon === 1 && k8.decal === 177 && k8.block === 2 && fi8 === 1);
+        k8.tree === 11 && tr8 === 11 && k8.tent === 3 && te8.length === 3 && !bl8 /* (three since 11-20: the camp's third tent, RULED 11-16 -- mode=gulchcamp1120) */ && k8.cocoon === 1 && k8.decal === 183 /* (183 since 11-20: the lad's hollow strung, mode=gulchlad1120) */ && k8.block === 2 && fi8 === 1);
       // 9. THE SHOW'S GULCH: noon by the near webs (the cutter out at them), the camp by night (dark, the boy beside the fire, not in front of it on the screen)
       var sh9 = MI.isoShow('?isoshow&beat=gulchnoon'); D.scenes.length = 0; D.push(sh9); sh9.update(); var B9 = topI(), cu9 = B9 && B9.units.filter(function (u) { return u.npc === 'silkcutter'; })[0], h9 = RI.def.hour;
       HI.playing = false; HI.cur = null;

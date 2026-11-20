@@ -44,9 +44,9 @@
     '##########.........,,"""....############', '##########x...x....,,"""...#############', '############.......,,".".x.#############', '###########........,,""....#############',
     '############.......,,......#############', '###########.......,,......##############', '###########....x..,,.......#############', '###########x.t....,,......##############',
     '###########"......,,......##############', '###########"......,,.......#############', '###########.......,,......##############', '###########....."",,.......#############',
-    '###########x...."",,...t..##############', '###########.....".,,......##############', '###########x...."",,...."."#############', '############......,,...xx""#############',
-    '###########.......,,...""."#############', '###########........,,.xxx"..############', '###########........,,.tQt.b.############', '###########........,,.x.x...############',
-    '##########.........,,........###########', '###########..".....,,........###########', '##########.""."....,,.......############', '##########.."".....,,........:::::::::::',
+    '###########x...."",,...t..##############', '###########.....".,,......##############', '###########x...."",,.....".x############', '############......,,...x""x.############',
+    '###########.......,,..."".".x###########', '###########........,,.xxx"..x###########', '###########........,,.tQt.b..###########', '###########........,,.x.x..x.###########',
+    '##########.........,,.....x..###########', '###########..".....,,......x############', '##########.""."....,,.......############', '##########.."".....,,........:::::::::::',
     '#########..""".x...,,........:::::::::::', '##########.........,,".......###########', '##########........",,..t.....t##########', '##########......x.",,"..x.....##########',
     '#########......t..",,......xx.##########', '#########....bx....,,.....x"".##########', '#########..x.......,,...x""""..#########', '########..x..xx.x..,,....".""...########',
     '#########x..........,,...."x....########', '#########"..........,,...x.....#########', '#########"....x..x..,,......xx..########', '##########..x.......,,.....x...#########',
@@ -118,6 +118,7 @@
     if (Gu.alive(flags)) npcs.push({ id: 'ettercap8', x: Gu.ETTERCAP[0], y: Gu.ETTERCAP[1], look: 'ettercap', dir: 'right' });
     var trig = [{ id: 'gulchfire', rect: [Gu.FIRE[0], Gu.FIRE[1], 1, 1], on: 'use', script: 'gulchFire' }]; // (the cutters' fire a camp: Gu.fire, 11-20)
     if (!flags['trig:snared']) trig.push({ id: 'snared', rect: [Gu.SNARE[0], Gu.SNARE[1], 1, 1], on: 'use', script: 'gulchSnared', once: true });
+    if (!flags['trig:snared'] && Gu.TRY && Gu.TRY.lad) trig.push({ id: 'snaredstep', rect: Gu.LAD.rect.slice(), on: 'step', script: 'gulchSnared' }); // (the try of 11-20: a step into his hollow is reaching him)
     if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: Gu.STRUNG.slice(), on: 'step', script: 'gulchEttercap' });
     return { id: 'gulch', name: 'Web Gulch', rows: rows, legend: Gu.LEGEND, music: 'dungeon', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: ph === 'night',
       lights: [{ id: 'gulchfire', kind: 'map', x: Gu.FIRE[0], y: Gu.FIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }],
@@ -175,7 +176,47 @@
     if (R0.pulled === 'won' && o.after) yield* o.after(B);
   };
   // the snared lad (S.snared): two wolf spiders and a giant spider coming for a shape in the silk; cut down, a few coins pressed on you
-  Gu.snared = function* (B) {
+  // THE LAD LIKE THE WET (a TRY, 11-20, the gulch seat -- Griz to the lanes desk: "camp first - next priority is to try the encounters like the Wet with fog of war, including
+  // reworking the gulch floor around the trapped lad, such that a wet-like encounter that matches the current grid fight is triggered"): the bank behind him opened into a
+  // strung hollow (Gu.ROWS 50-57), a step into it is reaching him (Gu.LAD.rect), and FIGHT is fought where the party stands, as the Wet's are (js/roam.js R.encounter, set
+  // at his square; js/mines.js M.inPlace) -- the grid fight's three (two wolf spiders, a giant spider) seated round him on the bank's side at the grid fight's spread, the
+  // gully's own silk about him the hazard at the grid fight's DC 11. Won, as before: his flag, his trigger gone, the twelve silver. The field fight stays behind the switch
+  // (Gu.TRY.lad false; a door's &ladgrid) until he has seen this one
+  Gu.TRY = { lad: !/[?&]ladgrid\b/.test(String(window.location && window.location.search)), fog: !/[?&]nofog\b/.test(String(window.location && window.location.search)) };
+  Gu.LAD = {
+    rect: [21, 52, 5, 5], // (the hollow's mouth round him, off the road's side: a step in is reaching him -- the road itself, x 19-20, never)
+    foes: [['wolfspider', 27, 50], ['giantspider', 26, 52], ['wolfspider', 28, 56]], // (the grid fight's three, 6 to 9 squares off the party as its squares are there: data/fights.js snared)
+    webDC: 11, // (the grid fight's: data/maps.js gulch, the strung end's silk)
+    webBox: [18, 47, 13, 14] // (the silk counted as the fight's hazard: the floor's own webFloor squares in this box)
+  };
+  Gu.ladWebs = function (B) {
+    var out = [], bx = Gu.LAD.webBox, rows = Gu.ROWS; // (the floor's own letters: the laid def's rows are the grid's)
+    for (var y = bx[1]; y < bx[1] + bx[3]; y++) for (var x = bx[0]; x < bx[0] + bx[2]; x++) { var r = rows[y]; if (r && r.charAt(x) === 'x') out.push([x, y]); }
+    return out;
+  };
+  Gu.snaredInPlace = function* (B, step) {
+    var R = D.roam, R0 = B.roam, t = R0.token, G = D.grid, F0 = D.fight && D.fight('snared');
+    D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
+    var a = yield { prompt: { who: t, title: 'WEB GULCH', lines: R.wrap([].concat(L('gulch.snared'))), opts: [{ label: 'FIGHT', value: 0 }, { label: 'LEAVE IT', value: 1 }] } };
+    if (a !== 0) { if (step) M.stepBack(B); return; }
+    var w0 = B.webs, mine = [];
+    B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.ladWebs(B), dc: Gu.LAD.webDC, ground: true }]);
+    var set = { list: Gu.LAD.foes.map(function (f) { return f[0]; }), at: Gu.SNARE.slice(), how: 'out of the silk behind him', flag: 'trig:snared', trig: ['snared', 'snaredstep'], // (both spent at the win: the party gathers inside the hollow after, and its step must not ask again)
+      line: (F0 && F0.intro) || 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
+      onSpill: function (B2) { // (the three on their squares behind him, as the grid fight seats its own: the encounter set them round his square first)
+        var fs = B2.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.roamAside && /^roam/.test(String(u.id)); }), used = [];
+        Gu.LAD.foes.forEach(function (f) { var u = fs.filter(function (w) { return w.kind === f[0] && used.indexOf(w) < 0; })[0]; if (!u) return; used.push(u); var sq = G.canStand(u, f[1], f[2]) ? [f[1], f[2]] : D.Battle.nearSq(u, [f[1], f[2]]); if (sq) { u.x = sq[0]; u.y = sq[1]; } u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); mine.push(u); });
+        G.setup(G.map, B2.units);
+      } };
+    Gu.ladLast = set;
+    try { yield* M.inPlace(B, 'snared', set); }
+    finally { B.webs = w0 || []; } // (the hollow's silk the fight's alone: on the walk the floor's webbing is a look, as it was)
+    if (R0.flags['trig:snared']) { // (won: the first game's thanks, as the field's way gives it)
+      D.counter.state(B).silver(12); D.sfx('coin'); M.relay(B); B.card(R.wrap([].concat(L('gulch.snaredFree'), [L('g.foundSilver', { n: 12 })])), 300); yield 30;
+    }
+  };
+  Gu.snared = function* (B, step) {
+    if (Gu.TRY.lad) { yield* Gu.snaredInPlace(B, step); return; }
     yield* Gu.set(B, { fight: 'snared', trig: 'snared', title: 'WEB GULCH', lines: [].concat(L('gulch.snared')), away: 'LEAVE IT',
       after: function* (B2) { D.counter.state(B2).silver(12); D.sfx('coin'); M.relay(B2); B2.card(D.roam.wrap([].concat(L('gulch.snaredFree'), [L('g.foundSilver', { n: 12 })])), 300); yield 30; } });
   };
@@ -309,10 +350,14 @@
   // watches; the second watch brings a fight (the roll pinned), and the crew boss comes to it on 4 hit points, so a spider's bite or two drops him and the boy runs
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchcamp', label: 'THE CUTTERS\' FIRE A CAMP, by night', note: 'Beside the cutters\' fire at 22:00: three tents, the four keepers. E at the fire: LONG REST, the watches; the second watch\'s fight comes, the crew boss in it with you.', key: 'webgulch', at: [12, 11], hour: 22,
     pin: function () { Gu.watchRoll = function (k) { return k === 2; }; Gu.showBossHp = 4; } });
+  // the lad like the Wet, shown (deep16/?isoshow&beat=gulchlad&lvl=3): a level 3 party on the road four squares north of his hollow by day, the fog of war on -- the gully
+  // black past what they have seen; a step east into the hollow is reaching him, FIGHT on the gully's own squares
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchlad', label: 'THE SNARED LAD, fought where you stand (the try)', note: 'On the road above the lad\'s hollow by day, the fog of war on. Walk south and step east into the hollow: FIGHT, and the three come out of the silk behind him on the gully itself.', key: 'webgulch', at: [20, 50], hour: 10,
+    pin: function () { Gu.TRY.lad = true; Gu.TRY.fog = true; } });
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {
     if (trig.script === 'gulchFire'){ yield* Gu.fire(B); return; }
-    if (trig.script === 'gulchSnared') { yield* Gu.snared(B); return; }
+    if (trig.script === 'gulchSnared') { yield* Gu.snared(B, trig.on === 'step'); return; }
     if (trig.script === 'gulchEttercap') { yield* Gu.ettercap(B, true); return; }
     yield* trigger0.apply(this, arguments);
   };
@@ -398,6 +443,52 @@
     if (def && def.key === Gu.KEY && B && B.units) B.units.forEach(function (u) { if (u.side === 'party' && u.look && typeof u.npc === 'string' && /^town\d+$/.test(String(u.id))) { u.bystander = true; u.noArea = true; } });
     return r;
   }; }
+  // ---------------------------------------------------------------- THE FOG OF WAR (a TRY, 11-20, the gulch seat: his 11-16 "as well as the 'fog of war' exploring of those
+  // type roams", and 11-20 "try the encounters like the Wet with fog of war"). No roam had one: the Wet and every floor draw all their squares from the start (a dark floor
+  // dims what the four don't see, js/light.js L.pass, but shows its shape). Here: a square never seen is black, and what stands on it is not drawn; a square seen once and
+  // out of sight now is washed grey; seen is what the party's token has a line to -- by day within Fog.DAY squares (open sky, the banks and the trees in the way), by night
+  // what the party sees by its light and darkvision (L.partyMap). Kept for the floor's visit (B.roam.fogSeen): out of the gully and back in, it is dark again. On the
+  // floors in Fog.ON (Web Gulch alone, the try); &nofog on a door turns it off (Gu.TRY.fog)
+  var Fog = D.fog = { ON: {}, DAY: 7, UNSEEN: '#05050b', WASH: 'rgba(8,8,18,.45)' }; // (DAY: 7 squares, 35 ft -- the seat's number: at the floor's zoom the screen is about 8 squares from the party each way, so a longer reach by day would never show the fog at all)
+  Fog.ON[Gu.KEY] = true;
+  Fog.on = function (B) { var def = D.roam && D.roam.def; return !!(B && B.roam && def && Fog.ON[def.key] && (def.key !== Gu.KEY || Gu.TRY.fog) && B.map && D.battle === B); };
+  Fog.see = function (B) {
+    var R0 = B.roam, t = R0.token, m = B.map, G = D.grid; if (!t || !m) return null;
+    var k = t.x + ',' + t.y + '|' + (B.dark ? 1 : 0) + '|' + m.w + 'x' + m.h;
+    if (R0.fogNow && R0.fogNow.k === k) return R0.fogNow;
+    if (!R0.fogSeen || R0.fogSeen.length !== m.w * m.h) R0.fogSeen = new Uint8Array(m.w * m.h);
+    var now = new Uint8Array(m.w * m.h), pm = B.dark && D.light ? D.light.partyMap(B) : null, r = Fog.DAY;
+    for (var y = Math.max(0, t.y - r); y <= Math.min(m.h - 1, t.y + r); y++) for (var x = Math.max(0, t.x - r); x <= Math.min(m.w - 1, t.x + r); x++) {
+      var i = y * m.w + x, s = m.sq[i]; if (!s || !s.open) continue;
+      if (Math.hypot(x - t.x, y - t.y) <= r && (pm ? pm.v[i] > 0 : G.losPoint(t.x, t.y, x, y))) now[i] = 1; // (by night what the party sees, out to the day's reach at most)
+    }
+    now[t.y * m.w + t.x] = 1;
+    // (the rock and the things standing at the edge of what is seen: seen with it, so the banks are drawn where the floor is)
+    var edge = []; for (var j = 0; j < now.length; j++) if (now[j] === 1) { var ex = j % m.w, ey = (j - ex) / m.w; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var nx = ex + dx, ny = ey + dy; if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) continue; var ni = ny * m.w + nx; if (!now[ni] && !(m.sq[ni] || {}).open) edge.push(ni); } }
+    edge.forEach(function (ni) { now[ni] = 2; });
+    for (var q = 0; q < now.length; q++) if (now[q]) R0.fogSeen[q] = 1;
+    return (R0.fogNow = { k: k, now: now });
+  };
+  Fog.hides = function (B, u) { // (a figure on a square never seen is not drawn: the party's own never hidden)
+    if (!Fog.on(B) || !u || u.side === 'party' && !u.npc && !u.look) return false;
+    var m = B.map, R0 = B.roam; Fog.see(B); var seen = R0.fogSeen; if (!seen) return false;
+    var x = Math.round(u.x), y = Math.round(u.y); if (x < 0 || y < 0 || x >= m.w || y >= m.h) return false;
+    return !seen[y * m.w + x];
+  };
+  Fog.pass = function (ctx, B, W, H) {
+    if (!Fog.on(B)) return;
+    var m = B.map, iso = D.iso, f = Fog.see(B), seen = B.roam.fogSeen; if (!f || !seen) return;
+    ctx.save();
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
+      var i = y * m.w + x, s = m.sq[i];
+      if (f.now[i] || (seen[i] && B.dark)) continue; // (in sight now; or seen before, by night -- the light pass dims what is out of sight already: the wash is the day's)
+      var c = iso.center(x, y, s.gz || 0), p = iso.toScreen(c.x, c.y); if (p.x < -40 || p.x > W + 40 || p.y < -60 || p.y > H + 60) continue;
+      ctx.fillStyle = seen[i] ? Fog.WASH : Fog.UNSEEN;
+      iso.rhombus(ctx, x, y, s.gz || 0, 0); ctx.fill();
+      if (!seen[i] && !s.open) { ctx.fillRect(Math.round(p.x - iso.TW / 2), Math.round(p.y - 40), iso.TW, 40); } // (a bank's rock never seen: its face too, not its top alone)
+    }
+    ctx.restore();
+  };
   var edgeOut0 = M.edgeOut;
   M.edgeOut = function* (B, sq) { if (D.roam.def && D.roam.def.key === Gu.KEY) { yield* Gu.out(B, sq); return; } yield* edgeOut0.apply(this, arguments); };
 })();
