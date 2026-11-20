@@ -123,7 +123,7 @@ def to1x(rgb, mask, k, avoid=None):
 
 def cut(look):
     L = LOOKS[look]
-    pages, crops, pageof = {}, {}, {}
+    pages, crops, pageof, gnd = {}, {}, {}, {}
     src = os.path.join(pix.SRC, L['src']) if L.get('src') else SRC      # (`src`: another figure's folder under _src -- Katarina's)
     for w in windows(look):
         batch, view, row, i, fn, (x0, y0, x1, y1) = w[:6]
@@ -133,6 +133,8 @@ def cut(look):
         nb = (w[6][0] - x0, w[6][1] - y0, w[6][2] - x0, w[6][3] - y0) if len(w) > 6 and w[6] else None   # (a window's 7th: the drawing's own box on the page, katarina_p2)
         m = figure(a, L.get('trim', False), nb); ys, xs = np.where(m)
         sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
+        if len(w) > 7 and w[7] is not None:   # (a window's 8th: the ground line's y on the page -- brann_p2's jumping chop, 11-20: a frame off the floor stands above it, not on its lowest pixel)
+            gnd[(FACE[view], row, i)] = w[7] - y0 - sl[0].start
         crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn, view) if L.get('perview') else (batch, fn)   # (`perview`: a page of several views drawn at several sizes -- one scale a view)
     # one scale a page: by its idle to TALL, else by its stagger to STAG
     scale = {}
@@ -143,6 +145,12 @@ def cut(look):
         stag = [crops[c][1].shape[0] for c in mine if c[1] == 'hurt' and c[2] == 0]
         own = any(c[1] in MT or c[1] in SA for c in mine)   # (a page the look scales itself: no stagger rule -- katarina_p2's fall)
         scale[pg] = L.get('tall', TALL) / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag and not own else None   # (`tall`: a figure's own height -- the inn's women stand 47)
+    PS = L.get('pagescale') or {}   # (`pagescale`: the art desk's own scale for each page, {(batch, file): k} -- brann_p2, 11-20: a page takes its view's idle page's scale
+    for pg in [p for p in scale if scale[p] is None and p in PS]:   # times the ratio of the two, where "as the Attack" drew his E and N Falls a third too tall)
+        v = [c[0] for c, p in pageof.items() if p == pg][0]
+        ip = [p for c, p in pageof.items() if c[0] == v and c[1] == 'idle' and scale.get(p) and p in PS]
+        if ip:
+            scale[pg] = scale[ip[0]] * PS[pg] / PS[ip[0]]
     for _ in range(4):   # (in turn: a page matched to a page matched in its turn -- katarina_p2's prone to the fall, the fall to the attack, the attack to the idle)
         for pg in [p for p in scale if scale[p] is None and (MT or SA)]:
             mine = [c for c, p in pageof.items() if p == pg]
@@ -170,7 +178,7 @@ def cut(look):
         else:
             top = al.copy(); top[ys[0] + int((ys[-1] - ys[0]) * 0.55):] = False
             cx = ndimage.center_of_mass(top)[1]
-        cells[c] = (o, cx, ys[-1])
+        cells[c] = (o, cx, int(round(gnd[c] * scale[pageof[c]])) + 1 if c in gnd else ys[-1])   # (the ground line in the 1x frame's rows: to1x's one-pixel outline above)
     for mf, src in MIRROR.items():
         for (f, row, i) in [c for c in list(cells) if c[0] == src]:
             o, cx, foot = cells[(f, row, i)]

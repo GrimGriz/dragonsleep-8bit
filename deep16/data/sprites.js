@@ -2287,6 +2287,78 @@
 }
 }
 },
+"brann_p2": {
+"image": "art/brann_p2.png?v=592699ed91",
+"fw": 52,
+"fh": 80,
+"ax": 26,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 52,
+"fh": 80,
+"ax": 26,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 72,
+"fh": 80,
+"ax": 36,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"flinch": {
+"y": 1920,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 78,
+"fh": 80,
+"ax": 39,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3200,
+"fw": 78,
+"fh": 80,
+"ax": 39,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Brann",
+"hold": [
+"attack: N's blade projects high on 4 as the swing travels away; the SE contact hands overlap at game size (the art desk's own notes)",
+"walk: the rear NE lead boots are hard to tell apart at 1 and 5, a gait hold (the art desk's own note)",
+"prone: the last Fall cel held, the dropped axe beside him"
+],
+"source": "drawn by the art desk (ART-145-COMBAT, 11-20: art-wanted section 88, Brann with a battleaxe in both hands in five views, the Attack the jumping chop over the mannequin's guide), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "brawler_p1": {
 "image": "art/brawler_p1.png?v=5a6442484f",
 "fw": 96,
@@ -8631,6 +8703,89 @@
 "the mirrors (SW W NW) carry the hammer to his left hip (the art desk's own note)"
 ],
 "source": "drawn by the art desk (ART-144-HALLDOR-TOWN-CUTTER-HANDOFF with its SOUTH-IDLE-REDRAW, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the muster yard and the halls are not on the grid"
+},
+"halldor_p2": {
+"image": "art/halldor_p2.png?v=438e6dc6df",
+"fw": 40,
+"fh": 80,
+"ax": 20,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 40,
+"fh": 80,
+"ax": 20,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 50,
+"fh": 80,
+"ax": 25,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 54,
+"fh": 80,
+"ax": 27,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"push": {
+"y": 1920,
+"fw": 76,
+"fh": 80,
+"ax": 38,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2560,
+"fw": 44,
+"fh": 80,
+"ax": 22,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 68,
+"fh": 80,
+"ax": 34,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3840,
+"fw": 70,
+"fh": 80,
+"ax": 35,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Halldor",
+"hold": [
+"push: cut and in hand, played by nothing yet -- the shield wall's push (deep16/js/features.js THE PUSH) moves the square, the row waits for its hook",
+"attack: North 3 and 4 are close from behind, the hammer reaching over the right shoulder on 4 (the art desk's own note)",
+"walk: the SE and E leg exchange is subtle at game size (the art desk's own note)",
+"prone: its own redraw of Fall 6, small contour differences at the join (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-144-COMBAT, 11-20: art-wanted section 88, Captain Halldor with warhammer and shield in five views, the Attack and the Push over the mannequin's guides), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "harpy_p1": {
 "image": "art/harpy_p1.png?v=95ca97eafa",
@@ -25831,6 +25986,40 @@ true
 },
 "source": "deep16/_src/sabeth/ART-123-SABETH/ART-123-SABETH_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-SABETH, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:sabeth"
+},
+"sectblade_p1": {
+"image": "art/sectblade_p1.png?v=401ce5b077",
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Sect blade",
+"hold": [
+"the mirrors (SW W NW) carry the brooch to the other shoulder (the art desk's own note)",
+"the rear NE walk overlaps its boots at 1 and 5 and jumps a little at 8 to 1 (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-148-SECT-BLADE-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the made road is not on the grid; their fights keep assassin_p1"
 },
 "seeptiles_p1": {
 "image": "art/seeptiles_p1.png?v=f682db98f6",

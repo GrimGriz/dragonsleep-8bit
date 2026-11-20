@@ -1,0 +1,72 @@
+{
+ "image": "art/brann_p2.png",
+ "fw": 52,
+ "fh": 80,
+ "ax": 26,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 52,
+   "fh": 80,
+   "ax": 26,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 48,
+   "fh": 80,
+   "ax": 24,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 72,
+   "fh": 80,
+   "ax": 36,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "flinch": {
+   "y": 1920,
+   "fw": 48,
+   "fh": 80,
+   "ax": 24,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2560,
+   "fw": 78,
+   "fh": 80,
+   "ax": 39,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3200,
+   "fw": 78,
+   "fh": 80,
+   "ax": 39,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Brann",
+ "hold": [
+  "attack: N's blade projects high on 4 as the swing travels away; the SE contact hands overlap at game size (the art desk's own notes)",
+  "walk: the rear NE lead boots are hard to tell apart at 1 and 5, a gait hold (the art desk's own note)",
+  "prone: the last Fall cel held, the dropped axe beside him"
+ ],
+ "source": "drawn by the art desk (ART-145-COMBAT, 11-20: art-wanted section 88, Brann with a battleaxe in both hands in five views, the Attack the jumping chop over the mannequin's guide), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
