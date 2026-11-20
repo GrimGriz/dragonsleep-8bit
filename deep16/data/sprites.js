@@ -8828,6 +8828,41 @@
 }
 }
 },
+"hedda_p1": {
+"image": "art/hedda_p1.png?v=f037037235",
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 64,
+"ax": 15,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Hedda",
+"hold": [
+"the rear NE walk repeats its lead leg at 1 and 5: on the art desk's own hold, cut as drawn (deep16-dream-polish.md)",
+"the E walk's lead switch is hard to read where the legs overlap; the N idle shows a rear belt buckle (the art desk's own notes)",
+"the mirrors (SW W NW) carry the hammer to her left hip (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-146-HEDDA-GREYSEAM-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the muster yard and the halls are not on the grid"
+},
 "hellhound_p1": {
 "image": "art/hellhound_p1.png?v=9878b4548a",
 "fw": 82,
