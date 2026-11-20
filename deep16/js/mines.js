@@ -321,7 +321,19 @@
     c.cx.putImageData(c.img, 0, 0); return { canvas: c.cv, ax: ox, ay: oy };
   };
   // the camp's fire on the diamonds: js/campfire.js's ring, logs and flames, in the sort with the figures, as a camp's fight draws it (CF.fieldFire)
-  if (D.looks && D.looks.props) { var looksProps0 = D.looks.props; D.looks.props = function (B) { var r = looksProps0.apply(this, arguments), m = B && B.map; return m && m.isoFire && m.isoFire.length && B.roam && D.campfire && D.campfire.fieldFire ? (r || []).concat(m.isoFire.map(function (q) { return D.campfire.fieldFire(B, q); })) : r; }; }
+  // (a floor in M.SHEETFIRE draws its fire from the art desk's `campfire` -- ART-113, four frames, the north-up view's own and the Glowseep's fire screen's -- at the diamonds'
+  // scale, the code's ring and flames where the atlas is not in: 11-20, Griz, "campfire we have sprite from others?", then "2 - lean" -- Web Gulch's cutters' fire)
+  M.SHEETFIRE = { webgulch: true };
+  M.sheetFire = function (B, q) {
+    var CF = D.campfire, gz = B.map.gz(q[0], q[1]);
+    return { depth: q[0] + q[1] + 0.5, gz: gz, sheet: true, draw: function (ctx) {
+      var p = D.topview && D.topview.piece ? D.topview.piece('campfire', Math.floor((B.t || 0) / 8) % 4, 'seep') : null;
+      if (!p) { if (CF && CF.fieldFire) CF.fieldFire(B, q).draw(ctx); return; }
+      var c = D.iso.center(q[0], q[1], gz), s = D.iso.toScreen(c.x, c.y), k = D.iso.TW / ((D.topview && D.topview.TS) || 48), sm = ctx.imageSmoothingEnabled; // (the top view's square as wide as a diamond)
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(s.x - p.ax * k), Math.round(s.y + 2 - p.ay * k), Math.round(p.w * k), Math.round(p.h * k)); ctx.imageSmoothingEnabled = sm;
+    } };
+  };
+  if (D.looks && D.looks.props) { var looksProps0 = D.looks.props; D.looks.props = function (B) { var r = looksProps0.apply(this, arguments), m = B && B.map, sh = M.SHEETFIRE[D.roam && D.roam.def && D.roam.def.key]; return m && m.isoFire && m.isoFire.length && B.roam && D.campfire && D.campfire.fieldFire ? (r || []).concat(m.isoFire.map(function (q) { return sh ? M.sheetFire(B, q) : D.campfire.fieldFire(B, q); })) : r; }; }
 
   // ---------------------------------------------------------------- the ways: down and up between a place's floors, the dark floors waiting, out to THE WORLD or Silverton
   M.held = function (to) { var n8 = ((DS.DATA.maps[to] || {}).name || to); return ['{y}' + n8 + '{/}.', '{g}The dark floors below come onto the grid with its roam. The party keeps to the floors it has for now.{/}']; };

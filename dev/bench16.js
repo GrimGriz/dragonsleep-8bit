@@ -2614,6 +2614,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       ['gulchguard', 'gulchboss'].forEach(function (id) { var sc = null; var t0 = M8talk(Bw, id); wd.push(id + ': ' + t0); });
       function M8talk(B, id) { var said = []; var g = MGC.SCENES[id]({ say: function (ls) { said = said.concat(ls); return 0; }, st: CGC.state(B) }, B); var st, n = 0; while (n++ < 20) { st = g.next(); if (st.done) break; } return said.join(' '); }
       okGC('their words by night: ' + wd.join(' / '), /stand a watch like the rest of us/.test(wd.join(' ')) && /the boy hears it/.test(wd.join(' ')));
+      // 1b. the cutters' fire drawn from the art desk's campfire (11-20, his "campfire we have sprite from others?", then "2 - lean")
+      var Bfr = floorGC('?roam=webgulch&hour=21&at=12,11'), frP = (D.looks.props(Bfr) || []).filter(function (o) { return o.depth === GuGC.FIRE[0] + GuGC.FIRE[1] + 0.5; })[0], asked = [], pc0 = D.topview.piece;
+      D.topview.piece = function (nm) { asked.push(nm); return pc0.apply(this, arguments); };
+      var drawn = 0, cxF = { imageSmoothingEnabled: true, drawImage: function () { drawn++; }, fillRect: function () {}, beginPath: function () {}, moveTo: function () {}, lineTo: function () {}, closePath: function () {}, fill: function () {}, set fillStyle(v) {}, set globalAlpha(v) {} };
+      try { if (frP) frP.draw(cxF); } finally { D.topview.piece = pc0; }
+      okGC('the cutters\' fire on the floor: a prop at ' + GuGC.FIRE + ' (' + !!frP + '), from the sheet ' + !!(frP && frP.sheet) + ', the art asked for "' + asked.join(',') + '" (drawn from the atlas ' + drawn + ', the code\'s flames where it is not in)', !!frP && frP.sheet === true && asked.indexOf('campfire') >= 0);
       // 2. no fight in the camp's rows, by day, at noon or by night
       var zoned = [];
       [9, 12, 21].forEach(function (h) { var B = floorGC('?roam=webgulch&hour=' + h + '&at=12,11'); for (var y = 0; y < 15; y++) for (var x = 0; x < 40; x++) { var z = RGC.zoneAt(B, x, y); if (z) zoned.push(h + 'h ' + x + ',' + y + ' ' + z); } });
