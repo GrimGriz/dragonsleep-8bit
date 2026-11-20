@@ -320,9 +320,13 @@
     // one swing through the engine's own attack, the dice as they fall -- a miss shows the row as well as a hit
     // (or the `attack` row a blow with no row of its own plays -- the matriarch prays every turn and swung her skull-staff once, 10-15)
     var rowOf = function (a, k) { var r = a.row || String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); /* (a.row: a blow that names its row, battle.js -- the gargoyle's Claws, 10-22) */ return D.spr.anim(u.sheet, r) ? r : D.spr.anim(u.sheet, 'attack') ? 'attack' : null; };
-    var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && !a.needsHeld && r && !(u.showSeen || {})[r]; })[0];
+    // (11-20, the formation seat: shown FEWER THAN TWICE, as the show's own law -- every row twice -- and the check (dev/bench16.js mode=show) read it; till then a row seen once
+    // was let be, and when the SRD's cover on DEX saves turned the show's dice the green hag's claw and the shambling mound's Engulf each came up one short. A blow that wants
+    // one it holds -- the mound's Engulf -- is struck at the one it holds, where it holds one in reach)
+    var heldBy = function (w) { var c = w.conds || {}; return [c.grappled, c.restrained, c.engulfed].some(function (h) { return h && h.by === u.id; }); };
+    var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && r && ((u.showSeen || {})[r] || 0) < 2 && (!a.needsHeld || B.units.some(function (w) { return w !== u && !w.dead && w.hp > 0 && heldBy(w) && D.grid.dist(u, w) <= (a.reach || u.reach || 5); })); })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
-      var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5))[0];
+      var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5, ma.needsHeld ? heldBy : null))[0];
       if (mw) {
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
         yield* B.attack(u, mw, ma); u.anim = 'idle'; u.animT = B.t;
