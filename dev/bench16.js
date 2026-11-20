@@ -130,13 +130,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // walls set and the pushes called, the wheels
   if (get('mode', '') === 'soldier1120') {
     var FK = D.FOES[get('foes', '')] ? get('foes', '') : 'trooper', resS = { foe: FK, lvl: L, n: n, trained: null, untrained: null, errors: [] }, Fs = D.features;
-    var cnt = { set: 0, push: 0, wheel: 0 }, set0 = Fs.setShields, push0 = Fs.wallPush, wheel0 = Fs.wheel;
+    var cnt = { set: 0, push: 0, wheel: 0, march: 0, breaks: 0 }, set0 = Fs.setShields, push0 = Fs.wallPush, wheel0 = Fs.wheel, march0 = Fs.wallMarch, leave0 = Fs.leaveWall;
+    Fs.wallMarch = function* () { cnt.march++; return yield* march0.apply(this, arguments); };
+    Fs.leaveWall = function (B, u, free) { if (!free) cnt.breaks++; return leave0.apply(this, arguments); }; // (a set member leaving by its own turn: no foe near, or two rounds of missiles)
     Fs.setShields = function () { cnt.set++; return set0.apply(this, arguments); };
     Fs.wallPush = function* () { cnt.push++; return yield* push0.apply(this, arguments); };
     Fs.wheel = function () { cnt.wheel++; return wheel0.apply(this, arguments); };
     var keepS = D.FOES[FK].soldiering;
     [true, false].forEach(function (tr) {
-      D.FOES[FK].soldiering = tr; cnt.set = cnt.push = cnt.wheel = 0;
+      D.FOES[FK].soldiering = tr; cnt.set = cnt.push = cnt.wheel = cnt.march = cnt.breaks = 0;
       var won = 0, lost = 0, rounds = 0, left = 0;
       for (var k = 0; k < n; k++) {
         D.seed = 7100 + k * 7919; D.lastError = null;
@@ -146,9 +148,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (r === 'won') won++; else if (r === 'lost') lost++;
         rounds += Bs.round; left += Bs.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0; }).length;
       }
-      resS[tr ? 'trained' : 'untrained'] = { bandWins: won, bandLosses: lost, bandWinPct: Math.round(100 * won / n), rounds: +(rounds / n).toFixed(1), foesStandingAvg: +(left / n).toFixed(2), sets: cnt.set, pushes: cnt.push, wheels: cnt.wheel };
+      resS[tr ? 'trained' : 'untrained'] = { bandWins: won, bandLosses: lost, bandWinPct: Math.round(100 * won / n), rounds: +(rounds / n).toFixed(1), foesStandingAvg: +(left / n).toFixed(2), sets: cnt.set, pushes: cnt.push, wheels: cnt.wheel, marches: cnt.march, leaves: cnt.breaks };
     });
-    D.FOES[FK].soldiering = keepS; Fs.setShields = set0; Fs.wallPush = push0; Fs.wheel = wheel0;
+    D.FOES[FK].soldiering = keepS; Fs.setShields = set0; Fs.wallPush = push0; Fs.wheel = wheel0; Fs.wallMarch = march0; Fs.leaveWall = leave0;
     var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(resS);
     document.body.appendChild(preS);
     return;
