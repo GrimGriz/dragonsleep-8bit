@@ -452,6 +452,11 @@
   // the fog kept, shown (?isoshow&beat=gulchfog&lvl=3): at the north mouth by day in a game -- walk a way down, out by the north mouth onto the road, and back in: what was seen stays
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchfog', label: 'THE FOG REMEMBERED, out and back in (the try)', note: 'At the north mouth by day. Walk down past the camp, go back up out of the north mouth, then step back in: the gully you walked is still uncovered; only the new is black.', key: 'webgulch', at: [17, 3], hour: 10,
     pin: function () { Gu.TRY.fog = true; } });
+  // the dawn and the dusk, shown (?isoshow&beat=gulchdawn / gulchdusk &lvl=3): the gully at 06:00 under the dawn's lighter tint, and at 18:30 under the dusk's (D.dusk below)
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchdawn', label: 'THE GULLY AT DAWN, the light tint (a look)', note: 'Midway down the gully at 06:00, the dark just gone: the floor under a light dusky wash, lighter than the dusk\'s. A look only: what the party sees is the day\'s.', key: 'webgulch', at: [20, 40], hour: 6,
+    pin: function () { Gu.TRY.fog = true; } });
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchdusk', label: 'THE GULLY AT DUSK, the tint (a look)', note: 'Midway down the gully at 18:30, before the dark at 20:00: the floor under the dusk\'s wash. A look only: what the party sees is the day\'s.', key: 'webgulch', at: [20, 40], hour: 18.5,
+    pin: function () { Gu.TRY.fog = true; } });
   var trigger0 = M.trigger;
   M.trigger = function* (B, trig, at) {
     if (trig.script === 'gulchFire'){ yield* Gu.fire(B); return; }
@@ -658,10 +663,12 @@
   // ---------------------------------------------------------------- THE DUSK (RULED 11-20, Griz: "1 lean" -- the seat's lean, "a dusk tint as a look only, not the dark's rules"): the
   // gully is dark by night alone (20:00 to 05:00, M.night); at dusk (17:00 to 20:00, W.todAt) it drew as full day. Now a dusk tint lies over the floor as drawn -- a look:
   // no light pass, no change to who sees whom, to the fog or to any roll. On the floors in Dusk.ON (Web Gulch, the ruling's)
-  var Dusk = D.dusk = { ON: {}, TINT: 'rgba(36,18,46,0.30)' };
+  // THE DAWN (RULED 11-20, Griz: "gulch / 1 - yes", on the seat's lean): dawn too, 05:00 to 07:00 (W.todAt's 'dawn'; the dark ends at 05:00), the same tint lighter, a look only
+  var Dusk = D.dusk = { ON: {}, TINT: 'rgba(36,18,46,0.30)', DAWN: 'rgba(36,18,46,0.16)' };
   Dusk.ON[Gu.KEY] = true;
-  Dusk.on = function (B) { var def = D.roam && D.roam.def; if (!B || !B.roam || !def || !Dusk.ON[def.key] || B.dark || D.battle !== B) return false; var W8 = D.world; return !!(W8 && W8.todAt && W8.todAt(M.hourNow(D.roam.q, B)) === 'dusk'); };
-  Dusk.pass = function (ctx, B, W, H) { if (!Dusk.on(B)) return false; ctx.save(); ctx.fillStyle = Dusk.TINT; ctx.fillRect(0, 0, W, H); ctx.restore(); return true; };
+  Dusk.band = function (B) { var def = D.roam && D.roam.def; if (!B || !B.roam || !def || !Dusk.ON[def.key] || B.dark || D.battle !== B) return null; var W8 = D.world, tod = W8 && W8.todAt ? W8.todAt(M.hourNow(D.roam.q, B)) : null; return tod === 'dusk' || tod === 'dawn' ? tod : null; };
+  Dusk.on = function (B) { return !!Dusk.band(B); };
+  Dusk.pass = function (ctx, B, W, H) { var bd = Dusk.band(B); if (!bd) return false; ctx.save(); ctx.fillStyle = bd === 'dawn' ? Dusk.DAWN : Dusk.TINT; ctx.fillRect(0, 0, W, H); ctx.restore(); return true; };
   var edgeOut0 = M.edgeOut;
   M.edgeOut = function* (B, sq) { if (D.roam.def && D.roam.def.key === Gu.KEY) { yield* Gu.out(B, sq); return; } yield* edgeOut0.apply(this, arguments); };
 })();
