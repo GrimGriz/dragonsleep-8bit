@@ -169,7 +169,7 @@
     if (u.turn) u.turn.action = 0;
     u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'antennae', 'attack'); u.animT = B.t; D.sfx('swing');
     yield 14;
-    var sv = RU.save(t, 'dex', dc);
+    var sv = RU.saveAt({ src: u }, t, 'dex', dc); // (cover from the rust monster, 11-20: none beside it)
     B.card(['{r}' + nm(u, true) + '{/} reaches its antennae for ' + nm(t) + '\'s ' + what.toLowerCase() + ': DEX ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}twists away{/}' : '{o}TOUCHED{/}')], 240);
     yield 18;
     if (!sv.ok) { FX.sparkle(t, 'bone', 14); D.sfx('poison'); if (o.slot === 'weapon') yield* rustWeapon(B, t, o.foe ? t.attacks[o.key] : t.weapon, 'rusts where the antennae touch it'); else corrode(B, t, o); }

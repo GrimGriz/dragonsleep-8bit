@@ -174,6 +174,13 @@
   // (adv0: an advantage the caller knows of -- Land's Stride against Entangle. against: the condition the save is against -- 'frightened',
   // 'charmed', or any other a spell lays -- for the bard's Countercharm, the Hunter's Steel Will, and the Fiend's Dark One's Own Luck (it
   // matters). dmg: the damage that rides on it, for that luck too)
+  // a save from a named point of origin, for the cover it gives a DEX save (11-20, his "leans 1-4 approved": the rest of the DEX saves): `from` a unit ({ src: u }, its square)
+  // or a square ({ x, y }); null for none. The rest as RU.save
+  RU.saveAt = function (from, u, ab, dc, adv0, against, dmg, dis0) {
+    var B = D.battle; if (!B) return RU.save(u, ab, dc, adv0, against, dmg, dis0);
+    var k = B.saveFrom; B.saveFrom = from && from.src ? { src: from.src } : from ? { x: from.x, y: from.y, size: 1, conds: {} } : null;
+    try { return RU.save(u, ab, dc, adv0, against, dmg, dis0); } finally { B.saveFrom = k; }
+  };
   RU.save = function (u, ab, dc, adv0, against, dmg, dis0) { // (dis0: a disadvantage the caller knows of -- Shatter on a creature of stone, js/magic.js area, 10-06)
     var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
     // the sorcerer's metamagic, for the spell being cast now (js/features.js M.cast: B.meta): Careful Spell -- a chosen friend of his simply

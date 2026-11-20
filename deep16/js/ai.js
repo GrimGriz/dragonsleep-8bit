@@ -393,7 +393,7 @@
     var got = B.units.filter(function (w) { return G.standing(w) && G.inArea(w, cube.sq); });
     yield 10;
     got.forEach(function (w) {
-      var sv = RU.save(w, 'dex', ff.dc);
+      var sv = RU.saveAt({ x: cube.x0 + 1, y: cube.y0 + 1 }, w, 'dex', ff.dc); // (cover from the cube's middle, 11-20)
       lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}outlined: attacks on them have advantage{/}'));
       if (!sv.ok) w.conds.faerie = { by: u.id };
     });
@@ -564,7 +564,7 @@
         var roll = D.roll(W.bolt.dice), lines = ['{r}' + the(B, u) + '{/} ' + (W.bolt.text || 'draws the dark into a line of lightning!') + '  ' + W.bolt.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + W.bolt.dc], hits = [];
         yield 12;
         B.units.filter(function (w) { return G.standing(w) && w.side !== u.side && G.inArea(w, ln.sq); }).forEach(function (w) {
-          var s2 = RU.save(w, 'dex', W.bolt.dc, false, null, roll.total), ev = RU.evasion(w);
+          var s2 = RU.saveAt({ src: u }, w, 'dex', W.bolt.dc, false, null, roll.total), ev = RU.evasion(w);
           var n = s2.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
           lines.push('  ' + w.name + ': ' + RU.saveText(s2) + ' ' + (s2.ok ? '{n}saved{/}' : '{o}failed{/}') + (ev ? ' {c}evasion{/}' : '') + '  {r}' + n + '{/}');
           hits.push([w, n]);
@@ -758,7 +758,7 @@
     B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && G.dist(best.t, w) <= S.r; }).forEach(function (w) {
       var wn = w.side === 'foe' ? the(B, w) : w.name;
       if (RU.immuneTo(w, 'blinded')) { ml.push('  ' + wn + ': {n}not blinded{/}'); return; }
-      var sv = RU.save(w, 'dex', S.dc, false, 'blinded');
+      var sv = RU.saveAt({ x: best.t.x, y: best.t.y }, w, 'dex', S.dc, false, 'blinded'); // (the flash's cover from where the glob burst, 11-20)
       ml.push('  ' + wn + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}looks away{/}' : '{o}BLINDED{/} (till the end of its next turn)'));
       if (!sv.ok) w.conds.blinded = { by: u.id, till: { who: u.id, at: 'end', n: 2 } };
     });

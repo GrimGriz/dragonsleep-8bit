@@ -563,9 +563,9 @@
         // (the cloaker's duplicates, SRD 5.1 Phantasms -- 11-03: at a duplicate, its save is the cloaker's, and a failed one bursts it; the cloaker untouched)
         if (w.hp != null && G.hostile(u, w) && M.dupesUp(w) && !M.dupesLit(B, w, lines2) && M.imagesFool(B, u, w)) {
           var drS = M.dupeRoll(w);
-          if (drS.dupe) { var svD = RU.save(w, 'dex', dc); if (!svD.ok) w.images--; lines2.push('  ' + w.name + ': ' + drS.die + ', {p}a duplicate{/}  ' + RU.saveText(svD) + ' ' + (svD.ok ? '{n}saved{/}: it shimmers on' : '{o}failed{/}: {n}the duplicate bursts{/} (' + w.images + ' left)')); return; }
+          if (drS.dupe) { var svD = RU.saveAt({ src: u }, w, 'dex', dc); if (!svD.ok) w.images--; lines2.push('  ' + w.name + ': ' + drS.die + ', {p}a duplicate{/}  ' + RU.saveText(svD) + ' ' + (svD.ok ? '{n}saved{/}: it shimmers on' : '{o}failed{/}: {n}the duplicate bursts{/} (' + w.images + ' left)')); return; }
         }
-        var sv = RU.save(w, 'dex', dc);
+        var sv = RU.saveAt({ src: u }, w, 'dex', dc); // (the splash's cover from the caster, 11-20)
         lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' + (potent ? ' -> ' + Math.floor(r1.total / 2) : '') : '{o}failed -> ' + r1.total + '{/}'));
         if (!sv.ok) B.hurt(w, r1.total, 'acid', MAGIC); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid', MAGIC);
       });
