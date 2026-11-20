@@ -62,6 +62,10 @@ def map_rows(d):
                 yield r['source'], r['facing'], r['action'].lower(), int(r['playback_frame']), tuple(int(r[k]) for k in ('x0', 'y0', 'x1_exclusive', 'y1_exclusive')), True   # plays printed 1 6 3 8 5 2 7 4)
             elif 'left' in r:                                                    # (Ragna's ART-153: "source crop bounds", left top right bottom -- read as cells)
                 yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(r[k]) for k in ('left', 'top', 'right', 'bottom')), True
+            elif 'width' in r and 'target' not in r:                              # (Ketil's ART-149: x, y, width, height, its "isolated-window edges are approximate
+                x, y, w, h = (int(r[k]) for k in ('x', 'y', 'width', 'height'))  # keying bounds" -- read as cells, the figure found in each by tight(); a dozen of
+                m = 12                                                           # its windows touch the figure's edge, so each is widened by 12 first: the frames
+                yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), (x - m, y - m, x + w + m, y + h + m), True   # stand ~400 apart)
             elif r['target'] == os.path.basename(os.path.dirname(d)) + '_p1':     # (Dagny's: the ART-147/155 map shared with Torvald, `target` names the sheet;
                 x, y, w, h = (int(r[k]) for k in ('source_x', 'source_y', 'source_width', 'source_height'))   # the drawing's box as x, y, width, height)
                 yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), (x, y, x + w, y + h), False
@@ -141,6 +145,14 @@ road('ragna_p1', 'ragna', '2026-11-19-ART-153', 'Ragna', 'ART-153-RAGNA-COPPERBO
       'the rear NE walk turns nearer N than its idle (the art desk\'s own note)'],
      'worn by no one yet: DEEP16\'s Solskaft has no stand for her', avoid=('red', 'fire'))   # (no red on her: with the reds her copper hair and apron snapped red in E walk and N)
 
+# Ketil Silversands, second at Solskaft's vault door (the art desk's ART-149, cut 11-20 by the cutter seat cutter-1120b; its notes: the garrison's battleaxe on
+# his right, the pouch on his left, the round shield strapped to his back; its South Idle the approved redraw). The one of these the grid stands: SK.FOLK `ketil`
+# beside Pyro at the vault doors (deep16/js/solskaft.js), on the garrison trooper's trooper_p1 till now. Its map (x, y, width, height) is read as cells.
+road('ketil_p1', 'ketil', '2026-11-19-ART-149', 'Ketil', 'ART-149-KETIL-SILVERSANDS-TOWN-CUTTER-HANDOFF',
+     ['the mirrors (SW W NW) carry the axe to his left and the pouch to his right (the art desk\'s own note)',
+      'the rear NE walk turns nearer N than its idle (the art desk\'s own note)'],
+     'worn at Solskaft\'s vault doors beside Pyro (SK.FOLK ketil)')
+
 
 # THE ROAD'S FIGHTERS, THEIR TOWN FIGURES ONLY (11-20, cutter-1120, on the lanes desk's reading of Griz's "no images coming in after hedda til midnight my time so the
 # cutter can close when it finishes what's in there": the hold on their town figures lifted; their fight sheets are not drawn and not cut here). None stands in
@@ -167,5 +179,5 @@ road('torvald_p1', 'torvald', '2026-11-19-ART-147', 'Torvald', 'ART-147-ART-155-
 
 if __name__ == '__main__':
     import sys
-    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald')]:
+    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil')]:
         VS.cut(lk)

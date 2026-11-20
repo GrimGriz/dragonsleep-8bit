@@ -1,0 +1,34 @@
+{
+ "image": "art/ketil_p1.png",
+ "fw": 32,
+ "fh": 64,
+ "ax": 16,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 32,
+   "fh": 64,
+   "ax": 16,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Ketil",
+ "hold": [
+  "the mirrors (SW W NW) carry the axe to his left and the pouch to his right (the art desk's own note)",
+  "the rear NE walk turns nearer N than its idle (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-149-KETIL-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn at Solskaft's vault doors beside Pyro (SK.FOLK ketil)"
+}
