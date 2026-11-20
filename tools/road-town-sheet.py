@@ -58,6 +58,8 @@ def map_rows(d):
         for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
             if 'source_bbox_xyxy_exclusive' in r:
                 yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+            elif 'x1_exclusive' in r:                                            # (Hedda's ART-146: crop boxes, read as cells, by PLAYBACK frame -- its South Walk
+                yield r['source'], r['facing'], r['action'].lower(), int(r['playback_frame']), tuple(int(r[k]) for k in ('x0', 'y0', 'x1_exclusive', 'y1_exclusive')), True   # plays printed 1 6 3 8 5 2 7 4)
             elif 'left' in r:                                                    # (Ragna's ART-153: "source crop bounds", left top right bottom -- read as cells)
                 yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(r[k]) for k in ('left', 'top', 'right', 'bottom')), True
             elif r['target'] == os.path.basename(os.path.dirname(d)) + '_p1':     # (Dagny's: the ART-147/155 map shared with Torvald, `target` names the sheet;
@@ -140,7 +142,30 @@ road('ragna_p1', 'ragna', '2026-11-19-ART-153', 'Ragna', 'ART-153-RAGNA-COPPERBO
      'worn by no one yet: DEEP16\'s Solskaft has no stand for her', avoid=('red', 'fire'))   # (no red on her: with the reds her copper hair and apron snapped red in E walk and N)
 
 
+# THE ROAD'S FIGHTERS, THEIR TOWN FIGURES ONLY (11-20, cutter-1120, on the lanes desk's reading of Griz's "no images coming in after hedda til midnight my time so the
+# cutter can close when it finishes what's in there": the hold on their town figures lifted; their fight sheets are not drawn and not cut here). None stands in
+# DEEP16's code yet: the muster yard, the halls and the made road are not on the grid (Torvald's Pocket DM figure, torvald_p0, is his fight's and untouched).
+# Halldor Silversands, the captain (the art desk's ART-144, art-wanted 88; its South Idle the approved redraw, the same bytes as ART-144-HALLDOR-SOUTH-IDLE-REDRAW's
+# source; its notes: the round shield strapped to his back, the hammer looped at his right hip, his right hand resting on it at idle). Its map gives crop windows.
+road('halldor_p1', 'halldor', '2026-11-19-ART-144/ART-144-HALLDOR-TOWN-CUTTER-HANDOFF', 'Halldor', 'ART-144-HALLDOR-TOWN-CUTTER-HANDOFF with its SOUTH-IDLE-REDRAW',
+     ['the mirrors (SW W NW) carry the hammer to his left hip (the art desk\'s own note)'],
+     'worn by no one yet: the muster yard and the halls are not on the grid')
+# Hedda Greyseam (the art desk's ART-146, art-wanted 88; its notes: the round red shield centred on her back, the warhammer at her right hip; South Walk plays printed
+# 1 6 3 8 5 2 7 4, read by its playback frame). Its rear NE Walk is on the art desk's own hold (the lead leg repeating at 1 and 5): cut as drawn, on the dream list.
+road('hedda_p1', 'hedda', '2026-11-19-ART-146', 'Hedda', 'ART-146-HEDDA-GREYSEAM-TOWN-CUTTER-HANDOFF',
+     ['the rear NE walk repeats its lead leg at 1 and 5: on the art desk\'s own hold, cut as drawn (deep16-dream-polish.md)',
+      'the E walk\'s lead switch is hard to read where the legs overlap; the N idle shows a rear belt buckle (the art desk\'s own notes)',
+      'the mirrors (SW W NW) carry the hammer to her left hip (the art desk\'s own note)'],
+     'worn by no one yet: the muster yard and the halls are not on the grid')
+# Torvald Greyseam, cleric of Dvalgarda (the art desk's ART-147, art-wanted 89; delivered with Dagny's ART-155, his pages copied out; its notes: the travelling cloak,
+# backpack, bedroll and belted mace, Dvalgarda's dark iron disc a small chest token).
+road('torvald_p1', 'torvald', '2026-11-19-ART-147', 'Torvald', 'ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (his ART-147 pages)',
+     ['Dvalgarda\'s sign on his chest is a pixel or two at game size',
+      'the mirrors (SW W NW) carry the mace and the pack\'s asymmetry to the other side (the art desk\'s own note)'],
+     'worn by no one yet: the made road is not on the grid; his fights keep torvald_p0')
+
+
 if __name__ == '__main__':
     import sys
-    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna')]:
+    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald')]:
         VS.cut(lk)

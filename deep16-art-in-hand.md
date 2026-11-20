@@ -4183,3 +4183,24 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: Sólskaft's water (not yet on the second game's floor). Cut as: `ragna_p1` in all eight facings, SW, W and NW mirrored.
+
+## 88. The road's fighters of the garrison: Halldor, Brann and Hedda -- its blocks below came back one by one; each one's line on the section's header in `deep16-art-wanted.md`
+
+### Captain Halldor Silversands -- his town figure, in all five views -- IN HAND: **Halldor's town figure IN HAND 2026-11-20** (the art desk's ART-144-HALLDOR-TOWN-CUTTER-HANDOFF with its SOUTH-IDLE-REDRAW, ten pages on his approved South Idle redraw, five views of Idle 4 and Walk 8: cut into `halldor_p1` in all eight facings by `tools/road-town-sheet.py`, by the cutter seat cutter-1120, on the lanes desk's reading of his *"no images coming in after hedda til midnight my time so the cutter can close when it finishes what's in there"*; worn by no one yet; his fight sheet still held for the combat seat)
+ATTACH `trooper_p1-town-figure-the-format-reference.png`, `REF-2026-10-21-town-figure-size.png`; and your own portrait pages of Halldor Silversands (your §87, our art-wanted 86).
+```text
+Attached: the walking town figure you drew of a garrison trooper of the same dwarf hold, for the format, the camera and the size, and a size reference. With your own portrait pages of CAPTAIN HALLDOR SILVERSANDS (asked under your §87, our art-wanted 86): draw that same dwarf, the same face, beard and colouring, head to foot.
+
+CAPTAIN HALLDOR SILVERSANDS, walking: a dwarf captain of the garrison in splint armour, a round shield slung on his back by its strap, a warhammer at his belt. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing at ease, a hand resting on the warhammer's head at his belt, a small breath); Walk (8: a steady, heavy, short-legged walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, a DWARF's proportions and exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the muster yard, his bunk in the halls, the north cut. Cut as: `halldor_p1` in all eight facings, SW, W and NW mirrored (`tools/trooper-town-sheet.py`'s way).

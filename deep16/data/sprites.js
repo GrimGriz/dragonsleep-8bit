@@ -8599,6 +8599,39 @@
 }
 }
 },
+"halldor_p1": {
+"image": "art/halldor_p1.png?v=67d8caeab0",
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 64,
+"ax": 16,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Halldor",
+"hold": [
+"the mirrors (SW W NW) carry the hammer to his left hip (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-144-HALLDOR-TOWN-CUTTER-HANDOFF with its SOUTH-IDLE-REDRAW, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the muster yard and the halls are not on the grid"
+},
 "harpy_p1": {
 "image": "art/harpy_p1.png?v=95ca97eafa",
 "fw": 104,
