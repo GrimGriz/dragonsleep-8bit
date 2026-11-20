@@ -176,7 +176,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var T = { won: 0, lost: 0, other: 0, rounds: 0, eightDown: 0, ogreHpLeft: 0, sets: 0, leaves: 0, pushes: 0, wheels: 0, firstSetSum: 0, firstSetN: 0 };
       for (var k = 0; k < n; k++) {
         D.lastError = null; tal = { sets: 0, leaves: 0, pushes: 0, wheels: 0, firstSet: 0 };
-        var Bo = D.npcFight('?npc=' + (get('foes', 'x') === 'x' ? 'ogre,ogre' : get('foes', '')) + '&formation=4,4&lvl=3&watch&seed=' + (8100 + k * 7919) + (tr ? '' : '&untrained'), { bench: true });
+        var Bo = D.npcFight('?npc=' + (get('foes', 'x') === 'x' ? 'ogre,ogre' : get('foes', '')) + '&formation=4,4&lvl=' + L + '&watch&seed=' + (8100 + k * 7919) + (tr ? '' : '&untrained'), { bench: true });
         D.battle = Bo; Bo.enter(); var r = drive(Bo);
         if (D.lastError && resO.errors.length < 4) resO.errors.push(String(D.lastError.stack || D.lastError).slice(0, 300));
         if (r === 'won') T.won++; else if (r === 'lost') T.lost++; else T.other++;
@@ -18174,10 +18174,65 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       D.rules.startTurn(wz); B2.active = wz; wz.known = (wz.known || []).concat(['sacredflame']); var n3 = (B2.log || []).length;
       runDc(B2.exec(wz, { do: 'cast', id: 'sacredflame', slot: 0, target: g2[1] })); var lg3 = (B2.log || []).slice(n3).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
       okDc('Sacred Flame at the goblin behind the fighter: ' + JSON.stringify(lg3.slice(0, 220)), /DEX|saved|failed/.test(lg3) && !/cover \+/.test(lg3));
+      // 4. the rest of the DEX saves (11-20, his "leans 1-4 approved"): Acid Splash, from the caster -- the goblin behind the fighter with half cover on its card
+      wz.x = PX; wz.y = PY; Gd.setup(B2.map, B2.units); D.rules.startTurn(wz); B2.active = wz; wz.known = (wz.known || []).concat(['acidsplash']); var n4 = (B2.log || []).length;
+      runDc(B2.exec(wz, { do: 'cast', id: 'acidsplash', slot: 0, target: g2[1] })); var lg4 = (B2.log || []).slice(n4).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
+      okDc('Acid Splash at the goblin behind the fighter: ' + JSON.stringify(lg4.slice(0, 220)), /half cover \+2/.test(lg4));
     } catch (e) { repDc.errors.push(String(e && e.stack || e)); }
     D.d = d0Dc; if (D.battle) D.battle.saveFrom = null;
     var preDc = document.createElement('pre'); preDc.id = 'out'; preDc.textContent = 'BENCH16 ' + JSON.stringify(repDc);
     document.body.appendChild(preDc);
+    return;
+  }
+  // THE FORMING AND THE ONCE-A-ROUND PUSH (mode=forming1120; 11-20, Griz: "make it a default for a trained group to use their training on the first round, not a measure of
+  // contact ... to not try to form a wall when the only trained and properly equipped in party"; "leans 1-4 approved" -- one push a round for a wall): on the AI, round 1 --
+  // a lone trained shield-bearer (its mates untrained) does not set; two do, the second walking to the line's end and joining it, one straight front toward the foe; a trained
+  // piker walks to the square behind a member and holds; a piker with no trained shield-bearer about does not; a wall that has pushed this round cannot push again till the next
+  if (get('mode', '') === 'forming1120') {
+    var repFm = { checks: [], errors: [] }, FFm = D.features, RUFm = D.rules, Gf = D.grid, d0Fm = D.d;
+    function okFm(what, v) { repFm.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runFm(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkFm(trainA, trainB, pikeC, trainC) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), a = ps[0], b = ps[1], c = ps[2], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      [[a, trainA], [b, trainB], [c, trainC]].forEach(function (pr) { var u = pr[0]; u.abil.str = u.src.abil.str = 15; u.src.featIds = pr[1] ? ['soldiering'] : []; u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield', weapon: 'longsword' }); u.weapon = D.save.weaponOf(u.src); u.conds = {}; u.guest = true; u.classAI = true; });
+      if (pikeC) { c.src.equip = Object.assign({}, c.src.equip, { weapon: 'pike', shield: null }); c.weapon = D.save.weaponOf(c.src); }
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; });
+      Gf.setup(B.map, []); var spot = null, W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30;
+      for (var y = 6; y < H - 3 && !spot; y++) for (var x = 1; x < W - 6 && !spot; x++) { var all = true; for (var yy = y - 5; yy <= y + 2 && all; yy++) for (var xx = x; xx <= x + 5 && all; xx++) all = Gf.canStand(a, xx, yy) && Math.abs(Gf.gzAt(a, xx, yy) - Gf.gzAt(a, x, y)) < 2; if (all) spot = [x, y]; }
+      var X = spot[0], Y = spot[1];
+      a.x = X + 1; a.y = Y; b.x = X + 4; b.y = Y; c.x = X + 2; c.y = Y + 2; gs[0].x = X + 2; gs[0].y = Y - 5; gs[1].x = X + 3; gs[1].y = Y - 5;
+      Gf.setup(B.map, B.units); B.round = 1; [a, b, c].forEach(function (u) { RUFm.startTurn(u); });
+      return { B: B, a: a, b: b, c: c, g: gs, X: X, Y: Y, ok: !!spot };
+    }
+    function turnFm(h, u) { RUFm.startTurn(u); h.B.active = u; runFm(FFm.aiWall(h.B, u)); }
+    try {
+      D.seed = 1120;
+      // 1. his guard: a lone trained shield-bearer (the other two untrained) does not set in round 1
+      var h1 = mkFm(true, false, false, false); turnFm(h1, h1.a);
+      okFm('a lone trained shield-bearer, round 1 (placed ' + h1.ok + '): set ' + FFm.wallSet(h1.a) + ', at ' + h1.a.x + ',' + h1.a.y, h1.ok && !FFm.wallSet(h1.a) && h1.a.x === h1.X + 1 && h1.a.y === h1.Y);
+      // 2. two trained, 15 ft apart, the foe 25 ft off: the first sets where it stands, front north; the second walks to the line's end and joins it
+      var h2 = mkFm(true, true, false, false); turnFm(h2, h2.a); var f2 = h2.a.conds.wall && h2.a.conds.wall.face; turnFm(h2, h2.b);
+      okFm('two trained, round 1, the foe 25 ft off: the first set ' + FFm.wallSet(h2.a) + ' at ' + h2.a.x + ',' + h2.a.y + ' facing ' + JSON.stringify(f2) + '; the second walked ' + (h2.X + 4) + ',' + h2.Y + ' -> ' + h2.b.x + ',' + h2.b.y + ', set ' + FFm.wallSet(h2.b) + ', joined ' + FFm.joined(h2.b) + ', facing ' + JSON.stringify(h2.b.conds.wall && h2.b.conds.wall.face),
+        FFm.wallSet(h2.a) && f2 && f2.join() === '0,-1' && FFm.wallSet(h2.b) && FFm.joined(h2.b) && h2.b.conds.wall.face.join() === '0,-1' && h2.b.y === h2.Y && Math.abs(h2.b.x - h2.a.x) === 1);
+      // 3. a trained piker with a wall standing: to the square behind a member, and holds there
+      var h3 = mkFm(true, true, true, true); turnFm(h3, h3.a); turnFm(h3, h3.b); var c3 = h3.c.x + ',' + h3.c.y; turnFm(h3, h3.c);
+      var behind = [h3.a, h3.b].some(function (m) { return h3.c.x === m.x && h3.c.y === m.y + 1; });
+      okFm('a trained piker: ' + c3 + ' -> ' + h3.c.x + ',' + h3.c.y + ' (behind a member ' + behind + '), its move held ' + h3.c.turn.move, behind && h3.c.turn.move === 0);
+      // 4. a trained piker with no trained shield-bearer about: no forming -- its move untouched, it stays a free fighter
+      var h4 = mkFm(false, false, true, true); var c4 = h4.c.x + ',' + h4.c.y; turnFm(h4, h4.c);
+      okFm('a piker alone among the untrained: ' + c4 + ' -> ' + h4.c.x + ',' + h4.c.y + ', its move ' + h4.c.turn.move, h4.c.x + ',' + h4.c.y === c4 && h4.c.turn.move > 0);
+      // 5. ONE PUSH A ROUND: the wall pushes (a goblin holds, so the line and the goblins stay); the mate's own call the same round is refused and says why; the next round, allowed
+      var h5 = mkFm(true, true, false, false); h5.a.guest = h5.b.guest = false; h5.b.x = h5.a.x + 1; h5.b.y = h5.a.y; h5.g[0].x = h5.a.x; h5.g[0].y = h5.a.y - 1; h5.g[1].x = h5.b.x; h5.g[1].y = h5.b.y - 1; Gf.setup(h5.B.map, h5.B.units);
+      [h5.a, h5.b].forEach(function (u) { RUFm.startTurn(u); h5.B.active = u; runFm(h5.B.exec(u, { do: 'setshields' })); });
+      h5.B.round = 2; RUFm.startTurn(h5.a); RUFm.startTurn(h5.b); h5.B.active = h5.a; D.d = function (n) { return n === 20 ? 20 : d0Fm(n); }; runFm(h5.B.exec(h5.a, { do: 'wallpush' }));
+      h5.b.reaction = 1; h5.B.active = h5.b; var c5 = h5.B.commands(h5.b).filter(function (c) { return c.id === 'wallpush'; })[0];
+      h5.B.round = 3; var c5b = h5.B.commands(h5.b).filter(function (c) { return c.id === 'wallpush'; })[0]; D.d = d0Fm;
+      okFm('one push a round: the mate\'s call the same round ' + (c5 && c5.ok) + ' ("' + (c5 && c5.why) + '"); the next round ' + (c5b && c5b.ok), c5 && !c5.ok && /pushed this round/.test(c5.why) && c5b && c5b.ok);
+    } catch (e) { repFm.errors.push(String(e && e.stack || e)); }
+    D.d = d0Fm;
+    var preFm = document.createElement('pre'); preFm.id = 'out'; preFm.textContent = 'BENCH16 ' + JSON.stringify(repFm);
+    document.body.appendChild(preFm);
     return;
   }
   // WHEEL ON THE FEAT (mode=wheel1120; the leveling lane's 2026-11-20 sections, the formation training -- RULED, Griz: "1 wheel leaves", "2 - trained only, they'll have to use a
