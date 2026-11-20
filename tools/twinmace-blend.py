@@ -103,9 +103,17 @@ THE NEW KITS, for the held fight sheets (deep16-art-wanted.md 88, 89, 92, 93), o
     ... -- build kit=twinshort build=dwarf         STAB 6: the sect's blade, a shortsword in each fist, the RIGHT one thrusting (Attack 2 mirrors it)
     ... -- build kit=bar                           SWING 6: Hask's pry-bar swung one-handed, a long knife in the left fist (the human build, crewboss_p1's size)
     ... -- build kit=knife                         STAB 6: Hask's knife, the left hand's jab off the leading foot, the bar held back
-    ... -- build kit=pike build=dwarf              THRUST 6: the pike trooper -- 1 level at the hip, 2 drawn back and up to the charge at the
-                        shoulder (de Gheyn 14: the rear arm straight back along the shaft, the left hand at the chin), 3 the step, 4 THE THRUST
+    ... -- build kit=pike build=dwarf              THRUST 6: the pike trooper -- 1 level at the hip, 2 drawn back ALONG THE HIP (his "hip", 11-20; the first pose lifted it to
+                        de Gheyn's charge at the shoulder), the rear arm long behind him, 3 the step, 4 THE THRUST
                         (the rear hand driven up to the front one, the shaft run out through it), 5 drawn back, 6 the hip. The butt in the right fist.
+SOLDIERING'S ROWS (11-20, Griz to the lanes desk: "yeah, start the pose seat on the predicted rows for the dwarves the soldiering feat would
+add please"; the feat's rule is the leveling lane's READY section of 11-20), the dwarf build:
+    ... -- build kit=shieldpush build=dwarf        PUSH 6: the shield wall's shove, the warhammer kept in the right hand -- 1 SHIELDS SET (the wall's own
+                        stance: it is also the frame a joined member stands in), 2 the coil behind the shield, 3 the drive off the rear leg,
+                        4 THE SHOVE (the shield punched out to the arm's length, the body behind it; I.33 1r, the shield led out at the full arm
+                        with the weapon laid back over the shoulder), 5 the step into the cleared square, 6 shields set again.
+    ... -- build kit=pikerank build=dwarf          THRUST 6: the pike rank's strike through the wall from the square behind a shield-bearer -- the pike
+                        thrust above with the FEET PLANTED (a mate stands in the square ahead: nobody steps), the pike along the hip.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -134,7 +142,8 @@ SWSH = KIT == 'sword+shield'              # Lymen's (11-13): the same slash, a r
 if SWSH:
     WORK = os.path.join(ROOT, 'deep16', '_src', 'slashshield'); LOG = '[slashshield]'
 GARR = {'axe+shield': ('axeshield', 'axecut'), 'handaxe': ('handaxe', 'throw'), 'crossbow': ('crossbow', 'shoot'), 'longbow': ('longbow', 'shoot'), 'stab': ('stab', 'stab'), 'greataxe': ('greataxe', 'chop'), 'spearthrow': ('spearthrow', 'throw'), 'spearpush': ('spearpush', 'keepback'),
-        'hammer+shield': ('hammershield', 'hammer'), 'twinshort': ('twinshort', 'stab'), 'bar': ('barknife', 'swing'), 'knife': ('knifestab', 'stab'), 'pike': ('pike', 'thrust')}     # the garrison's kits (11-12): the folder and the row
+        'hammer+shield': ('hammershield', 'hammer'), 'twinshort': ('twinshort', 'stab'), 'bar': ('barknife', 'swing'), 'knife': ('knifestab', 'stab'), 'pike': ('pike', 'thrust'),
+        'shieldpush': ('shieldpush', 'push'), 'pikerank': ('pikerank', 'thrust')}     # the garrison's kits (11-12): the folder and the row
 if KIT in GARR:
     WORK = os.path.join(ROOT, 'deep16', '_src', GARR[KIT][0]); ROW = GARR[KIT][1]; LOG = '[%s]' % GARR[KIT][0]
 DWARF = MQ.OPT.get('build', 'human') == 'dwarf'
@@ -201,7 +210,7 @@ for s, x in (('L', 1), ('R', -1)):
 # his front when the forearm lies across him), or slung flat on his back for the crossbow. A piece of the body, on its bone.
 SHIELD_R = 0.215
 LYSHIELD_R = 0.30        # Lymen's: 0.60 m across (about 24 in), a third of his height, as on lymen_p0
-if KIT in ('axe+shield', 'handaxe', 'hammer+shield'):
+if KIT in ('axe+shield', 'handaxe', 'hammer+shield', 'shieldpush'):
     _w, _g = (Vector(v) for v in GRIPS['L']); _e = Vector(pm((0.21, 0.02, 1.14))); _c = _e + (_g - _e) * 0.62
     PIECES += [('egg', 'hand.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, SHIELD_R, SHIELD_R))),      # (on the HAND bone since 11-13, where it sat: rigid with the forearm until a frame aims the left hand, and then the shield turns with it -- his "give that freedom of movement to the other shields we have in the poser")
                ('egg', 'hand.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062, 0.062)))]
@@ -277,14 +286,14 @@ BAR = [('rod', 'grip', (0, -0.10, 0), (0, 0.07, 0), 0.021), ('rod', 'blade', (0,
 KNIFE = [('rod', 'grip', (0, -0.06, 0), (0, 0.05, 0), 0.021), ('rod', 'guard', (0, 0.05, 0), (0, 0.065, 0), 0.045), ('rod', 'blade', (0, 0.065, 0), (0, 0.27, 0), 0.034), ('rod', 'tip', (0, 0.27, 0), (0, 0.33, 0), 0.026)]
 PIKEL = 2.70
 PIKE = [('rod', 'haft', (0, -SBUTT, 0), (0, PIKEL - 0.24 - SBUTT, 0), 0.019), ('rod', 'blade', (0, PIKEL - 0.24 - SBUTT, 0), (0, PIKEL - 0.07 - SBUTT, 0), 0.032), ('rod', 'tip', (0, PIKEL - 0.07 - SBUTT, 0), (0, PIKEL - SBUTT, 0), 0.019)]
-HELD.update({'hammer+shield': HAMMER, 'twinshort': SHORT, 'bar': BAR, 'knife': BAR, 'pike': PIKE})
+HELD.update({'shieldpush': HAMMER, 'pikerank': PIKE, 'hammer+shield': HAMMER, 'twinshort': SHORT, 'bar': BAR, 'knife': BAR, 'pike': PIKE})
 HELDL = {'twinshort': SHORT, 'bar': KNIFE, 'knife': KNIFE}        # (a second thing, in the LEFT fist)
 TIPOF = {'twinshort': {'R': 0.52, 'L': 0.52}, 'bar': {'R': 0.52, 'L': 0.30}, 'knife': {'R': 0.52, 'L': 0.30}}      # (how far along each from its fist the target is met)
 HANDOF = {'greataxe': 'L'}             # (which fist a kit's held thing rides: the right unless named here)
 GONE = {'handaxe': {'R': (4, 5)}, 'spearthrow': {'R': (4, 5)}, 'crossbow': {'span': (3, 4, 5), 'bolt': (3, 4, 5), 'loose': (0, 1, 2)},     # the row's frames (from 0) a held thing is NOT there on
         'longbow': {'srest': (1, 2), 'shalf': (0, 2, 3, 4, 5), 'sfull': (0, 1, 3, 4, 5), 'anock': (1, 2, 3, 4, 5), 'ahalf': (0, 2, 3, 4, 5), 'afull': (0, 1, 3, 4, 5)}}
 EDGE = {'axe+shield': (0.30, 0.210), 'handaxe': (0.24, 0.135), 'crossbow': (0.50, 0.0), 'longbow': (BOWH, 0.0), 'stab': (0.50, 0.0), 'greataxe': (0.66 + SPACE, 0.27), 'spearthrow': (0.88, 0.0), 'spearpush': (1.80 - SBUTT, 0.0)}
-EDGE.update({'hammer+shield': (0.355, 0.0), 'twinshort': (0.50, 0.0), 'bar': (0.62, 0.0), 'knife': (0.62, 0.0), 'pike': (PIKEL - 0.05 - SBUTT, 0.0)})
+EDGE.update({'shieldpush': (0.355, 0.0), 'pikerank': (PIKEL - 0.05 - SBUTT, 0.0), 'hammer+shield': (0.355, 0.0), 'twinshort': (0.50, 0.0), 'bar': (0.62, 0.0), 'knife': (0.62, 0.0), 'pike': (PIKEL - 0.05 - SBUTT, 0.0)})
 BELLY = (-0.03, 0.98)   # the stab's mark on the target: its belly, a little to its left of the middle, x and z                        # the edge's middle (y, z): what the points file calls the head
 FORE = 0.27              # the crossbow's fore-stock, from the right fist: where the left hand holds it
 BELT = (-0.15, 0.95)     # the battleaxe's mark on the target: its hip on its LEFT side (the striker's right), x and z -- as high as a dwarf's cut comes down on a grown man
@@ -667,6 +676,16 @@ def rows_garrison(R):
             P(-0.04 - IN3 * 0.6, shift=-0.05, lean=13, yaw=18, twist=10, head=7, hyaw=-12, R_=(-62, -74, 24), L_=(-60, 6, 6, -76)),    # 5 the finish: the hips past the middle, the hammer down and across by the left knee, the shield still forward
             P(-0.04, lean=3, yaw=2, R_=(-63, 14, 3)),                                                          # 6 nearly idle
         ]
+    elif KIT == 'shieldpush':          # SOLDIERING'S PUSH (11-20): the wall's shove. The shield arm is (up, fo, az, faz) as the axe cut's; the hammer is carried cocked at the right shoulder throughout (the member keeps its own attack: the weapon stays in hand and out of the way)
+        HB = (-48, 62, -10)            # the hammer arm: the fist by the right shoulder, the head up and back
+        F = [
+            P(-0.09, lean=6, yaw=-28, hyaw=24, R_=HB, L_=(-50, 14, 18, -64)),                                                         # 1 SHIELDS SET: the knees bent, the left side and the shield forward, the rim up at the chin; the hammer cocked at the right shoulder
+            P(-0.14, shift=0.03, lean=10, yaw=-34, hyaw=30, R_=HB, L_=(-70, 20, 10, -70)),                                            # 2 THE COIL: sunk on both legs, the weight back, the shield drawn in tight to the left shoulder
+            P(-0.12, shift=-0.05, lean=16, yaw=-30, hyaw=26, heel=10, R_=(-52, 58, -10), L_=(-45, 10, 20, -60), step=(0.06, 0.04, -8)),  # 3 THE DRIVE: off the rear leg, the heel up, the left foot leaving the floor, the shoulder going in behind the shield
+            P(-0.11, shift=-0.12, lean=22, yaw=-22, twist=-4, head=6, hyaw=18, heel=16, R_=(-56, 50, -8), L_=(-10, 6, 10, -55), step=(0.14, 0, 0)),   # 4 THE SHOVE: the foot down, the shield punched out to the arm's length with the whole body behind it, the head down behind the rim
+            P(-0.09, shift=-0.12, lean=10, yaw=-26, hyaw=22, heel=6, R_=HB, L_=(-40, 12, 18, -62), step=(0.14, 0, 0)),                   # 5 THE STEP into the square the shove cleared: upright again over the forward foot, the shield coming back to the set
+            P(-0.09, shift=-0.04, lean=6, yaw=-28, hyaw=24, R_=HB, L_=(-50, 14, 18, -64), step=(0.04, 0, 0)),                           # 6 SHIELDS SET again
+        ]
     elif KIT == 'twinshort':           # THE SECT'S BLADE (11-20): a shortsword in each fist; the right thrusts, the left blade is carried forward as the guard and drawn back as the thrust goes in
         F = [
             P(-0.06, lean=5, R_=(-66, 4, 0), L_=(-66, 0, 6)),                                                                 # 1 crouched a little, both blades low and forward
@@ -747,6 +766,9 @@ def rows_garrison(R):
             v = (mark - fist).normalized(); e = (e - v * e.dot(v)).normalized(); al = math.atan2(ez, ey)
             b, e = v * math.cos(al) - e * math.sin(al), v * math.sin(al) + e * math.cos(al)
             return dict(Q, hands={'b': tuple(b)}, handsup={'b': tuple(e)})
+        if KIT == 'shieldpush':     # (11-20) the shield's FACE kept upright and toward the foe on every frame: the left hand aimed along its own forearm and rolled so the disc stands on edge (left to the arm alone, the punched-out arm of the shove laid the shield flat like a tray)
+            fl = (M['fore.L'] @ Vector((0, R.BN['fore.L'].length, 0)) - M['fore.L'].translation); fl.z = 0; fl = fl.normalized()
+            return dict(Q, hands={'a': tuple(fl), 'b': tuple(b)}, handsup={'a': (0.0, 0.0, 1.0), 'b': tuple(Matrix.Rotation(math.radians(-90), 3, n) @ b)})
         return dict(Q, hands={'b': tuple(b)}, handsup={'b': tuple(Matrix.Rotation(math.radians(-90), 3, n) @ b)})     # (the edge: square to the haft in the arm's plane, on the side away from the fold)
     mk = lambda name, FR: (lambda i, n: (fin(dict(FR[i]), '%s %d' % (name, i + 1)), 0))
     return [('idle', 1, False, mk('idle', IDLE), 'ik'), (ROW, 6, False, mk(ROW, F), 'ik')]
@@ -817,13 +839,26 @@ def rows_greataxe(R):
             P((-0.24, 0.30, 0.98), (0.18, -0.93, 0.30), -0.05, shift=0.02, **GD),                                                        # 6 the guard again
         ]
     elif KIT == 'pike':            # THE PIKE TROOPER (11-20; de Gheyn 14, 23 and 29): the butt in the right fist; `sp` is how far up the shaft the LEFT hand is, and the shaft runs out through it on the thrust
+        # RE-POSED the same day on his ruling. The first pose lifted the pike to the shoulder on frame 2 (de Gheyn's charge, plate 14) where the
+        # held ask (art-wanted 93) says "drawn back along the hip"; asked which, Griz: "hip". So the pike stays ALONG THE HIP on every frame.
+        # What the plates still give it: side-on with the left foot leading, the rear fist on the butt, the rear arm long behind the hip.
         F = [
             P((-0.22, 0.30, 0.98), (0.08, -0.995, 0.04), -0.06, shift=0.03, lean=3, yaw=-46, hyaw=42, eL=DOWN, eR=OUT_, sp=0.52),                              # 1 THE GUARD: side-on, the left side and foot forward, the pike level at the hip, the butt behind the right hip, the weight back
-            P((-0.32, 0.58, 1.36), (0.07, -0.997, 0.0), -0.05, shift=0.05, lean=0, yaw=-62, hyaw=56, sh=4, eL=DOWN, eR=(0.3, 1.0, -0.4), sp=0.66),              # 2 THE CHARGE: drawn back and up to the shoulder -- the right arm straight back along the shaft to the butt, the left hand under the shaft at the chin, the shaft level across the top of the chest (de Gheyn 14)
-            P((-0.32, 0.50, 1.36), (0.07, -0.997, 0.0), -0.08, shift=-0.03, lean=5, yaw=-56, hyaw=50, sh=4, step=(0.10, 0.05, -8), eL=DOWN, eR=(0.3, 1.0, -0.4), sp=0.66),   # 3 THE STEP: the weight going forward, the left foot off the floor, the pike still at the charge
-            P((-0.16, -0.26, 1.34), (0.03, -0.999, -0.02), -0.12, shift=-0.10, lean=14, yaw=-22, twist=6, hyaw=18, head=-6, fw=8, heel=12, step=(0.18, 0, 0), eL=DOWN, eR=DOWN, sp=0.20),   # 4 THE THRUST: the foot down, the right hand driven forward till it meets the left, the shaft run out through the left hand to its farthest reach; both arms long
-            P((-0.22, 0.26, 1.16), (0.07, -0.995, 0.03), -0.08, shift=-0.03, lean=6, yaw=-40, hyaw=36, step=(0.10, 0, 0), eL=DOWN, eR=OUT_, sp=0.50),            # 5 drawn back: the shaft pulled back through the left hand, coming down toward the hip
+            P((-0.27, 0.56, 1.00), (0.08, -0.996, 0.03), -0.07, shift=0.07, lean=0, yaw=-56, hyaw=50, eL=DOWN, eR=OUT_, sp=0.62),                               # 2 DRAWN BACK along the hip: the rear arm long behind him, the butt well back, the weight on the rear leg
+            P((-0.27, 0.48, 1.00), (0.08, -0.996, 0.03), -0.09, shift=-0.03, lean=5, yaw=-50, hyaw=44, step=(0.10, 0.05, -8), eL=DOWN, eR=OUT_, sp=0.62),       # 3 THE STEP: the weight going forward, the left foot off the floor, the pike still drawn back at the hip
+            P((-0.17, -0.20, 1.04), (0.03, -0.999, 0.0), -0.13, shift=-0.10, lean=14, yaw=-22, twist=6, hyaw=18, head=-6, fw=8, heel=12, step=(0.18, 0, 0), eL=DOWN, eR=DOWN, sp=0.20),   # 4 THE THRUST: the foot down, the right hand driven forward along the hip till it meets the left, the shaft run out through the left hand to its farthest reach; both arms driving
+            P((-0.22, 0.24, 1.00), (0.07, -0.995, 0.03), -0.08, shift=-0.03, lean=6, yaw=-40, hyaw=36, step=(0.10, 0, 0), eL=DOWN, eR=OUT_, sp=0.50),            # 5 drawn back: the shaft pulled back through the left hand, the foot coming back
             P((-0.22, 0.30, 0.98), (0.08, -0.995, 0.04), -0.06, shift=0.03, lean=3, yaw=-46, hyaw=42, eL=DOWN, eR=OUT_, sp=0.52),                              # 6 the guard again
+        ]
+    elif KIT == 'pikerank':        # SOLDIERING'S PIKE RANK (11-20): the pike thrust from the square behind a shield-bearer -- the same arms, the pike along the hip (his "hip"), and the FEET PLANTED on every frame: a mate stands in the square ahead, so the thrust is the arms, the hips and the lean
+        ST = dict(step=(0.10, 0, 0), eL=DOWN)
+        F = [
+            P((-0.22, 0.20, 1.00), (0.06, -0.998, 0.02), -0.08, lean=4, yaw=-50, hyaw=46, eR=OUT_, sp=0.50, **ST),                                  # 1 THE HOLD: side-on in a long planted stance, the pike levelled along the hip and already out past the mate ahead, the butt in the right fist behind the hip
+            P((-0.27, 0.54, 1.00), (0.07, -0.997, 0.02), -0.08, shift=0.05, lean=1, yaw=-58, hyaw=52, eR=OUT_, sp=0.62, **ST),                      # 2 DRAWN BACK through the left hand: the rear arm long behind him, the weight on the rear leg; the feet do not move
+            P((-0.27, 0.50, 1.00), (0.07, -0.997, 0.02), -0.11, shift=0.0, lean=6, yaw=-52, hyaw=46, eR=OUT_, sp=0.62, **ST),                       # 3 THE COIL: the knees sinking, the weight coming to the middle
+            P((-0.17, -0.16, 1.04), (0.03, -0.999, 0.0), -0.13, shift=-0.07, lean=14, yaw=-26, twist=6, hyaw=22, head=-6, fw=8, heel=10, eR=DOWN, sp=0.20, **ST),   # 4 THE THRUST: the right hand driven forward along the hip to the left, the shaft run out through it; the hips and the lean give the reach, the rear heel up, neither foot leaving its place
+            P((-0.22, 0.26, 1.00), (0.06, -0.997, 0.02), -0.09, shift=-0.01, lean=6, yaw=-44, hyaw=40, eR=OUT_, sp=0.50, **ST),                     # 5 drawn back through the left hand
+            P((-0.22, 0.20, 1.00), (0.06, -0.998, 0.02), -0.08, lean=4, yaw=-50, hyaw=46, eR=OUT_, sp=0.50, **ST),                                  # 6 the hold again
         ]
     IDLE = [dict(F[0])]
     SP = SPUSH if KIT == 'spearpush' else -SPACE          # (the left fist from the right, along the haft toward its head)
@@ -835,7 +870,7 @@ def rows_greataxe(R):
         mark = {'b': fr, 'a': fr + b * SP * U}
         if KIT == 'greataxe':          # (the sliding hand, 11-20: the left fist where it always was, the right `sp` up the haft from it)
             mark['b'] = fr + b * (P['_sp'] - SPACE) * U
-        if KIT == 'pike':
+        if KIT in ('pike', 'pikerank'):
             mark['a'] = fr + b * P['_sp'] * U
         if P.get('_fl'):               # (a free left hand: where the frame says)
             mark['a'] = Vector(P['_fl']) * U; mark['a'].z += R.FLOOR
@@ -865,7 +900,7 @@ def rows_greataxe(R):
 
 
 def rows(R):
-    return rows_greataxe(R) if KIT in ('greataxe', 'spearthrow', 'spearpush', 'pike') else rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
+    return rows_greataxe(R) if KIT in ('greataxe', 'spearthrow', 'spearpush', 'pike', 'pikerank') else rows_garrison(R) if KIT in GARR else rows_maces(R) if KIT == 'maces' else rows_slash(R)
 
 
 ROWS_META = {'idle': dict(fps=6), ROW: dict(fps=12, release=3)}     # (frame 4 is the hit in both: his "4 is supposed to be the cut", 11-12)
