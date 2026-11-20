@@ -18404,6 +18404,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var h13 = mkSw(true, true); wallSw(h13); RUSw.startTurn(h13.p); h13.B.active = h13.f; var hp13 = h13.g1.hp + h13.g2.hp; pinSw([1, 1, 18, 18]); var l13 = pushSw(h13, h13.f, true);
       okSw('the pike behind: at ' + at(h13.p) + ' (from ' + h13.X + ',' + (h13.Y + 1) + '), its reaction ' + h13.p.reaction + ', "' + (l13.match(/thrusts past the wall[^/]*/) || [''])[0].slice(0, 60) + '", the goblins hurt ' + (hp13 - h13.g1.hp - h13.g2.hp),
         at(h13.p) === h13.X + ',' + h13.Y && h13.p.reaction === 0 && /thrusts past the wall/.test(l13) && hp13 - h13.g1.hp - h13.g2.hp > 8);
+      // 19. THE PUSH ROW (11-20, the first drawn: Halldor's `push`): a pusher whose sheet has a `push` row plays it, facing the front, and the saves fall after its release frame;
+      // one without stands as before. A stand-in row (the attack's, renamed) on the caller's sheet here; Halldor's own halldor_p2 when it is in the build
+      var h19 = mkSw(); var sh19 = D.SHEETS[h19.f.sheet], had19 = sh19 && sh19.anims.push; if (sh19 && !had19) sh19.anims.push = Object.assign({}, sh19.anims.attack, { release: 3 });
+      if (D.SHEETS.halldor_p2 && D.SHEETS.halldor_p2.anims.push) { h19.f.sheet = 'halldor_p2'; }
+      wallSw(h19); var seen19 = [], an19 = null, fc19 = null, gen19 = h19.B.exec(h19.f, { do: 'wallpush' }), v19, k19 = 0, st19; pinSw([1, 1]);
+      while (k19++ < 4000) { st19 = gen19.next(v19); v19 = undefined; if (st19.done) break; if (st19.value && st19.value.prompt) { v19 = st19.value.prompt.opts[st19.value.prompt.opts.length - 1].value; continue; } if (h19.f.anim === 'push' && !an19) { an19 = 'push'; fc19 = h19.f.facing; seen19.push(h19.B.log.length); } }
+      D.d = d0Sw; var mAnim19 = h19.m.anim, end19 = h19.f.anim; if (sh19 && !had19) delete sh19.anims.push;
+      okSw('the push row on ' + h19.f.sheet + ': played ' + an19 + ', facing ' + fc19 + ', the mate (no row on its sheet: ' + !!(D.SHEETS[h19.m.sheet] && D.SHEETS[h19.m.sheet].anims.push && h19.m.sheet !== h19.f.sheet) + ') ' + mAnim19 + '; after, ' + end19,
+        an19 === 'push' && end19 === 'idle');
       // 14. THE PUSH WRITTEN (re-cut 6): the call, each save, the line's step on the fight's log
       okSw('the log carries the push: ' + JSON.stringify(l3.slice(0, 260)), /calls the push/.test(l3) && /FAILS/.test(l3) && /THE LINE STEPS FORWARD/.test(l3));
       // 15. WHAT TAKES A MEMBER OUT (11-20, his "what legitimately breaks a shield wall or a character out of one re 'engulf'"): held in a grip (restrained, as the mound's slam

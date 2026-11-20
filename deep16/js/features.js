@@ -1266,6 +1266,14 @@
     u.turn.bonus = 0; pushers.forEach(function (w) { if (w !== u) w.reaction = 0; }); wall.forEach(function (w) { w.conds.wall.pushed = B.round; });
     B.card(['{y}' + u.name + '{/} calls the push: the wall of ' + wall.length + ' shoves as one, STR DC ' + dc + '  {g}(' + u.name + '\'s bonus action; ' + (pushers.length - 1) + ' mate' + (pushers.length === 2 ? '\'s' : 's\'') + ' reaction' + (pushers.length === 2 ? '' : 's') + '){/}'], 240);
     D.sfx('confirm'); yield 10;
+    // THE PUSH ROW (11-20: the first drawn, Halldor's `push` on halldor_p2 -- six frames, the shove on the fourth): every pusher whose sheet has one plays it toward the front
+    // together, and the saves fall on its release frame; a sheet without one stands as before
+    var rowers = pushers.filter(function (w) { return D.spr && D.spr.anim && D.spr.anim(w.sheet, 'push'); });
+    if (rowers.length) {
+      rowers.forEach(function (w) { if (B.faceTo) w.facing = B.faceTo(w, { x: w.x + face[0], y: w.y + face[1] }); w.anim = 'push'; w.animT = B.t; });
+      var pr = D.spr.anim(rowers[0].sheet, 'push'), rel = pr.release != null ? pr.release : 3;
+      yield Math.max(4, Math.ceil(rel * 60 / (pr.fps || 8)));
+    }
     var failed = [], held = [];
     foes.forEach(function (f) {
       if ((f.size || 1) > 2) { held.push(f); B.card(['  ' + Nm(B, f) + ' is too big to shove  {n}IT HOLDS{/}'], 200); return; }
@@ -1282,6 +1290,7 @@
     failed.forEach(function (f) { var dmg = D.roll('1d6').total; B.card(['  ' + Nm(B, f) + ' takes {r}' + dmg + '{/} bludgeoning' + (stepped ? ', driven back 5 ft' : '')], 200); B.hurt(f, dmg, 'bludgeoning', {}); });
     B.card([stepped ? '  {y}THE LINE STEPS FORWARD{/} 5 ft, as one' : '  {n}THE LINE HOLDS ITS GROUND{/}  {g}(' + (held.length ? held.map(function (f) { return nm(B, f); }).join(', ') + ' held' : stuck.length ? stuck.map(function (f) { return nm(B, f); }).join(', ') + ' not moved' : 'no room for the line to step') + '; nobody steps){/}'], 240);
     yield stepped ? 14 : 8;
+    rowers.forEach(function (w) { if (w.anim === 'push') { w.anim = 'idle'; w.animT = B.t; } }); // (the row played out: back to idle)
     // the pikes' thrust (5): each trained piker behind a member, its reaction, at a foe that failed and is in its reach
     var pikes = F.rankPikes(B, wall, face);
     for (var i = 0; i < pikes.length; i++) {
