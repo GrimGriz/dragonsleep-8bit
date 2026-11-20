@@ -582,9 +582,12 @@
   // each named in its src. Since 11-13 the art desk's ART-142 (art-wanted section 55): the Trooper and the File Leader fight on `trooper_p2` (battleaxe and shield, the
   // handaxe's `throw` row; tools/trooper-fight-sheet.py), the crossbow Trooper on `trooperxbow_p2` (the heavy crossbow's `shoot` row; tools/trooperxbow-fight-sheet.py),
   // the town's troopers walk on `trooper_p1`; till then they fought on the gate watch's spear. The Skylights' own tools (poles, nets, fire pots) are NOT here, on his "leave off on skylight specific"
+  // SOLDIERING (11-20, Griz: "'Soldiering' is the feat name. Give it to the dwarves for now and see if it impacts combat art asks"): `soldiering: true` on the six dwarven
+  // troop blocks here -- the gate watch, the trooper, the crossbow trooper, the file leader, the drill-sergeant, the road patrol -- the feat as a trait (js/features.js
+  // F.soldiering: WHEEL with a trained friend; the shield wall where a shield is borne; the pike rank). Torvald, a named cleric, is not a troop and is left out
   // THE GATE WATCH: the trooper as he was till 11-12 -- the SRD 5.1 Guard as a dwarf, the spear -- so the gate watch's drawn spear (`gatewatch_p2`) has a row of its own
   gatewatch: {
-    name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, soldiering: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
@@ -594,7 +597,7 @@
   // +3 1d8+1; two handaxes to throw, +3 1d6+1 20/60, two and then none (battle.js spendThrow). CR 1/4, set beside the SRD's blocks: the Guard (1/8) is this body at AC 16 and 1d6+1; the
   // Hobgoblin (1/2) is the same 11 HP and +3, AC 18 chain mail and shield, the longsword 1d8+1 -- and Martial Advantage's 2d6 besides, which the trooper has not; between them, 1/4
   trooper: {
-    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p2', humanoid: true, cr: '1/4', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p2', humanoid: true, soldiering: true, cr: '1/4', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -609,7 +612,7 @@
   // attacks) at the Guard's +3 (DEX 12, proficient: 1d10+1, as the SRD Veteran's own +3 1d10+1), the battleaxe for one who makes the top. CR 1/4 as the trooper: the Thug's heavy crossbow
   // +2 1d10 in an AC 11 CR 1/2 body of 32 HP; this one has AC 16 and 11 HP
   trooperxbow: {
-    name: 'Trooper', type: 'humanoid', sheet: 'trooperxbow_p2', humanoid: true, cr: '1/4', ac: 16, metalArmor: 'chain mail', hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooperxbow_p2', humanoid: true, soldiering: true, cr: '1/4', ac: 16, metalArmor: 'chain mail', hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -624,7 +627,7 @@
   // shield AC 18 -- STR 15 carries chain mail's Str 13 -- the battleaxe +4 1d8+2, two handaxes +4 1d6+2 20/60), the dwarf. CR 1, beside the SRD's: the Thug (1/2) is these HP and two
   // blows at AC 11; the Knight (3) is AC 18 with 52 HP and two 2d6+3 blows; the Bugbear (1) is AC 16, 27 HP, one 2d8+2 blow -- the file leader stands with the Bugbear
   fileleader: {
-    name: 'File Leader', type: 'humanoid', sheet: 'trooper_p2', humanoid: true, cr: '1', ac: 18, metalArmor: 'chain mail', shield: true, hp: 32, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'File Leader', type: 'humanoid', sheet: 'trooper_p2', humanoid: true, soldiering: true, cr: '1', ac: 18, metalArmor: 'chain mail', shield: true, hp: 32, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -638,7 +641,7 @@
   // attack", the longsword +5 1d8+3, the shortsword +5 1d6+3, the heavy crossbow +3 1d10+1 100/400) -- till 11-12 he carried the longswords alone; the garrison seat gave him the
   // block's shortsword and heavy crossbow (one bolt a turn: no ranged Multiattack)
   drillsergeant: {
-    name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, soldiering: true, cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -653,7 +656,7 @@
   // Multiattack two melee or two ranged, the shortsword +4 1d6+2, the longbow +4 1d8+2 150/600; CR 1/2), speed 25, darkvision 60, Dwarven Resilience as the troopers. Its own look
   // since 11-13: the art desk's road patrol, roadpatrol_p2 (art-wanted section 56; tools/roadpatrol-fight-sheet.py) -- the shortsword stab and the longbow's `shoot`
   roadpatrol: {
-    name: 'Road Patrol', type: 'humanoid', sheet: 'roadpatrol_p2', humanoid: true, cr: '1/2', ac: 13, armor: 'leather armor', hp: 16, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Road Patrol', type: 'humanoid', sheet: 'roadpatrol_p2', humanoid: true, soldiering: true, cr: '1/2', ac: 13, armor: 'leather armor', hp: 16, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 11, dex: 14, con: 12, int: 11, wis: 13, cha: 11 }, init: 2, perception: 15, stealth: 6, keen: 'hearing and sight',
     saves: { str: 0, dex: 2, con: 1, int: 0, wis: 1, cha: 0 },
     attacks: {
