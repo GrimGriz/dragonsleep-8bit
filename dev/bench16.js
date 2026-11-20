@@ -1026,7 +1026,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         out1.push(id.replace(/^eyes-|-1118$/g, '') + ':' + bt + (o.lvls.length ? '@' + o.lvls.join('') : ''));
         if (!known || !o.had || !o.left || o.pend || !lvOk || HSP.freshLvl) bad1.push(id + ' (beat ' + bt + ' known ' + known + ', taken ' + o.had + ', the show stepped aside ' + o.left + ', levels ' + o.lvls.join(',') + ' want ' + want + ', freshLvl ' + HSP.freshLvl + ')');
       });
-      okSP('1 every split row (' + idsSP.length + ') opens ON its beat, the show stepped aside, its four at its level: ' + out1.join(' ') + (bad1.length ? ' -- ' + bad1.join('; ') : ''), idsSP.length >= 24 && !bad1.length);
+      okSP('1 every split row (' + idsSP.length + ') opens ON its beat, the show stepped aside, its four at its level: ' + out1.join(' ') + (bad1.length ? ' -- ' + bad1.join('; ') : ''), !bad1.length); // (no floor on the count since 11-20: a split row he has seen is cut by the fold, and the 24 of 11-18 fell to 18 on his ear file of 11-20 0048Z)
       // 2 the level is the door's: the wand's beat with no &lvl stages the start's level; a NEW GAME's four after it the same; freshLvl 0
       var start = window.DS.R.makeHero('lymen').lvl, o2 = openSP('?show=secondact&beat=wand'), l2 = o2 ? o2.lvls : [], f2 = HSP.fresh().party.map(function (h) { return h.lvl; });
       okSP('2 the level is the door\'s alone: the wand\'s beat with no &lvl at ' + l2.join(',') + ', a NEW GAME after it ' + f2.join(',') + ' (want the start\'s, ' + start + '), freshLvl ' + HSP.freshLvl,
