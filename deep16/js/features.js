@@ -1226,7 +1226,9 @@
   };
   F.pushers = function (B, u) { return [u].concat(F.wallOf(B, u).filter(function (w) { return w !== u && w.reaction > 0 && RU.canAct(w); })); };
   F.pushDC = function (B, u) { var ab = u.abil || (u.src && u.src.abil) || { str: 10 }; return 8 + (u.prof || 2) + D.mod(ab.str) + Math.max(0, F.pushers(B, u).length - 1); };
-  F.canPush = function (B, u) { return !!(u && u.turn && u.turn.bonus > 0 && F.joined(u, B) && F.lineFoes(B, F.wallOf(B, u), u.conds.wall.face).length > 0); };
+  // ONE PUSH A ROUND for a wall (11-20, his "leans 1-4 approved"): a call marks every member with the round, and no member of a wall so marked calls again that round
+  F.wallPushedNow = function (B, wall) { return wall.some(function (w) { return w.conds.wall && w.conds.wall.pushed === B.round; }); };
+  F.canPush = function (B, u) { if (!(u && u.turn && u.turn.bonus > 0 && F.joined(u, B))) return false; var wall = F.wallOf(B, u); return !F.wallPushedNow(B, wall) && F.lineFoes(B, wall, u.conds.wall.face).length > 0; };
   // can the whole line (and the pikers behind it) step one square forward? Each member's square ahead open, or a member's
   function lineCanStep(B, wall, face) {
     return wall.every(function (s) {
@@ -1250,7 +1252,7 @@
   F.wallPush = function* (B, u) {
     if (!F.canPush(B, u)) return;
     var face = u.conds.wall.face, wall = F.wallOf(B, u), pushers = F.pushers(B, u), dc = F.pushDC(B, u), foes = F.lineFoes(B, wall, face);
-    u.turn.bonus = 0; pushers.forEach(function (w) { if (w !== u) w.reaction = 0; });
+    u.turn.bonus = 0; pushers.forEach(function (w) { if (w !== u) w.reaction = 0; }); wall.forEach(function (w) { w.conds.wall.pushed = B.round; });
     B.card(['{y}' + u.name + '{/} calls the push: the wall of ' + wall.length + ' shoves as one, STR DC ' + dc + '  {g}(' + u.name + '\'s bonus action; ' + (pushers.length - 1) + ' mate' + (pushers.length === 2 ? '\'s' : 's\'') + ' reaction' + (pushers.length === 2 ? '' : 's') + '){/}'], 240);
     D.sfx('confirm'); yield 10;
     var failed = [], held = [];
@@ -1316,27 +1318,91 @@
     var w = atk && !atk.spell ? atk : u && u.weapon;
     return !!(F.soldiering(u) && w && !w.ranged && (w.kind === 'pike' || /^pike$/i.test(w.name || '')));
   };
-  // THE FORMATION'S AI (Soldiering's, 11-20; the push re-cut the same day): at the head of a trained one's turn (TX.FIRST; a bestiary block's from ai.js), before its blows.
-  // SET SHIELDS: a trained shield-bearer, a trained shield-bearer of its side beside it, a foe within its reach (the schema said a move; the bench said otherwise). LEAVE: set,
-  // and no foe within its reach -- so a wall with nothing at it walks on (the seat's call). THE PUSH: the first of the wall to act with a foe ahead of the line and a mate's
-  // reaction to spend calls it (his "the first guy calling it"). WHEEL (F.wheelWant): on a hit, the hitter at half its hit points or less trades with a trained friend beside it
-  // that is not, the friend with the most hit points. NOT built: the AI's ADVANCE, and the pikes walking to the rank behind a member
+  // THE FORMATION'S AI (Soldiering's, 11-20; the push re-cut the same day; THE FORMING his, the same day -- "make it a default for a trained group to use their training on the
+  // first round, not a measure of contact. i.e. their response to initiative being rolled is to try to form a shield wall and a pike line (probably some ai check (allies contain
+  // trained and shield/pike - to not try to form a wall when the only trained and properly equipped in party)"). At the head of a trained one's turn (TX.FIRST; a bestiary
+  // block's from ai.js), before its blows:
+  //   HIS GUARD: a shield-bearer forms only with another trained shield-bearer of its side on the field; a piker only with a trained shield-bearer (a pike rank wants a wall).
+  //   THE FIRST ROUND, whatever the distance: the first trained shield-bearer to act sets where it stands, its front straight toward the nearest foe (the line's place and way:
+  //   the formation seat's call); each that acts after walks to the nearest open square at the end of that line, beside a member, and sets (it takes the wall's front). A piker
+  //   walks to the nearest open square behind a member and holds there; with no wall yet it holds where it is and waits for one.
+  //   AFTER IT: an unset shield-bearer with a wall of its side standing walks to its end and joins while no foe is in its reach (with one in reach it sets where it is when a
+  //   trained shield-bearer stands beside it). A piker keeps to the rank. A set member LEAVES when no foe is within 60 ft (the wall has nothing to hold against); with foes
+  //   about and none in its reach, the first of the wall to act calls ADVANCE when the nearest foe is ahead of the front. THE PUSH: the first of the wall to act with a foe
+  //   ahead of the line and a mate's reaction to spend (one a round, F.canPush). WHEEL (F.wheelWant): on a hit, the hitter at half its hit points or less trades with a trained
+  //   friend beside it that is not, the friend with the most hit points
   F.wheelWant = function (B, att, friends) {
     if (att.hp > att.maxhp / 2) return null;
     return friends.filter(function (w) { return w.hp > w.maxhp / 2; }).sort(function (a, b) { return b.hp - a.hp; })[0] || null;
   };
   function foeWithin(B, u, ft) { return B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G.dist(u, w) <= ft; }); }
+  F.wallReady = function (u) { return !!(u && !u.dead && u.hp > 0 && F.soldiering(u) && F.bearsShield(u)); };
+  F.pikeReady = function (u) { return !!(u && !u.dead && u.hp > 0 && F.soldiering(u) && F.pikeThrough(u)); };
+  // his guard: another of its side trained and fit to form with
+  F.formGuard = function (B, u) {
+    return B.units.some(function (w) { return w !== u && w.side === u.side && !w.familiar && F.wallReady(w); });
+  };
+  function sideWalls(B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && F.wallSet(w); }); }
+  // the squares at the line's ends (beside a set member, across its front) and behind it (the rank), open
+  function lineSpots(B, u, set) {
+    var out = [];
+    set.forEach(function (m) { var f = m.conds.wall.face, p = [-f[1], f[0]]; [[m.x + p[0], m.y + p[1]], [m.x - p[0], m.y - p[1]]].forEach(function (q) { if (!G.occupant(q[0], q[1]) && G.canStand(u, q[0], q[1])) out.push(q); }); });
+    return out;
+  }
+  function rankSpots(B, u, set) {
+    var out = [];
+    set.forEach(function (m) { var f = m.conds.wall.face, q = [m.x - f[0], m.y - f[1]]; if ((q[0] === u.x && q[1] === u.y) || (!G.occupant(q[0], q[1]) && G.canStand(u, q[0], q[1]))) out.push(q); });
+    return out;
+  }
+  // walk to the nearest of the spots it can reach this turn, or as near as it can come; true when it stands on one
+  function* walkTo(B, u, spots) {
+    if (!spots.length) return false;
+    if (spots.some(function (q) { return q[0] === u.x && q[1] === u.y; })) return true;
+    var mv = u.turn ? u.turn.move : 0; if (!(mv > 0)) return false;
+    var rm = G.reach(u, mv), best = null;
+    spots.forEach(function (q) { var e = rm[q[0] + ',' + q[1]]; if (e && e.stand && (!best || e.cost < best.c)) best = { q: q, c: e.cost }; });
+    var to = best ? best.q : null;
+    if (!to) { // (none in reach: as near to the nearest spot as the move goes)
+      var nd = null; Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var xy = k.split(',').map(Number), d = Math.min.apply(null, spots.map(function (q) { return Math.max(Math.abs(q[0] - xy[0]), Math.abs(q[1] - xy[1])); })); if (!nd || d < nd.d) nd = { q: xy, d: d }; });
+      to = nd && (nd.q[0] !== u.x || nd.q[1] !== u.y) ? nd.q : null;
+    }
+    if (!to) return false;
+    yield* B.exec(u, { do: 'move', x: to[0], y: to[1] });
+    return spots.some(function (q) { return q[0] === u.x && q[1] === u.y; });
+  }
+  function holdRank(u) { if (u.turn) u.turn.move = 0; }
   F.aiWall = function* (B, u) {
-    if (mine(u) || !F.soldiering(u) || !F.bearsShield(u) || !u.turn || !(u.turn.bonus > 0)) return;
-    var reach = G.armOf(u);
-    if (!F.wallSet(u)) {
-      if (!F.canSet(u) || !foeWithin(B, u, reach)) return;
-      var mate = B.units.some(function (w) { return w !== u && w.side === u.side && !w.dead && w.hp > 0 && F.soldiering(w) && F.bearsShield(w) && G.standing(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; });
-      if (mate) { F.setShields(B, u); yield 10; }
+    if (mine(u) || !u.turn || u.dead || u.hp <= 0) return;
+    if (F.pikeReady(u) && !F.bearsShield(u)) { // (a piker: to the rank)
+      if (!F.formGuard(B, u) || foeWithin(B, u, 5)) return; // (a foe at its elbow: it fights as it can)
+      var set = sideWalls(B, u);
+      if (!set.length) { if (B.round === 1) { holdRank(u); B.card(['{g}' + u.name + ' holds, waiting for the wall to form.{/}'], 160); yield 6; } return; }
+      var inRank = yield* walkTo(B, u, rankSpots(B, u, set));
+      if (inRank) holdRank(u);
       return;
     }
-    if (!foeWithin(B, u, reach)) { F.leaveWall(B, u); yield 8; return; }
-    if (F.canPush(B, u) && F.pushers(B, u).length > 1) yield* F.wallPush(B, u);
+    if (!F.wallReady(u) || !(u.turn.bonus > 0)) return;
+    var reach = G.armOf(u), walls = sideWalls(B, u);
+    if (!F.wallSet(u)) {
+      if (!F.canSet(u) || !F.formGuard(B, u)) return;
+      if (!walls.length) { // (no wall of its side yet)
+        if (B.round === 1 || foeWithin(B, u, reach) && B.units.some(function (w) { return w !== u && w.side === u.side && F.wallReady(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })) { F.setShields(B, u); yield 10; }
+        return;
+      }
+      if (foeWithin(B, u, reach)) { // (engaged: set where it stands if a set mate is beside it; else fight)
+        if (walls.some(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })) { F.setShields(B, u); yield 10; }
+        return;
+      }
+      var atEnd = yield* walkTo(B, u, lineSpots(B, u, walls));
+      if (atEnd && F.canSet(u)) { F.setShields(B, u); yield 10; }
+      return;
+    }
+    if (!foeWithin(B, u, 60)) { F.leaveWall(B, u); yield 8; return; }
+    if (F.canPush(B, u) && F.pushers(B, u).length > 1) { yield* F.wallPush(B, u); return; }
+    if (!foeWithin(B, u, reach) && F.canAdvance(B, u)) {
+      var fc = u.conds.wall.face, nf = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+      if (nf && (nf.x - u.x) * fc[0] + (nf.y - u.y) * fc[1] > 0) yield* F.wallAdvance(B, u);
+    }
   };
   TX.FIRST.unshift(function* (B, u) { yield* F.aiWall(B, u); });
   F.wallStep = function (B, s, x, y) {
@@ -1613,7 +1679,7 @@
         why: !(T.bonus > 0) ? 'the bonus action is spent' : 'not now', note: 'a bonus action: shields set, the wall\'s front (a mate\'s, or the straight way to the nearest foe); joined to a trained mate beside, +2 AC, cover behind, THE PUSH; your square held till you leave' });
       else {
         var jW = F.joined(u, B), fW = jW ? F.lineFoes(B, F.wallOf(B, u), u.conds.wall.face).length : 0;
-        if (!jW || fW) out.push({ id: 'wallpush', label: 'THE PUSH', cost: 'B', icon: 'shove', skill: true, ok: F.canPush(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : !jW ? 'no set mate beside you' : 'no foe ahead of the wall',
+        if (!jW || fW) out.push({ id: 'wallpush', label: 'THE PUSH', cost: 'B', icon: 'shove', skill: true, ok: F.canPush(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : !jW ? 'no set mate beside you' : F.wallPushedNow(B, F.wallOf(B, u)) ? 'the wall has pushed this round' : 'no foe ahead of the wall',
           note: 'the whole wall shoves as one (each mate its reaction): STR DC ' + F.pushDC(B, u) + '; every foe ahead fails and the line steps 5 ft, any holds and nobody steps (the failed take 1d6 either way)' });
         else out.push({ id: 'walladvance', label: 'ADVANCE', cost: 'B', icon: 'move', skill: true, ok: F.canAdvance(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : 'a mate has no reaction, or no room ahead', note: 'no foe ahead: the whole wall steps 5 ft forward together (each mate its reaction)' });
         out.push({ id: 'leavewall', label: 'LEAVE THE WALL', cost: 'B', icon: 'shield', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'a bonus action: your move back' });
