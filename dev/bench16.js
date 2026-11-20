@@ -2720,14 +2720,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 1. THE FOG
       var B1 = floorGL('?roam=webgulch&hour=10&at=20,50'), m1 = B1.map, f1 = FogGL.see(B1), seen1 = cntGL(B1.roam.fogSeen), all1 = m1.w * m1.h, at1 = function (x, y) { return B1.roam.fogSeen[y * m1.w + x]; };
       var et1 = B1.units.filter(function (u) { return u.npc === 'ettercap8'; })[0], cut1 = B1.units.filter(function (u) { return u.npc === 'silkcutter'; })[0], tok1 = B1.roam.token;
-      okGL('the fog by day at 20,50: ' + seen1 + ' of ' + all1 + ' squares seen; the lad\'s square ' + at1(23, 54) + ', the north mouth ' + at1(17, 1) + ', the south mouth ' + at1(22, 110) + '; on ' + FogGL.on(B1),
-        FogGL.on(B1) && seen1 > 30 && seen1 < all1 / 4 && at1(23, 54) && !at1(17, 1) && !at1(22, 110));
-      okGL('figures on squares never seen not drawn: the ettercap at the far end hidden ' + FogGL.hides(B1, et1) + ', the silk-cutter at the camp hidden ' + FogGL.hides(B1, cut1) + ', the party never (' + FogGL.hides(B1, B1.roam.members[0]) + ')',
-        FogGL.hides(B1, et1) === true && FogGL.hides(B1, cut1) === true && FogGL.hides(B1, B1.roam.members[0]) === false);
+      okGL('the fog by day at 20,50 (true sight by day since 11-20, his "go with true sight by day, all explores won\'t be in daylight"): ' + seen1 + ' of ' + all1 + ' squares seen; the lad\'s square ' + at1(23, 54) + ', the north mouth ' + at1(17, 1) + ', the south mouth ' + at1(22, 110) + ', inside the lair behind its neck ' + at1(6, 86) + '; on ' + FogGL.on(B1),
+        FogGL.on(B1) && seen1 > 30 && at1(23, 54) && at1(17, 1) && at1(22, 110) && !at1(6, 86));
+      okGL('figures on squares never seen not drawn: the ettercap in its lair hidden ' + FogGL.hides(B1, et1) + ', the silk-cutter at the camp, in sight up the road, hidden ' + FogGL.hides(B1, cut1) + ', the party never (' + FogGL.hides(B1, B1.roam.members[0]) + ')',
+        FogGL.hides(B1, et1) === true && FogGL.hides(B1, cut1) === false && FogGL.hides(B1, B1.roam.members[0]) === false);
       var cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var cx1 = cv1.getContext('2d'), rh1 = 0, pz1 = 0, r0 = D.iso.rhombus, p0 = FogGL.pass; D.iso.rhombus = function () { rh1++; return r0.apply(this, arguments); };
       FogGL.pass = function () { pz1++; return p0.apply(this, arguments); };
-      try { D.ui.drawBattle(cx1, B1); FogGL.pass(cx1, B1, D.W, D.H); } finally { D.iso.rhombus = r0; FogGL.pass = p0; }
-      okGL('drawn: the fog\'s pass called by the floor\'s draw (' + (pz1 - 1) + ') and laid ' + rh1 + ' squares of black or wash over the screen', pz1 >= 2 && rh1 > 20);
+      try { var B1d = floorGL('?roam=webgulch&hour=10&at=18,86'); FogGL.see(B1d); D.ui.drawBattle(cx1, B1d); FogGL.pass(cx1, B1d, D.W, D.H); } finally { D.iso.rhombus = r0; FogGL.pass = p0; } /* (by the lair's neck: by day the black is what the banks hide) */
+      okGL('drawn by the lair\'s neck at 18,86: the fog\'s pass called by the floor\'s draw (' + (pz1 - 1) + ') and laid ' + rh1 + ' squares of black or wash over the screen', pz1 >= 2 && rh1 > 20);
 
       tok1.x = 20; tok1.y = 70; FogGL.see(B1); var seen1b = cntGL(B1.roam.fogSeen);
       okGL('walked on to 20,70: ' + seen1b + ' seen (more than ' + seen1 + '), the lad\'s square still seen ' + at1(23, 54) + ', now the strung end\'s mouth 12,87 ' + at1(12, 87), seen1b > seen1 && at1(23, 54) === 1);
@@ -2896,38 +2896,41 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (modeG2 === 'gulchfog1120') {
         Gu2.TRY.fog = true; Fog2.MEM = {};
         // 1. a test door: seen on one visit stays seen on the next
-        var B1f = floorG2('?roam=webgulch&hour=10&at=20,50'); Fog2.see(B1f); var s1 = cntG2(B1f.roam.fogSeen), at1 = B1f.roam.fogSeen[54 * B1f.map.w + 23];
-        var B2f = floorG2('?roam=webgulch&hour=10&at=20,90'); var s2a = cntG2(Fog2.recall(B2f.map.w * B2f.map.h)); /* (what the second visit opens with: the kept squares, read back) */ Fog2.see(B2f); var s2 = cntG2(B2f.roam.fogSeen), at2 = B2f.roam.fogSeen[54 * B2f.map.w + 23];
-        okG2('out and back in on a test door: ' + s1 + ' seen on the first visit, the second opens with ' + s2a + ' and has ' + s2 + '; the lad\'s square still seen ' + at2, s1 > 0 && s2a === s1 && s2 > s1 && at1 === 1 && at2 === 1);
+        var B1f = floorG2('?roam=webgulch&hour=10&at=14,86'); Fog2.see(B1f); var s1 = cntG2(B1f.roam.fogSeen), at1 = B1f.roam.fogSeen[86 * B1f.map.w + 6]; /* (in the lair's neck, the lair seen; then up the road where it is not (true sight by day since 11-20, his "go with true sight by day, all explores won\'t be in daylight")) */
+        var B2f = floorG2('?roam=webgulch&hour=10&at=20,30'); var s2a = cntG2(Fog2.recall(B2f.map.w * B2f.map.h)); /* (what the second visit opens with: the kept squares, read back) */ Fog2.see(B2f); var s2 = cntG2(B2f.roam.fogSeen), at2 = B2f.roam.fogSeen[86 * B2f.map.w + 6];
+        okG2('out and back in on a test door: ' + s1 + ' seen on the first visit (in the lair\'s neck), the second (up the road at 20,30) opens with ' + s2a + ' and has ' + s2 + '; inside the lair still seen ' + at2, s1 > 0 && s2a === s1 && s2 > s1 && at1 === 1 && at2 === 1);
         // 1b. in a fight every one of the party's eyes (11-20, his walk in the lair: "party vision on token member only ... (viv didn't unfog until barley came in)")
         Fog2.MEM = {}; var B1e = floorG2('?roam=webgulch&hour=10&at=20,50'), m1e = B1e.map, viv = B1e.roam.members.filter(function (u) { return u.src; })[1]; if (B1e.units.indexOf(viv) < 0) B1e.units.push(viv); /* (in a fight the members stand on the floor's units: R.spill) */
-        var far1 = function () { return B1e.roam.fogSeen[72 * m1e.w + 20]; };
-        viv.x = 20; viv.y = 70; B1e.roam.mode = 'walk'; B1e.roam.fogNow = null; Fog2.see(B1e); var walk1e = far1();
+        var far1 = function () { return B1e.roam.fogSeen[86 * m1e.w + 6]; }; /* (inside the lair: hidden from the road (true sight by day since 11-20, his "go with true sight by day, all explores won\'t be in daylight"), seen from its neck) */
+        viv.x = 14; viv.y = 86; B1e.roam.mode = 'walk'; B1e.roam.fogNow = null; Fog2.see(B1e); var walk1e = far1();
         B1e.roam.mode = 'fight'; B1e.roam.fogNow = null; Fog2.see(B1e); var fight1e = far1(); B1e.roam.mode = 'walk';
-        okG2('a fight\'s eyes: ' + viv.name + ' at 20,70 apart from the token at 20,50 -- 20,72 seen on the walk ' + walk1e + ' (the token\'s eyes only), in a fight ' + fight1e + ' (every member\'s)', walk1e === 0 && fight1e === 1);
+        okG2('a fight\'s eyes: ' + viv.name + ' in the lair\'s neck at 14,86 apart from the token at 20,50 -- inside the lair (6,86) seen on the walk ' + walk1e + ' (the token\'s eyes only), in a fight ' + fight1e + ' (every member\'s)', walk1e === 0 && fight1e === 1);
         // 1c. LIGHT AGAINST THE FOG (11-20, his "is the fog thing completely undoing the lighting settings - I cast light on barley and detected no change"): at 19:15, his Light,
         // the floor is not dark (dusk: no light pass, fog or none); by night nothing the party sees by its light and eyes is fogged (the day's 7-square cap had painted the
         // dim ring past it black); and the far step's marks leave out a figure the fog hides ("the 'see icons at far away zoom' included the ettercap in fog of war")
         Fog2.MEM = {}; var Bdk = floorG2('?roam=webgulch&hour=19.25&at=9,87'), dusk1c = !!Bdk.dark;
         Fog2.MEM = {}; var Bnt = floorG2('?roam=webgulch&hour=23&at=20,50'), tN = Bnt.roam.token; tN.torch = { lit: true, kind: 'torch' }; Bnt.cache = null; Bnt.partyMap = null; Bnt.roam.fogNow = null;
         var fN = Fog2.see(Bnt), pmN = D.light.partyMap(Bnt), missed = 0, far1c = 0;
-        for (var iN = 0; iN < pmN.v.length; iN++) { if (!(pmN.v[iN] > 0) || !Bnt.map.sq[iN].open) continue; /* (every square the party sees, lit or by darkvision) */ var xN = iN % Bnt.map.w, yN = (iN - xN) / Bnt.map.w; if (Math.hypot(xN - tN.x, yN - tN.y) > Fog2.DAY) far1c++; if (!fN.now[iN]) missed++; }
+        for (var iN = 0; iN < pmN.v.length; iN++) { if (!(pmN.v[iN] > 0) || !Bnt.map.sq[iN].open) continue; /* (every square the party sees, lit or by darkvision) */ var xN = iN % Bnt.map.w, yN = (iN - xN) / Bnt.map.w; if (Math.hypot(xN - tN.x, yN - tN.y) > 7) far1c++; /* (past the old day's 7) */ if (!fN.now[iN]) missed++; }
         okG2('light against the fog: at 19:15 the floor dark ' + dusk1c + ' (dusk: no light drawn, fog or none); by night with a torch lit, ' + far1c + ' squares the party sees past 7 (lit, or by darkvision), fogged ' + missed, dusk1c === false && far1c > 0 && missed === 0);
+        // 1d. TRUE SIGHT BY DAY (RULED 11-20, Griz: "go with true sight by day, all explores won't be in daylight"): from the north mouth the road's far end is seen, the lair is not
+        Fog2.MEM = {}; var Bts = floorG2('?roam=webgulch&hour=10&at=17,3'); Fog2.see(Bts); var tsAt = function (x, y) { return Bts.roam.fogSeen[y * Bts.map.w + x]; };
+        okG2('true sight by day from the north mouth 17,3: the road\'s far end 22,110 seen ' + tsAt(22, 110) + ', inside the lair 6,86 seen ' + tsAt(6, 86) + ' (' + cntG2(Bts.roam.fogSeen) + ' squares seen)', tsAt(22, 110) === 1 && tsAt(6, 86) === 0);
         Fog2.MEM = {}; var Bfz = floorG2('?roam=webgulch&hour=10&at=20,50'), cnt1c = function () { var n = 0, cx = { beginPath: function () {}, moveTo: function () {}, lineTo: function () {}, closePath: function () {}, fill: function () { n++; }, stroke: function () {} }; D.ui.farMarks(cx, Bfz); return n; };
         Gu2.TRY.fog = true; var marksOn = cnt1c(); Gu2.TRY.fog = false; var marksOff = cnt1c(); Gu2.TRY.fog = true;
         okG2('the far step\'s marks: ' + marksOn / 2 + ' figures marked with the fog on, ' + marksOff / 2 + ' with it off (the ettercap hidden ' + Fog2.hides(Bfz, Bfz.units.filter(function (u) { return u.npc === 'ettercap8'; })[0]) + ')', marksOn < marksOff && Fog2.hides(Bfz, Bfz.units.filter(function (u) { return u.npc === 'ettercap8'; })[0]) === true);
         // 2. in a game: kept in the save, and back after a load
-        H2.playing = false; H2.cur = null; var rec = H2.fresh('barley'); rec.at = { town: 'webgulch', gate: 'north', sq: [20, 50], dir: null }; H2.begin(rec, 0);
+        H2.playing = false; H2.cur = null; var rec = H2.fresh('barley'); rec.at = { town: 'webgulch', gate: 'north', sq: [14, 86], dir: null }; H2.begin(rec, 0); /* (in the lair's neck, the lair seen) */
         var B3f = D.top(); if (B3f && B3f.baking) { B3f.baking = false; B3f.enter(); } for (var k3f = 0; k3f < 44; k3f++) D.update(); B3f = D.top(); D.battle = B3f; Fog2.see(B3f);
         var kept = H2.cur.fog && H2.cur.fog.webgulch, s3 = cntG2(B3f.roam.fogSeen), saved = JSON.parse(JSON.stringify(H2.cur));
-        H2.playing = false; H2.cur = null; saved.at = { town: 'webgulch', gate: 'north', sq: [20, 100], dir: null }; H2.begin(saved, 0);
+        H2.playing = false; H2.cur = null; saved.at = { town: 'webgulch', gate: 'north', sq: [20, 30], dir: null }; H2.begin(saved, 0); /* (loaded up the road, where the lair is not in sight) */
         var B4f = D.top(); if (B4f && B4f.baking) { B4f.baking = false; B4f.enter(); } for (var k4f = 0; k4f < 44; k4f++) D.update(); B4f = D.top(); D.battle = B4f; Fog2.see(B4f);
-        var at4 = B4f.roam.fogSeen[54 * B4f.map.w + 23], s4 = cntG2(B4f.roam.fogSeen);
-        okG2('in a game: kept on the save (' + (typeof kept === 'string' ? kept.length + ' characters' : 'none') + ', ' + s3 + ' squares); after a load at 20,100 the lad\'s square still seen ' + at4 + ' (' + s4 + ' seen)', typeof kept === 'string' && at4 === 1 && s4 > s3);
+        var at4 = B4f.roam.fogSeen[86 * B4f.map.w + 6], s4 = cntG2(B4f.roam.fogSeen);
+        okG2('in a game: kept on the save (' + (typeof kept === 'string' ? kept.length + ' characters' : 'none') + ', ' + s3 + ' squares); after a load at 20,30 inside the lair still seen ' + at4 + ' (' + s4 + ' seen)', typeof kept === 'string' && at4 === 1 && s4 > s3);
         // 3. a NEW GAME starts dark (the test door's page memory aside)
         Fog2.MEM = {}; H2.playing = false; H2.cur = null; var rec5 = H2.fresh('barley'); rec5.at = { town: 'webgulch', gate: 'north', sq: [20, 100], dir: null }; H2.begin(rec5, 0);
         var B5f = D.top(); if (B5f && B5f.baking) { B5f.baking = false; B5f.enter(); } for (var k5f = 0; k5f < 44; k5f++) D.update(); B5f = D.top(); D.battle = B5f; Fog2.see(B5f);
-        okG2('a NEW GAME: the lad\'s square dark (' + B5f.roam.fogSeen[54 * B5f.map.w + 23] + ')', B5f.roam.fogSeen[54 * B5f.map.w + 23] === 0);
+        okG2('a NEW GAME: inside the lair dark (' + B5f.roam.fogSeen[86 * B5f.map.w + 6] + ')', B5f.roam.fogSeen[86 * B5f.map.w + 6] === 0);
         H2.playing = false; H2.cur = null;
         // 4. the door
         var bt6 = (M2.ISO_BEATS || []).filter(function (b) { return b.id === 'gulchfog'; })[0];

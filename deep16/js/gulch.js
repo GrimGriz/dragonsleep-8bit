@@ -558,10 +558,10 @@
   // ---------------------------------------------------------------- THE FOG OF WAR (a TRY, 11-20, the gulch seat: his 11-16 "as well as the 'fog of war' exploring of those
   // type roams", and 11-20 "try the encounters like the Wet with fog of war"). No roam had one: the Wet and every floor draw all their squares from the start (a dark floor
   // dims what the four don't see, js/light.js L.pass, but shows its shape). Here: a square never seen is black, and what stands on it is not drawn; a square seen once and
-  // out of sight now is washed grey; seen is what the party's token has a line to -- by day within Fog.DAY squares (open sky, the banks and the trees in the way), by night
+  // out of sight now is washed grey; seen is what the party's token has a line to -- by day however far (the banks and the trees in the way: true sight, ruled 11-20), by night
   // what the party sees by its light and darkvision (L.partyMap). Kept for the floor's visit (B.roam.fogSeen): out of the gully and back in, it is dark again. On the
   // floors in Fog.ON (Web Gulch alone, the try); &nofog on a door turns it off (Gu.TRY.fog)
-  var Fog = D.fog = { ON: {}, DAY: 7, UNSEEN: '#05050b', WASH: 'rgba(8,8,18,.45)' }; // (DAY: 7 squares, 35 ft -- the seat's number: at the floor's zoom the screen is about 8 squares from the party each way, so a longer reach by day would never show the fog at all)
+  var Fog = D.fog = { ON: {}, UNSEEN: '#05050b', WASH: 'rgba(8,8,18,.45)' }; // (no day's reach: true sight by day, RULED 11-20 -- the seat's 7 squares gone)
   Fog.ON[Gu.KEY] = true;
   Fog.on = function (B) { var def = D.roam && D.roam.def; return !!(B && B.roam && def && Fog.ON[def.key] && (def.key !== Gu.KEY || Gu.TRY.fog) && B.map && D.battle === B); };
   Fog.see = function (B) {
@@ -572,16 +572,19 @@
     var k = eyes.map(function (e) { return e.x + ',' + e.y; }).join(';') + '|' + (B.dark ? 1 : 0) + '|' + m.w + 'x' + m.h;
     if (R0.fogNow && R0.fogNow.k === k) return R0.fogNow;
     if (!R0.fogSeen || R0.fogSeen.length !== m.w * m.h) R0.fogSeen = Fog.recall(m.w * m.h);
-    var now = new Uint8Array(m.w * m.h), pm = B.dark && D.light ? D.light.partyMap(B) : null, r = Fog.DAY;
+    var now = new Uint8Array(m.w * m.h), pm = B.dark && D.light ? D.light.partyMap(B) : null;
     // by night every square the party sees, however far -- each LIT square any of them has a line to (a torch's or a Light's whole ring, the cutters' fire seen from down the
     // gully) and each in a darkvision's reach (Lymen's 60 ft): the light pass's own map, L.partyMap -- 11-20, his "is the fog thing completely undoing the lighting settings"
     // and "Did the 'showing explored' and darkened fog overwrite the level level the player is shown": the fog had capped it at the day's 7 squares, the black edge nearer
-    // than Lymen sees and a torch's dim ring (8) painted over. By day, the eyes within Fog.DAY
+    // than Lymen sees and a torch's dim ring (8) painted over.
+    // BY DAY, TRUE SIGHT (RULED 11-20, Griz: "go with true sight by day, all explores won't be in daylight"): every open square any of the eyes has a line to, however far --
+    // the fog by day is what the banks and the trees hide (the lair behind its neck, the hollows, the side pockets); the exploring is the night's and the dusk's. (Fog.DAY's
+    // 7 squares, the seat's first number, gone)
     if (pm) for (var ip = 0; ip < pm.v.length; ip++) { if (pm.v[ip] > 0 && m.sq[ip] && m.sq[ip].open) now[ip] = 1; }
     eyes.forEach(function (e) {
-      for (var y = Math.max(0, e.y - r); y <= Math.min(m.h - 1, e.y + r); y++) for (var x = Math.max(0, e.x - r); x <= Math.min(m.w - 1, e.x + r); x++) {
+      if (!pm) for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
         var i = y * m.w + x, s = m.sq[i]; if (!s || !s.open || now[i]) continue;
-        if (Math.hypot(x - e.x, y - e.y) <= r && (pm ? pm.v[i] > 0 : G.losPoint(e.x, e.y, x, y))) now[i] = 1;
+        if (G.losPoint(e.x, e.y, x, y)) now[i] = 1;
       }
       now[e.y * m.w + e.x] = 1;
     });
