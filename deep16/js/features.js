@@ -1247,6 +1247,36 @@
       if (moved && G.canStand(s, a.x, a.y)) { F.wallStep(B, s, a.x, a.y); yield 6; }
     }
   };
+  // THE FORMATION'S AI (Soldiering's, 11-20 -- the feats seat's schema, built last; what it does not do is said in the lane): at the head of a trained one's turn (TX.FIRST),
+  // before its blows. SET SHIELDS: a trained shield-bearer, a trained shield-bearer of its side beside it, a foe within its reach (the schema said a move; the bench said otherwise). LEAVE: set, and no foe within its
+  // reach -- so a wall with nothing at it walks on (the seat's call). THE PUSH: the member of a wall that acts last this round (each other member before it in the order)
+  // calls it when two or more mates have reactions (one, in a wall of two) and a foe stands ahead of a shover. WHEEL (F.wheelWant): on a hit, the hitter at half its hit
+  // points or less trades with a trained friend beside it that is not (the rank rotation), the friend with the most hit points. The pike rank's place-taking is NOT built
+  F.wheelWant = function (B, att, friends) {
+    if (att.hp > att.maxhp / 2) return null;
+    return friends.filter(function (w) { return w.hp > w.maxhp / 2; }).sort(function (a, b) { return b.hp - a.hp; })[0] || null;
+  };
+  function foeWithin(B, u, ft) { return B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G.dist(u, w) <= ft; }); }
+  function moveOf(u) { return u.turn && u.turn.wallMove != null ? u.turn.wallMove : (u.turn ? u.turn.move : RU.speedNow(u)) || 0; }
+  F.aiWall = function* (B, u) {
+    if (mine(u) || !F.soldiering(u) || !F.bearsShield(u) || !u.turn || !(u.turn.bonus > 0)) return;
+    var reach = G.armOf(u); // (a foe in reach of it: set there, leave when none is -- the both-ways bench of 11-20 had walls set at a move's length stand held while the band shot them)
+    if (!F.wallSet(u)) {
+      if (!F.canSet(u) || !foeWithin(B, u, reach)) return;
+      var mate = B.units.some(function (w) { return w !== u && w.side === u.side && !w.dead && w.hp > 0 && F.soldiering(w) && F.bearsShield(w) && G.standing(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; });
+      if (mate) { F.setShields(B, u); yield 10; }
+      return;
+    }
+    if (!foeWithin(B, u, reach)) { if (u.reaction > 0) { F.leaveWall(B, u); yield 8; } return; }
+    if (!F.canPush(B, u)) return;
+    var wall = F.wallOf(B, u), at = B.order ? B.order.indexOf(u) : -1;
+    if (at >= 0 && wall.some(function (w) { return w !== u && B.order.indexOf(w) > at; })) return; // (not the last of its wall to act this round)
+    var mates = wall.filter(function (w) { return w !== u && w.reaction > 0 && RU.canAct(w); }), face = u.conds.wall.face;
+    if (mates.length < Math.min(2, wall.length - 1)) return;
+    var any = [u].concat(mates).some(function (s) { var a = F.ahead(B, s, face); return a.who && G.hostile(s, a.who) && (a.who.size || 1) <= 2 && !a.who.object; });
+    if (any) yield* F.wallPush(B, u);
+  };
+  TX.FIRST.unshift(function* (B, u) { yield* F.aiWall(B, u); });
   F.wallStep = function (B, s, x, y) {
     var x0 = s.x, y0 = s.y; s.x = x; s.y = y; if (s.conds.wall) { s.conds.wall.x = x; s.conds.wall.y = y; }
     s.tween = { fx: x0, fy: y0, fz: G.gzAt(s, x0, y0), t: 0, dur: B.pace ? B.pace(10, true) : 10 };

@@ -124,6 +124,35 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // the Mascots against the story party (mode=mascots&lvl=5&n=20; Griz, 10-07: "Bench them vs the story party please"): the four Mascots as a band
   // against the four heroes (the matrix's band: the ladder's fixture, max hit dice, their magic weapons from 5), and each Mascot one on one against
   // each hero, at one level; the band's damage, downs and specials left counted by name. avghp=1 (above) puts the heroes on the NPCs' average HP
+  // SOLDIERING BOTH WAYS (python dev/bench16.py <kind> mode=soldier1120 n=<fights> lvl=<n>; the leveling lane's 2026-11-20 schema, by his principle -- "properly balanced compared to the feats
+  // offered in the 2014 PHB/DMG" -- and the 10-31 review's find that no bench set ours beside the SRD's): four of one block (the garrison's trooper by default: shield, AC 18)
+  // against the band (the story four at `lvl`), the same seeds twice -- trained (the block's `soldiering` trait) and not. A table, not a gate: the band's wins, the rounds, the
+  // walls set and the pushes called, the wheels
+  if (get('mode', '') === 'soldier1120') {
+    var FK = D.FOES[get('foes', '')] ? get('foes', '') : 'trooper', resS = { foe: FK, lvl: L, n: n, trained: null, untrained: null, errors: [] }, Fs = D.features;
+    var cnt = { set: 0, push: 0, wheel: 0 }, set0 = Fs.setShields, push0 = Fs.wallPush, wheel0 = Fs.wheel;
+    Fs.setShields = function () { cnt.set++; return set0.apply(this, arguments); };
+    Fs.wallPush = function* () { cnt.push++; return yield* push0.apply(this, arguments); };
+    Fs.wheel = function () { cnt.wheel++; return wheel0.apply(this, arguments); };
+    var keepS = D.FOES[FK].soldiering;
+    [true, false].forEach(function (tr) {
+      D.FOES[FK].soldiering = tr; cnt.set = cnt.push = cnt.wheel = 0;
+      var won = 0, lost = 0, rounds = 0, left = 0;
+      for (var k = 0; k < n; k++) {
+        D.seed = 7100 + k * 7919; D.lastError = null;
+        var Bs = new D.Battle({ bench: true, fightDef: D.classFight(L), npc: { foes: [FK, FK, FK, FK] } });
+        D.battle = Bs; Bs.enter(); var r = drive(Bs);
+        if (D.lastError && resS.errors.length < 4) resS.errors.push(String(D.lastError.stack || D.lastError).slice(0, 300));
+        if (r === 'won') won++; else if (r === 'lost') lost++;
+        rounds += Bs.round; left += Bs.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0; }).length;
+      }
+      resS[tr ? 'trained' : 'untrained'] = { bandWins: won, bandLosses: lost, bandWinPct: Math.round(100 * won / n), rounds: +(rounds / n).toFixed(1), foesStandingAvg: +(left / n).toFixed(2), sets: cnt.set, pushes: cnt.push, wheels: cnt.wheel };
+    });
+    D.FOES[FK].soldiering = keepS; Fs.setShields = set0; Fs.wallPush = push0; Fs.wheel = wheel0;
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(resS);
+    document.body.appendChild(preS);
+    return;
+  }
   if (get('mode', '') === 'mascots') {
     var MSC = ['denny', 'beholda', 'rascal', 'goose'], HER = ['barley', 'aurdin', 'vivian', 'lymen'], nd = +get('nd', n);
     var res3 = { lvl: L, n: n, nd: nd, band: null, duel: {}, dealt: {}, taken: {}, down: {}, left: {}, errors: [], fights: [] }, det = !!get('detail', '');
