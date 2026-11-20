@@ -58,6 +58,10 @@ def map_rows(d):
         for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
             if 'source_bbox_xyxy_exclusive' in r:
                 yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+            elif 'source_file' in r:                                             # (the sect's blade's ART-148: x0 y0 x1_exclusive y1_exclusive by `frame`, the
+                yb = max(int(r['y1_exclusive']), int(float(r['source_row_baseline'])) + 4)   # drawing's own box, PAD its margin: read as a box -- tight() lost N Idle 2
+                yield r['source_file'], r['facing'], r['action'].lower(), int(r['frame']), (int(r['x0']), int(r['y0']), int(r['x1_exclusive']), yb), False   # to its hood alone,
+                # the dark cloak keying into ~45 pieces; its bottom at least the row's baseline, as S Walk 7's box stopped 20 px short of its boot; the numbers stand ~40 below)
             elif 'x1_exclusive' in r:                                            # (Hedda's ART-146: crop boxes, read as cells, by PLAYBACK frame -- its South Walk
                 yield r['source'], r['facing'], r['action'].lower(), int(r['playback_frame']), tuple(int(r[k]) for k in ('x0', 'y0', 'x1_exclusive', 'y1_exclusive')), True   # plays printed 1 6 3 8 5 2 7 4)
             elif 'left' in r:                                                    # (Ragna's ART-153: "source crop bounds", left top right bottom -- read as cells)
@@ -175,9 +179,16 @@ road('torvald_p1', 'torvald', '2026-11-19-ART-147', 'Torvald', 'ART-147-ART-155-
      ['Dvalgarda\'s sign on his chest is a pixel or two at game size',
       'the mirrors (SW W NW) carry the mace and the pack\'s asymmetry to the other side (the art desk\'s own note)'],
      'worn by no one yet: the made road is not on the grid; his fights keep torvald_p0')
+# The sect's blade, both of the two at the rest after Torvald (the art desk's ART-148, art-wanted 89, cut 11-20 by cutter-1120b on the lanes desk's message, his
+# "there's stuff in Fresh"; its notes: a sheathed shortsword at each hip, the far one lost behind the body in E, the brooch on the right shoulder, a cape and strap
+# seen from behind). Worn by no one yet: the made road is not on the grid; its fight sheet (sectblade_p2) is asked, not drawn; their fights keep assassin_p1.
+road('sectblade_p1', 'sectblade', '2026-11-20-ART-148', 'Sect blade', 'ART-148-SECT-BLADE-TOWN-CUTTER-HANDOFF',
+     ['the mirrors (SW W NW) carry the brooch to the other shoulder (the art desk\'s own note)',
+      'the rear NE walk overlaps its boots at 1 and 5 and jumps a little at 8 to 1 (the art desk\'s own note)'],
+     'worn by no one yet: the made road is not on the grid; their fights keep assassin_p1')
 
 
 if __name__ == '__main__':
     import sys
-    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil')]:
+    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil', 'sectblade')]:
         VS.cut(lk)
