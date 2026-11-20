@@ -18346,12 +18346,36 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var h6b = mkSw(); h6b.g2.size = 3; wallSw(h6b); var hp6b = h6b.g2.hp, hp6c = h6b.g1.hp; pinSw([1]); var l6b = pushSw(h6b, h6b.f);
       okSw('nowhere to go: the caller\'s goblin ' + at(h6.g1) + ' (' + (hp6 - h6.g1.hp) + ' bludgeoning), the wall stays ' + at(h6.f) + '; a Huge one before the mate: unhurt ' + (h6b.g2.hp === hp6b) + ', "' + (l6b.match(/too big[^/]*/) || [''])[0].slice(0, 40) + '", the other goblin ' + (hp6c - h6b.g1.hp) + ', the wall ' + at(h6b.f),
         at(h6.g1) === h6.X + ',' + (h6.Y - 1) && hp6 - h6.g1.hp === 4 && at(h6.f) === h6.X + ',' + h6.Y && h6b.g2.hp === hp6b && /too big to shove/.test(l6b) && hp6c - h6b.g1.hp === 4 && at(h6b.f) === h6b.X + ',' + h6b.Y);
-      // 7. NO FOE AHEAD, NO PUSH (re-cut 4; till then the push stepped into empty squares): THE PUSH off the ring, ADVANCE on it -- the line steps together, the mate's reaction spent
+      // 7. NO FOE AHEAD, NO PUSH (re-cut 4; till then the push stepped into empty squares): THE PUSH off the ring, MARCH on it (11-20, his "half move of the slowest wall
+      // member = march movement, approved"; till then ADVANCE, 5 ft for the bonus action and the mates' reactions) -- the line moves together till a foe is ahead (two squares
+      // here, of the three a fighter's 30 ft gives), the caller's move spent, the mate's reaction and the bonus action kept
       var h7 = mkSw(); h7.g1.y = h7.Y - 3; h7.g2.y = h7.Y - 3; D.grid.setup(h7.B.map, h7.B.units); wallSw(h7);
-      var c7 = h7.B.commands(h7.f), p7 = c7.filter(function (c) { return c.id === 'wallpush'; })[0], a7 = c7.filter(function (c) { return c.id === 'walladvance'; })[0];
-      var n7 = (h7.B.log || []).length; runSw(h7.B.exec(h7.f, { do: 'walladvance' })); var l7 = (h7.B.log || []).slice(n7).join(' ').replace(/\{\/?[a-z]*\}/g, '');
-      okSw('no foe ahead: THE PUSH on the ring ' + !!p7 + ', ADVANCE ' + (a7 && a7.ok) + '; then the wall ' + at(h7.f) + ' ' + at(h7.m) + ', the mate\'s reaction ' + h7.m.reaction + ', "' + l7.slice(0, 70) + '"',
-        !p7 && a7 && a7.ok && at(h7.f) === h7.X + ',' + (h7.Y - 1) && at(h7.m) === (h7.X + 1) + ',' + (h7.Y - 1) && h7.m.reaction === 0 && /ADVANCE/.test(l7));
+      var c7 = h7.B.commands(h7.f), p7 = c7.filter(function (c) { return c.id === 'wallpush'; })[0], a7 = c7.filter(function (c) { return c.id === 'wallmarch'; })[0];
+      var n7 = (h7.B.log || []).length; runSw(h7.B.exec(h7.f, { do: 'wallmarch' })); var l7 = (h7.B.log || []).slice(n7).join(' ').replace(/\{\/?[a-z]*\}/g, '');
+      okSw('no foe ahead: THE PUSH on the ring ' + !!p7 + ', MARCH ' + (a7 && a7.ok) + ' (' + (a7 && a7.note) + '); then the wall ' + at(h7.f) + ' ' + at(h7.m) + ', the mate\'s reaction ' + h7.m.reaction + ', the caller\'s bonus ' + h7.f.turn.bonus + ', "' + l7.slice(0, 110) + '"',
+        !p7 && a7 && a7.ok && at(h7.f) === h7.X + ',' + (h7.Y - 2) && at(h7.m) === (h7.X + 1) + ',' + (h7.Y - 2) && h7.m.reaction === 1 && h7.f.turn.bonus === 1 && /MARCH/.test(l7) && /stops with a foe ahead/.test(l7));
+      // 17. MARCH's measure: half the SLOWEST member's speed -- the mate slowed to 20 ft, the line goes 10 ft though the way is open; once a round for the wall
+      var h17 = mkSw(); h17.g1.x = h17.X + 3; h17.g1.y = h17.Y - 3; h17.g2.x = h17.X + 3; h17.g2.y = h17.Y - 3; D.grid.setup(h17.B.map, h17.B.units); h17.m.speed = 20; wallSw(h17);
+      var ft17 = D.features.marchFt(h17.B, h17.f); runSw(h17.B.exec(h17.f, { do: 'wallmarch' })); RUSw.startTurn(h17.m); var again17 = D.features.canMarch(h17.B, h17.m);
+      okSw('the slowest sets the pace: ' + ft17 + ' ft; the wall ' + at(h17.f) + ' ' + at(h17.m) + '; the mate may march again this round ' + again17, ft17 === 10 && at(h17.f) === h17.X + ',' + (h17.Y - 2) && at(h17.m) === (h17.X + 1) + ',' + (h17.Y - 2) && !again17);
+      // 18. THE MISSILES (his "2 - 2 rounds, reset after a march move"): a goblin's arrow at a set member marks it; on the AI, two of its rounds under fire with nothing in its reach
+      // and it leaves the wall; a march between them resets the count
+      var h18 = mkSw(); h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; h18.g2.x = h18.X + 1; h18.g2.y = h18.Y + 2; h18.g1.x = h18.X - 0; D.grid.setup(h18.B.map, h18.B.units); wallSw(h18); h18.f.guest = h18.m.guest = true; h18.f.classAI = h18.m.classAI = true;
+      h18.f.conds.wall.face = [0, -1]; h18.m.conds.wall.face = [0, -1]; h18.g1.y = h18.Y + 4 > (h18.B.map.h || 99) - 1 ? h18.Y + 2 : h18.Y + 2; D.grid.setup(h18.B.map, h18.B.units);
+      RUSw.startTurn(h18.g1); h18.B.active = h18.g1; var bow = { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', ranged: true, range: [80, 320], reach: 5 };
+      h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; D.grid.setup(h18.B.map, h18.B.units); var shotBefore = !!h18.f.conds.wall.shot; runSw(h18.B.attack(h18.g1, h18.f, bow)); var shot18 = !!(h18.f.conds.wall && h18.f.conds.wall.shot);
+      h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; h18.g2.y = h18.Y + 2; D.grid.setup(h18.B.map, h18.B.units);
+      var aiTurn = function (u) { RUSw.startTurn(u); h18.B.active = u; runSw(D.features.aiWall(h18.B, u)); };
+      // (the goblins two squares behind: 10 ft, out of a longsword's reach -- behind, so no march comes of it)
+      aiTurn(h18.f); var set1 = D.features.wallSet(h18.f), r1 = h18.f.conds.wall && h18.f.conds.wall.shotRounds;
+      h18.f.conds.wall.shot = true; aiTurn(h18.f); var set2 = D.features.wallSet(h18.f);
+      var h18b = mkSw(); h18b.g1.x = h18b.X; h18b.g1.y = h18b.Y + 2; h18b.g2.x = h18b.X + 1; h18b.g2.y = h18b.Y + 2; D.grid.setup(h18b.B.map, h18b.B.units); wallSw(h18b); h18b.f.guest = h18b.m.guest = true;
+      h18b.f.conds.wall.face = h18b.m.conds.wall.face = [0, -1];
+      var aiTurnB = function (u) { RUSw.startTurn(u); h18b.B.active = u; runSw(D.features.aiWall(h18b.B, u)); };
+      h18b.f.conds.wall.shot = true; aiTurnB(h18b.f); RUSw.startTurn(h18b.f); h18b.B.round = 2; runSw(D.features.wallMarch(h18b.B, h18b.f)); var rM = h18b.f.conds.wall && h18b.f.conds.wall.shotRounds;
+      h18b.B.round = 3; h18b.f.conds.wall.shot = true; aiTurnB(h18b.f); var setB = D.features.wallSet(h18b.f);
+      okSw('missiles: an arrow marks the member ' + shot18 + ' (before ' + shotBefore + '); one round under fire, still set ' + set1 + ' (count ' + r1 + '); the second, set ' + set2 + '; with a march between, the count ' + rM + ' and still set ' + setB,
+        shot18 && !shotBefore && set1 && r1 === 1 && !set2 && rM === 0 && setB);
       // 8. the members keep their Attack: with shields set, ATTACK is on the ring and a blow is struck
       var h8 = mkSw(); wallSw(h8); var atk8 = h8.B.commands(h8.f).filter(function (c) { return c.id === 'attack'; })[0];
       D.d = function (n) { return n === 20 ? 15 : d0Sw(n); }; runSw(h8.B.exec(h8.f, { do: 'attack', target: h8.g1 })); D.d = d0Sw; var hit8 = h8.g1.hp < 999;

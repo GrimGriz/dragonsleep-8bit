@@ -1298,20 +1298,31 @@
       yield 8;
     }
   };
-  // ADVANCE (4): the line, no foe ahead, steps 5 ft forward together -- the caller's bonus action and every mate's reaction; a mate with none, and the line stays
-  F.canAdvance = function (B, u) {
-    if (!u || !u.turn || !(u.turn.bonus > 0) || !F.joined(u, B)) return false;
+  // MARCH (11-20, Griz: "1 - half move of the slowest wall member = march movement, approved"; it takes the place of the re-cut's ADVANCE, 5 ft for the bonus action and the
+  // mates' reactions): a formed line, no foe ahead, moves together as its move -- straight along its front, as far as half the speed of its slowest member, square by square,
+  // stopping where a foe comes ahead of it or the ground will not take the whole line. The formation seat's calls, standing for his overrule: any joined member calls it and
+  // spends its own (held) move; the mates spend nothing (their moves stay held as ever); once a round for a wall; the pikers behind step with it, as with a push; the bonus
+  // action is left, so a march that brings the line up to a foe can be followed by the push; difficult ground is not read (a square is a square)
+  F.marchFt = function (B, u) { var wall = F.wallOf(B, u); return wall.length ? 5 * Math.floor(Math.min.apply(null, wall.map(function (w) { return RU.speedNow(w) || w.speed || 30; })) / 2 / 5) : 0; };
+  F.canMarch = function (B, u) {
+    if (!u || !u.turn || !F.joined(u, B) || !(u.turn.wallMove > 0)) return false;
     var wall = F.wallOf(B, u), face = u.conds.wall.face;
-    return !F.lineFoes(B, wall, face).length && wall.every(function (w) { return w === u || (w.reaction > 0 && RU.canAct(w)); }) && lineCanStep(B, wall, face);
+    return F.marchFt(B, u) >= 5 && !wall.some(function (w) { return w.conds.wall.marched === B.round; }) && !F.lineFoes(B, wall, face).length && lineCanStep(B, wall, face);
   };
-  F.wallAdvance = function* (B, u) {
-    if (!F.canAdvance(B, u)) return;
-    var wall = F.wallOf(B, u), face = u.conds.wall.face;
-    u.turn.bonus = 0; wall.forEach(function (w) { if (w !== u) w.reaction = 0; });
-    stepLine(B, wall, face); D.sfx('confirm');
-    B.card(['{y}' + u.name + '{/} calls ADVANCE: the wall of ' + wall.length + ' steps 5 ft ' + (FACE_WORD[face.join(',')] || 'forward') + ', as one  {g}(the bonus action; the mates\' reactions){/}'], 240);
-    yield 14;
+  F.canAdvance = F.canMarch; // (the re-cut's ADVANCE, folded into MARCH)
+  F.wallMarch = function* (B, u) {
+    if (!F.canMarch(B, u)) return;
+    var wall = F.wallOf(B, u), face = u.conds.wall.face, ft = F.marchFt(B, u), n = 0;
+    u.turn.wallMove = 0; wall.forEach(function (w) { w.conds.wall.marched = B.round; w.conds.wall.shotRounds = 0; w.conds.wall.shot = false; }); // (his "reset after a march move")
+    D.sfx('confirm');
+    while (n * 5 < ft && !F.lineFoes(B, wall, face).length && lineCanStep(B, wall, face)) { stepLine(B, wall, face); n++; yield 10; }
+    B.card(['{y}' + u.name + '{/} calls MARCH: the wall of ' + wall.length + ' moves ' + n * 5 + ' ft ' + (FACE_WORD[face.join(',')] || 'forward') + ', as one  {g}(half the slowest one\'s speed: ' + ft + ' ft; ' + u.name + '\'s move' + (n * 5 < ft ? '; it stops ' + (F.lineFoes(B, wall, face).length ? 'with a foe ahead' : 'where the ground stops it') : '') + '){/}'], 240);
+    yield 8;
   };
+  F.wallAdvance = F.wallMarch;
+  // the missiles a set member takes (his "2 - 2 rounds, reset after a march move"): a shot or a spell's attack from beyond its reach marks it (battle.js attack calls this);
+  // its own turn counts the rounds (F.aiWall)
+  F.wallShot = function (att, tgt, atk, melee) { if (tgt && atk && !melee && tgt.conds && tgt.conds.wall && F.wallSet(tgt)) tgt.conds.wall.shot = true; };
   // THE COVER BEHIND THE WALL (G.los asks it of each creature in a line): a joined member w, and of the two the line joins the one behind w (against the wall's facing) --
   // 5 (three-quarters) in the first square behind, 2 (half) in the second; one larger than w, 2 in the first and none of the wall's past it. The one in front gets nothing
   // of the wall's own (the ordinary half a creature in the line gives stays G.los's)
@@ -1409,10 +1420,14 @@
       return;
     }
     if (!foeWithin(B, u, 60)) { F.leaveWall(B, u); yield 8; return; }
+    // missiles (his "2 - 2 rounds, reset after a march move"): a round it was shot at, with no foe in its reach, counts; two and it leaves the wall; a foe in reach or a march resets it
+    var Wm = u.conds.wall; if (Wm.shot) { Wm.shotRounds = (Wm.shotRounds || 0) + 1; Wm.shot = false; }
+    if (foeWithin(B, u, reach)) Wm.shotRounds = 0;
+    else if ((Wm.shotRounds || 0) >= 2) { B.card(['{g}' + u.name + ' breaks from the wall: two rounds of missiles and nothing comes on.{/}'], 200); F.leaveWall(B, u); yield 8; return; }
     if (F.canPush(B, u) && F.pushers(B, u).length > 1) { yield* F.wallPush(B, u); return; }
-    if (!foeWithin(B, u, reach) && F.canAdvance(B, u)) {
+    if (!foeWithin(B, u, reach) && F.canMarch(B, u)) {
       var fc = u.conds.wall.face, nf = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-      if (nf && (nf.x - u.x) * fc[0] + (nf.y - u.y) * fc[1] > 0) yield* F.wallAdvance(B, u);
+      if (nf && (nf.x - u.x) * fc[0] + (nf.y - u.y) * fc[1] > 0) { yield* F.wallMarch(B, u); if (F.canPush(B, u) && F.pushers(B, u).length > 1) yield* F.wallPush(B, u); }
     }
   };
   TX.FIRST.unshift(function* (B, u) { yield* F.aiWall(B, u); });
@@ -1692,7 +1707,7 @@
         var jW = F.joined(u, B), fW = jW ? F.lineFoes(B, F.wallOf(B, u), u.conds.wall.face).length : 0;
         if (!jW || fW) out.push({ id: 'wallpush', label: 'THE PUSH', cost: 'B', icon: 'shove', skill: true, ok: F.canPush(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : !jW ? 'no set mate beside you' : F.wallPushedNow(B, F.wallOf(B, u)) ? 'the wall has pushed this round' : 'no foe ahead of the wall',
           note: 'the whole wall shoves as one (each mate its reaction): STR DC ' + F.pushDC(B, u) + '; every foe ahead fails and the line steps 5 ft, any holds and nobody steps (the failed take 1d6 either way)' });
-        else out.push({ id: 'walladvance', label: 'ADVANCE', cost: 'B', icon: 'move', skill: true, ok: F.canAdvance(B, u), why: !(T.bonus > 0) ? 'the bonus action is spent' : 'a mate has no reaction, or no room ahead', note: 'no foe ahead: the whole wall steps 5 ft forward together (each mate its reaction)' });
+        else out.push({ id: 'wallmarch', label: 'MARCH', cost: 'M', icon: 'move', skill: true, ok: F.canMarch(B, u), why: !(u.turn.wallMove > 0) ? 'your move is spent' : F.wallOf(B, u).some(function (w) { return w.conds.wall.marched === B.round; }) ? 'the wall has marched this round' : 'no room ahead', note: 'no foe ahead: the whole wall moves ' + F.marchFt(B, u) + ' ft forward together (half the slowest one\'s speed; your move)' });
         out.push({ id: 'leavewall', label: 'LEAVE THE WALL', cost: 'B', icon: 'shield', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'a bonus action: your move back' });
       }
     }
@@ -1798,7 +1813,7 @@
       case 'shedbeast': if (u.conds.pelt && u.turn.bonus > 0) { u.turn.bonus = 0; peltMove(B, u, function () { F.peltOff(B, u); }); yield 8; } return; // (HAUNCHES shed: its 10 ft off what is left of the move)
       case 'setshields': if (F.canSet(u)) { F.setShields(B, u); yield 10; } return; // (Soldiering's, 11-20)
       case 'leavewall': if (F.wallSet(u) && u.turn.bonus > 0) { F.leaveWall(B, u); yield 8; } return;
-      case 'walladvance': yield* F.wallAdvance(B, u); return;
+      case 'walladvance': case 'wallmarch': yield* F.wallMarch(B, u); return;
       case 'wallpush': yield* F.wallPush(B, u); return;
       case 'wallmove': { // (a move click with shields set: asked -- LEAVE THE WALL? Yes leaves at LEAVE's cost and walks there; no holds. Griz, 11-20; ui.js actAt)
         if (!F.wallSet(u)) return;
