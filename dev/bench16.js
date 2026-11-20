@@ -18382,6 +18382,22 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         at(h13.p) === h13.X + ',' + h13.Y && h13.p.reaction === 0 && /thrusts past the wall/.test(l13) && hp13 - h13.g1.hp - h13.g2.hp > 8);
       // 14. THE PUSH WRITTEN (re-cut 6): the call, each save, the line's step on the fight's log
       okSw('the log carries the push: ' + JSON.stringify(l3.slice(0, 260)), /calls the push/.test(l3) && /FAILS/.test(l3) && /THE LINE STEPS FORWARD/.test(l3));
+      // 15. WHAT TAKES A MEMBER OUT (11-20, his "what legitimately breaks a shield wall or a character out of one re 'engulf'"): held in a grip (restrained, as the mound's slam
+      // before its Engulf) -- out, and still out when let go; stunned -- out, still out when it wears off; knocked prone -- out, still out when it stands at its turn (till 11-20 it
+      // was back in); frightened, or grappled and not restrained -- in
+      var outAfter = function (lay, lift, turn) { var h = mkSw(); wallSw(h); lay(h.f); var o1 = FSw.wallSet(h.f); lift(h.f); if (turn) RUSw.startTurn(h.f); return { during: o1, after: FSw.wallSet(h.f), mate: FSw.joined(h.m) }; };
+      var oR = outAfter(function (u) { u.conds.restrained = { by: 'g-mound', grapple: true }; }, function (u) { delete u.conds.restrained; });
+      var oS = outAfter(function (u) { u.conds.stunned = { till: 1 }; }, function (u) { delete u.conds.stunned; });
+      var oP = outAfter(function (u) { u.conds.prone = true; }, function () {}, true);
+      var oF = outAfter(function (u) { u.conds.frightened = { by: 'g-x' }; }, function () {});
+      var oG = outAfter(function (u) { u.conds.grappled = { by: 'g-x' }; }, function () {});
+      okSw('what takes one out: held (restrained) ' + oR.during + ' / let go ' + oR.after + '; stunned ' + oS.during + ' / after ' + oS.after + '; prone, then up at its turn ' + oP.after + '; frightened ' + oF.during + '; grappled ' + oG.during + ' (want false false, false false, false; true; true)',
+        !oR.during && !oR.after && !oR.mate && !oS.during && !oS.after && !oP.after && oF.during && oG.during);
+      // 16. the rest of the line: three set in a row, the middle one knocked flat -- the two ends are not one wall (each alone, not joined); a fourth set beside an end joins it
+      var h16 = mkSw(true, false); h16.p.src.equip = Object.assign({}, h16.p.src.equip, { shield: 'shield' }); h16.p.x = h16.X + 2; h16.p.y = h16.Y; if (!D.grid.canStand(h16.p, h16.p.x, h16.p.y)) { h16.p.x = h16.X - 1; }
+      D.grid.setup(h16.B.map, h16.B.units); [h16.f, h16.m, h16.p].forEach(function (u) { setSw(h16, u); });
+      var len0 = FSw.wallOf(h16.B, h16.f).length; h16.m.conds.prone = true; var jF = FSw.joined(h16.f), jP = FSw.joined(h16.p), sF = FSw.wallSet(h16.f), fF = JSON.stringify(h16.f.conds.wall && h16.f.conds.wall.face);
+      okSw('the middle of three knocked flat: the wall of ' + len0 + ' -> the ends set ' + sF + ', joined ' + jF + ' / ' + jP + ', the front kept ' + fF, len0 === 3 && sF && !jF && !jP && fF === '[0,-1]');
       // 11. untrained: no SET SHIELDS on the ring, and none set
       var h11 = mkSw(false), c11 = h11.B.commands(h11.f).filter(function (c) { return c.id === 'setshields'; })[0]; setSw(h11, h11.f);
       okSw('untrained: SET SHIELDS on the ring ' + !!c11 + ', set ' + FSw.wallSet(h11.f), !c11 && !FSw.wallSet(h11.f));

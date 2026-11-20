@@ -1167,9 +1167,20 @@
   // standing behind members step with the line, so the shoved foe is still at the pike's 10 ft; ADVANCE takes the caller's bonus action and every mate's reaction.
   // Pushed or traded out of its square, prone, or unable to act: out at no cost. JOINED: set, with a set mate of its side and front in one of the 8 squares beside -- only a joined
   // one has the +2 (rules.js RU.ac), gives cover (G.los) and calls THE PUSH
+  // WHAT TAKES A MEMBER OUT (11-20, Griz on the show's Engulf: "might need to check what legitimately breaks a shield wall or a character out of one re 'engulf'"): moved off its
+  // square by anything (a shove, Thunderwave, a pull, a grapple that drags it, a WHEEL trade); knocked prone; restrained (a web, a net, a grip that holds -- the shambling
+  // mound's slam before its Engulf, the cloaker's); unable to act (stunned, paralysed, asleep, incapacitated, petrified, surprised); down to 0 or dead; its shield gone, or its
+  // training. OUT IS OUT: the shields are down there and then, and setting them again is a bonus action (till 11-20 the check was lazy, and a member knocked flat stood up at
+  // its own turn still in the wall). NOT out, the formation seat's calls standing for his overrule: grappled and not restrained (the SRD's grappled is speed 0, and it holds
+  // its square), frightened (it holds ground; it cannot come nearer anyway), blinded, charmed, deafened, poisoned, invisible, hidden. The rest of the line: the wall is read
+  // fresh each time from who is set, side by side with the same front -- one taken out of the middle leaves two walls, each with the front it had, and a lone one left is set
+  // but not joined (no +2, no cover, no push) till a mate sets beside it
   F.wallSet = function (u) {
     var w = u && u.conds && u.conds.wall;
-    return !!(w && !u.dead && u.hp > 0 && w.x === u.x && w.y === u.y && !u.conds.prone && RU.canAct(u) && F.bearsShield(u) && F.soldiering(u));
+    if (!w) return false;
+    var on = !u.dead && u.hp > 0 && w.x === u.x && w.y === u.y && !u.conds.prone && !u.conds.restrained && RU.canAct(u) && F.bearsShield(u) && F.soldiering(u);
+    if (!on) { delete u.conds.wall; if (u.turn && u.turn.wallMove != null && !(u.turn.move > 0)) { u.turn.move = u.turn.wallMove; delete u.turn.wallMove; } } // (out: its move given back, where held)
+    return on;
   };
   function sameFace(a, b) { return a.conds.wall.face[0] === b.conds.wall.face[0] && a.conds.wall.face[1] === b.conds.wall.face[1]; }
   F.wallMates = function (B, u) {
