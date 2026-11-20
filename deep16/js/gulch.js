@@ -66,8 +66,6 @@
   M.LAY.cocoon = ['k']; // (the snared lad, silk-wrapped between two stunted trees: a thing standing there -- js/topview.js draws it as a bundle)
   Gu.FIRE = [12, 10];        // the silk-cutters' fire, inside the north mouth
   Gu.SNARE = [23, 54];       // the snared lad (the first game's S.snared)
-  Gu.ETTERCAP = [7, 86];     // its shelf at the back of the strung end, the side gully off the west bank
-  Gu.STRUNG = [9, 85, 4, 4]; // the strung end's way in: a step there and it sees you (the first game's step trigger round its stump)
   Gu.ZONE = [0, 15, 40, 97]; // the spiders' ground: all but the camp at the north mouth ("The boy drums so nothing surprises anyone")
   Gu.CHESTS = [{ x: 9, y: 83, item: 'potion', n: 1 }, { x: 28, y: 74, item: 'kit', n: 2 }]; // (the first game's two: a potion by the ettercap, two kits off the bed)
   // the cutter and the boy where the hour puts them: at the camp, out at the near webs at noon, by the fire at night
@@ -115,12 +113,12 @@
     flags = flags || {}; var ph = Gu.phase(hour), rows = Gu.ROWS.slice();
     if (flags['trig:snared']) rows[Gu.SNARE[1]] = rows[Gu.SNARE[1]].slice(0, Gu.SNARE[0]) + 'x' + rows[Gu.SNARE[1]].slice(Gu.SNARE[0] + 1); // (cut down: the silk left between the trees)
     var npcs = Gu.PEOPLE.map(function (p) { return { id: p.id, x: p[ph][0], y: p[ph][1], look: p.look, dir: p.dir[ph] }; });
-    var ec = Gu.TRY && Gu.TRY.lair ? Gu.LAIR.seat : Gu.ETTERCAP; // (in its lair it braids at the back: the try of 11-20)
+    var ec = Gu.LAIR.seat; // (in its lair it braids at the back: 11-20)
     if (Gu.alive(flags)) npcs.push({ id: 'ettercap8', x: ec[0], y: ec[1], look: 'ettercap', dir: 'right' });
     var trig = [{ id: 'gulchfire', rect: [Gu.FIRE[0], Gu.FIRE[1], 1, 1], on: 'use', script: 'gulchFire' }]; // (the cutters' fire a camp: Gu.fire, 11-20)
     if (!flags['trig:snared']) trig.push({ id: 'snared', rect: [Gu.SNARE[0], Gu.SNARE[1], 1, 1], on: 'use', script: 'gulchSnared', once: true });
-    if (!flags['trig:snared'] && Gu.TRY && Gu.TRY.lad) trig.push({ id: 'snaredstep', rect: Gu.LAD.rect.slice(), on: 'step', script: 'gulchSnared' }); // (the try of 11-20: a step into his hollow is reaching him)
-    if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: (Gu.TRY && Gu.TRY.lair ? Gu.LAIR.rect : Gu.STRUNG).slice(), on: 'step', script: 'gulchEttercap' }); // (in the try, its lair's neck)
+    if (!flags['trig:snared']) trig.push({ id: 'snaredstep', rect: Gu.LAD.rect.slice(), on: 'step', script: 'gulchSnared' }); // (the try of 11-20: a step into his hollow is reaching him)
+    if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: Gu.LAIR.rect.slice(), on: 'step', script: 'gulchEttercap' }); // (its lair's neck)
     return { id: 'gulch', name: 'Web Gulch', rows: rows, legend: Gu.LEGEND, music: 'dungeon', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: ph === 'night',
       lights: [{ id: 'gulchfire', kind: 'map', x: Gu.FIRE[0], y: Gu.FIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }],
       npcs: npcs, triggers: trig, zones: [{ zone: ph === 'day' ? 'gulch' : 'gulch_' + ph, rect: Gu.ZONE.slice() }], chests: Gu.CHESTS.map(function (c) { return Object.assign({}, c); }) };
@@ -163,27 +161,15 @@
 
   // ---------------------------------------------------------------- the beats: the snared lad and the braiding ettercap, the grid's own fights pulled in from the floor
   // (the first game's words first, on the encounter's card; FIGHT, or back away)
-  Gu.set = function* (B, o) {
-    var R = D.roam, R0 = B.roam, t = R0.token, F0 = D.fight && D.fight(o.fight); if (!F0) return;
-    D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
-    var a = yield { prompt: { who: t, title: o.title, lines: R.wrap(o.lines), opts: [{ label: 'FIGHT', value: 0 }, { label: o.away, value: 1 }] } };
-    if (a !== 0) { if (o.step) M.stepBack(B); return; }
-    var F = Object.assign({}, F0, { level: (R.party0 && R.party0.level) || F0.level, noCards: true });
-    R0.fights++; // (THE WORLD's hour counts it: M.tick)
-    R.party0.backTo = R.def.sub; R.party0.straightBack = true;
-    var rec = R.house() ? { fight: o.fight, name: 'Web Gulch: ' + F.name, level: ((R0.members[0] || {}).src || {}).lvl, simple: false } : null;
-    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: false, zone: 'gulch', flag: 'trig:' + o.trig, trig: o.trig, back: M.fieldBack, record: rec } }, [t.x, t.y]);
-    delete R.party0.backTo; delete R.party0.straightBack;
-    if (R0.pulled === 'won' && o.after) yield* o.after(B);
-  };
+  // (Gu.set, the beats' fights pulled onto a field, CUT 11-20 on Griz's "4 - good cut, these are better (on roam encounters)": the lad and the lair are fought in place)
   // the snared lad (S.snared): two wolf spiders and a giant spider coming for a shape in the silk; cut down, a few coins pressed on you
   // THE LAD LIKE THE WET (a TRY, 11-20, the gulch seat -- Griz to the lanes desk: "camp first - next priority is to try the encounters like the Wet with fog of war, including
   // reworking the gulch floor around the trapped lad, such that a wet-like encounter that matches the current grid fight is triggered"): the bank behind him opened into a
   // strung hollow (Gu.ROWS 50-57), a step into it is reaching him (Gu.LAD.rect), and FIGHT is fought where the party stands, as the Wet's are (js/roam.js R.encounter, set
   // at his square; js/mines.js M.inPlace) -- the grid fight's three (two wolf spiders, a giant spider) seated round him on the bank's side at the grid fight's spread, the
-  // gully's own silk about him the hazard at the grid fight's DC 11. Won, as before: his flag, his trigger gone, the twelve silver. The field fight stays behind the switch
-  // (Gu.TRY.lad false; a door's &ladgrid) until he has seen this one
-  Gu.TRY = { lad: !/[?&]ladgrid\b/.test(String(window.location && window.location.search)), fog: !/[?&]nofog\b/.test(String(window.location && window.location.search)) };
+  // gully's own silk about him the hazard at the grid fight's DC 11. Won, as before: his flag, his trigger gone, the twelve silver. The field fight
+  // was kept behind &ladgrid till he had walked this one; CUT 11-20, his "4 - good cut, these are better (on roam encounters)"
+  Gu.TRY = { fog: !/[?&]nofog\b/.test(String(window.location && window.location.search)) }; // (&ladgrid, &lairgrid and &gulchfield CUT 11-20, his "4 - good cut, these are better (on roam encounters)"; &nofog kept)
   Gu.LAD = {
     rect: [23, 51, 5, 7], // (his column and the hollow behind him: a step in is reaching him -- never the road, x 19-20, nor its shoulder, x 21-22, where a walk down the gully may step: the inn's walkthrough benches, walk1113 and walkbarn1113, crossed it on 11-20)
     foes: [['wolfspider', 27, 50], ['giantspider', 26, 52], ['wolfspider', 28, 56]], // (the grid fight's three, 6 to 9 squares off the party as its squares are there: data/fights.js snared)
@@ -249,9 +235,7 @@
     }
   };
   Gu.snared = function* (B, step) {
-    if (Gu.TRY.lad) { yield* Gu.snaredInPlace(B, step); return; }
-    yield* Gu.set(B, { fight: 'snared', trig: 'snared', title: 'WEB GULCH', lines: [].concat(L('gulch.snared')), away: 'LEAVE IT',
-      after: function* (B2) { D.counter.state(B2).silver(12); D.sfx('coin'); M.relay(B2); B2.card(D.roam.wrap([].concat(L('gulch.snaredFree'), [L('g.foundSilver', { n: 12 })])), 300); yield 30; } });
+    yield* Gu.snaredInPlace(B, step);
   };
   // THE BRAIDING ETTERCAP IN ITS LAIR ON THE GULLY (a TRY, 11-20, the gulch seat -- Griz: "2 - meanwhile, given gully roam present - play around with the shaping of the ettercap's
   // lair and party placement (entrance) - and match the roam to your new shape rather than dictated by first grid fight"): the strung end shaped as a lair -- a round
@@ -260,8 +244,7 @@
   // bunched in the neck, the ettercap braiding at the chamber's back wall, the giant spider up in the silk to the north, a wolf spider each side of the way in to flank them
   // as they come; the chamber's silk at the ettercap's DC 11. The ettercap on the floor sits at the back now, where it fights from. Kept from the first grid fight: its
   // four (the story's half again), its DC 11, its words and its spoils (the fangs, the Braided Cord); dropped: its map -- the 38 strung squares, the ledge and the slab.
-  // The field's story fight behind &lairgrid (Gu.TRY.lair false) until he has seen this one
-  Gu.TRY.lair = !/[?&]lairgrid\b/.test(String(window.location && window.location.search));
+  // The field's story fight was kept behind &lairgrid; CUT 11-20, his "4 - good cut, these are better (on roam encounters)"
   Gu.LAIR = {
     rect: [13, 86, 3, 2],  // (the neck: a step in is the ettercap seeing you)
     seat: [4, 86],         // (where it braids, at the chamber's back)
@@ -270,6 +253,8 @@
     webBox: [2, 81, 14, 12], // (the chamber and its neck: their silk the fight's hazard)
     minGap: 4
   };
+  // its spoils (the first game's): the fangs for Hessle's board, its braid the Braided Cord (Ned's wand, 11-16 -- js/counter.js C.nedWand), said on a card
+  Gu.ettercapSpoils = function* (B) { var st2 = D.counter.state(B); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); B.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; };
   Gu.lairInPlace = function* (B, step) {
     var R = D.roam, R0 = B.roam, t = R0.token, f = R0.flags, F0 = D.fight && D.fight('ettercap'); if (!Gu.alive(f)) return;
     D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
@@ -283,19 +268,16 @@
       line: (F0 && F0.intro) || 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
       place: function (B2, placed) { Gu.placeOn(B2, placed, Gu.LAIR.foes, Gu.LAIR.minGap); set.placed = placed.map(function (u) { return u.kind + "@" + u.x + "," + u.y; }); }, // (seated before they are drawn: Gu.placeOn)
       onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAIR.foes, Gu.LAIR.minGap); } };
-    Gu.lairLast = set;
+    set.silk = { by: 'the gully\'s silk, the ettercap\'s', sq: sq, dc: Gu.LAIR.webDC }; Gu.lairLast = set; // (its silk kept on the set: a bench reads it after a fight the class AI played)
     try { yield* M.inPlace(B, 'ettercap', set); }
     finally { B.webs = w0 || []; }
-    if (R0.flags['trig:ettercap']) { var st2 = D.counter.state(B); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); }
     M.relay(B, null, true); // (the floor's people stood again: the ettercap gone if it is dead, back braiding if the party got away)
-    if (R0.flags['trig:ettercap']) { B.card(R.wrap([].concat(L('gulch.fangs'))), 360); yield 30; }
+    if (R0.flags['trig:ettercap']) yield* Gu.ettercapSpoils(B);
   };
   // the braiding ettercap (S.ettercap): it stops braiding when it sees you; won, its fangs for Hessle's board
   Gu.ettercap = function* (B, step) {
     var f = B.roam.flags; if (!Gu.alive(f)) return;
-    if (Gu.TRY.lair) { yield* Gu.lairInPlace(B, step); return; }
-    yield* Gu.set(B, { fight: 'ettercap', trig: 'ettercap', title: 'THE STRUNG END', lines: [].concat(L('gulch.ettercap')), away: 'BACK AWAY', step: step,
-      after: function* (B2) { var st2 = D.counter.state(B2); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); /* (and its braid, the Braided Cord: Ned's wand, 11-16 -- js/counter.js C.nedWand) */ M.relay(B2, null, true); B2.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; } });
+    yield* Gu.lairInPlace(B, step);
   };
   // ---------------------------------------------------------------- THE CUTTERS' FIRE A CAMP (RULED 11-16, Griz: "yes on the leans" -- a long rest at the cutters' fire, the
   // 10-28 lean 5 reversed, the morning saved there -- then "What's the cost of rigging it special to still make the players do a watch and adding a male crewboss to fights
@@ -443,13 +425,13 @@
   // the lad like the Wet, shown (deep16/?isoshow&beat=gulchlad&lvl=3): a level 3 party on the road four squares north of his hollow by day, the fog of war on -- the gully
   // black past what they have seen; a step east into the hollow is reaching him, FIGHT on the gully's own squares
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchlad', label: 'THE SNARED LAD, fought where you stand (the try)', note: 'On the road above the lad\'s hollow by day, the fog of war on. Walk south and step east into the hollow: FIGHT, and the three come out of the silk behind him on the gully itself.', key: 'webgulch', at: [20, 50], hour: 10,
-    pin: function () { Gu.TRY.lad = true; Gu.TRY.fog = true; } });
+    pin: function () { Gu.TRY.fog = true; } });
   // the ettercap's lair, shown (?isoshow&beat=gulchlair&lvl=3): on the gully's bed east of the strung end's neck by day; west into the neck and it stops braiding
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchlair', label: 'THE ETTERCAP\'S LAIR, fought where you stand (the try)', note: 'On the bed by day, the strung end\'s neck just west. Step into the neck: the ettercap stops braiding at the back of its lair -- FIGHT, in the neck, the spiders coming at you out of the silk.', key: 'webgulch', at: [18, 86], hour: 10,
-    pin: function () { Gu.TRY.lair = true; Gu.TRY.fog = true; } });
+    pin: function () { Gu.TRY.fog = true; } });
   // a random fight on the gully, shown (?isoshow&beat=gulchrandom&lvl=3): by night midway down, the next few steps bringing one (the count pinned short) -- walking in out of the dark
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchrandom', label: 'A RANDOM FIGHT ON THE GULLY, by night (the try)', note: 'Midway down the gully by night, the fog on. Walk south a few steps: spiders come out of the dark and walk in, and the fight is where you meet them -- no field.', key: 'webgulch', at: [20, 40], hour: 22,
-    pin: function () { Gu.TRY.random = true; Gu.TRY.fog = true; Gu.encSoon = 3; } });
+    pin: function () { Gu.TRY.fog = true; Gu.encSoon = 3; } });
   // the fog kept, shown (?isoshow&beat=gulchfog&lvl=3): at the north mouth by day in a game -- walk a way down, out by the north mouth onto the road, and back in: what was seen stays
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchfog', label: 'THE FOG REMEMBERED, out and back in (the try)', note: 'At the north mouth by day. Walk down past the camp, go back up out of the north mouth, then step back in: the gully you walked is still uncovered; only the new is black.', key: 'webgulch', at: [17, 3], hour: 10,
     pin: function () { Gu.TRY.fog = true; } });
@@ -633,9 +615,8 @@
   // at the edge of sight, 30 to 60 ft off, walking in, the fight where they meet), not a field cut. The two things the field kept (the iso roam combat lane, item 6): the
   // camp's people and the lad kept out of it -- the floor's folk are never dealt into the order (R.fight: `look`), nobody's target and in no area (THE GULCH'S CHILDREN, below);
   // the lad is a square, no one -- and the gully's silk the fight's hazard: every webFloor square within Gu.RANDOM.webReach of the party at a giant spider's DC 12, as the field
-  // cut carried it (M.fieldDef above), laid as the fight opens and lifted as it ends (the walk on the floor keeps its webbing a look). The field's way behind &gulchfield
-  // (Gu.TRY.random false). The camp's watches and the story's set fights keep their own ways
-  Gu.TRY.random = !/[?&]gulchfield\b/.test(String(window.location && window.location.search));
+  // cut carried it (M.fieldDef above), laid as the fight opens and lifted as it ends (the walk on the floor keeps its webbing a look). The field's way
+  // was kept; CUT 11-20, his "4 - good cut, these are better (on roam encounters)". The camp's watches keep their field (the crew boss lent, the grid)
   Gu.RANDOM = { webReach: 12, webDC: 12 };
   Gu.webSq = function (cx, cy, r) { var out = []; for (var y = Math.max(0, cy - r); y <= Math.min(Gu.ROWS.length - 1, cy + r); y++) for (var x = Math.max(0, cx - r); x <= cx + r; x++) if (Gu.ROWS[y].charAt(x) === 'x') out.push([x, y]); return out; };
   var resetGu0 = D.roam.resetEnc; // (a show's count pinned short: the next fight a few steps off -- Gu.encSoon, once)
@@ -643,7 +624,7 @@
   var encGu0 = D.roam.encounter;
   D.roam.encounter = function* (B, why, set) {
     var def = D.roam.def;
-    if (!set && def && def.key === Gu.KEY && Gu.TRY.random) { yield* M.inPlace(B, why, set); return; }
+    if (!set && def && def.key === Gu.KEY) { yield* M.inPlace(B, why, set); return; }
     yield* encGu0.apply(this, arguments);
   };
   var fightGu0 = D.roam.fight;
