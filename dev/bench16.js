@@ -153,6 +153,48 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preS);
     return;
   }
+  // HIS OGRE FIGHT ON THE BENCH (mode=ogres1120 n=<fights>; 11-20, Griz: "Script the fight I just asked for in the pane, let the bench run and compare what the AI is doing with
+  // what a story would expect. Report with bench recommends."): ?npc=ogre,ogre&formation=4,4&lvl=3&watch, both sides on the AI, the same seeds trained and &untrained. A table,
+  // not a gate: who won, the rounds, the eight's losses; and what the formation did -- walls set, pushes called and shoves landed, pikes struck through the wall, wheels, the
+  // shields' blows and the pikes' blows, the ogres' blows and at whom; reads=1 (detail=1) hands back the first trained fight's cards
+  if (get('mode', '') === 'ogres1120') {
+    var resO = { n: n, trained: null, untrained: null, cards: null, errors: [] }, Fo = D.features, BtO = D.Battle.prototype;
+    var tal = null, set0O = Fo.setShields, push0O = Fo.wallPush, wheel0O = Fo.wheel, leave0O = Fo.leaveWall, att0O = BtO.attack;
+    Fo.setShields = function (B, u) { if (tal) { tal.sets++; if (!tal.firstSet) tal.firstSet = B.round; } return set0O.apply(this, arguments); };
+    Fo.leaveWall = function (B, u, free) { if (tal && !free) tal.leaves++; return leave0O.apply(this, arguments); };
+    Fo.wallPush = function* (B, u) { if (tal) tal.pushes++; return yield* push0O.apply(this, arguments); };
+    Fo.wheel = function () { if (tal) tal.wheels++; return wheel0O.apply(this, arguments); };
+    BtO.attack = function* (att, tgt, atk, o) {
+      if (tal && att && tgt) {
+        var k = att.side === 'foe' ? 'ogre->' + (/^Shield/.test(tgt.name) ? 'shield' : /^Pike/.test(tgt.name) ? 'pike' : 'other') : /^Shield/.test(att.name) ? 'shield blows' : /^Pike/.test(att.name) ? 'pike blows' : 'other blows';
+        tal[k] = (tal[k] || 0) + 1;
+        if (/^Pike/.test(att.name) && D.grid.dist(att, tgt) > 5) { tal['pike blows at 10 ft'] = (tal['pike blows at 10 ft'] || 0) + 1; var ls = D.grid.los(att, tgt); if (ls.wall) tal['pike blows through the wall'] = (tal['pike blows through the wall'] || 0) + 1; }
+      }
+      return yield* att0O.apply(this, arguments);
+    };
+    [true, false].forEach(function (tr) {
+      var T = { won: 0, lost: 0, other: 0, rounds: 0, eightDown: 0, ogreHpLeft: 0, sets: 0, leaves: 0, pushes: 0, wheels: 0, firstSetSum: 0, firstSetN: 0 };
+      for (var k = 0; k < n; k++) {
+        D.lastError = null; tal = { sets: 0, leaves: 0, pushes: 0, wheels: 0, firstSet: 0 };
+        var Bo = D.npcFight('?npc=' + (get('foes', 'x') === 'x' ? 'ogre,ogre' : get('foes', '')) + '&formation=4,4&lvl=3&watch&seed=' + (8100 + k * 7919) + (tr ? '' : '&untrained'), { bench: true });
+        D.battle = Bo; Bo.enter(); var r = drive(Bo);
+        if (D.lastError && resO.errors.length < 4) resO.errors.push(String(D.lastError.stack || D.lastError).slice(0, 300));
+        if (r === 'won') T.won++; else if (r === 'lost') T.lost++; else T.other++;
+        T.rounds += Bo.round; T.eightDown += Bo.units.filter(function (u) { return u.side === 'party' && (u.dead || u.hp <= 0); }).length;
+        T.ogreHpLeft += Bo.units.filter(function (u) { return u.side === 'foe'; }).reduce(function (a, u) { return a + Math.max(0, u.hp); }, 0);
+        if (tal.firstSet) { T.firstSetSum += tal.firstSet; T.firstSetN++; }
+        Object.keys(tal).forEach(function (kk) { if (kk !== 'firstSet') T[kk] = (T[kk] || 0) + tal[kk]; });
+        if (tr && k === 0 && (get('detail', '') || get('reads', ''))) resO.cards = (Bo.log || []).map(function (s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }).slice(0, 400);
+      }
+      var avg = function (x) { return +(x / n).toFixed(2); }, out = { partyWins: T.won, partyLosses: T.lost, other: T.other, rounds: avg(T.rounds), eightDownAvg: avg(T.eightDown), ogreHpLeftAvg: avg(T.ogreHpLeft), firstSetRoundAvg: T.firstSetN ? +(T.firstSetSum / T.firstSetN).toFixed(1) : null, perFight: {} };
+      Object.keys(T).forEach(function (kk) { if (!/^(won|lost|other|rounds|eightDown|ogreHpLeft|firstSetSum|firstSetN)$/.test(kk)) out.perFight[kk] = avg(T[kk]); });
+      resO[tr ? 'trained' : 'untrained'] = out;
+    });
+    tal = null; Fo.setShields = set0O; Fo.wallPush = push0O; Fo.wheel = wheel0O; Fo.leaveWall = leave0O; BtO.attack = att0O;
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(resO);
+    document.body.appendChild(preO);
+    return;
+  }
   if (get('mode', '') === 'mascots') {
     var MSC = ['denny', 'beholda', 'rascal', 'goose'], HER = ['barley', 'aurdin', 'vivian', 'lymen'], nd = +get('nd', n);
     var res3 = { lvl: L, n: n, nd: nd, band: null, duel: {}, dealt: {}, taken: {}, down: {}, left: {}, errors: [], fights: [] }, det = !!get('detail', '');
@@ -18069,6 +18111,73 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preIv);
     return;
   }
+  // THE FORMATION DOOR (mode=formation1120; 11-20, Griz: "Spin up a fight with a party of 4 shield wall guys and 4 pike guys vs 2 Ogres and let me play around with what we
+  // have please"): deep16/?npc=ogre,ogre&formation=4,4&lvl=3 -- eight dwarf fighters of the 3rd, each trained; four with a shield and a longsword, four with a pike; the party
+  // the player's (no &watch); two ogres; the fight enters and each one of the eight stands on the floor
+  if (get('mode', '') === 'formation1120') {
+    var repFo = { checks: [], errors: [] }, FFo = D.features;
+    function okFo(what, v) { repFo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      D.seed = 1120;
+      var Bf = D.npcFight('?npc=ogre,ogre&formation=4,4&lvl=3', {}); D.battle = Bf; Bf.enter(); var kF = 0; while (!Bf.order.length && kF++ < 2000) Bf.co.next();
+      var pf = Bf.units.filter(function (w) { return w.side === 'party' && !w.familiar; }), of = Bf.units.filter(function (w) { return w.side === 'foe'; });
+      var sh = pf.filter(function (w) { return /^Shield/.test(w.name); }), pk = pf.filter(function (w) { return /^Pike/.test(w.name); });
+      okFo('the party: ' + pf.map(function (w) { return w.name + ' ' + w.lvl + ' ' + (w.weapon && w.weapon.name) + (FFo.bearsShield(w) ? '+shield' : '') + ' AC ' + D.rules.ac(w) + (FFo.soldiering(w) ? ' trained' : ' UNTRAINED') + (w.guest ? ' AI' : ''); }).join('; ') + '; the foes: ' + of.map(function (w) { return w.name; }).join(', '),
+        pf.length === 8 && sh.length === 4 && pk.length === 4 && pf.every(function (w) { return FFo.soldiering(w) && w.lvl === 3 && !w.guest; }) && sh.every(function (w) { return FFo.bearsShield(w) && /Longsword/.test(w.weapon.name); }) && pk.every(function (w) { return !FFo.bearsShield(w) && w.weapon.kind === 'pike' && w.weapon.reach === 10; }) && of.length === 2 && of.every(function (w) { return w.kind === 'ogre'; }));
+      okFo('on the floor: ' + pf.filter(function (w) { return D.grid.canStand ? true : true; }).map(function (w) { return w.x + ',' + w.y; }).join(' ') + '; the order ' + Bf.order.length, Bf.order.length === 10 && pf.every(function (w) { return w.x != null && w.y != null; }) && new Set(pf.map(function (w) { return w.x + ',' + w.y; })).size === 8);
+      D.rules.startTurn(sh[0]); Bf.active = sh[0]; var c0 = Bf.commands(sh[0]).filter(function (c) { return c.id === 'setshields'; })[0];
+      okFo('a shield-bearer\'s ring offers SET SHIELDS: ' + !!c0, !!c0);
+      var Bw = D.npcFight('?npc=ogre,ogre&formation=4,4&lvl=3&watch', {}); D.battle = Bw; Bw.enter(); okFo('&watch puts the eight on the AI: ' + Bw.units.filter(function (w) { return w.side === 'party' && w.guest && w.classAI; }).length, Bw.units.filter(function (w) { return w.side === 'party' && w.guest && w.classAI; }).length === 8);
+    } catch (e) { repFo.errors.push(String(e && e.stack || e)); }
+    var preFo2 = document.createElement('pre'); preFo2.id = 'out'; preFo2.textContent = 'BENCH16 ' + JSON.stringify(repFo);
+    document.body.appendChild(preFo2);
+    return;
+  }
+  // COVER ON DEX SAVES (mode=dexcover1120; 11-20, Griz: "granted shield-wall cover works like standard cover with regard to dex saves", for all cover on the lanes desk's
+  // reading; SRD 5.1 Cover: half +2, three-quarters +5 to DEX saves): RU.save with an effect's point of origin (B.saveFrom) -- behind a joined shield wall +5, a body in the line
+  // +2 (the wall's past its second square, or the wall broken), a clear line none, a WIS save none, no origin none; then a Fireball cast through the grid's own path: the goblin
+  // behind a friend saves with "half cover +2" on the card, the one in the open without; Sacred Flame's words ("no benefit from cover") kept
+  if (get('mode', '') === 'dexcover1120') {
+    var repDc = { checks: [], errors: [] }, FDc = D.features, RUDc = D.rules, Gd = D.grid, d0Dc = D.d;
+    function okDc(what, v) { repDc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runDc(g) { var v, k = 0, st; while (g && k++ < 20000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function openAt(B, u, w, h) { Gd.setup(B.map, []); var W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30; for (var y = 1; y < H - h; y++) for (var x = 1; x < W - w; x++) { var all = true; for (var yy = y; yy < y + h && all; yy++) for (var xx = x; xx < x + w && all; xx++) all = Gd.canStand(u, xx, yy) && Math.abs(Gd.gzAt(u, xx, yy) - Gd.gzAt(u, x, y)) < 2; if (all) return [x, y]; } return null; }
+    try {
+      D.seed = 1120;
+      // 1. RU.save from a point: the wall's three-quarters, a body's half, a clear line, a WIS save, no origin
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], c = ps[2], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      ps.forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = u.src.equip || {}; u.src.equip.shield = u.src.equip.shield || 'shield'; u.conds = {}; });
+      var at0 = openAt(B, f, 2, 9), X = at0[0], Y = at0[1] + 4;
+      f.x = X; f.y = Y; m.x = X + 1; m.y = Y; c.x = X; c.y = Y + 1; gs[0].x = X; gs[0].y = Y - 4; gs[1].x = 1; gs[1].y = 1; Gd.setup(B.map, B.units);
+      [f, m].forEach(function (u) { RUDc.startTurn(u); B.active = u; runDc(B.exec(u, { do: 'setshields' })); });
+      B.saveFrom = { x: X, y: Y - 3, size: 1, conds: {} };
+      var s1 = RUDc.save(c, 'dex', 30); c.y = Y + 3; Gd.setup(B.map, B.units); var s3 = RUDc.save(c, 'dex', 30); c.y = Y + 1; Gd.setup(B.map, B.units);
+      var sW = RUDc.save(c, 'wis', 30); B.saveFrom = { x: X + 1, y: Y + 2, size: 1, conds: {} }; var sC = RUDc.save(c, 'dex', 30); B.saveFrom = null; var sN = RUDc.save(c, 'dex', 30);
+      delete m.conds.wall; B.saveFrom = { x: X, y: Y - 3, size: 1, conds: {} }; var sB = RUDc.save(c, 'dex', 30); B.saveFrom = null;
+      okDc('from a point before the wall (joined ' + FDc.joined(f) + ' before the break): the first square behind +' + (s1.cover || 0) + ' ("' + RUDc.saveText(s1).replace(/\{\/?[a-z]*\}/g, '') + '"), the third +' + (s3.cover || 0) + ', a WIS save +' + (sW.cover || 0) + ', a clear line +' + (sC.cover || 0) + ', no origin +' + (sN.cover || 0) + ', the wall broken +' + (sB.cover || 0),
+        s1.cover === 5 && /three-quarters cover \+5/.test(RUDc.saveText(s1)) && s3.cover === 2 && !sW.cover && !sC.cover && !sN.cover && sB.cover === 2);
+      // 2. a Fireball through the grid's own path: a goblin in the open, one behind a fighter
+      var B2 = D.npcFight('?npc=goblin,goblin&lvl=5&vs=wizard:5,fighter:5', {}); D.battle = B2; B2.enter(); while (!B2.order.length) B2.co.next(); B2.dark = false;
+      var wz = B2.units.filter(function (w) { return w.cls === 'wizard'; })[0], ft = B2.units.filter(function (w) { return w.cls === 'fighter'; })[0], g2 = B2.units.filter(function (w) { return w.side === 'foe'; });
+      g2.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; });
+      var o2 = openAt(B2, wz, 7, 7), PX = o2[0] + 1, PY = o2[1] + 1;
+      wz.x = PX + 5; wz.y = PY + 5; g2[0].x = PX + 2; g2[0].y = PY; ft.x = PX; ft.y = PY + 2; ft.maxhp = ft.hp = 999; g2[1].x = PX; g2[1].y = PY + 3; Gd.setup(B2.map, B2.units);
+      wz.slots = [4, 3, 3]; D.rules.startTurn(wz); B2.active = wz; var n2 = (B2.log || []).length;
+      runDc(B2.exec(wz, { do: 'cast', id: 'fireball', slot: 3, target: { x: PX, y: PY } }));
+      var lg2 = (B2.log || []).slice(n2).map(function (s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }), ln0 = lg2.filter(function (s) { return s.indexOf(g2[0].name) >= 0 && /DEX|saved|failed|d20/.test(s); }), all2 = lg2.join(' / ');
+      var gL = function (gb) { var nm = D.Battle.nm(gb).replace(/\{\/?[a-z]*\}/g, ''); return lg2.filter(function (s) { return s.indexOf(nm) >= 0 || s.indexOf(gb.name) >= 0; }).join(' | '); };
+      okDc('a Fireball at ' + PX + ',' + PY + ': the cards ' + JSON.stringify(all2.slice(0, 420)), /half cover \+2/.test(all2) && (all2.match(/cover \+/g) || []).length === 1);
+      // 3. Sacred Flame keeps "no benefit from cover": a goblin behind the fighter, its save with no cover
+      D.rules.startTurn(wz); B2.active = wz; wz.known = (wz.known || []).concat(['sacredflame']); var n3 = (B2.log || []).length;
+      runDc(B2.exec(wz, { do: 'cast', id: 'sacredflame', slot: 0, target: g2[1] })); var lg3 = (B2.log || []).slice(n3).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
+      okDc('Sacred Flame at the goblin behind the fighter: ' + JSON.stringify(lg3.slice(0, 220)), /DEX|saved|failed/.test(lg3) && !/cover \+/.test(lg3));
+    } catch (e) { repDc.errors.push(String(e && e.stack || e)); }
+    D.d = d0Dc; if (D.battle) D.battle.saveFrom = null;
+    var preDc = document.createElement('pre'); preDc.id = 'out'; preDc.textContent = 'BENCH16 ' + JSON.stringify(repDc);
+    document.body.appendChild(preDc);
+    return;
+  }
   // WHEEL ON THE FEAT (mode=wheel1120; the leveling lane's 2026-11-20 sections, the formation training -- RULED, Griz: "1 wheel leaves", "2 - trained only, they'll have to use a
   // feat slot if they want to do it with the party, but should work with NPCs that have it"): the feat Soldiering in the register (STR 13, the grid's alone); the Drillyard's PLAYS
   // without WHEEL, a sheet or a card that still names it given the play it lacks; on a hit, a trained one and a trained friend within 5 ft trade places and the friend's reaction
@@ -18184,6 +18293,19 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okSw('out at no cost: the mate pushed to ' + at(h9.m) + ', set ' + set9 + ', the caller joined ' + j9 + ', AC ' + ac9 + ' -> ' + ac9b + '; the mate prone, the caller joined ' + j9b, !set9 && !j9 && ac9b === ac9 - 2 && !j9b);
       var h10 = mkSw(); setSw(h10, h10.f); RUSw.startTurn(h10.f); var mv10 = h10.f.turn.move; runSw(h10.B.exec(h10.f, { do: 'leavewall' }));
       okSw('LEAVE: set ' + FSw.wallSet(h10.f) + ', the move ' + mv10 + ' -> ' + h10.f.turn.move + ', bonus ' + h10.f.turn.bonus + ', reaction ' + h10.f.reaction, !FSw.wallSet(h10.f) && mv10 === 0 && h10.f.turn.move > 0 && h10.f.turn.bonus === 0 && h10.f.reaction === 0);
+      // 12. a move click with shields set (11-20, his "clicking ... stops and asks player 'leave the <wall...>'"): the click becomes LEAVE THE WALL?; yes leaves (the bonus and
+      // the reaction) and walks there; HOLD stays; with the reaction spent it holds and says why
+      var h12 = mkSw(); setSw(h12, h12.f); RUSw.startTurn(h12.f); h12.B.active = h12.f; var got12 = null, ans0 = h12.B.answer; h12.B.answer = function (c) { got12 = c; };
+      h12.B.tool = 'move'; D.ui.actAt(h12.B, h12.f, h12.X, h12.Y + 1); h12.B.answer = ans0;
+      var seen12 = [], g12 = h12.B.exec(h12.f, got12 || { do: 'none' }), v12, k12 = 0, st12;
+      while (k12++ < 4000) { st12 = g12.next(v12); v12 = undefined; if (st12.done) break; if (st12.value && st12.value.prompt) { seen12.push(st12.value.prompt.title); v12 = st12.value.prompt.opts[0].value; } }
+      okSw('a move click while set: the click is ' + JSON.stringify(got12 && got12.do) + ', asked ' + JSON.stringify(seen12) + '; then set ' + FSw.wallSet(h12.f) + ', at ' + at(h12.f) + ' (from ' + h12.X + ',' + h12.Y + '), bonus ' + h12.f.turn.bonus + ', reaction ' + h12.f.reaction,
+        got12 && got12.do === 'wallmove' && seen12.some(function (t) { return /LEAVE THE WALL/.test(t); }) && !FSw.wallSet(h12.f) && at(h12.f) === h12.X + ',' + (h12.Y + 1) && h12.f.turn.bonus === 0 && h12.f.reaction === 0);
+      var h12b = mkSw(); setSw(h12b, h12b.f); RUSw.startTurn(h12b.f); h12b.B.active = h12b.f; runSw(h12b.B.exec(h12b.f, { do: 'wallmove', x: h12b.X, y: h12b.Y + 1 }));
+      var h12c = mkSw(); setSw(h12c, h12c.f); RUSw.startTurn(h12c.f); h12c.B.active = h12c.f; h12c.f.reaction = 0; var n12c = (h12c.B.log || []).length; runSw(h12c.B.exec(h12c.f, { do: 'wallmove', x: h12c.X, y: h12c.Y + 1 }));
+      var l12c = (h12c.B.log || []).slice(n12c).join(' ').replace(/\{\/?[a-z]*\}/g, '');
+      okSw('HOLD THE WALL: set ' + FSw.wallSet(h12b.f) + ', at ' + at(h12b.f) + '; the reaction spent: set ' + FSw.wallSet(h12c.f) + ', at ' + at(h12c.f) + ', "' + l12c.slice(0, 90) + '"',
+        FSw.wallSet(h12b.f) && at(h12b.f) === h12b.X + ',' + h12b.Y && h12b.f.reaction === 1 && FSw.wallSet(h12c.f) && at(h12c.f) === h12c.X + ',' + h12c.Y && /holds the wall/.test(l12c));
       // 11. untrained: no SET SHIELDS on the ring, and none set
       var h11 = mkSw(false), c11 = h11.B.commands(h11.f).filter(function (c) { return c.id === 'setshields'; })[0]; setSw(h11, h11.f);
       okSw('untrained: SET SHIELDS on the ring ' + !!c11 + ', set ' + FSw.wallSet(h11.f), !c11 && !FSw.wallSet(h11.f));
@@ -19114,7 +19236,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           f.speed === 25 && f.darkvision === 60 && (f.resist || []).indexOf('poison') >= 0 && !!f.resilient && f.type === 'humanoid');
       });
       okGA('1 the crossbows load (heavy crossbow: loading, SRD 5.1): trooperxbow ' + !!F.trooperxbow.attacks.crossbow.loading + ', drill-sergeant ' + !!F.drillsergeant.attacks.crossbow.loading + '; the road patrol keen ' + F.roadpatrol.keen + ', passive ' + F.roadpatrol.perception + ', Stealth +' + F.roadpatrol.stealth,
-        !!F.trooperxbow.attacks.crossbow.loading && !!F.drillsergeant.attacks.crossbow.loading && F.roadpatrol.keen === 'hearing and sight' && F.roadpatrol.perception === 15 && F.roadpatrol.stealth === 6);
+        !!F.trooperxbow.attacks.crossbow.loading && !!F.drillsergeant.attacks.crossbow.loading && F.roadpatrol.keen === 'hearing and sight' && F.roadpatrol.perception === 14 && F.roadpatrol.abil.str === 13 && F.roadpatrol.stealth === 6); // (passive 14 and STR 13 since 11-20: his "change recruitment standards", STR and WIS swapped)
     } catch (eGA1) { repGA.errors.push('1: ' + String(eGA1 && eGA1.stack || eGA1).slice(0, 400)); }
     // 2. BUILT IN A FIGHT (the Pocket DM's own door, ?npc=): AC by the rules, HP, speed, the dwarf's traits on the unit
     try {
