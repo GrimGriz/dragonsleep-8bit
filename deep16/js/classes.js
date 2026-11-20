@@ -876,6 +876,28 @@
     var h = NPC.sheet(sp);
     var u = NPC.unit(h, side || 'foe', Object.assign({ named: sp.named, sheet: sp.look || null }, o || {})); // (a named one's own figure: Talmok's)
     if (h.script && u.side === 'party') { u.guest = true; u.classAI = true; } // (the king on the party's side fights his own way -- js/pyro.js; the Pocket DM, 10-02)
+    if (sp.soldiering) u.soldiering = true; // (trained by the spec: the formation door below, 11-20)
     return u;
+  };
+  // THE FORMATION DOOR (11-20, Griz: "Spin up a fight with a party of 4 shield wall guys and 4 pike guys vs 2 Ogres and let me play around with what we have please"):
+  // &formation=<shields>,<pikes> on the class floor makes the party that many dwarf fighters of the fight's level, every one trained in Soldiering (js/features.js) --
+  // the shield-bearers with a longsword, a shield and the Defense style, the pikers with a pike and Great Weapon Fighting. No block of the bestiary carries a pike, so
+  // these are the class floor's fighters, not the garrison's blocks. &vs= is set aside; &watch puts them on the AI. deep16/?npc=ogre,ogre&formation=4,4&lvl=3
+  NPC.formation = function (nW, nP, L) {
+    var out = [];
+    for (var i = 0; i < nW; i++) out.push({ cls: 'fighter', lvl: L, race: 'dwarf', name: 'Shield ' + (i + 1), style: 'defense', soldiering: true, equip: { weapon: 'longsword', shield: 'shield' } });
+    for (var j = 0; j < nP; j++) out.push({ cls: 'fighter', lvl: L, race: 'dwarf', name: 'Pike ' + (j + 1), style: 'gwf', soldiering: true, equip: { weapon: 'pike', shield: null } });
+    return out;
+  };
+  var npcFight0 = D.npcFight;
+  D.npcFight = function (q, o) {
+    var m = /[?&]formation=(\d+),(\d+)/.exec(q || '');
+    if (!m) return npcFight0.apply(this, arguments);
+    var L = Math.max(1, Math.min(12, +((/[?&]lvl=(\d+)/.exec(q) || [])[1]) || 5));
+    var specs = NPC.formation(Math.min(8, +m[1]), Math.min(8, +m[2]), L);
+    if (/[?&]untrained\b/.test(q)) specs.forEach(function (sp) { sp.soldiering = false; }); // (&untrained: the same eight and kit, no Soldiering -- the bench's other half)
+    var B = npcFight0.call(this, String(q).replace(/([?&])vs=[^&]*/, '$1'), o);
+    B.o.npc.party = specs.map(function (sp, i) { return Object.assign({ id: 'p' + i + '-' + (sp.equip.shield ? 'shield' : 'pike') }, sp); }); // (Battle.enter builds the party from these: battle.js)
+    return B;
   };
 })();
