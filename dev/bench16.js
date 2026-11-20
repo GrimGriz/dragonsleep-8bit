@@ -22451,8 +22451,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // W1 the ettercap beaten: its fangs for Hessle's board, and its braid (the Braided Cord) into the pack -- Ned's wand
       var CIS = D.counter, GuIS = D.gulch, set0IS = GuIS.set, relay0IS = D.mines.relay, cardsW1 = [];
       var BW1 = { roam: { flags: {}, members: [], token: { x: 0, y: 0 } }, inv: [], units: [], card: function (l) { cardsW1.push([].concat(l).join(' ')); } };
-      GuIS.set = function* (B, o) { yield* o.after(B); }; D.mines.relay = function () {};
-      try { runIS(GuIS.ettercap(BW1, false)); } finally { GuIS.set = set0IS; D.mines.relay = relay0IS; }
+      GuIS.set = function* (B, o) { yield* o.after(B); }; D.mines.relay = function () {}; var lairIS = GuIS.TRY && GuIS.TRY.lair; if (GuIS.TRY) GuIS.TRY.lair = false; // (the field's way, its spoils by Gu.set's `after`: the lair on the gully behind its switch here since 11-20 -- its own spoils are checked in gulchlair1120)
+      try { runIS(GuIS.ettercap(BW1, false)); } finally { GuIS.set = set0IS; D.mines.relay = relay0IS; if (GuIS.TRY) GuIS.TRY.lair = lairIS; }
       var stW1 = CIS.state(BW1);
       okIS('W1 the ettercap beaten: "' + cardsW1.join(' | ').slice(0, 300) + '" -- the pack ' + JSON.stringify(BW1.inv) + ', cordTaken ' + BW1.roam.flags.cordTaken,
         CIS.count(stW1, 'ettercapfangs') === 1 && CIS.count(stW1, 'cord') === 1 && BW1.roam.flags.cordTaken === 1 && /Received: Braided Cord/.test(cardsW1.join(' ')));
