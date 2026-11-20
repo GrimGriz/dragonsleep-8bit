@@ -489,27 +489,41 @@
     Object.keys(G).forEach(function (k) { var d = G[k][0] * v[0] + G[k][1] * v[1]; if (d > bd) { bd = d; best = k; } });
     return best;
   };
-  Gu.enter = function (gate) {
+  Gu.enter = function (gate, sq) {
     var site = Gu.site(); if (!site || !D.roam) return false;
-    if (W.house()) { D.house.toTown(Gu.KEY, gate); return true; }
-    W.inDoor = { site: site, gate: gate }; D.push(D.roam.make('?roam=' + Gu.KEY + '&gate=' + gate)); return true;
+    if (W.house()) { D.house.toTown(Gu.KEY, gate, sq || null); return true; }
+    W.inDoor = { site: site, gate: gate }; D.push(D.roam.make('?roam=' + Gu.KEY + '&gate=' + gate, sq ? { opts: { at8: sq.slice() } } : undefined)); return true;
+  };
+  // IN AND OUT BY WHERE (RULED 11-20, Griz: "3 - leave dependent on where you leave. In the example fight the exit fight and exit gulch squares were the same, but if I'm on the
+  // north side 'end hex' is different than if I'm on the south or the side trails"; coming in, the seat's lean he took: on the road at the row matching the hex it came from).
+  // In: down the road from the hex beyond either end, by that mouth as ever; from any other hex -- one of the cut's own, or off a bank beside it -- onto the road at the row of
+  // the cut's hex stepped into (its place along the span: the span's first hex the south end, its last the north). Out (Gu.ptOut): by the north mouth onto the hex beyond the
+  // north end, by the south mouth onto the hex beyond the south end, by a side trail or the rim onto the bank hex beside the cut's hex at that row -- the next hex over, not two
+  Gu.rowOf = function (sp, key, h) { var i = -1; sp.hexes.forEach(function (q, j) { if (q[0] + ',' + q[1] === key) i = j; }); if (i < 0 || sp.hexes.length < 2) return null; return Math.max(2, Math.min(h - 3, Math.round((1 - i / (sp.hexes.length - 1)) * (h - 1)))); };
+  Gu.roadAt = function (y) { var r = Gu.ROWS[y] || '', x = r.indexOf(','); return x < 0 ? null : [x, y]; };
+  Gu.entrySq = function (sp, from, at) { // (null: by a mouth, the road's own way in)
+    var fk = from[0] + ',' + from[1], ends = [sp.north, sp.south].filter(Boolean).map(function (q) { return q[0] + ',' + q[1]; });
+    if (ends.indexOf(fk) >= 0) return null;
+    var y = Gu.rowOf(sp, at[0] + ',' + at[1], Gu.ROWS.length); return y == null ? null : Gu.roadAt(y);
   };
   var step0 = W.onStep;
   W.onStep = function (scene, st) { // (THE WORLD's step and the top-down view's: true stops the walk)
     var m = W.M(), S = W.state(), sp = m && m.near ? Gu.span(m) : null; // (on the area only: THE WORLD alone keeps the site's door, offered where a walk ends)
-    if (sp && S.from && sp.set[S.at[0] + ',' + S.at[1]]) { Gu.enter(Gu.gateFrom(S.from, S.at)); return true; }
+    if (sp && S.from && sp.set[S.at[0] + ',' + S.at[1]]) { Gu.enter(Gu.gateFrom(S.from, S.at), Gu.entrySq(sp, S.from, S.at)); return true; }
     return step0.apply(this, arguments);
   };
 
   // ---------------------------------------------------------------- OUT: the road's two mouths onto the road beyond the cut; any other rim square asks, onto the bank top
-  Gu.ptOut = function (def, sq) {
-    var m = W.M(), sp = Gu.span(m), site = Gu.site(m); if (!site) return null;
+  Gu.mouthOf = function (def, sq) { return sq[1] <= 1 ? 'north' : sq[1] >= def.h - 2 ? 'south' : null; }; // (the road's two mouths: their gates stand a square in, rows 1 and h-2)
+  Gu.ptOut = function (def, sq, m) {
+    m = m || W.M(); var sp = Gu.span(m), site = Gu.site(m); if (!site) return null;
     if (!sp) return [site.x, site.y];
-    var n = Gu.hc(m, sp.hexes[sp.hexes.length - 1][0], sp.hexes[sp.hexes.length - 1][1]), s = Gu.hc(m, sp.hexes[0][0], sp.hexes[0][1]);
-    if (sq[1] === 0) return Gu.hc(m, sp.north[0], sp.north[1]);
-    if (sq[1] === def.h - 1) return Gu.hc(m, sp.south[0], sp.south[1]);
-    var k = sq[1] / (def.h - 1), x = n[0] + (s[0] - n[0]) * k, y = n[1] + (s[1] - n[1]) * k, side = M.sideOf(def, sq);
-    return [x + (side === 'west' ? -2.2 : side === 'east' ? 2.2 : 0), y]; // (the bank top that side, beyond the cut)
+    var mo = Gu.mouthOf(def, sq);
+    if (mo === 'north') return Gu.hc(m, sp.north[0], sp.north[1]);
+    if (mo === 'south') return Gu.hc(m, sp.south[0], sp.south[1]);
+    // a side trail or the rim: the cut's own hex at this row (the span's index by the row: the south end first), and the next hex over that side
+    var i = Math.max(0, Math.min(sp.hexes.length - 1, Math.round((1 - sq[1] / (def.h - 1)) * (sp.hexes.length - 1)))), c = Gu.hc(m, sp.hexes[i][0], sp.hexes[i][1]), side = M.sideOf(def, sq);
+    return [c[0] + (side === 'west' ? -m.w : side === 'east' ? m.w : 0), c[1]]; // (one hex across that side: m.w, the map's hex across -- 2.2 had been two of the area's)
   };
   Gu.place = function (pt, line) {
     while (D.scenes.length && D.top() !== W.scene) D.pop();

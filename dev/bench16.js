@@ -2783,7 +2783,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // (entrance) - and match the roam to your new shape rather than dictated by first grid fight"; "3 - we're gonna get it working in the gulch and learn before doing the road
   // instead"; "4 - unless this is bad, it's only the party's first time through they get the fog, correct?"; js/gulch.js): mode=gulchlair1120 the ettercap in its lair on the
   // gully; mode=gulchrandom1120 the random fights in place; mode=gulchfog1120 the fog kept across visits and saves. One harness, three modes
-  if (/^gulch(lair|random|fog)1120$/.test(get('mode', ''))) {
+  if (/^gulch(lair|random|fog|mouth)1120$/.test(get('mode', ''))) {
     var modeG2 = get('mode', ''), repG2 = { checks: [], errors: [] }, memG2 = {}, stGG2 = D.store.get, stSG2 = D.store.set, muG2 = D.music, apG2 = window.DS.autoPicks, Gu2 = D.gulch, R2 = D.roam, M2 = D.mines, H2 = D.house, G2r = D.grid, Fog2 = D.fog, W2 = D.world;
     function okG2(what, v) { repG2.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     D.store.get = function (k) { return memG2[k] ? JSON.parse(memG2[k]) : null; }; D.store.set = function (k, v) { memG2[k] = JSON.stringify(v); return true; };
@@ -2878,6 +2878,23 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           var t4 = B4r && B4r.roam && B4r.roam.token;
           okG2('the show door: ' + R2.def.key + ' at ' + (t4 && t4.x + ',' + t4.y) + ', ' + W2.hour() + ':00 (dark ' + !!R2.def.dark + '), the next fight ' + (B4r.roam && B4r.roam.encIn) + ' steps off', R2.def.key === 'webgulch' && t4 && t4.x === 20 && t4.y === 40 && W2.hour() === 22 && B4r.roam.encIn <= 3);
           H2.playing = false; H2.cur = null; }
+      }
+      if (modeG2 === 'gulchmouth1120') {
+        // IN AND OUT BY WHERE (RULED 11-20, Griz: "3 - leave dependent on where you leave ... if I'm on the north side 'end hex' is different than if I'm on the south or the side
+        // trails"; in, on the road at the row matching the hex it came from)
+        if (!D.WORLD_NEAR) { var xMN = new XMLHttpRequest(); xMN.open('GET', '../deep16/data/world-near.js', false); xMN.send(); (0, eval)(xMN.responseText); } // (the Silverton area's map: the bench page leaves it out, as walk1113's head fetches it)
+        W2.index(); var MN = W2.map('near'), sp = Gu2.span(MN), Bm = floorG2('?roam=webgulch&hour=10&at=20,50'), defm = R2.def, keyOf = function (q) { return q[0] + ',' + q[1]; };
+        var nearest = function (pt) { var best = null, bd = 1e9; Object.keys(MN.hex).forEach(function (k) { var a = k.split(',').map(Number), c = Gu2.hc(MN, a[0], a[1]), d = Math.hypot(c[0] - pt[0], c[1] - pt[1]); if (d < bd) { bd = d; best = a; } }); return best; };
+        var hexD = function (a, b) { var ca = Gu2.hc(MN, a[0], a[1]), cb = Gu2.hc(MN, b[0], b[1]); return Math.hypot(ca[0] - cb[0], ca[1] - cb[1]) / MN.w; };
+        var outN = nearest(Gu2.ptOut(defm, [17, 0], MN)), outS = nearest(Gu2.ptOut(defm, [22, defm.h - 1], MN)), outW = nearest(Gu2.ptOut(defm, [1, 10], MN)), outE = nearest(Gu2.ptOut(defm, [38, 59], MN)), outL = nearest(Gu2.ptOut(defm, [1, 86], MN));
+        var rowHex = function (y) { return sp.hexes[Math.max(0, Math.min(sp.hexes.length - 1, Math.round((1 - y / (defm.h - 1)) * (sp.hexes.length - 1))))]; };
+        okG2('out by the north mouth onto ' + outN + ' (the hex beyond the north end ' + sp.north + '), by the south onto ' + outS + ' (beyond the south ' + sp.south + ')', keyOf(outN) === keyOf(sp.north) && keyOf(outS) === keyOf(sp.south));
+        var sideOK = [[outW, 10], [outE, 59], [outL, 86]].map(function (o) { var h = rowHex(o[1]); return { at: keyOf(o[0]), cut: keyOf(h), d: Math.round(hexD(o[0], h) * 100) / 100, inCut: !!sp.set[keyOf(o[0])] }; });
+        okG2('out by the side trails and the rim: ' + sideOK.map(function (s) { return s.at + ' (one over from the cut\'s ' + s.cut + ': ' + s.d + ' hexes, in the cut ' + s.inCut + ')'; }).join('; '), sideOK.every(function (s) { return !s.inCut && s.d > 0.5 && s.d < 1.5; }));
+        var last = sp.hexes[sp.hexes.length - 1], mid = sp.hexes[Math.floor(sp.hexes.length / 2)], inN = Gu2.entrySq(sp, sp.north, last), inS = Gu2.entrySq(sp, sp.south, sp.hexes[0]), inM = Gu2.entrySq(sp, sp.hexes[Math.floor(sp.hexes.length / 2) + 1] || sp.north, mid);
+        var sideFrom = outW, inSide = Gu2.entrySq(sp, sideFrom, rowHex(10));
+        okG2('in: down the road from beyond either end by the mouth (' + inN + ', ' + inS + ' -- null: the gate); from the cut\'s own hex or a bank beside it onto the road at its row: the middle hex ' + keyOf(mid) + ' at ' + inM + ', from the west bank into ' + keyOf(rowHex(10)) + ' at ' + inSide,
+          inN === null && inS === null && !!inM && Gu2.ROWS[inM[1]].charAt(inM[0]) === ',' && Math.abs(inM[1] - defm.h / 2) < defm.h / 4 && !!inSide && Gu2.ROWS[inSide[1]].charAt(inSide[0]) === ',');
       }
       if (modeG2 === 'gulchfog1120') {
         Gu2.TRY.fog = true; Fog2.MEM = {};
