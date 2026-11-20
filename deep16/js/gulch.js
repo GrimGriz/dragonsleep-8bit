@@ -655,6 +655,13 @@
     var w0 = B.webs; B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.webSq(t.x, t.y, Gu.RANDOM.webReach), dc: Gu.RANDOM.webDC, ground: true }]);
     try { return yield* fightGu0.apply(this, arguments); } finally { B.webs = w0 || []; }
   };
+  // ---------------------------------------------------------------- THE DUSK (RULED 11-20, Griz: "1 lean" -- the seat's lean, "a dusk tint as a look only, not the dark's rules"): the
+  // gully is dark by night alone (20:00 to 05:00, M.night); at dusk (17:00 to 20:00, W.todAt) it drew as full day. Now a dusk tint lies over the floor as drawn -- a look:
+  // no light pass, no change to who sees whom, to the fog or to any roll. On the floors in Dusk.ON (Web Gulch, the ruling's)
+  var Dusk = D.dusk = { ON: {}, TINT: 'rgba(36,18,46,0.30)' };
+  Dusk.ON[Gu.KEY] = true;
+  Dusk.on = function (B) { var def = D.roam && D.roam.def; if (!B || !B.roam || !def || !Dusk.ON[def.key] || B.dark || D.battle !== B) return false; var W8 = D.world; return !!(W8 && W8.todAt && W8.todAt(M.hourNow(D.roam.q, B)) === 'dusk'); };
+  Dusk.pass = function (ctx, B, W, H) { if (!Dusk.on(B)) return false; ctx.save(); ctx.fillStyle = Dusk.TINT; ctx.fillRect(0, 0, W, H); ctx.restore(); return true; };
   var edgeOut0 = M.edgeOut;
   M.edgeOut = function* (B, sq) { if (D.roam.def && D.roam.def.key === Gu.KEY) { yield* Gu.out(B, sq); return; } yield* edgeOut0.apply(this, arguments); };
 })();

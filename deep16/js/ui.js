@@ -1566,6 +1566,7 @@
       fadeFaces(B);
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); if (B.floorMarks) B.floorMarks(c); }); // (B.floorMarks: a host's own marks on the floor, under the figures -- the roam's ORDER box, js/roam.js)
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
+      if (D.dusk && D.dusk.pass) D.dusk.pass(wx, B, vw, vh); // (a dusk tint, a look only, on a floor that has it: js/gulch.js D.dusk, 11-20)
       if (D.fog && D.fog.pass) D.fog.pass(wx, B, vw, vh); // (the fog of war on a roam that has it: what was never seen black -- js/gulch.js D.fog, the try of 11-20)
       if (B.marksOver) B.marksOver(wx); // (a host's own lines over the light: the roam's ORDER box, js/roam.js)
       drawPathDots(wx);
