@@ -17555,6 +17555,94 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preFo);
     return;
   }
+  // THE HUNTER'S PREY (mode=prey1120; the leveling lane §8 item 10, 2026-11-20 -- Griz: "pick two of the SRD unbuilt to add tonight"; SRD 5.1 Hunter): the choice of three
+  // at 3 on the maker (NPC.OPTIONS.ranger), the sheet's and the unit's `prey`, a word round the pick codec; Colossus Slayer only for the one that chose it (or chose
+  // nothing); GIANT KILLER's reaction at a Large one that swings at it within 5 ft, hit or miss, never at a Medium one, never with the reaction spent; HORDE BREAKER's one
+  // more attack at another within 5 ft of the first, once a turn, none with no other beside
+  if (get('mode', '') === 'prey1120') {
+    var repPy = { checks: [], errors: [] }, d0Py = D.d, RPy = window.DS.R;
+    function okPy(what, v) { repPy.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPy(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function plainPy(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkPy(prey, foes) {
+      var B = D.npcFight('?npc=' + foes + '&lvl=5&vs=ranger:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var r = B.units.filter(function (w) { return w.side === 'party'; })[0], fs = B.units.filter(function (w) { return w.side === 'foe'; });
+      r.prey = prey; r.guest = true; // (guest: the class AI's answers, no prompt to feed)
+      fs.forEach(function (f) { f.maxhp = f.hp = 999; f.conds = {}; });
+      return { B: B, r: r, fs: fs };
+    }
+    // set a beside b (any of the 8 squares b's footprint leaves open), true when it stands
+    function besidePy(B, a, b, not) {
+      var s = b.size || 1;
+      for (var dy = -1; dy <= s; dy++) for (var dx = -1; dx <= s; dx++) {
+        if (dx >= 0 && dx < s && dy >= 0 && dy < s) continue;
+        var x = b.x + dx, y = b.y + dy;
+        if (not && not.some(function (n) { return n.x === x && n.y === y; })) continue;
+        if (D.grid.canStand(a, x, y)) { a.x = x; a.y = y; D.grid.setup(B.map, B.units); if (D.grid.dist(a, b) <= 5) return true; }
+      }
+      return false;
+    }
+    function logPy(B, n0) { return (B.log || []).slice(n0).map(plainPy).join(' / '); }
+    try {
+      D.seed = 1120;
+      // 1. the maker's tab, the ask at 3, the sheet and the unit, the word
+      var opPy = (D.npc.OPTIONS.ranger || [])[0] || {}, idsPy = (opPy.opts || []).map(function (o) { return o.id; }).join(',');
+      okPy('the maker\'s ranger options: ' + opPy.key + ' at ' + opPy.at + ' for ' + opPy.sub + ' (' + idsPy + ')', opPy.key === 'prey' && opPy.at === 3 && opPy.sub === 'Hunter' && idsPy === 'colossus,giantkiller,hordebreaker');
+      var a3Py = D.npc.levelAsks(D.npc.spec('ranger:3'), 3, { classDefaults: true }), q3Py = ((a3Py && a3Py.asks) || []).filter(function (a) { return a.key === 'prey'; })[0];
+      var a4Py = D.npc.levelAsks(D.npc.spec('ranger:4'), 4, { classDefaults: true }), q4Py = ((a4Py && a4Py.asks) || []).filter(function (a) { return a.key === 'prey'; })[0];
+      okPy('a ranger\'s level 3 asks the prey (' + (q3Py ? q3Py.rows.length + ' rows, one: ' + q3Py.one : 'none') + '); level 4 does not', !!q3Py && q3Py.rows.length === 3 && q3Py.one === true && !q4Py);
+      var uG = D.npc.build({ id: 'pyg', cls: 'ranger', lvl: 5, prey: 'giantkiller' }, 5, 'party'), uC = D.npc.build('ranger:5', 5, 'party', { id: 'pyc' }), u2 = D.npc.build('ranger:2', 2, 'party', { id: 'py2' });
+      okPy('the unit\'s prey: a spec\'s ' + uG.prey + ', the generic Hunter\'s ' + uC.prey + ', a ranger 2\'s ' + u2.prey, uG.prey === 'giantkiller' && uC.prey === 'colossus' && !u2.prey);
+      var wPy = RPy.picksWord({ 3: { prey: 'hordebreaker' } }), bPy = RPy.picksParse(wPy);
+      okPy('the pick word: ' + wPy.join(' ') + ' and back (' + (bPy && bPy[3] && bPy[3].prey) + ')', wPy[0] === '^3h:hordebreaker' && bPy && bPy[3] && bPy[3].prey === 'hordebreaker');
+      okPy('the features list names them: ' + [D.FEATURES.giantkiller && D.FEATURES.giantkiller.name, D.FEATURES.hordebreaker && D.FEATURES.hordebreaker.name].join(', '), !!(D.FEATURES.giantkiller && D.FEATURES.hordebreaker));
+
+      // 2. Colossus Slayer: the one that chose it, never the others
+      var cs = function (prey) {
+        var h = mkPy(prey, 'goblin,goblin'), g = h.fs[0]; h.fs[1].x = 1; h.fs[1].y = 1; besidePy(h.B, h.r, g); g.hp = 500; D.rules.startTurn(h.r); h.B.active = h.r;
+        D.d = function (n) { return n === 20 ? 15 : d0Py(n); }; var n0 = (h.B.log || []).length; runPy(h.B.attack(h.r, g, h.r.weapon, {})); D.d = d0Py;
+        return /colossus slayer/.test(logPy(h.B, n0));
+      };
+      var csC = cs('colossus'), csN = cs(null), csG = cs('giantkiller'), csH = cs('hordebreaker');
+      okPy('Colossus Slayer on a hurt one: chosen ' + csC + ', none named ' + csN + ', a Giant Killer ' + csG + ', a Horde Breaker ' + csH, csC && csN && !csG && !csH);
+
+      // 3. Giant Killer: a Large one beside swings (a hit, then a miss) -- the reaction and a blow back; a Medium one never; none with the reaction spent
+      var gk = function (foe, roll, react) {
+        var h = mkPy('giantkiller', foe + ',goblin'), o = h.fs[0]; h.fs[1].x = 1; h.fs[1].y = 1;
+        var ok = besidePy(h.B, h.r, o); D.rules.startTurn(o); h.B.active = o; h.r.reaction = react; h.r.maxhp = h.r.hp = 999;
+        D.d = function (n) { return n === 20 ? roll : d0Py(n); }; var wa = o.weapon || (o.attacks && o.attacks[Object.keys(o.attacks)[0]]), n0 = (h.B.log || []).length; runPy(h.B.attack(o, h.r, wa, {})); D.d = d0Py; // (a monster's first attack: the ogre's Greatclub)
+        var l = logPy(h.B, n0); return { stood: ok, size: o.size || 1, back: /GIANT KILLER/.test(l), reaction: h.r.reaction, log: l };
+      };
+      var gHit = gk('ogre', 19, 1), gMiss = gk('ogre', 2, 1), gMed = gk('hobgoblin', 19, 1), gSpent = gk('ogre', 19, 0);
+      okPy('an ogre (size ' + gHit.size + ') hits the Hunter beside it: GIANT KILLER answers ' + gHit.back + ', the reaction ' + gHit.reaction, gHit.stood && gHit.size >= 2 && gHit.back && gHit.reaction === 0);
+      okPy('an ogre misses it: GIANT KILLER answers ' + gMiss.back + ', the reaction ' + gMiss.reaction, gMiss.stood && gMiss.back && gMiss.reaction === 0);
+      okPy('a hobgoblin (size ' + gMed.size + ') hits it: no answer (' + gMed.back + '), the reaction kept ' + gMed.reaction, gMed.stood && gMed.size === 1 && !gMed.back && gMed.reaction === 1);
+      okPy('the reaction spent: no answer (' + gSpent.back + ')', gSpent.stood && !gSpent.back);
+
+      // 4. Horde Breaker: two goblins side by side -- one more attack, at the other, once a turn; one goblin alone -- none
+      var hb = mkPy('hordebreaker', 'goblin,goblin,goblin'), g1 = hb.fs[0], g2 = hb.fs[1]; hb.fs[2].x = 1; hb.fs[2].y = 1;
+      var okA = besidePy(hb.B, hb.r, g1), okB = besidePy(hb.B, g2, g1, [hb.r]); D.rules.startTurn(hb.r); hb.B.active = hb.r;
+      var near = D.grid.dist(g2, g1) <= 5 && hb.B.canHit(hb.r, g2) || hb.r.weapon.ranged;
+      D.d = function (n) { return n === 20 ? 15 : d0Py(n); };
+      var hp1 = g1.hp, hp2 = g2.hp, nH = (hb.B.log || []).length; runPy(hb.B.attack(hb.r, g1, hb.r.weapon, {})); var lH = logPy(hb.B, nH), d1 = hp1 - g1.hp, d2 = hp2 - g2.hp;
+      okPy('a Horde Breaker attacks one of two side by side: HORDE BREAKER ' + /HORDE BREAKER/.test(lH) + ', the first took ' + d1 + ', the other ' + d2 + ', done ' + !!hb.r.turn.hordeDone, okA && okB && near && /HORDE BREAKER/.test(lH) && d1 > 0 && d2 > 0 && hb.r.turn.hordeDone === true);
+      var hp2b = g2.hp, nH2 = (hb.B.log || []).length; runPy(hb.B.attack(hb.r, g1, hb.r.weapon, {})); var lH2 = logPy(hb.B, nH2);
+      okPy('its second attack this turn: no second HORDE BREAKER (' + /HORDE BREAKER/.test(lH2) + '), the other untouched ' + (hp2b === g2.hp), !/HORDE BREAKER/.test(lH2) && hp2b === g2.hp);
+      D.rules.startTurn(hb.r); okPy('its next turn: ready again (' + !hb.r.turn.hordeDone + ')', !hb.r.turn.hordeDone);
+      var hs = mkPy('hordebreaker', 'goblin,goblin'), s1 = hs.fs[0]; hs.fs[1].x = 1; hs.fs[1].y = 1; besidePy(hs.B, hs.r, s1); D.rules.startTurn(hs.r); hs.B.active = hs.r;
+      var far = D.grid.dist(hs.fs[1], s1) > 5, nS = (hs.B.log || []).length; runPy(hs.B.attack(hs.r, s1, hs.r.weapon, {})); var lS = logPy(hs.B, nS);
+      okPy('one goblin with no other within 5 ft of it: no HORDE BREAKER (' + /HORDE BREAKER/.test(lS) + ')', far && !/HORDE BREAKER/.test(lS) && !hs.r.turn.hordeDone);
+      D.d = d0Py;
+      // an opportunity attack is not "on its turn": none
+      var ho = mkPy('hordebreaker', 'goblin,goblin,goblin'), o1 = ho.fs[0], o2 = ho.fs[1]; ho.fs[2].x = 1; ho.fs[2].y = 1; besidePy(ho.B, ho.r, o1); besidePy(ho.B, o2, o1, [ho.r]);
+      D.rules.startTurn(o1); ho.B.active = o1; D.d = function (n) { return n === 20 ? 15 : d0Py(n); }; var nO = (ho.B.log || []).length; runPy(ho.B.attack(ho.r, o1, ho.r.weapon, { oa: true })); D.d = d0Py;
+      okPy('its opportunity attack on another\'s turn: no HORDE BREAKER (' + /HORDE BREAKER/.test(logPy(ho.B, nO)) + ')', !/HORDE BREAKER/.test(logPy(ho.B, nO)));
+    } catch (e) { repPy.errors.push(String(e && e.stack || e)); }
+    D.d = d0Py;
+    var prePy = document.createElement('pre'); prePy.id = 'out'; prePy.textContent = 'BENCH16 ' + JSON.stringify(repPy);
+    document.body.appendChild(prePy);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;

@@ -3526,6 +3526,7 @@
     if (D.features && D.features.greenAsk) yield* D.features.greenAsk(this); // (WHAT FALLS, FEEDS: a player's Green Return paladin is asked once the blow that dropped one is done -- js/features.js F.greenAsk; a seam here since 11-03, F.greenHook wrapped this from outside)
     if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt, hit: o.struck });
     yield* this.harryTold(att);
+    if (D.features && D.features.preyAfter) yield* D.features.preyAfter(this, att, tgt, atk, o); // (the Hunter's Prey, SRD 5.1: Giant Killer's blow back, Horde Breaker's one more -- js/features.js, 11-20)
   };
   // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that
   // haven't first-turned"): with the Attack action at one that has not had its first turn, one more attack at it, its damage the weapon's dice alone -- no ability modifier,

@@ -164,7 +164,8 @@
     }
     // Colossus Slayer (the Hunter ranger, 3): once a turn, +1d8 on a weapon hit on one already hurt
     // (dealt as its own blow so the card shows it)
-    if (att.cls === 'ranger' && att.lvl >= 3 && att.subclass === 'Hunter' && att.turn && !att.turn.colossus && tgt.hp < tgt.maxhp && !atk.spell) {
+    // (the Hunter's Prey is a choice of three since 11-20 -- u.prey, F.prey below; a Hunter with none named is the Colossus Slayer it always was)
+    if (att.cls === 'ranger' && att.lvl >= 3 && att.subclass === 'Hunter' && (att.prey || 'colossus') === 'colossus' && att.turn && !att.turn.colossus && tgt.hp < tgt.maxhp && !atk.spell) {
       att.turn.colossus = true; var cs = D.roll('1d8', { crit: crit });
       B.card(['  {y}colossus slayer{/} 1d8 [' + cs.rolls.join(',') + '] = {r}' + cs.total + '{/}'], 200); B.hurt(tgt, cs.total, atk.type, { magic: !!(atk.magic || atk.spell), blow: tgt.blowIn }); // (the weapon's blow: one concentration save, battle.js blowEnd)
       yield 8;
@@ -748,6 +749,50 @@
     B.card(['{r}' + Nm(B, tgt) + ' answers back!{/}  {g}(the reaction){/}'], 200);
     yield* B.attack(tgt, att, tgt.weapon, { oa: true, answer: true }); // (a blow back, not an opportunity attack: Escape the Horde is not asked)
   };
+  // ------------------------------------------------------------------ the Hunter's Prey (SRD 5.1, the Hunter's choice at 3; the leveling lane §8 item 10 -- 2026-11-20, Griz:
+  // "pick two of the SRD unbuilt to add tonight"): the sheet's `prey` (js/classes.js NPC.OPTIONS.ranger) is 'colossus' (Colossus Slayer, in M.onWeaponHit above),
+  // 'giantkiller' or 'hordebreaker'. Both are asked once an attack is wholly done (battle.js attack's last wrapper, F.preyAfter)
+  F.prey = function (u, id) { return !!(u && u.cls === 'ranger' && u.subclass === 'Hunter' && u.lvl >= 3 && (u.prey || 'colossus') === id); };
+  F.PREY_NAMES = { colossus: 'colossus slayer', giantkiller: 'giant killer', hordebreaker: 'horde breaker' };
+  // GIANT KILLER: "When a Large or larger creature within 5 feet of you hits or misses you with an attack, you can use your reaction to attack that creature immediately
+  // after its attack, provided that you can see the creature." A player's Hunter is asked; the AI's always answers. Its own weapon, as it stands (a bow at 5 ft shoots at
+  // the disadvantage the grid gives any shot with a foe beside)
+  F.giantKiller = function* (B, att, tgt) {
+    if (!F.prey(tgt, 'giantkiller') || !att || att === tgt || att.dead || att.hp <= 0 || tgt.dead || tgt.hp <= 0 || tgt.reaction <= 0 || !RU.canAct(tgt) || !tgt.weapon) return;
+    if (!((att.size || 1) >= 2) || !G.hostile(tgt, att) || G.dist(tgt, att) > 5 || !B.canHit(tgt, att) || !M.sees(B, tgt, att)) return;
+    if (tgt.weapon.ammo && !B.ammoLeft(tgt)) return;
+    if (mine(tgt)) {
+      var go = yield { prompt: { who: tgt, title: tgt.name + ': GIANT KILLER?', lines: [Nm(B, att) + ' has swung at you. One attack back at it with the ' + tgt.weapon.name.toLowerCase() + ' (your reaction).'], opts: [{ label: 'STRIKE BACK', value: 1 }, { label: 'NOT THIS TIME', value: 0, no: true }] } };
+      if (!go) return;
+    }
+    tgt.reaction = 0; if (tgt.weapon.ammo) B.spendAmmo(tgt);
+    B.card(['{y}' + Nm(B, tgt) + '{/}: {o}GIANT KILLER{/}  {g}(the reaction: one attack back at ' + nm(B, att) + '){/}'], 200);
+    yield* B.attack(tgt, att, tgt.weapon, { oa: true, answer: true }); // (as Answer Back's: a blow back, not an opportunity attack)
+  };
+  // HORDE BREAKER: "Once on each of your turns when you make a weapon attack, you can make another attack with the same weapon against a different creature that is within
+  // 5 feet of the original target and within range of your weapon." A player's Hunter picks the one (NOT NOW keeps it for a later attack this turn); the AI's takes the one
+  // with the fewest hit points. Not on a thrown weapon (the throw is gone with the first)
+  F.hordeBreaker = function* (B, att, tgt, atk, o) {
+    var T = att && att.turn;
+    if (!F.prey(att, 'hordebreaker') || B.active !== att || !T || T.hordeDone || !tgt || !atk || atk.spell || o.oa || o.horde || att.dead || att.hp <= 0 || !RU.canAct(att)) return;
+    if (B.thrownLeft(att, atk) !== Infinity) return;
+    if (atk.ammo && !B.ammoLeft(att)) return;
+    var list = B.units.filter(function (w) {
+      if (w === tgt || w === att || w.dead || w.hp <= 0 || w.object || !G.hostile(att, w) || !G.standing(w) || RU.charmedBy(att, w) || G.dist(w, tgt) > 5 || !M.sees(B, att, w)) return false;
+      return atk.ranged ? G.range(att, w) <= atk.range[1] && G.los(att, w).clear : G.dist(att, w) <= G.reachOf(att, atk.reach || null);
+    });
+    if (!list.length) return;
+    var t2 = mine(att) ? yield* pickOne(B, att, 'HORDE BREAKER', list, 'One more attack with the ' + atk.name.toLowerCase() + ', at another beside ' + nm(B, tgt) + '. (once a turn)') : list.sort(function (a, b) { return a.hp - b.hp; })[0];
+    if (!t2) return;
+    T.hordeDone = true; if (atk.ammo) B.spendAmmo(att);
+    B.card(['{y}' + Nm(B, att) + '{/}: {o}HORDE BREAKER{/}  {g}(one more attack, at ' + nm(B, t2) + '){/}'], 180);
+    yield* B.attack(att, t2, atk, { horde: true });
+  };
+  F.preyAfter = function* (B, att, tgt, atk, o) {
+    o = o || {};
+    if (!o.answer) yield* F.giantKiller(B, att, tgt);
+    yield* F.hordeBreaker(B, att, tgt, atk, o);
+  };
 
   // ------------------------------------------------------------------ the Grey Road (GreyFang's; the ranger's archetype, 3; ours, 10-08): the pit-master's way --
   // guard the one beside you, give the ground you choose, answer from the bow. Griz, 10-08: "If we do not already have a subclass option for folks to choose, please
@@ -1016,6 +1061,7 @@
     if (u.cls === 'warlock' && u.pact) out.push('pact of the ' + u.pact);
     if (u.subclass === 'The Fiend' && u.lvl >= 6) out.push('dark luck ' + (f.darkLuck ? 'ready' : 'spent'));
     if (u.cls === 'barbarian' && u.subclass === 'Path of the Berserker' && u.lvl >= 6) out.push('mindless rage');
+    if (u.prey && u.prey !== 'colossus') out.push(F.PREY_NAMES[u.prey] || ''); // (the Hunter's Prey when it is not the Colossus Slayer every Hunter had: 11-20)
     if (u.hunterDef) out.push({ horde: 'escape the horde', multiattack: 'multiattack defense', steelwill: 'steel will' }[u.hunterDef] || '');
     if (u.cls === 'rogue' && u.subclass === 'Thief' && u.lvl >= 9) out.push('supreme sneak');
     if (u.style && window.DS.R.STYLES[u.style]) out.push(window.DS.R.STYLES[u.style].short); // (the fighting style, 10-06: the Pocket DM's picked ones)

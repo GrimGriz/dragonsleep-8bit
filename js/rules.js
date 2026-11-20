@@ -425,9 +425,9 @@
   // (10-17, the Pocket DM's EDIT for a named card -- Griz: "full edit of torvald and aurdin and such": the spells it let go '^5d:bless', the class options
   // '^5i:agonizing-repelling' '^3m:twinned-careful' '^3p:blade' '^2l:mountain', the style '^1y:defense'; one value for the archetype, the pact, the land, the style)
   // (11-03: the Drillyard's plays '^3q:wheel-bind-holdground', a story fighter's chosen with his archetype -- R.subAsks)
-  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r', drop: 'd', invocations: 'i', metamagic: 'm', pact: 'p', land: 'l', style: 'y', plays: 'q' };
-  var PICK_ONE = { archetype: 1, pact: 1, land: 1, style: 1 };
-  R.PICK_OPTS = ['invocations', 'metamagic', 'pact', 'land', 'style'];
+  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r', drop: 'd', invocations: 'i', metamagic: 'm', pact: 'p', land: 'l', style: 'y', plays: 'q', prey: 'h' }; // (prey: the Hunter's Prey '^3h:giantkiller', 11-20)
+  var PICK_ONE = { archetype: 1, pact: 1, land: 1, style: 1, prey: 1 };
+  R.PICK_OPTS = ['invocations', 'metamagic', 'pact', 'land', 'style', 'prey'];
   R.picksWord = function (picks) {
     var out = [];
     Object.keys(picks || {}).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {

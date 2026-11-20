@@ -139,6 +139,11 @@
       { id: 'pinshield', name: 'Pin the Shield', desc: 'on a hit, its shield adds nothing to its AC till your next turn' },
       { id: 'callmark', name: 'Call the Mark', desc: 'a bonus action: each friend\'s first hit on one creature +2 till your next turn' },
       { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' }] }],
+    // the Hunter's Prey (SRD 5.1, the Hunter's choice at 3 -- 11-20, the leveling lane §8 item 10; js/features.js F.prey): Colossus Slayer was every Hunter's till then
+    ranger: [{ key: 'prey', word: 'PREY', at: 3, sub: 'Hunter', opts: [
+      { id: 'colossus', name: 'Colossus Slayer', desc: 'once a turn, a weapon hit on one already hurt deals 1d8 more' },
+      { id: 'giantkiller', name: 'Giant Killer', desc: 'the reaction: an attack back at a Large or larger creature within 5 ft that swings at you' },
+      { id: 'hordebreaker', name: 'Horde Breaker', desc: 'once a turn, one more attack with the same weapon at another within 5 ft of the first' }] }],
     druid: [{ key: 'land', word: 'LAND', at: 2, sub: 'Circle of the Land', opts: [ // (the Land's alone since the Pelt, 10-30)
       // (the Underdark is not one of the SRD 5.1's seven: RULED ours, 10-31, Griz: "I think the memetic penetration of R. A. Salvatore warrants the use of UnderDark and if a
       // session objects we can call it MantleCrust" -- invented.json #underdark-land)
@@ -442,6 +447,7 @@
     if (sub === 'the Lampwright' && cls === 'rogue' && lvl >= 3) h.known = (h.known || []).concat(['light', 'dancinglights'].filter(function (id) { return (h.known || []).indexOf(id) < 0; })); // (Wick-Lore: Light and Dancing Lights, INT -- ours, 11-03)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
     if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = spec.hunterDefense || 'horde';
+    if (cls === 'ranger' && sub === 'Hunter' && lvl >= 3) h.prey = ['colossus', 'giantkiller', 'hordebreaker'].indexOf(spec.prey) >= 0 ? spec.prey : 'colossus'; // (the Hunter's Prey, 11-20: NPC.OPTIONS.ranger)
     if (cls === 'warlock' && lvl >= 3 && spec.pact === 'blade') { // the pact weapon in hand; what it carried takes the second place
       var carried = h.equip.weapon; h.pact = 'blade'; h.equip.weapon = spec.pactForm || 'rapier';
       if (!('alt' in spec)) h.alt = carried !== h.equip.weapon ? carried : c.kit.alt;
@@ -645,7 +651,7 @@
       u.weapon = combo[0]; u.combo = combo.length > 1 ? combo : null; u.alt = null;
     }
     if (h.twoActions) u.twoActions = true; // (two actions a turn, never two spells: js/tactics.js TX.turn)
-    u.plays = h.plays || null; u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
+    u.plays = h.plays || null; u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.prey = h.prey || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
     // Pact of the Blade (SRD 5.1): proficient with the pact weapon while she wields it, and it counts as magical
     if (h.pact === 'blade' && u.weapon) { u.weapon = Object.assign({}, u.weapon, { magic: true, pact: true, name: u.weapon.name + ' (pact)' }); if (!R.isProfWeapon(h, R.weaponOf(h))) u.weapon.atk += R.prof(h.lvl); }
     u.invocations = h.invocations || null;

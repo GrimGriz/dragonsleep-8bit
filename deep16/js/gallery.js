@@ -270,7 +270,7 @@
   // to half; foeHurt: the foe already hurt
   var STAGE = {
     sneakattack: { mate: 'flank' },
-    colossusslayer: { foe: 3, foeHurt: 1 }, fightingstyle_archery: { foe: 3 }, extraattack_ranger: { foe: 3 },
+    colossusslayer: { foe: 3, foeHurt: 1 }, hordebreaker: { foe: 3, mate: null }, giantkiller: { nfoe: 1, mate: null },fightingstyle_archery: { foe: 3 }, extraattack_ranger: { foe: 3 },
     turnundead: { skel: 2 }, turntheunholy: { skel: 2 }, destroyundead: { skel: 2 },
     deflectmissiles: { foe: 4, mate: null }, uncannydodge: { mate: null }, firstblood: { mate: null }, answerback: { mate: null }, rimedoubles: { mate: null },
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
@@ -303,6 +303,7 @@
     carefulspell: { metamagic: ['careful', 'heightened'] }, heightenedspell: { metamagic: ['careful', 'heightened'] }, subtlespell: { metamagic: ['subtle', 'empowered'] }, empoweredspell: { metamagic: ['subtle', 'empowered'] }, // (the SRD's, 10-31)
     // (the ranger's kit weapon, js/classes.js, is 'longbow', which content/items.json does not have -- a ranger built as it stands swings Fists; the gallery gives it the shortbow)
     fightingstyle_archery: { equip: { weapon: 'shortbow' } }, colossusslayer: { equip: { weapon: 'shortbow' } }, extraattack_ranger: { equip: { weapon: 'shortbow' } },
+    giantkiller: { prey: 'giantkiller', equip: { weapon: 'shortsword' } }, hordebreaker: { prey: 'hordebreaker', equip: { weapon: 'shortbow' } }, // (the Hunter's Prey, 11-20)
     escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
     followthrough: { picks: { 4: { asi: { feat: 'followthrough' } } } }, // (the feat taken at 4, 10-30)
     fortunesdue: { picks: { 4: { asi: { feat: 'fortunesdue' } } } }, // (Fortune's Due at 4, 10-30)
@@ -547,6 +548,15 @@
       },
       downinthesand: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* swing(c, null, 4, true); },
       firstblood: function* (c) { yield* foeStrike(c, 4, { until: function (k) { return !!k.hero.conds.raging; } }); },
+      // the Hunter's Prey (SRD 5.1, 11-20): HORDE BREAKER -- a shot at one of two side by side, and one more at the other; GIANT KILLER -- a Large one must swing at
+      // it, so the stage's fighter stands down for an ogre (two squares north: its footprint is beside the hero), whose club misses and is answered
+      hordebreaker: swings(5),
+      giantkiller: function* (c) {
+        var og = place(B.makeFoe({ id: 'g-ogre', kind: 'ogre', at: [c.hero.x, c.hero.y - 2] }), c.hero.x, c.hero.y - 2, 0); B.units = B.units.filter(function (w) { return c.foes.indexOf(w) < 0; }).concat([og]); c.foes = [og]; D.grid.setup(D.grid.map, B.units);
+        var club = Object.assign({}, og.weapon || (og.attacks && og.attacks[Object.keys(og.attacks)[0]]), { atk: -20 });
+        for (var i = 0; i < 3; i++) { D.rules.startTurn(og); B.active = og; c.hero.hp = c.hero.maxhp; c.hero.reaction = 1; yield* fire(B.attack(og, c.hero, club)); if (c.hero.reaction === 0) break; yield 14; }
+        B.active = c.hero;
+      },
       answerback: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* foeStrike(c, 4, { atk: -20, until: function (k) { return k.hero.reaction === 0; } }); },
       // the Threshing Floor (ours, 10-30; deep16/js/rules.js RU.hardGround, RU.startTurn): a blow from the ground with no disadvantage, the foe's at it with no advantage, up for
       // 5 ft; down at 0, up at its turn with its first blow at advantage; a prone foe threshed for one more weapon die

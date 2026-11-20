@@ -54,7 +54,7 @@ Each decision gets one verdict:
 | Warlock | 2 and up | Eldritch Invocations | 32 | the same 32 | 4 on the maker | WHOLE, 28 unbuilt |
 | Druid | 2 | the Land's land | 8 | the same 8 | the Underdark, the Mountain | WHOLE, 6 unbuilt |
 | Sorcerer | 1 | Dragon Ancestor | 10 | the same 10 | fire | WHOLE, 9 unbuilt |
-| Ranger | 1, 3, 6, 7 | Favored Enemy, Natural Explorer, the Hunter's choices | all of them | the same | Colossus Slayer | WHOLE, most unbuilt |
+| Ranger | 1, 3, 6, 7 | Favored Enemy, Natural Explorer, the Hunter's choices | all of them | the same | the Hunter's Prey whole (Colossus Slayer; Giant Killer and Horde Breaker 2026-11-20, the maker's PREY tab) and Defensive Tactics (its three, by a spec); Favored Enemy, Natural Explorer and the 11th's Multiattack not | WHOLE, some unbuilt |
 | Rogue 1, 6; Bard 3, 10 | | Expertise | any two skills | the same | Vivian's page (the maker keeps no skills, the Pocket DM lane §2g) | WHOLE, built for the four |
 
 **The count to invent:** 23 subclasses (bard 1, cleric 5, druid 1, fighter 2, monk 2, paladin 3, rogue 1, sorcerer 1, warlock 1, wizard 6) and 40 feats. By CLAUDE.md's pull rule (the playable classes at the playable levels): the four's classes first -- fighter 2, paladin 3, rogue 1, wizard 6, and the feats -- then the Pocket DM's other eight.
