@@ -13368,6 +13368,41 @@
 "source": "deep16/_src/ned/ART-103/ART-103_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "warp:percy"
 },
+"nellvey_p2": {
+"image": "art/nellvey_p2.png?v=8e7fc90632",
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 1,
+"fps": 1
+},
+"holdpose": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 6,
+"fps": 8
+}
+},
+"name": "Nell Vey",
+"hold": [
+"drawn so far: Hold the Pose 6 alone; her idle is its frame 1, and every other row (walk, the hammer blow, Stand-In, flinch, fall, prone) plays it",
+"the mirrors (SW W NW) carry the hammer to her left hand and the shield to her right forearm (the art desk's own note)",
+"the red thumb against the hammer in the rear views (the art desk's own note: check at 1x)"
+],
+"source": "drawn by the art desk (NELL-VEY-CUTTER-HANDOFF, 11-19: its own villain, Hold the Pose in five views), cut by tools/nellvey-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by the Pocket DM's villain (js/classes.js NPC.NAMED.nellvey)"
+},
 "newlandrider_p1": {
 "image": "art/newlandrider_p1.png?v=8be35b91e8",
 "fw": 128,
@@ -22191,6 +22226,97 @@ true
 "art": "ART-103",
 "door": "warp:percy",
 "source": "deep16/_src/ned/ART-103 (the art desk's ART-103, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_nellvey": {
+"image": "art/pt_nellvey.png?v=08d3c03135",
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"appraising": {
+"y": 162,
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"bargaining": {
+"y": 324,
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"caught": {
+"y": 486,
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"commanding": {
+"y": 648,
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"bereaved": {
+"y": 810,
+"fw": 204,
+"fh": 162,
+"ax": 122,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "NELL-VEY",
+"door": "the Pocket DM's villain (js/classes.js NPC.NAMED.nellvey); her weighhouse not built",
+"source": "deep16/_src/nell-vey/2026-11-19-NELL-VEY/source/portrait (the art desk's NELL-VEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_nerisse": {
 "image": "art/pt_nerisse.png?v=8967d1840e",

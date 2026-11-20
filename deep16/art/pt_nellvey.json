@@ -1,0 +1,91 @@
+{
+ "image": "art/pt_nellvey.png",
+ "fw": 204,
+ "fh": 162,
+ "ax": 122,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 204,
+   "fh": 162,
+   "ax": 122,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "appraising": {
+   "y": 162,
+   "fw": 204,
+   "fh": 162,
+   "ax": 122,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "bargaining": {
+   "y": 324,
+   "fw": 204,
+   "fh": 162,
+   "ax": 122,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "caught": {
+   "y": 486,
+   "fw": 204,
+   "fh": 162,
+   "ax": 122,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "commanding": {
+   "y": 648,
+   "fw": 204,
+   "fh": 162,
+   "ax": 122,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "bereaved": {
+   "y": 810,
+   "fw": 204,
+   "fh": 162,
+   "ax": 122,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "NELL-VEY",
+ "door": "the Pocket DM's villain (js/classes.js NPC.NAMED.nellvey); her weighhouse not built",
+ "source": "deep16/_src/nell-vey/2026-11-19-NELL-VEY/source/portrait (the art desk's NELL-VEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
