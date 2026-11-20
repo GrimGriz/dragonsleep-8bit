@@ -33,7 +33,11 @@ GARR = {'axe': ('axeshield', 'axecut', 'BATTLEAXE CUT, ROUND SHIELD', 'THE CUT')
         'swordshield': ('slashshield', 'slash', 'LONGSWORD SLASH, ROUND SHIELD', 'THE CUT'),      # Lymen's (11-13), the human build: slashshield-<view>.png with the target, slashshield-alone-<view>.png
         'greataxe': ('greataxe', 'chop', 'GREATAXE OVERHAND CHOP, TWO HANDS', 'THE CHOP'),      # Talmok's (11-19), the human build, laid as Lymen's: greataxe-<view>.png with the target, greataxe-alone-<view>.png
         'spearthrow': ('spearthrow', 'throw', 'SPEAR THROW', 'RELEASE'), 'spearpush': ('spearpush', 'keepback', 'SPEAR KEEP BACK, THE POINT OUT', 'THE POINT'),      # the guard's two (11-19), the human build, laid as the greataxe
-        'longbow': ('longbow', 'shoot', 'LONGBOW SHOT', 'LOOSE'), 'stab': ('stab', 'stab', 'SHORTSWORD STAB', 'THE STAB')}      # the road patrol's two
+        'longbow': ('longbow', 'shoot', 'LONGBOW SHOT', 'LOOSE'), 'stab': ('stab', 'stab', 'SHORTSWORD STAB', 'THE STAB'),      # the road patrol's two
+        # the new kits of 11-20 (the pose seat): `hammer dwarf`, `twinshort dwarf`, `pike dwarf` laid as the garrison's; `bar` and `knife` (Hask's, the human build) as the greataxe
+        'hammer': ('hammershield', 'hammer', 'WARHAMMER BLOW, ROUND SHIELD', 'THE BLOW'), 'twinshort': ('twinshort', 'stab', 'SHORTSWORD THRUST, A BLADE IN EACH HAND', 'THE STAB'),
+        'bar': ('barknife', 'swing', 'ONE-HANDED BAR SWING, KNIFE IN THE LEFT HAND', 'THE BLOW'), 'knife': ('knifestab', 'stab', 'LEFT-HAND KNIFE STAB, BAR IN THE RIGHT', 'THE STAB'),
+        'pike': ('pike', 'thrust', 'PIKE THRUST, TWO HANDS', 'THE THRUST')}
 for _k in GARR:
     if _k in sys.argv[1:]:
         NAME, ROW, MOVE, HIT = GARR[_k]
@@ -91,7 +95,7 @@ def main():
         b = strip('render', meta['rows'][ROW], f, n, rel, 4, 'MANNEQUIN - %s - %s - the striker alone' % (MOVE, NAMES[f]))
         b.convert('RGB').save(os.path.join(OUT, NAME + '-alone-%s.png' % f), optimize=True)
         small.append(strip('model', meta['model'][ROW], f, n, rel, 2, NAMES[f]))
-        if NAME in ('slashshield', 'greataxe', 'spearthrow', 'spearpush'):      # (11-13: a page of the striker alone as well -- what goes to the art desk carries no target)
+        if NAME in ('slashshield', 'greataxe', 'spearthrow', 'spearpush', 'barknife', 'knifestab', 'slash1h'):      # (11-13: a page of the striker alone as well -- what goes to the art desk carries no target)
             withT.append(strip('render', meta['rows'][ROW], f, n, rel, 2, NAMES[f]))
     W = max(s.width for s in small); H = sum(s.height for s in small)
     pg = Image.new('RGB', (W, H), NAVY); y = 0
