@@ -2872,6 +2872,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var B1f = floorG2('?roam=webgulch&hour=10&at=20,50'); Fog2.see(B1f); var s1 = cntG2(B1f.roam.fogSeen), at1 = B1f.roam.fogSeen[54 * B1f.map.w + 23];
         var B2f = floorG2('?roam=webgulch&hour=10&at=20,90'); var s2a = cntG2(Fog2.recall(B2f.map.w * B2f.map.h)); /* (what the second visit opens with: the kept squares, read back) */ Fog2.see(B2f); var s2 = cntG2(B2f.roam.fogSeen), at2 = B2f.roam.fogSeen[54 * B2f.map.w + 23];
         okG2('out and back in on a test door: ' + s1 + ' seen on the first visit, the second opens with ' + s2a + ' and has ' + s2 + '; the lad\'s square still seen ' + at2, s1 > 0 && s2a === s1 && s2 > s1 && at1 === 1 && at2 === 1);
+        // 1b. in a fight every one of the party's eyes (11-20, his walk in the lair: "party vision on token member only ... (viv didn't unfog until barley came in)")
+        Fog2.MEM = {}; var B1e = floorG2('?roam=webgulch&hour=10&at=20,50'), m1e = B1e.map, viv = B1e.roam.members.filter(function (u) { return u.src; })[1]; if (B1e.units.indexOf(viv) < 0) B1e.units.push(viv); /* (in a fight the members stand on the floor's units: R.spill) */
+        var far1 = function () { return B1e.roam.fogSeen[72 * m1e.w + 20]; };
+        viv.x = 20; viv.y = 70; B1e.roam.mode = 'walk'; B1e.roam.fogNow = null; Fog2.see(B1e); var walk1e = far1();
+        B1e.roam.mode = 'fight'; B1e.roam.fogNow = null; Fog2.see(B1e); var fight1e = far1(); B1e.roam.mode = 'walk';
+        okG2('a fight\'s eyes: ' + viv.name + ' at 20,70 apart from the token at 20,50 -- 20,72 seen on the walk ' + walk1e + ' (the token\'s eyes only), in a fight ' + fight1e + ' (every member\'s)', walk1e === 0 && fight1e === 1);
         // 2. in a game: kept in the save, and back after a load
         H2.playing = false; H2.cur = null; var rec = H2.fresh('barley'); rec.at = { town: 'webgulch', gate: 'north', sq: [20, 50], dir: null }; H2.begin(rec, 0);
         var B3f = D.top(); if (B3f && B3f.baking) { B3f.baking = false; B3f.enter(); } for (var k3f = 0; k3f < 44; k3f++) D.update(); B3f = D.top(); D.battle = B3f; Fog2.see(B3f);

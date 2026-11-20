@@ -553,15 +553,20 @@
   Fog.on = function (B) { var def = D.roam && D.roam.def; return !!(B && B.roam && def && Fog.ON[def.key] && (def.key !== Gu.KEY || Gu.TRY.fog) && B.map && D.battle === B); };
   Fog.see = function (B) {
     var R0 = B.roam, t = R0.token, m = B.map, G = D.grid; if (!t || !m) return null;
-    var k = t.x + ',' + t.y + '|' + (B.dark ? 1 : 0) + '|' + m.w + 'x' + m.h;
+    // whose eyes: the token's on the walk; in a fight every one of the party standing on the floor (11-20, his walk in the lair: "party vision on token member only re fog of
+    // war/ettercap fight (viv didn't unfog until barley came in)")
+    var eyes = [t]; if (R0.mode === 'fight') B.units.forEach(function (u) { if (u.side === 'party' && !u.look && !u.familiar && G.standing(u) && u.x >= 0 && u.y >= 0 && u.x < m.w && u.y < m.h && !(u.x === t.x && u.y === t.y)) eyes.push(u); });
+    var k = eyes.map(function (e) { return e.x + ',' + e.y; }).join(';') + '|' + (B.dark ? 1 : 0) + '|' + m.w + 'x' + m.h;
     if (R0.fogNow && R0.fogNow.k === k) return R0.fogNow;
     if (!R0.fogSeen || R0.fogSeen.length !== m.w * m.h) R0.fogSeen = Fog.recall(m.w * m.h);
     var now = new Uint8Array(m.w * m.h), pm = B.dark && D.light ? D.light.partyMap(B) : null, r = Fog.DAY;
-    for (var y = Math.max(0, t.y - r); y <= Math.min(m.h - 1, t.y + r); y++) for (var x = Math.max(0, t.x - r); x <= Math.min(m.w - 1, t.x + r); x++) {
-      var i = y * m.w + x, s = m.sq[i]; if (!s || !s.open) continue;
-      if (Math.hypot(x - t.x, y - t.y) <= r && (pm ? pm.v[i] > 0 : G.losPoint(t.x, t.y, x, y))) now[i] = 1; // (by night what the party sees, out to the day's reach at most)
-    }
-    now[t.y * m.w + t.x] = 1;
+    eyes.forEach(function (e) {
+      for (var y = Math.max(0, e.y - r); y <= Math.min(m.h - 1, e.y + r); y++) for (var x = Math.max(0, e.x - r); x <= Math.min(m.w - 1, e.x + r); x++) {
+        var i = y * m.w + x, s = m.sq[i]; if (!s || !s.open || now[i]) continue;
+        if (Math.hypot(x - e.x, y - e.y) <= r && (pm ? pm.v[i] > 0 : G.losPoint(e.x, e.y, x, y))) now[i] = 1; // (by night what the party sees, out to the day's reach at most)
+      }
+      now[e.y * m.w + e.x] = 1;
+    });
     // (the rock and the things standing at the edge of what is seen: seen with it, so the banks are drawn where the floor is)
     var edge = []; for (var j = 0; j < now.length; j++) if (now[j] === 1) { var ex = j % m.w, ey = (j - ex) / m.w; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var nx = ex + dx, ny = ey + dy; if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) continue; var ni = ny * m.w + nx; if (!now[ni] && !(m.sq[ni] || {}).open) edge.push(ni); } }
     edge.forEach(function (ni) { now[ni] = 2; });
