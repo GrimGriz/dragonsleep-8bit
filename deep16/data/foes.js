@@ -200,8 +200,10 @@
     src: 'SRD 5.1 Drow (CR 1/4); content/monsters.json drow (the pipeline-1 drow sheet; the captains keep the LPC one)'
   },
   // the sect blades (deep.js, the first rest after Torvald): Sneak Attack, and Assassinate on a party caught unaware
+  // (11-20, cutter-1120b: their own drawn fight figure, sectblade_p2, the art desk's ART-148-COMBAT, tools/silversands-fight-sheet.py -- a shortsword in each hand;
+  // assassin_p1 retires from them. Its attack2, the left-hand thrust, is in hand: every blow plays `attack`)
   assassin: {
-    name: 'Sect Blade', type: 'humanoid', sheet: 'sectblade_p2', cr: '8', // (11-20, cutter-1120b: their own drawn fight figure, the art desk's ART-148-COMBAT, tools/silversands-fight-sheet.py -- a shortsword in each hand; assassin_p1 retires from them. Its attack2, the left-hand thrust, is in hand: every blow plays `attack`) ac: 15, armor: 'studded leather', hp: 78, speed: 30, size: 1, reach: 5,
+    name: 'Sect Blade', type: 'humanoid', sheet: 'sectblade_p2', cr: '8', ac: 15, armor: 'studded leather', hp: 78, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 16, con: 14, int: 13, wis: 11, cha: 10 }, init: 3, perception: 13, stealth: 9,
     saves: { str: 0, dex: 6, con: 2, int: 4, wis: 0, cha: 0 },
     attacks: {
