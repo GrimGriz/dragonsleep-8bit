@@ -197,6 +197,48 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preO);
     return;
   }
+  // HIS WATCHED DOOR (mode=watchwall1120; 11-20, the lanes desk's read of his watch of deep16/?npc=ogre,ogre,ogre,ogre&formation=4,4&lvl=3&watch&seed=1 on c79af4b6: every Shield
+  // set ALONE and then dashed away, no wall joined, no push, the pikes waiting and throwing handaxes, the AI's wheel trading set members out): the same door, the eight on the
+  // PARTY side run by the class AI, six seeds -- per fight the round its first joined wall stood, the biggest wall, the pushes, the pikes standing in the rank, any Dash or
+  // WHEEL by a set member, and the play record the watched fight now leaves. A gate: every seed must join a wall by round 2, and no set member dashes or wheels
+  if (get('mode', '') === 'watchwall1120') {
+    var repWw = { checks: [], fights: [], errors: [] }, Fw = D.features;
+    function okWw(what, v) { repWw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var cur = null, aiW0 = Fw.aiWall, dash0 = D.Battle.prototype.exec, wheel0w = Fw.wheel;
+    Fw.aiWall = function* (B, u) {
+      var setBefore = Fw.wallSet(u);
+      yield* aiW0.apply(this, arguments);
+      if (!cur) return;
+      var walls = B.units.filter(function (w) { return w.side === u.side && Fw.wallSet(w); }), big = 0;
+      walls.forEach(function (w) { big = Math.max(big, Fw.wallOf(B, w).length); });
+      if (big > cur.biggest) cur.biggest = big;
+      if (big >= 2 && !cur.joinedRound) cur.joinedRound = B.round;
+      if (Fw.pikeReady(u) && !Fw.bearsShield(u) && walls.some(function (m) { var f = m.conds.wall.face; return u.x === m.x - f[0] && u.y === m.y - f[1]; })) cur.pikeInRank++;
+    };
+    D.Battle.prototype.exec = function (u, c) { if (cur && c && /^(dash|cdash)$/.test(c.do) && Fw.wallSet(u)) cur.setDashes++; return dash0.apply(this, arguments); };
+    Fw.wheel = function (B, a, f) { if (cur && (Fw.wallSet(a) || Fw.wallSet(f)) && !(a.side === 'party' && !a.guest)) cur.setWheels++; return wheel0w.apply(this, arguments); };
+    try {
+      for (var sd = 1; sd <= 6; sd++) {
+        var q = '?npc=ogre,ogre,ogre,ogre&formation=4,4&lvl=3&watch&seed=' + sd;
+        cur = { seed: sd, joinedRound: 0, biggest: 0, pikeInRank: 0, setDashes: 0, setWheels: 0, pushes: 0, result: null, rounds: 0, record: null };
+        var Bw = D.npcFight(q, Object.assign({ bench: true }, D.npcRecord(q))); D.battle = Bw; Bw.enter();
+        cur.record = Bw.rec ? Bw.rec.name : null;
+        cur.result = drive(Bw); cur.rounds = Bw.round;
+        cur.pushes = (Bw.log || []).filter(function (s) { return /calls the push/.test(s); }).length;
+        cur.dashLines = (Bw.log || []).filter(function (s) { return /Shield \d dashes/.test(s); }).length;
+        repWw.fights.push(cur);
+      }
+    } catch (e) { repWw.errors.push(String(e && e.stack || e)); }
+    Fw.aiWall = aiW0; D.Battle.prototype.exec = dash0; Fw.wheel = wheel0w; cur = null;
+    var fs = repWw.fights;
+    okWw('every seed joins a wall by round 2: ' + fs.map(function (f) { return 's' + f.seed + ' R' + f.joinedRound + ' (wall of ' + f.biggest + ')'; }).join(', '), fs.length === 6 && fs.every(function (f) { return f.joinedRound >= 1 && f.joinedRound <= 2; }));
+    okWw('no set member dashes or wheels: dashes ' + fs.map(function (f) { return f.setDashes; }).join(',') + '; wheels ' + fs.map(function (f) { return f.setWheels; }).join(','), fs.every(function (f) { return !f.setDashes && !f.setWheels; }));
+    okWw('pushes ' + fs.map(function (f) { return f.pushes; }).join(',') + '; pike turns in the rank ' + fs.map(function (f) { return f.pikeInRank; }).join(','), fs.some(function (f) { return f.pushes > 0; }) && fs.some(function (f) { return f.pikeInRank > 0; }));
+    okWw('the watched fight records: ' + JSON.stringify(fs[0] && fs[0].record), fs.length && /^Watched -- /.test(fs[0].record || ''));
+    var preWw = document.createElement('pre'); preWw.id = 'out'; preWw.textContent = 'BENCH16 ' + JSON.stringify(repWw);
+    document.body.appendChild(preWw);
+    return;
+  }
   if (get('mode', '') === 'mascots') {
     var MSC = ['denny', 'beholda', 'rascal', 'goose'], HER = ['barley', 'aurdin', 'vivian', 'lymen'], nd = +get('nd', n);
     var res3 = { lvl: L, n: n, nd: nd, band: null, duel: {}, dealt: {}, taken: {}, down: {}, left: {}, errors: [], fights: [] }, det = !!get('detail', '');
