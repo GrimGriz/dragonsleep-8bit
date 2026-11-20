@@ -267,10 +267,10 @@
     return w.res === 'begin' ? w.asg : null;
   };
   // a watch's fight: the field cut round the fire, on the grid, the crew boss beside the party unless he is down already tonight
-  Gu.watchSet = function (B, k, list, names, lit, night) {
-    var st = { boss: null, fb: null, fell: false };
+  Gu.watchSet = function (B, k, list, names, lit, night, off) {
+    var st = { boss: null, fb: null, fell: false }, bare = (off || []).map(function (o) { return o.u.name; });
     st.set = { list: list, grid: true, gap: 'rule', title: 'THE ' + Gu.WATCH[k - 1] + ' WATCH',
-      line: '{r}Out of ' + lit + '{/}: ' + (names.length ? names.join(' and ') + ' on the watch, the rest up from their blankets.' : 'the rest up from their blankets.'),
+      line: '{r}Out of ' + lit + '{/}: ' + (names.length ? names.join(' and ') + ' on the watch, the rest up from their blankets.' : 'the rest up from their blankets.') + (bare.length ? ' ' + bare.join(' and ') + ' with no time to buckle on armour.' : ''), // (THE WORLD's "the rest wake with their armor off", 11-20)
       enter: function (b) { st.fb = b; st.boss = b.units.filter(function (u) { return u.ally && u.kind === 'crewboss'; })[0] || null; if (st.boss && Gu.showBossHp) st.boss.hp = Gu.showBossHp; }, // (the show's crew boss comes to the fire hurt: Gu.showBossHp, the beat below)
       dress: function (F) {
         F.intro = 'In the ' + Gu.WATCH[k - 1].toLowerCase() + ' watch, out of ' + lit + ', at the cutters\' fire.'; F.won = 'THE WATCH HOLDS.';
@@ -316,6 +316,18 @@
     };
     return u;
   };
+  // THE SLEEPERS' ARMOUR (RULED 11-20, Griz: "leans 1-3 approved, match THE WORLD"): a watch's fight wakes those not on that watch with their medium and heavy armour off, as
+  // THE WORLD's night does (js/house.js H.sleepersOff, H.SLEEP_IN: light armour and robes slept in, the shield taken up on the way); put back on after the fight
+  Gu.sleepersOff = function (B, sleepers) {
+    var H = D.house, IT = (window.DS.DATA || {}).items || {}, inn = (H && H.SLEEP_IN) || ['light', 'robe'], off = [];
+    sleepers.forEach(function (u) {
+      var h = u.src, id = h && h.equip && h.equip.armor, ar = id && IT[id]; if (!ar || (ar.armor && inn.indexOf(ar.armor.type) >= 0)) return;
+      off.push({ u: u, armor: id }); h.equip.armor = null;
+    });
+    if (off.length) D.roam.regear(B); // (their AC as the floor reads it: js/roam.js R.regear -- the field's fight takes them so)
+    return off;
+  };
+  Gu.sleepersOn = function (B, off) { if (!off || !off.length) return; off.forEach(function (o) { if (o.u.src && o.u.src.equip) o.u.src.equip.armor = o.armor; }); D.roam.regear(B); };
   // the night: the watches, then the eight hours and the morning
   Gu.night = function* (B) {
     var R = D.roam, R0 = B.roam, party = R0.members.filter(function (u) { return Gu.hero(u) && u.hp > 0; });
@@ -329,8 +341,11 @@
       if (!p || !p.list.length) continue;
       var names = party.filter(function (u) { return asg[u.key || u.id] === k; }).map(function (u) { return u.name; }); // (keyed as H.watchDefault keys them)
       var lit = nt ? 'the dark' : M.night((hk + 1) % 24) || M.night((hk + 23) % 24) ? 'the half-light' : 'the daylight';
-      var st = Gu.watchSet(B, k, p.list, names, lit, night), lent = !night.bossDown;
-      yield* M.fieldFight(B, 'watch', st.set);
+      var off = Gu.sleepersOff(B, party.filter(function (u) { return asg[u.key || u.id] !== k; }));
+      var st = Gu.watchSet(B, k, p.list, names, lit, night, off), lent = !night.bossDown;
+      night.bare = (night.bare || []).concat([off.map(function (o) { return o.u.name + ' ' + o.armor + ' ' + (o.u.armored ? 'on' : 'off') + ' ' + o.u.baseAC; })]); // (for a bench: each fight's sleepers in order, who fought it without their armour, and their AC so)
+      try { yield* M.fieldFight(B, 'watch', st.set); }
+      finally { Gu.sleepersOn(B, off); }
       night.fights.push({ k: k, zone: zone, list: p.list.slice(), lent: lent && !!(st.fb && st.boss), bossFell: st.fell, res: R0.pulled });
       if (st.fell) night.bossDown = true;
       if (R0.pulled !== 'won' && R0.pulled !== 'escaped') return; // (lost: the field's own end, as any floor fight's)

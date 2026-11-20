@@ -2501,7 +2501,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           if (s && s.kind === 'housewatches') { seen.push('WATCHES: ' + JSON.stringify(s.asg)); s.go('begin'); continue; }
           if (s && s !== B && s instanceof D.Battle) {
             var b = s; if (b.baking) { b.baking = false; b.enter(); } for (var j = 0; j < 6; j++) D.update();
-            var boss = b.units.filter(function (u) { return u.ally && u.kind === 'crewboss'; })[0] || null, rec = { foes: b.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }), boss: !!boss, bossSide: boss && boss.side, title: b.fight && b.fight.intro };
+            var boss = b.units.filter(function (u) { return u.ally && u.kind === 'crewboss'; })[0] || null, rec = { foes: b.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }), boss: !!boss, bossSide: boss && boss.side, title: b.fight && b.fight.intro,
+              ours: b.units.filter(function (u) { return u.side === 'party' && u.src && !u.ally && !u.look; }).map(function (u) { return { name: u.name, armor: (u.src.equip || {}).armor || null, ac: u.baseAC }; }) };
             var v, r, m = 0, paid = null, f0 = b.fight && b.fight.onEnd;
             if (b.fight && f0) b.fight.onEnd = function (bb, o, p) { var x = f0.apply(this, arguments); paid = x; return x; };
             while (b.co && m++ < 200000) { r = b.co.next(v); v = undefined; if (r.done) { b.co = null; break; } var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene || y.victory) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { if (boss && bossFalls) { boss.hp = 0; } b.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); v = { do: 'end' }; } }
@@ -2547,7 +2548,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 3. the night on a test door: the second watch brings the fight
       GuGC.watchRoll = function (k) { return k === 2; };
       var B3 = floorGC('?roam=webgulch&hour=21&at=12,11'), hurt = B3.roam.members.filter(GuGC.hero)[0]; hurt.hp = 1; if (hurt.src) hurt.src.hp = 1;
+      var arm3 = function () { return B3.roam.members.filter(GuGC.hero).map(function (u) { return u.name + ':' + ((u.src.equip || {}).armor || '-'); }).join(' '); }, armBefore = arm3(); /* (armour, not AC: the long rest ends Aurdin's Mage Armor) */
       var n3 = nightGC(B3, ['LONG REST: 8 HOURS'], true), cn = B3.roam.campNight || {}, f3 = n3.fights[0] || {};
+      // (RULED 11-20, Griz: "leans 1-3 approved, match THE WORLD" -- the sleepers' medium and heavy armour off in the watch's fight, as THE WORLD's night)
+      var IT3 = window.DS.DATA.items, heavy3 = function (id) { var a = id && IT3[id]; return !!(a && a.armor && ['light', 'robe'].indexOf(a.armor.type) < 0); }, bare3 = (cn.bare || [])[0] || [], ours3 = f3.ours || [];
+      var inFight3 = ours3.filter(function (o) { return bare3.some(function (b) { return b.indexOf(o.name + ' ') === 0; }); }), keep3 = ours3.filter(function (o) { return heavy3(o.armor); });
+      okGC('the sleepers\' armour in the second watch\'s fight: off ' + JSON.stringify(bare3) + ', in the fight ' + JSON.stringify(ours3) + '; "' + (n3.seen.match(/with no time to buckle on armour/) || ['no word'])[0] + '"; after the night ' + arm3() + ' (before ' + armBefore + ')',
+        bare3.length > 0 && inFight3.length === bare3.length && inFight3.every(function (o) { return !o.armor; }) && keep3.every(function (o) { return bare3.every(function (b) { return b.indexOf(o.name + ' ') !== 0; }); }) && /with no time to buckle on armour/.test(n3.seen) && arm3() === armBefore);
       okGC('the fire: "' + (n3.seen.match(/Our fire's yours[^/]*/) || [''])[0] + '"; LONG REST taken, the watches asked (' + /WATCHES: \{/.test(n3.seen) + ')', /Our watch is yours too/.test(n3.seen) && /LONG REST: 8 HOURS/.test(n3.seen) && /WATCHES: \{/.test(n3.seen));
       okGC('three watches, one fight, in the second: ' + JSON.stringify((cn.fights || []).map(function (f) { return { k: f.k, zone: f.zone, list: f.list, lent: f.lent, fell: f.bossFell, res: f.res }; })), (cn.fights || []).length === 1 && cn.fights[0].k === 2 && cn.fights[0].zone === 'gulch_night' && cn.fights[0].res === 'won');
       okGC('the fight on the grid with the crew boss lent (' + f3.boss + ', side ' + f3.bossSide + '): the foes ' + (f3.foes || []).join(',') + '; "' + f3.title + '"', f3.boss && f3.bossSide === 'party' && (f3.foes || []).length > 0 && /second watch/.test(f3.title || ''));
