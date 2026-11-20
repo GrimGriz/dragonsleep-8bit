@@ -1217,6 +1217,13 @@
     var n = Math.max(Math.abs(h.x - w.x), Math.abs(h.y - w.y)), big = (h.size || 1) > (w.size || 1);
     return n === 1 ? (big ? 2 : 5) : n === 2 && !big ? 2 : 0;
   };
+  // THE PIKE RANK (Soldiering's; RULED, Griz: "2 pikes only no attack penalty, but let other pole-arms work with cover penalty", "3 - no adjusting to your cover model"): a
+  // trained one with a pike in hand strikes through the wall's members at no penalty (battle.js attack: G.los's `wall` -- the line's only cover the wall's); any other reach
+  // weapon takes the cover as it stands; the piker's own cover stays what it is
+  F.pikeThrough = function (u, atk) {
+    var w = atk && !atk.spell ? atk : u && u.weapon;
+    return !!(F.soldiering(u) && w && !w.ranged && (w.kind === 'pike' || /^pike$/i.test(w.name || '')));
+  };
   F.canPush = function (B, u) { return !!(u && u.turn && u.turn.bonus > 0 && F.joined(u, B)); };
   F.wallPush = function* (B, u) {
     if (!F.canPush(B, u)) return;

@@ -18079,6 +18079,47 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preWc);
     return;
   }
+  // THE PIKE RANK (mode=pikerank1120; Soldiering's, the leveling lane's 2026-11-20 sections -- RULED, Griz: "2 pikes only no attack penalty, but let other pole-arms work with
+  // cover penalty", "3 - no adjusting to your cover model"): a trained piker in the first square behind a joined member strikes the goblin before that member, 10 ft through the
+  // wall -- with a pike, no cover on the goblin; with a glaive, the wall's three-quarters (+5); an untrained one with a pike, the same +5; the piker keeps its own cover
+  if (get('mode', '') === 'pikerank1120') {
+    var repPk = { checks: [], errors: [] }, FPk = D.features, RUPk = D.rules, Gp = D.grid, d0Pk = D.d;
+    function okPk(what, v) { repPk.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPk(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } }
+    function mkPk(arm, trained) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], p = ps[2], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      [f, m].forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = u.src.equip || {}; u.src.equip.shield = u.src.equip.shield || 'shield'; u.conds = {}; });
+      p.abil.str = p.src.abil.str = 15; p.src.featIds = trained ? ['soldiering'] : []; p.src.equip = Object.assign({}, p.src.equip || {}, { weapon: arm, shield: null }); p.weapon = D.save.weaponOf(p.src); p.conds = {};
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; });
+      Gp.setup(B.map, []); var spot = null, W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30;
+      for (var y = 3; y < H - 3 && !spot; y++) for (var x = 1; x < W - 3 && !spot; x++) { var all = true; for (var yy = y - 2; yy <= y + 2 && all; yy++) for (var xx = x; xx <= x + 1 && all; xx++) all = Gp.canStand(f, xx, yy) && Math.abs(Gp.gzAt(f, xx, yy) - Gp.gzAt(f, x, y)) < 2; if (all) spot = [x, y]; }
+      var X = spot[0], Y = spot[1];
+      f.x = X; f.y = Y; m.x = X + 1; m.y = Y; p.x = X; p.y = Y + 1; gs[0].x = X; gs[0].y = Y - 1; gs[1].x = 1; gs[1].y = 1;
+      Gp.setup(B.map, B.units);
+      [f, m].forEach(function (u) { RUPk.startTurn(u); B.active = u; runPk(B.exec(u, { do: 'setshields' })); });
+      return { B: B, f: f, m: m, p: p, g: gs[0], ok: !!spot };
+    }
+    function strike(h) {
+      RUPk.startTurn(h.p); h.B.active = h.p; D.d = function (n) { return n === 20 ? 10 : d0Pk(n); };
+      var n0 = (h.B.log || []).length, can = h.B.canHit(h.p, h.g); runPk(h.B.exec(h.p, { do: 'attack', target: h.g })); D.d = d0Pk;
+      var lg = (h.B.log || []).slice(n0).join(' / ').replace(/\{\/?[a-z]*\}/g, ''), mc = lg.match(/\+(\d+) cover/);
+      return { can: can, cover: mc ? +mc[1] : 0, line: (lg.match(/d20[^/]*/) || [''])[0].slice(0, 110) };
+    }
+    try {
+      D.seed = 1120;
+      var a = mkPk('pike', true), sa = strike(a), myC = Gp.los(a.g, a.p).cover;
+      okPk('a trained piker\'s pike through the wall (placed ' + a.ok + ', joined ' + FPk.joined(a.f) + ', in reach ' + sa.can + '): the cover ' + sa.cover + ' ("' + sa.line + '"); its own from the goblin ' + myC, a.ok && FPk.joined(a.f) && sa.can && sa.cover === 0 && myC === 5);
+      var b = mkPk('glaive', true), sb = strike(b);
+      okPk('a trained one\'s glaive through the wall: in reach ' + sb.can + ', the cover ' + sb.cover + ' ("' + sb.line + '")', sb.can && sb.cover === 5);
+      var c = mkPk('pike', false), sc = strike(c);
+      okPk('an untrained one\'s pike through the wall: in reach ' + sc.can + ', the cover ' + sc.cover, sc.can && sc.cover === 5);
+    } catch (e) { repPk.errors.push(String(e && e.stack || e)); }
+    D.d = d0Pk;
+    var prePk = document.createElement('pre'); prePk.id = 'out'; prePk.textContent = 'BENCH16 ' + JSON.stringify(repPk);
+    document.body.appendChild(prePk);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;
