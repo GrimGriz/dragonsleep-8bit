@@ -126,7 +126,11 @@
       { id: 'agonizing', name: 'Agonizing Blast', desc: 'CHA added to each Eldritch Blast beam' },
       { id: 'devilsight', name: 'Devil\'s Sight', desc: 'sees in any dark, the magical too, to 120 ft' },
       { id: 'repelling', name: 'Repelling Blast', desc: 'an Eldritch Blast beam that hits pushes 10 ft' },
-      { id: 'fiendishvigor', name: 'Fiendish Vigor', desc: 'False Life at will: 1d4+4 temporary HP to start a fight' }] },
+      { id: 'fiendishvigor', name: 'Fiendish Vigor', desc: 'False Life at will: 1d4+4 temporary HP to start a fight' },
+      // (the SRD's, 11-20, the leveling lane §8 item 10 -- Griz: "pick two of the SRD unbuilt to add tonight"; Thirsting Blade's prerequisites are read where it acts, below)
+      { id: 'armorofshadows', name: 'Armor of Shadows', desc: 'Mage Armor at will: AC 13 + DEX with no armour worn' },
+      { id: 'eldritchspear', name: 'Eldritch Spear', desc: 'Eldritch Blast reaches 300 ft' },
+      { id: 'thirstingblade', name: 'Thirsting Blade', desc: '5th level and the Pact of the Blade: two attacks with the pact weapon' }] },
       { key: 'pact', word: 'PACT', at: 3, opts: [
         { id: 'tome', name: 'Pact of the Tome', desc: 'three cantrips: Fire Bolt, Sacred Flame, Vicious Mockery' },
         { id: 'blade', name: 'Pact of the Blade', desc: 'a pact weapon in hand: a rapier, proficient, magical' }] }],
@@ -659,6 +663,11 @@
     if (h.guardianText) u.guardianText = h.guardianText;
     // Fiendish Vigor (an invocation): False Life at will -- she walks in with it
     if ((u.invocations || []).indexOf('fiendishvigor') >= 0) u.temp = Math.max(u.temp || 0, D.roll('1d4+4').total);
+    // Armor of Shadows (the SRD's invocation, 11-20): Mage Armor on herself at will -- she walks in with it, as with the Vigor: AC 13 + DEX while she wears no armour
+    // (a shield still adds its 2). Nothing ends it in the fight (the seat's call: a Dispel Magic does not strip it -- she would cast it again at will)
+    if ((u.invocations || []).indexOf('armorofshadows') >= 0 && !(h.equip && h.equip.armor)) { u.baseAC = Math.max(u.baseAC || 0, 13 + D.mod(h.abil.dex) + (h.equip && h.equip.shield ? 2 : 0)); u.armorOfShadows = true; }
+    // Thirsting Blade (the SRD's invocation, 11-20; "Prerequisite: 5th level, Pact of the Blade feature"): two attacks with the pact weapon on the Attack action
+    if ((u.invocations || []).indexOf('thirstingblade') >= 0 && h.pact === 'blade' && h.lvl >= 5 && u.weapon && u.weapon.pact) { u.attacksBase = Math.max(u.attacksBase || 1, 2); u.attacks = Math.max(u.attacks || 1, 2); u.thirsting = true; }
     if (h.cls === 'barbarian' && h.lvl >= 2) u.conds.dangerSense = true;
     // the Circle of the Land (SRD 5.1): Land's Stride (6) -- nonmagical difficult ground costs nothing (grid.js stepCost), advantage on the save
     // against magically made plants (Entangle); Nature's Ward (10) -- no poison, no disease, and no elemental or fey charms or frightens it

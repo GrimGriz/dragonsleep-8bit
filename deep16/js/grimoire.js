@@ -341,8 +341,9 @@
   function beams(u) { return u.lvl >= 17 ? 4 : u.lvl >= 11 ? 3 : u.lvl >= 5 ? 2 : 1; }
   function agon(u) { return (u.invocations || []).indexOf('agonizing') >= 0 ? Math.max(0, D.mod(u.abil.cha)) : 0; }
   E.eldritchblast = {
-    geo: function (B, u, g) { return Object.assign({}, g, { n: beams(u) }); },
-    summary: function (e, u) { var n = beams(u), a = agon(u); return n + (n > 1 ? ' beams' : ' beam') + ', 120 ft · 1d10' + (a ? '+' + a : '') + ' force each' + ((u.invocations || []).indexOf('repelling') >= 0 ? ', pushed 10 ft' : ''); },
+    // (Eldritch Spear, the SRD's invocation, 11-20: "When you cast eldritch blast, its range is 300 feet")
+    geo: function (B, u, g) { return Object.assign({}, g, { n: beams(u) }, (u.invocations || []).indexOf('eldritchspear') >= 0 ? { range: 300 } : {}); },
+    summary: function (e, u) { var n = beams(u), a = agon(u); return n + (n > 1 ? ' beams' : ' beam') + ', ' + ((u.invocations || []).indexOf('eldritchspear') >= 0 ? 300 : 120) + ' ft · 1d10' + (a ? '+' + a : '') + ' force each' + ((u.invocations || []).indexOf('repelling') >= 0 ? ', pushed 10 ft' : ''); },
     cast: function* (B, u, t, slot, head, x) {
       var shots = (t.units || [t]).slice(), a = agon(u), rep = (u.invocations || []).indexOf('repelling') >= 0;
       if (shots.length > 1) B.card([head + ' -- ' + shots.length + ' beams']);

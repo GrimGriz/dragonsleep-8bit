@@ -17643,6 +17643,41 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePy);
     return;
   }
+  // THREE MORE INVOCATIONS (mode=invoc1120; the leveling lane §8 item 10, 2026-11-20 -- Griz: "pick two of the SRD unbuilt to add tonight"; SRD 5.1 Warlock, Eldritch
+  // Invocations): on the maker's INVOCATIONS tab (seven now); ARMOR OF SHADOWS -- AC 13 + DEX with no armour worn, nothing over armour; ELDRITCH SPEAR -- Eldritch
+  // Blast's range 300 ft on the ring's list, 120 without; THIRSTING BLADE -- two attacks with the pact weapon at 5, one at 4, one with no Pact of the Blade
+  if (get('mode', '') === 'invoc1120') {
+    var repIv = { checks: [], errors: [] };
+    function okIv(what, v) { repIv.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      D.seed = 1120;
+      var opIv = (D.npc.OPTIONS.warlock || []).filter(function (o) { return o.key === 'invocations'; })[0] || { opts: [] }, idsIv = opIv.opts.map(function (o) { return o.id; });
+      okIv('the maker\'s invocations: ' + idsIv.join(', '), idsIv.length === 7 && ['armorofshadows', 'eldritchspear', 'thirstingblade'].every(function (k) { return idsIv.indexOf(k) >= 0; }));
+      okIv('the features list names them: ' + ['armorofshadows', 'eldritchspear', 'thirstingblade'].map(function (k) { return D.FEATURES[k] && D.FEATURES[k].name; }).join(', '), !!(D.FEATURES.armorofshadows && D.FEATURES.eldritchspear && D.FEATURES.thirstingblade));
+      var bw = function (o) { return D.npc.build(Object.assign({ id: 'iv' + Math.random(), cls: 'warlock', lvl: 5 }, o), o.lvl || 5, 'party'); };
+      // Armor of Shadows
+      var bare = bw({ equip: { weapon: 'dagger', armor: null } }), shad = bw({ equip: { weapon: 'dagger', armor: null }, invocations: ['agonizing', 'armorofshadows'] }), worn = bw({ equip: { weapon: 'dagger', armor: 'leather' } }), wornS = bw({ equip: { weapon: 'dagger', armor: 'leather' }, invocations: ['agonizing', 'armorofshadows'] });
+      var dxIv = D.mod(shad.abil.dex), acB = D.rules.ac(bare), acS = D.rules.ac(shad), acW = D.rules.ac(worn), acWS = D.rules.ac(wornS);
+      okIv('Armor of Shadows, no armour worn (DEX ' + (dxIv >= 0 ? '+' : '') + dxIv + '): AC ' + acB + ' -> ' + acS + ' (13 + DEX)', acB === 10 + dxIv && acS === 13 + dxIv);
+      okIv('over leather it adds nothing: AC ' + acW + ' and ' + acWS, acW === acWS && acW === 11 + dxIv);
+      // Eldritch Spear
+      var Biv = D.npcFight('?npc=goblin&lvl=5&vs=warlock:5', {}); D.battle = Biv; Biv.enter(); while (!Biv.order.length) Biv.co.next(); Biv.dark = false;
+      var wl = Biv.units.filter(function (w) { return w.side === 'party'; })[0]; D.rules.startTurn(wl); Biv.active = wl;
+      var rng = function () { var e = D.magic.list(Biv, wl, { anyTarget: true }).filter(function (x) { return x.id === 'eldritchblast'; })[0]; return e && e.g ? e.g.range : null; };
+      wl.invocations = ['agonizing']; var r0 = rng(); wl.invocations = ['agonizing', 'eldritchspear']; var r1 = rng();
+      okIv('Eldritch Blast on the ring\'s list: ' + r0 + ' ft, with Eldritch Spear ' + r1 + ' ft', r0 === 120 && r1 === 300);
+      // Thirsting Blade
+      var tb5 = bw({ pact: 'blade', invocations: ['agonizing', 'thirstingblade'] }), tb4 = bw({ lvl: 4, pact: 'blade', invocations: ['agonizing', 'thirstingblade'] }), tome5 = bw({ pact: 'tome', invocations: ['agonizing', 'thirstingblade'] }), bl5 = bw({ pact: 'blade', invocations: ['agonizing', 'devilsight'] });
+      okIv('Thirsting Blade: the Blade\'s warlock at 5 attacks ' + tb5.attacks + ' times (' + tb5.weapon.name + '), at 4 ' + tb4.attacks + ', the Tome\'s ' + tome5.attacks + ', the Blade\'s without it ' + bl5.attacks, tb5.attacks === 2 && tb4.attacks === 1 && tome5.attacks === 1 && bl5.attacks === 1 && !!tb5.weapon.pact);
+      var Bt = D.npcFight('?npc=goblin&lvl=5&vs=warlock:5', {}); D.battle = Bt; Bt.enter(); while (!Bt.order.length) Bt.co.next(); Bt.dark = false;
+      var slot = Bt.units.filter(function (w) { return w.side === 'party'; })[0]; tb5.x = slot.x; tb5.y = slot.y; tb5.id = slot.id; Bt.units[Bt.units.indexOf(slot)] = tb5; D.grid.setup(Bt.map, Bt.units);
+      D.rules.startTurn(tb5); Bt.active = tb5; var opened = D.Battle.openAttack(tb5);
+      okIv('her Attack action opens ' + tb5.turn.attacksLeft + ' attacks', opened === true && tb5.turn.attacksLeft === 2);
+    } catch (e) { repIv.errors.push(String(e && e.stack || e)); }
+    var preIv = document.createElement('pre'); preIv.id = 'out'; preIv.textContent = 'BENCH16 ' + JSON.stringify(repIv);
+    document.body.appendChild(preIv);
+    return;
+  }
   // THE DRILLYARD (mode=drill1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.1): the
   // fighter's archetype of ours with set plays -- on the maker (R.SUBCLASSES.fighter, its PLAYS asked at 3 and at 7, a Champion never asked); the sheet's openings
   // and plays, no Champion's critical; PIN THE SHIELD, BIND, BREAK STRIDE and WHEEL on a hit, by the prompt; CALL THE MARK's +2 once a friend; HOLD GROUND on a push;

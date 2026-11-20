@@ -311,7 +311,9 @@
     keepback: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, setagainst: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, // (Long Guard at 4, a glaive in hand)
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
-    pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] }
+    pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] },
+    // (the SRD's invocations of 11-20: the Armor wants no armour worn, the Blade its pact weapon at 5)
+    armorofshadows: { invocations: ['agonizing', 'armorofshadows'], equip: { armor: null } }, eldritchspear: { invocations: ['agonizing', 'eldritchspear'] }, thirstingblade: { pact: 'blade', invocations: ['agonizing', 'thirstingblade'] }
   };
 
   D.fxFeatures = function (q) {
@@ -551,6 +553,7 @@
       // the Hunter's Prey (SRD 5.1, 11-20): HORDE BREAKER -- a shot at one of two side by side, and one more at the other; GIANT KILLER -- a Large one must swing at
       // it, so the stage's fighter stands down for an ogre (two squares north: its footprint is beside the hero), whose club misses and is answered
       hordebreaker: swings(5),
+      thirstingblade: twice, // (the SRD's invocation, 11-20: the pact weapon's two attacks on the one Attack action)
       giantkiller: function* (c) {
         var og = place(B.makeFoe({ id: 'g-ogre', kind: 'ogre', at: [c.hero.x, c.hero.y - 2] }), c.hero.x, c.hero.y - 2, 0); B.units = B.units.filter(function (w) { return c.foes.indexOf(w) < 0; }).concat([og]); c.foes = [og]; D.grid.setup(D.grid.map, B.units);
         var club = Object.assign({}, og.weapon || (og.attacks && og.attacks[Object.keys(og.attacks)[0]]), { atk: -20 });
