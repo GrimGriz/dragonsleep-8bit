@@ -58,6 +58,8 @@ def map_rows(d):
         for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
             if 'source_bbox_xyxy_exclusive' in r:
                 yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+            elif 'left' in r:                                                    # (Ragna's ART-153: "source crop bounds", left top right bottom -- read as cells)
+                yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(r[k]) for k in ('left', 'top', 'right', 'bottom')), True
             elif r['target'] == os.path.basename(os.path.dirname(d)) + '_p1':     # (Dagny's: the ART-147/155 map shared with Torvald, `target` names the sheet;
                 x, y, w, h = (int(r[k]) for k in ('source_x', 'source_y', 'source_width', 'source_height'))   # the drawing's box as x, y, width, height)
                 yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), (x, y, x + w, y + h), False
@@ -129,8 +131,16 @@ road('dagny_p1', 'dagny', '2026-11-19-ART-155', 'Dagny', 'ART-147-ART-155-TORVAL
       'Rekknar\'s brooch is a pixel or two at game size, as Asdis\'s'],
      'worn by no one yet: the threshold is not on the grid')
 
+# Ragna Copperbottom, Solskaft's water captain (the art desk's ART-153, arrived in Fresh 11-20 while cutter-1120 worked: a non-combatant, his "a cutter can start on
+# non-combatants"; its notes: unarmed, arms folded at idle, one braid forward on her right, a pocketed knee-length apron over work trousers). Not worn yet: her
+# place in the first game's Solskaft (content/maps/solskaft.json `ragna`) has no stand in DEEP16's Solskaft (deep16/js/solskaft.js names no Ragna).
+road('ragna_p1', 'ragna', '2026-11-19-ART-153', 'Ragna', 'ART-153-RAGNA-COPPERBOTTOM-TOWN-CUTTER-HANDOFF',
+     ['the mirrors (SW W NW) carry her braid to her left (the art desk\'s own note)',
+      'the rear NE walk turns nearer N than its idle (the art desk\'s own note)'],
+     'worn by no one yet: DEEP16\'s Solskaft has no stand for her', avoid=('red', 'fire'))   # (no red on her: with the reds her copper hair and apron snapped red in E walk and N)
+
 
 if __name__ == '__main__':
     import sys
-    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny')]:
+    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna')]:
         VS.cut(lk)

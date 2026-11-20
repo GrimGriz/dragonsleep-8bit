@@ -25127,6 +25127,40 @@ true
 ],
 "source": "drawn by the art desk (ART-141-PYRO-COMBAT-COMPLETE and ART-141-PYRO-TWIN-STRIKE-COMPLETE, 11-12, the twin strike over the dwarf mannequin; the walk from ART-141-PYRO-TOWN), cut by tools/pyro-fight-sheet.py; SW W NW mirrored -- worn in his fights (js/classes.js NPC.NAMED pyro look)"
 },
+"ragna_p1": {
+"image": "art/ragna_p1.png?v=a08b38c34f",
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Ragna",
+"hold": [
+"the mirrors (SW W NW) carry her braid to her left (the art desk's own note)",
+"the rear NE walk turns nearer N than its idle (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-153-RAGNA-COPPERBOTTOM-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: DEEP16's Solskaft has no stand for her"
+},
 "rascal_p2": {
 "image": "art/rascal_p2.png?v=afa3b8bee0",
 "fw": 96,

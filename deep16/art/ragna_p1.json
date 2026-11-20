@@ -1,0 +1,34 @@
+{
+ "image": "art/ragna_p1.png",
+ "fw": 28,
+ "fh": 64,
+ "ax": 14,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 28,
+   "fh": 64,
+   "ax": 14,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Ragna",
+ "hold": [
+  "the mirrors (SW W NW) carry her braid to her left (the art desk's own note)",
+  "the rear NE walk turns nearer N than its idle (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-153-RAGNA-COPPERBOTTOM-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: DEEP16's Solskaft has no stand for her"
+}
