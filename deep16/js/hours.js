@@ -701,7 +701,9 @@
         if (!st.b) {
           var b = st.b = new D.Battle({}); b.units = []; b.t = 0; b.cine = true; b.cards = []; b.dark = false; b.cursor = { x: -99, y: -99 }; // (the cursor off the floor: no tooltip)
           b.roam = { token: { x: 0, y: 0, size: 1 }, flags: {}, fw: [0, 1], members: [] };
-          lay(st, b); st.def = R.def; st.zoom = iso.zoom;
+          var z0 = iso.zoom; lay(st, b); st.def = R.def;
+          if (iso.zoom === z0 && D.ui && D.ui.zooms && D.town) { var Lz = D.ui.zooms(); iso.zoom = Lz[Math.min(D.town.ZOOMSTEP || 0, Lz.length - 1)]; } // (the picture at the town's own zoom, not the floor's it plays over: 11-20, his walk in Web Gulch, "zoom was all jacked up (zoomed out) on council scene" -- the gully's fight camera had zoomed out)
+          st.zoom = iso.zoom;
           b.units.forEach(function (u) { u.onCounter = true; }); // (no bar over a figure in a picture, as Ned's rat on his counter has none: js/ui.js)
         } else { R.def = st.def; iso.map = st.b.map; G.setup(st.b.map, st.b.units); iso.zoom = st.zoom; }
         if (fn) fn(st, st.b); ok = true;
@@ -1727,6 +1729,7 @@
   H16.pitTrail = function (where) { if (D.house && D.house.trail) D.house.trail('story', 'THE PIT\'S WORD at its hour (' + where + ')'); };
   H16.pitDue = function (B) {
     var R = D.roam, R0 = B && B.roam; if (!R.def || !R0 || !R.house || !R.house() || R0.mode !== 'walk' || R0.path) return false;
+    if ((R0.groups || []).some(function (g) { return (g.foes || []).some(function (u) { return !u.dead && u.hp > 0; }); })) return false; // (not while a group is on the floor, walking in or lost: 11-20, his walk in Web Gulch, "fascinating scene trigger at the same time as random encounter" -- the first free moment is after it)
     return H16.pitOpen(R0.flags);
   };
   H16.pitStreetNow = function (def) { return !!def && def.key === 'silverton' && def.town && !def.room && !def.hexIn && !def.cut && H16.noticeNight() && (def.phase === 'dusk' || def.phase === 'night'); };

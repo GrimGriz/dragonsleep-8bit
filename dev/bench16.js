@@ -2852,6 +2852,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okG2('the fight on the floor (' + f2r.onFloor + '); the order ' + (f2r.order || []).join(',') + '; the folk ' + (f2r.looks || []).join(',') + ' (none in the order)',
           f2r.onFloor === true && (f2r.order || []).length > 0 && (f2r.looks || []).length >= 2 && !(f2r.looks || []).some(function (l) { return /!/.test(l); }) && !(f2r.order || []).some(function (o) { return /silkcutter|drummer|gulchguard|gulchboss/.test(o); }));
         okG2('the gully\'s silk the fight\'s hazard: ' + (f2r.webs || []).join('; ') + '; lifted after (' + (B1r.webs || []).length + ')', (f2r.webs || []).some(function (w) { return /^the gully's silk \d+ at DC 12$/.test(w); }) && !(B1r.webs || []).length);
+        // 2b. the Pit's word waits for the walk-in to be over (11-20, his walk: "fascinating scene trigger at the same time as random encounter"): due on the floor with no group,
+        // not while one is on it (H16.pitOpen pinned open, the floor taken as the house's)
+        var H6r = D.hours, po0 = H6r.pitOpen, hs0 = R2.house, dueP = function (B) { H6r.pitOpen = function () { return true; }; R2.house = function () { return true; }; try { return H6r.pitDue(B); } finally { H6r.pitOpen = po0; R2.house = hs0; } };
+        var Bp = floorG2('?roam=webgulch&hour=19&at=16,30'); Bp.roam.mode = 'walk'; Bp.roam.path = null; var dueNone = dueP(Bp);
+        var gp = R2.encounter(Bp, 'steps'), kp = 0, stp; while (kp++ < 400) { stp = gp.next(); if (stp.done || D.top() !== Bp) break; }
+        Bp.roam.mode = 'walk'; Bp.roam.path = null; var dueGroup = dueP(Bp), nGroup = Bp.roam.groups.length;
+        okG2('the Pit\'s word at its hour: due on a quiet floor ' + dueNone + ', not with a group walking in (' + nGroup + ' on the floor) ' + dueGroup, dueNone === true && nGroup > 0 && dueGroup === false);
         // 3. the camp keeps no fight; the switch keeps the field
         var Bc = floorG2('?roam=webgulch&hour=21&at=12,11'), zc = R2.zoneAt(Bc, 12, 11);
         Gu2.TRY.random = false; var B3r = floorG2('?roam=webgulch&hour=12&at=16,30'), g3 = R2.encounter(B3r, 'steps'), k3 = 0, st3, asked3 = null;
