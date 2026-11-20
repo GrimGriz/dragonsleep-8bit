@@ -1,0 +1,82 @@
+{
+ "image": "art/sectblade_p2.png",
+ "fw": 48,
+ "fh": 80,
+ "ax": 24,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 48,
+   "fh": 80,
+   "ax": 24,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 46,
+   "fh": 80,
+   "ax": 23,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 58,
+   "fh": 80,
+   "ax": 29,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "attack2": {
+   "y": 1920,
+   "fw": 62,
+   "fh": 80,
+   "ax": 31,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2560,
+   "fw": 60,
+   "fh": 80,
+   "ax": 30,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3200,
+   "fw": 72,
+   "fh": 80,
+   "ax": 36,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3840,
+   "fw": 72,
+   "fh": 80,
+   "ax": 36,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Sect Blade",
+ "hold": [
+  "attack2: the left-hand thrust, in hand; a fight plays `attack` for every shortsword blow until the second blow asks for its own row",
+  "attack, attack2: S and N are foreshortened; the left lead hides behind the torso in the side and rear windups (the art desk's own notes)",
+  "walk: E's legs overlap tightly (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-148-COMBAT, 11-20: art-wanted section 89, the sect's blade with two shortswords in five views, the thrusts over the mannequin's guide and its mirror), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

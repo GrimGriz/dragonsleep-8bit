@@ -139,9 +139,11 @@ def cut(look):
     # one scale a page: by its idle to TALL, else by its stagger to STAG
     scale = {}
     MT, SA = L.get('match') or {}, L.get('scaleas') or {}
+    TG = L.get('tallground')   # (`tallground`: a frame's height is its crown to its ground line, not its drawing's -- trooperpike_p2, 11-20: the pike past the boots in S and N)
+    HT = lambda c: gnd[c] if TG and c in gnd else crops[c][1].shape[0]
     for pg in set(pageof.values()):
         mine = [c for c, p in pageof.items() if p == pg]
-        idle = [crops[c][1].shape[0] for c in mine if c[1] == 'idle']
+        idle = [HT(c) for c in mine if c[1] == 'idle']
         stag = [crops[c][1].shape[0] for c in mine if c[1] == 'hurt' and c[2] == 0]
         own = any(c[1] in MT or c[1] in SA for c in mine)   # (a page the look scales itself: no stagger rule -- katarina_p2's fall)
         scale[pg] = L.get('tall', TALL) / float(np.median(idle)) if idle else STAG / float(stag[0]) if stag and not own else None   # (`tall`: a figure's own height -- the inn's women stand 47)
@@ -165,7 +167,8 @@ def cut(look):
             if c0:
                 v, row = c0[0][0], c0[0][1]; tgt = (v, MT[row][0], MT[row][1]); dim = 1 if len(MT[row]) > 3 and MT[row][3] == 'w' else 0
                 if scale.get(pageof.get(tgt)):
-                    scale[pg] = crops[tgt][1].shape[dim] * scale[pageof[tgt]] / float(crops[c0[0]][1].shape[dim])
+                    scale[pg] = (HT(tgt) * scale[pageof[tgt]] / float(HT(c0[0])) if dim == 0 else
+                                 crops[tgt][1].shape[dim] * scale[pageof[tgt]] / float(crops[c0[0]][1].shape[dim]))
     for pg in [p for p in scale if scale[p] is None]:   # (a page of one re-drawn frame -- vivian_p2's SE-CONTACT-SOURCE, attack 4: its batch's page of the same view)
         v = [c[0] for c, p in pageof.items() if p == pg][0]
         scale[pg] = [scale[p] for c, p in pageof.items() if p[0] == pg[0] and c[0] == v and scale.get(p)][0]

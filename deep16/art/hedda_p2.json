@@ -1,0 +1,82 @@
+{
+ "image": "art/hedda_p2.png",
+ "fw": 42,
+ "fh": 80,
+ "ax": 21,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 42,
+   "fh": 80,
+   "ax": 21,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 42,
+   "fh": 80,
+   "ax": 21,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 54,
+   "fh": 80,
+   "ax": 27,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "push": {
+   "y": 1920,
+   "fw": 64,
+   "fh": 80,
+   "ax": 32,
+   "ay": 74,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2560,
+   "fw": 44,
+   "fh": 80,
+   "ax": 22,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3200,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3840,
+   "fw": 68,
+   "fh": 80,
+   "ax": 34,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Hedda",
+ "hold": [
+  "push: cut and in hand, the same row name as Halldor's so the one hook serves both (deep16/js/features.js THE PUSH, the Soldiering seat's)",
+  "walk: SE, E and rear NE on the art desk's own hold -- the same stride at 1 and 5 (deep16-dream-polish.md)",
+  "push, rear NE: the chest overlap may read as the right arm driving the shield (the art desk's own gear check)"
+ ],
+ "source": "drawn by the art desk (ART-146-COMBAT, 11-20: art-wanted section 88, Hedda Greyseam with warhammer and shield in five views, the Attack and the Push over the mannequin's guides), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

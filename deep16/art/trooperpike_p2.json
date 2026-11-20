@@ -1,0 +1,82 @@
+{
+ "image": "art/trooperpike_p2.png",
+ "fw": 104,
+ "fh": 80,
+ "ax": 52,
+ "ay": 74,
+ "top": 42,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 104,
+   "fh": 80,
+   "ax": 52,
+   "ay": 74,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 640,
+   "fw": 102,
+   "fh": 80,
+   "ax": 51,
+   "ay": 74,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1280,
+   "fw": 110,
+   "fh": 80,
+   "ax": 55,
+   "ay": 74,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "pikerank": {
+   "y": 1920,
+   "fw": 128,
+   "fh": 80,
+   "ax": 64,
+   "ay": 74,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2560,
+   "fw": 102,
+   "fh": 80,
+   "ax": 51,
+   "ay": 74,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3200,
+   "fw": 116,
+   "fh": 80,
+   "ax": 58,
+   "ay": 74,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3840,
+   "fw": 100,
+   "fh": 80,
+   "ax": 50,
+   "ay": 74,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Pike Trooper",
+ "hold": [
+  "pikerank: cut and in hand, played by nothing yet (deep16/js/features.js, the Soldiering seat's)",
+  "walk: E and rear NE hard to tell the lead change at 1 and 5; N repeats its foot shapes (the art desk's own notes)",
+  "prone: the last Fall cel held"
+ ],
+ "source": "drawn by the art desk (PIKE-TROOPER-CUTTER-HANDOFF, 11-20: art-wanted section 93, the garrison's pike trooper in five views, the thrust and the rank over the mannequin's guides), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
