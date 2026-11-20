@@ -1382,7 +1382,8 @@
   //   friend beside it that is not, the friend with the most hit points
   F.wheelWant = function (B, att, friends) {
     if (att.hp > att.maxhp / 2) return null;
-    return friends.filter(function (w) { return w.hp > w.maxhp / 2; }).sort(function (a, b) { return b.hp - a.hp; })[0] || null;
+    if (F.wallSet(att)) return null; // (never out of a set wall, nor with a set member: the trade would break the line -- the desk's read of his watched door, 11-20: "the AI's wheel pulls a set member out")
+    return friends.filter(function (w) { return w.hp > w.maxhp / 2 && !F.wallSet(w); }).sort(function (a, b) { return b.hp - a.hp; })[0] || null;
   };
   function foeWithin(B, u, ft) { return B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G.dist(u, w) <= ft; }); }
   F.wallReady = function (u) { return !!(u && !u.dead && u.hp > 0 && F.soldiering(u) && F.bearsShield(u)); };
