@@ -58,7 +58,9 @@ async def main():
             for what, rt, url, needs in (('js/hours.js withheld', withhold, 'deep16/?pocket', 'js/hours.js did not load'),
                                          ('js/hours.js broken as it loads', broken, 'deep16/?skyshow', 'js/hours.js broke as it loaded'),
                                          ('the page older than the game', stale, 'deep16/?gallery', 'this page is older than the game')):
-                r = await look(br, base, url, rt)
+                for _ in range(3): # (up to twice more, 11-21, Griz: "Yes, build it": under the full gate's load the probe's own little server drops other files too, and the page then names four it was never asked to lose and not the one staged -- RED three times on 11-20 inside the gate, GREEN alone each time. A real fault fails all three.)
+                    r = await look(br, base, url, rt)
+                    if r['state'] == 'bad' and WORDS in r['card'] and any(needs in b for b in r['bad']): break
                 ok(r['state'] == 'bad' and WORDS in r['card'] and any(needs in b for b in r['bad']), 'RED   %-32s %s: %s' % (what, r['state'], ('; '.join(b.split(':')[0] for b in r['bad']) or r['card'])[:200])) # (the throw's own words left out: they carry "Error", which dev/check.py reads as RED -- as dev/loaderr-probe.py)
             await br.close()
     finally: httpd.shutdown()

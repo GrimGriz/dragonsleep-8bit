@@ -13,6 +13,7 @@ rebases once, writes its records against hashes that will not move again, gates 
   python dev/land.py release                          give the runway back without pushing (your ticket too)
   python dev/land.py gate [--who NAME] [--wait MIN]   THE GATE LOCK: wait in the gate's own line (40 min at most a call), then run the FULL gate
                                                      (python dev/check.py all) here, alone on the machine, and give the gate back
+  python dev/land.py gate --seat                      the same lock and line, the SEAT gate (python dev/check.py seat): a seat's gate before its report
   python dev/land.py status                           who holds it and for how long, who waits (the runway, then the gate)
   python dev/land.py break                            the desk's: clear the runway left by a seat that died, a dead gate, and the dead tickets
 
@@ -220,11 +221,12 @@ def gate(argv, top, d):
         time.sleep(POLL)
     head = git('rev-parse', '--short=8', 'HEAD')
     dirty = bool(git('status', '--porcelain', '--untracked-files=no'))
-    print('land: the gate is yours (%s) -- python dev/check.py all, on %s%s' % (who, head, ' with uncommitted changes' if dirty else ''), flush=True)
+    tier = 'seat' if '--seat' in argv else 'all'   # (11-21: the seat tier takes its turn on the same lock -- two walkthroughs beside a full gate is the load the lock is for)
+    print('land: the gate is yours (%s) -- python dev/check.py %s, on %s%s' % (who, tier, head, ' with uncommitted changes' if dirty else ''), flush=True)
     p, code = None, 1
     try:
         nap = os.environ.get('LAND_GATE_TEST_SLEEP')   # (the lock's own proof: a sleep in the check's place, so two waiters can be timed without two gates)
-        p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(%g)' % float(nap)] if nap else [sys.executable, os.path.join(top, 'dev', 'check.py'), 'all'], cwd=top)
+        p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(%g)' % float(nap)] if nap else [sys.executable, os.path.join(top, 'dev', 'check.py'), tier], cwd=top)
         while p.poll() is None:
             r['taken'] = time.time()   # (the heartbeat: a holder that dies stops it, and the gate frees itself)
             write(gate_path(g), r)
