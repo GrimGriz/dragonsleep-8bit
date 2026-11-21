@@ -5825,13 +5825,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           var st = s.co.next(v); v = undefined;
           if (st.done) { if (D.top() !== s) continue; break; }
           if (st.value && st.value.prompt) { var p = st.value.prompt, lb2 = p.opts.map(function (x) { return x.label; }), i2 = pick(lb2); seen.push('PROMPT ' + (p.title || '') + ' [' + lb2.join(' | ') + '] > ' + lb2[i2]); v = p.opts[i2].value; quiet = 0; continue; }
-          if (st.value && st.value.turn) { v = { do: 'end' }; quiet = 0; continue; }
+          if (st.value && st.value.turn) { v = (o.turn && o.turn(s, st.value.turn)) || { do: 'end' }; quiet = 0; continue; } // (o.turn: a hero's turn answered by the walk's own -- wagonnotes1121's LEAVE THE FIGHT)
           if (st.value && st.value.victory) { seen.push('VICTORY ' + (st.value.victory.lines || []).join(' ')); continue; }
           if (typeof st.value === 'number') s.t += Math.max(1, st.value);
           var busy = (s.cards || []).some(function (c) { return s.t < c.t0 + (c.life || 300); }) || (s.units || []).some(function (u) { return u.tween && (u.tween.t || 0) < (u.tween.dur || 0); });
           if (!busy) quiet++; continue;
         }
         if (s instanceof D.Battle && !s.roam) { seen.push('FIGHT ' + (s.fight && s.fight.id)); D.pop(); if (s.o && s.o.onDone) s.o.onDone('won'); continue; }
+        if (o.keep && o.keep(s)) { seen.push('KEPT ' + (s.kind || (s.constructor && s.constructor.name) || '?')); break; } // (o.keep: a screen the walk ends on, not popped -- THE WORLD after the grounds are left)
         seen.push('POPPED ' + (s.kind || (s.constructor && s.constructor.name) || '?')); D.pop();
       }
       var top = topQ();
@@ -5898,6 +5899,43 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // the house door in elsbethhome_p1, not the townswoman stand-in
       var elsG = null, Bg = playQ('barnunseen'), eg = useQ(Bg, 'barnGoblin'), rg = walkQ(['FREE IT'], { quiet: 900, stop: function (s) { var B0 = D.battle; if (!elsG && B0 && B0.units) { var e = B0.units.filter(function (u) { return u.name === 'Elsbeth' && u.npc !== 'elsbeth'; })[0]; if (e) elsG = { sheet: e.sheet, at: [e.x, e.y] }; } return !!elsG; } });
       okQ('(g) ELSBETH IN HER OWN FIGURE IN THE BARN\'S SCENE: ' + JSON.stringify(elsG) + ' (hers ' + (IPw && IPw.ELSBETH) + ')', !!elsG && elsG.sheet === (IPw && IPw.ELSBETH));
+      resetQ();
+      // (h) THE INN'S FIGHTS LEAVE BY ITS EXITS (his "the party should have to leave the inn by it's exits to run away from the fight" and "make sure the - 'story fight exit'
+      // for the inn requires exiting the inn back to the world map"): the yard fight, two on the watch, REFUSE -- at the first hero's turn no clear square mid-yard lights; the
+      // same hero stood two squares in from the west edge has the edge's squares in reach lit and only rim squares; stood on one, LEAVE THE FIGHT: the fight left, the night
+      // in its ran state, and the party taken off the grounds by the edge's RETURN onto THE WORLD
+      var MN = D.mines, hx = null, Mh = null; if (MN) MN.lastEdgeGo = null;
+      var Bh = playQ('wagon', null, pinsQ(19)), eh = useQ(Bh, 'gennet'), rh = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'REFUSE'], { watch: { vivian: 2, barley: 2 }, quiet: 1500, pastMorning: false,
+        turn: function (s, tn) {
+          var Bf = D.battle, u = Bf && Bf.active; if (!u || hx) return null;
+          var def = RQ.def, doorK = {}; (def.doors || []).forEach(function (q) { doorK[q[0] + ',' + q[1]] = 1; });
+          var rim = function (q) { return q[0] === 0 || q[1] === 0 || q[0] === def.w - 1 || q[1] === def.h - 1; };
+          hx = { B: Bf, who: u.name, at0: [u.x, u.y], mid: (Bf.exits || []).map(function (q) { return q.join(','); }), doors: (def.doors || []).length, doorsOnRim: (def.doors || []).every(rim), card: /only off the grounds/.test((Bf.cards || []).map(function (c) { return c.lines.join(' '); }).join(' ')) };
+          var hq = [InQ.STAIR[0] + 1, InQ.STAIR[1] - 2], x0 = u.x, yq0 = u.y;
+          for (var hy = 15; hy <= 22 && !(InQ.inHouse(hq[0], hq[1]) === 'inn' && D.grid.canStand(u, hq[0], hq[1]) && !D.grid.occupant(hq[0], hq[1])); hy++) for (var hxx = 20; hxx <= 26; hxx++) if (InQ.inHouse(hxx, hy) === 'inn' && D.grid.canStand(u, hxx, hy) && !D.grid.occupant(hxx, hy)) { hq = [hxx, hy]; break; } /* (a free square of the common room) */
+ if (InQ.inHouse(hq[0], hq[1])) { /* (the yard's lay roofs the house: its squares stood on by hand, the rule read off them) */ u.x = hq[0]; u.y = hq[1]; D.grid.setup(Bf.map, Bf.units); RQ.setExits(Bf, u); hx.inside = { at: hq, house: InQ.inHouse(hq[0], hq[1]), lit: (Bf.exits || []).length, doorsFor: def.fightDoorsFor ? def.fightDoorsFor({ x: hq[0], y: hq[1] }).length : 'none' }; u.x = x0; u.y = yq0; D.grid.setup(Bf.map, Bf.units); } else hx.inside = { at: hq, err: 'not a free square in the house' };
+          var y0 = u.y, sq = null; for (var dy = 0; dy < def.h && !sq; dy++) [y0 + dy, y0 - dy].forEach(function (yy) { if (!sq && doorK['0,' + yy] && D.grid.canStand(u, 2, yy) && !D.grid.occupant(2, yy)) sq = [2, yy]; });
+          if (!sq) { hx.err = 'no square two in from the west edge'; return null; }
+          u.x = sq[0]; u.y = sq[1]; u.tween = null; D.grid.setup(Bf.map, Bf.units); RQ.setExits(Bf, u);
+          hx.near = (Bf.exits || []).map(function (q) { return q.join(','); }); hx.nearRim = (Bf.exits || []).every(function (q) { return doorK[q[0] + ',' + q[1]]; });
+          var ex = (Bf.exits || []).filter(function (q) { return q[0] === 0; })[0]; if (!ex) { hx.err = 'nothing lit at the edge'; return null; }
+          u.x = ex[0]; u.y = ex[1]; D.grid.setup(Bf.map, Bf.units); RQ.setExits(Bf, u); hx.out = ex.join(',');
+          return { do: 'leave' }; },
+        keep: function (s) { return !!(MN && MN.lastEdgeGo); },
+        stop: function (s) { if (!Mh && MN && MN.lastEdgeGo) Mh = { go: MN.lastEdgeGo, top: s && (s.kind || (s.constructor && s.constructor.name)), f: s && s.roam ? Object.assign({}, s.roam.flags) : null }; return !!Mh && !(s && s.roam); } });
+      var fh = (hx && hx.B && hx.B.roam && hx.B.roam.flags) || (Mh && Mh.f) || rh.f || {}; // (the inn's floor's own flags, as it was left)
+      okQ('(h) THE YARD FIGHT\'S WAYS OUT ARE THE GROUNDS\' EDGE ONLY: ' + JSON.stringify(hx && { who: hx.who, at0: hx.at0, mid: hx.mid.length, doors: hx.doors, doorsOnRim: hx.doorsOnRim, card: hx.card, near: (hx.near || []).length, nearRim: hx.nearRim, err: hx.err }),
+        !!hx && !hx.err && hx.mid.length === 0 && hx.doors > 100 && hx.doorsOnRim && hx.card && hx.near.length > 0 && hx.nearRim);
+      okQ('(h) LEAVE THE FIGHT AT THE EDGE: off the grounds onto the world map -- ' + JSON.stringify(Mh && { go: Mh.go, top: Mh.top }) + '; the night ' + fh.wagonOutcome + ', seen ' + fh.glamourBroken + ', the one kept ' + fh.kidAtInn + ' (offering ' + InQ.offering(fh, 0) + '), the wagon stopped ' + fh.wagonStopped + ', the traveler south ' + fh.katSouth + ', cycle ' + fh.wagonCycle + ' / ' + (rh.seen.match(/gets off the grounds[^/]*/) || ['no away card'])[0].slice(0, 90),
+        !!Mh && Mh.go.key === InQ.KEY && Mh.go.side === 'west' && fh.wagonOutcome === 'ran' && fh.glamourBroken === 1 && fh.kidAtInn === 1 && InQ.offering(fh, 0) === 'kept' && !fh.wagonStopped && fh.katSouth === 1 && fh.wagonCycle === 0 && !/MORNING/.test(rh.seen) && /Off the inn's grounds and out into the dark/.test(rh.seen));
+      okQ('(h) INSIDE THE HOUSE NO WAY OUT (his "no escape from the inside fights is fine"): ' + JSON.stringify(hx && hx.inside) + '; the card\'s words ' + JSON.stringify(RQ.EXITSNONE_LINE),
+        !!hx && !!hx.inside && !hx.inside.err && hx.inside.house === 'inn' && hx.inside.lit === 0 && hx.inside.doorsFor === 0 && /No way out/.test(RQ.EXITSNONE_LINE || ''));
+      // (h2) BACK IN: the wagon night does not come again that cycle, the yard laid as any day's -- no wagon, no Amara
+      var tonight = InQ.wagonTonight(fh, InQ.WAGON.first);
+      resetQ(); while (D.top() && !(D.top() instanceof D.Battle) && D.scenes.length > 1) D.pop();
+      InQ.play({ key: InQ.KEY, at: [16, 25], hour: 23, day: InQ.WAGON.first, flags: Object.assign({}, fh) }); var Bh2 = topQ(); for (var kh = 0; kh < 4 && Bh2 && Bh2.roam && Bh2.co; kh++) { var sh2 = Bh2.co.next(); if (sh2.done) break; } Bh2 = topQ();
+      var yard2 = Bh2 && Bh2.units ? Bh2.units.filter(function (u) { return /amara|willem|wagonKid/i.test(u.scripted || u.npc || u.id || ''); }).map(function (u) { return u.name; }) : 'no floor', riders2 = Bh2 ? (Bh2.riders || []).filter(function (r) { return r.yard; }).length : -1;
+      okQ('(h2) BACK AT THE INN THAT NIGHT after running: the wagon night again ' + tonight + '; the yard: ' + JSON.stringify(yard2) + ', the wagon\'s riders ' + riders2 + ', the floor ' + (RQ.def && RQ.def.key), !tonight && Array.isArray(yard2) && yard2.length === 0 && riders2 === 0 && RQ.def && RQ.def.key === InQ.KEY);
       resetQ();
       } else {
       // 1. THE WINDOW TO THE YARD (his "zoom out instead of panning to the wagon"; at Sylvia's table, "without doodledo sound and pan to downstairs spot"): KEEP WATCH with

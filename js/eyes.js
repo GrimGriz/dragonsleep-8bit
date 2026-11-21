@@ -23,6 +23,11 @@
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
     // THE NOTES SEAT (notes-1121), 11-21 (Opus; started by the lanes desk on his NOTES save hero_situations_feedback-2026-11-21-0527Z, the wagon night): his notes on the card eyes-bribe-words-1121
+    'eyes-inn-exits-1121n': { pri: 1, group: G2, title: 'THE INN\'S FIGHTS LEAVE BY ITS EXITS: off the grounds, back to the world map (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the notes seat; deep16/js/roam.js R.setExits, R.after; deep16/js/inn.js In.yardRan)',
+      obj: 'In the yard fight, run for the road: only the map\'s edge lights, and leaving there puts you on the world map.',
+      url: 'deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121n7',
+      steps: [['halfway', 16, 25, 'the yard fight: no pale squares mid-yard'], ['halfway', 0, 18, 'the grounds\' west edge: LEAVE THE FIGHT']],
+      look: 'A LIVE DOOR. Your "For inn fights, including the lake - the party should have to leave the inn by it\'s exits to run away from the fight, since ending the fight in the yard probably throws the story all out of whack" and "make sure the - \'story fight exit\' for the inn requires exiting the inn back to the world map": on the inn\'s floor a fight lights only the edge squares that go out to the world map, and only when one is in reach this turn; inside the house and upstairs none ("no escape from the inside fights is fine"); the dinner keeps its two doors. Leaving the yard fight by the edge: the wagon goes on north with the seven, the one handed over is kept for the due, and you are on the world map; back at the inn the yard is empty. Judge: the pale squares, and the night\'s end.' },
     'eyes-twowatch-lymen-1121n': { pri: 1, group: G2, title: 'TWO ON THE SECOND WATCH: INVESTIGATE wakes the party, and Lymen speaks at the bribe (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the notes seat; deep16/js/inn.js In.wagonNight, In.wagonRest)',
       obj: 'Put Vivian and Barley on the second watch, Lymen asleep; INVESTIGATE, and hear Lymen after Amara\'s offer, then choose.',
       url: 'deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121n1',
