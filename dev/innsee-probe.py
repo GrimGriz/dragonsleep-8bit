@@ -51,10 +51,12 @@ D.loadImages(D.spr.images(), function () {
       var alphaOf = function (p) { var seen = [], fx = { globalAlpha: 1, save: function () { }, restore: function () { fx.globalAlpha = 1; }, drawImage: function () { seen.push(fx.globalAlpha); } }; p.draw(fx); return seen.length ? seen[0] : null; };
       var put = function (B, q) { var t = B.roam.token; t.x = q[0]; t.y = q[1]; t.tween = null; B.roam.path = null; D.grid.setup(B.map, B.units); for (var i = 0; i < 4; i++) D.update(); D.roam.occlude(B); };
       D.scenes.length = 0; D.push(D.inn.show('?innshow&beat=wagonyard')); for (var i = 0; i < 60; i++) D.update();
-      var Bw = D.battle, mw = D.iso.map, wag = mw.props.filter(function (p) { return p.piece === 'yard_wagonT'; }), rim = mw.props.filter(function (p) { return p.piece === 'yard_wagonRim'; }), WA = D.inn.WAGONAT;
-      put(Bw, [WA[0] + 1, WA[1] + 4]); X.wag = wag.length; X.rim = rim.length; X.walk = wag.length ? alphaOf(wag[0]) : null;
-      var mode0 = Bw.roam.mode; Bw.roam.mode = 'fight'; X.fight = wag.length ? alphaOf(wag[0]) : null; X.fightRim = rim.length ? alphaOf(rim[0]) : null; Bw.roam.mode = mode0;
-      X.hidAt = null; [[WA[0] + 1, WA[1] - 1], [WA[0] + 2, WA[1] - 1], [WA[0], WA[1] - 1], [WA[0] + 3, WA[1] - 1], [WA[0] + 1, WA[1] - 2], [WA[0] - 1, WA[1]], [WA[0] - 1, WA[1] - 1]].forEach(function (q) { if (X.hidAt || !D.grid.canStand(Bw.roam.token, q[0], q[1])) return; put(Bw, q); if (IP.wagonHid && IP.wagonHid()) X.hidAt = q; });
+      // (RE-POINTED 11-21, the wagon re-laid NE: yard_wagon over its 2 x 4 along y at In.WAGONAT 11,27 -- the angle pass's yard_wagonT and its rim no longer laid; walking in the
+      // open past its back (WAGONL.behind), and behind it on its far (west) side, where it hides the party)
+      var Bw = D.battle, mw = D.iso.map, wag = mw.props.filter(function (p) { return p.piece === 'yard_wagon'; }), old = mw.props.filter(function (p) { return p.piece === 'yard_wagonT' || p.piece === 'yard_wagonRim'; }), WA = D.inn.WAGONAT;
+      put(Bw, D.inn.WAGONL.behind.slice()); X.wag = wag.length; X.old = old.length; X.walk = wag.length ? alphaOf(wag[0]) : null; X.wagAll = wag.length ? wag.map(alphaOf) : [];
+      var mode0 = Bw.roam.mode; Bw.roam.mode = 'fight'; X.fight = wag.length ? alphaOf(wag[0]) : null; X.fightAll = wag.length ? wag.map(alphaOf) : []; Bw.roam.mode = mode0;
+      X.hidAt = null; [[WA[0] - 1, WA[1] + 1], [WA[0] - 1, WA[1] + 2], [WA[0] - 1, WA[1]], [WA[0] - 1, WA[1] + 3], [WA[0] - 2, WA[1] + 2], [WA[0] - 2, WA[1] + 1]].forEach(function (q) { if (X.hidAt || !D.grid.canStand(Bw.roam.token, q[0], q[1])) return; put(Bw, q); if (IP.wagonHid && IP.wagonHid()) X.hidAt = q; });
       X.hid = X.hidAt && wag.length ? alphaOf(wag[0]) : null; X.see = IP.SEE;
       X.flat = {}; IP.PARTS().forEach(function (pt) { var h = IP.house(pt[0], pt[1], false), cfg = IP.HOUSE[pt[0]], base = cfg && cfg.base && cfg.base[1]; if (!h || !base) { X.flat[pt[0]] = -1; return; }
         var cv = h.pic.canvas, tmp = document.createElement('canvas'); tmp.width = tmp.height = 1; var tx = tmp.getContext('2d'); tx.fillStyle = base; tx.fillRect(0, 0, 1, 1); var bc = tx.getImageData(0, 0, 1, 1).data;
@@ -123,8 +125,8 @@ def main():
     m2 = re.search(r'INNSEE2 (\{.*\}) END2', dom, re.S); X = json.loads(H.unescape(m2.group(1))) if m2 else {'err': 'no result'}
     if X.get('err'): ok('the fixes of 11-12: ' + X['err'], False)
     else:
-        ok('the wagon see-through: %d squares of its canvas and %d of its rail; walking in the open drawn whole (%s); in a fight on the floor faint (%s, its rail %s); walking behind it at %s faint (%s)' % (X['wag'], X['rim'], X['walk'], X['fight'], X['fightRim'], X['hidAt'], X['hid']),
-           X['wag'] == 8 and X['rim'] == 8 and X['walk'] == 1 and X['fight'] == X['see'] and X['fightRim'] == X['see'] and X['hidAt'] and X['hid'] == X['see'])
+        ok('the wagon see-through (re-laid NE, 11-21): %d squares of yard_wagon (%d of the angle pass laid); walking in the open past its back drawn whole (%s, every square %s); in a fight on the floor faint (%s, every square %s); walking behind it at %s faint (%s)' % (X['wag'], X['old'], X['walk'], X['wagAll'], X['fight'], X['fightAll'], X['hidAt'], X['hid']),
+           X['wag'] == 8 and X['old'] == 0 and X['walk'] == 1 and all(a == 1 for a in X['wagAll']) and X['fight'] == X['see'] and all(a == X['see'] for a in X['fightAll']) and X['hidAt'] and X['hid'] == X['see'])
         f = X['flat']; ok('the far slope laid whole: of each building\'s picture, the share that is the far slope\'s bare flat colour -- the house %s%%, the wing %s%%, the barn %s%%' % (f.get('house'), f.get('wing'), f.get('barn')),
            all(0 <= f.get(k, -1) < 1 for k in ('house', 'wing', 'barn')))  # (2.8 to 6.4 before)
         ok('the cutaway\'s stubs a square more each way: rows %s; the walls in a figure\'s window: %d outer-wall stubs laid %s, on 30,12 behind the house (hidden %d) %d drawn, out on the grass at 30,8 (hidden %d) %d' % (X['cutRows'], X['seeStubs'], json.dumps(X['byMat']), X['hidden'], X['drawn'], X['hiddenFar'], X['drawnFar']),

@@ -5981,8 +5981,27 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okQ('INVESTIGATE ALONE: the rest out of the front door on round two: ' + JSON.stringify(join4) + ' -- ' + r2.seen.slice(r2.seen.indexOf('steps out into the yard'), r2.seen.indexOf('steps out into the yard') + 300), !!join4 && join4.round === 2 && join4.field.length === 4);
       // 4c. KATARINA WALKS TO THE WAGON (11-21, his note on eyes-doran-drive-1118b: "that works, but Kat doesn't get on the wagon and it says she does"): after Doran's drive she comes
       // out of the front door in her own figure and stands on the bench's square as the card says she goes up on it
-      var kb4 = InQ.katBoarded, kc4 = r2.raw.join(' / ').indexOf('goes up on the bench beside him'), bn4 = [InQ.WAGONAT[0] + 1, InQ.WAGONAT[1] - 1];
-      okQ('KATARINA WALKS TO THE WAGON after Doran\'s drive: she stood at ' + kb4 + ' (the bench ' + bn4 + ') as the card says so (' + (kc4 >= 0) + ')', !!kb4 && kb4[0] === bn4[0] && kb4[1] === bn4[1] && kc4 >= 0);
+      // (11-21, the wagon re-laid NE: the bench is the box at its NE end, In.WAGONL.box, and one climbs up to it from beside it, In.WAGONL.down -- where Doran went up)
+      var kb4 = InQ.katBoarded, kc4 = r2.raw.join(' / ').indexOf('goes up on the bench beside him'), bn4 = InQ.WAGONL.down;
+      okQ('KATARINA WALKS TO THE WAGON after Doran\'s drive: she stood at ' + kb4 + ' (beside the box, In.WAGONL.down ' + bn4 + ', the box ' + InQ.WAGONL.box + ') as the card says so (' + (kc4 >= 0) + ')', !!kb4 && kb4[0] === bn4[0] && kb4[1] === bn4[1] && Math.abs(kb4[0] - InQ.WAGONL.box[0]) + Math.abs(kb4[1] - InQ.WAGONL.box[1]) === 1 && kc4 >= 0);
+      resetQ();
+      // 4d. THE ONE HANDED OVER IS NOT BACK IN THE WAGON (11-21, his note from play on live: "refusing bribe combat - child handed off appears back in wagon"; the wagon
+      // re-laid with ONE drawn in its back, inside the arch -- js/inn.js In.bedRiders, r.arch): Vivian on the second watch, INVESTIGATE, the gold refused. Before the
+      // handover one in the arch; as Amara lifts it down at the tail the arch is empty and that one walks in with the inn lady; at the yard fight's start and after it
+      // the arch stays empty -- no rider in the back, no figure on the back's square
+      var archQ = function (B) { return (B.riders || []).filter(function (r) { return r.yard && r.arch; }).map(function (r) { return r.x + ',' + r.y + ' ' + r.sheet; }); };
+      var kidQ = function (B) { var bk = InQ.WAGONL.back; return B.units.filter(function (u) { return u.scripted === 'wagonKid' || ((u.kind === 'glamourgoblin' || u.kind === InQ.keptKind()) && Math.abs(u.x - bk[0]) + Math.abs(u.y - bk[1]) <= 3); }).map(function (u) { return (u.scripted || u.kind) + '@' + u.x + ',' + u.y; }); };
+      var pre4d = null, lift4d = null, fight4d = null, after4d = null, how4d = null;
+      var B4d = playQ('wagon', null, pinsQ(19)), e4d = useQ(B4d, 'gennet'), r4d = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'REFUSE'], { watch: { vivian: 2 }, quiet: 1200, pastMorning: false, stop: function (s) {
+        var Bd = D.battle; if (!Bd || !Bd.roam) return false;
+        if (!pre4d && (Bd.cards || []).some(function (c) { return /a wagon turns in/.test(c.lines.join(' ')); })) pre4d = { arch: archQ(Bd) };
+        if (!lift4d && Bd.units.some(function (u) { return u.scripted === 'wagonKid'; })) lift4d = { arch: archQ(Bd), kid: kidQ(Bd) };
+        if (!fight4d && Bd.roam.mode === 'fight') fight4d = { arch: archQ(Bd), kid: kidQ(Bd), round: Bd.round, faint: D.innprops.fightOn(), laid: (D.innprops.laid ? D.innprops.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagon'; }).length };
+        if (fight4d && !after4d && Bd.roam.mode !== 'fight' && Bd.roam.flags.wagonOutcome) { after4d = { arch: archQ(Bd), kid: kidQ(Bd) }; how4d = Bd.roam.flags.wagonOutcome; return true; }
+        return false; } });
+      if (!pre4d) pre4d = { arch: [] };
+      okQ('THE ONE HANDED OVER NOT BACK IN THE WAGON (the gold refused, Vivian alone): before the handover the arch ' + JSON.stringify(pre4d.arch) + '; lifted down ' + JSON.stringify(lift4d) + '; at the fight ' + JSON.stringify(fight4d) + '; after it (' + how4d + ') ' + JSON.stringify(after4d) + ' -- ' + r4d.seen.slice(Math.max(0, r4d.seen.indexOf('Keep your')), Math.max(0, r4d.seen.indexOf('Keep your')) + 120),
+        /REFUSE/.test(r4d.raw.join(' ')) && pre4d.arch.length === 1 && !!lift4d && lift4d.arch.length === 0 && lift4d.kid.length === 1 && !!fight4d && fight4d.laid === 1 && fight4d.faint === true && fight4d.arch.length === 0 && fight4d.kid.length === 0 && !!after4d && after4d.arch.length === 0 && after4d.kid.length === 0);
       resetQ();
       // 5. THE BRIBE ON THE SPEAKERS' OWN FACES, AND KATARINA STAYS (his "says barley speaking, shows amara"; "Kat wouldn't go if children were revealed, have her run up and deliver
       // her message to Amara ... whichever of the waterby's likes them the most will tell them she went south - book in the nightstand, party gets big room"): Vivian at the
@@ -9197,7 +9216,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okK('THE WALLS\' SHEET COME dresses the floor that is up: the floor laid twice (a new map ' + (mNew !== mOld) + ', the barn open ' + (mNew.def && mNew.def.inside) + '); the sheet comes -- ' + dressed.length + ' floor dressed, the one on the screen ' + (dressed[0] === mNew) + ', not the first ' + (dressed[0] !== mOld) + '; the wait let go ' + (IPK.wallsWait === false),
         mNew !== mOld && dressed.length === 1 && dressed[0] === mNew && came === mNew && IPK.wallsWait === false);
       okK('the wagon a tall piece too, canvas and rail (11-12: faint in a fight on the floor and while it hides the party -- the pixels are dev/innsee-probe.py\'s): ' + Object.keys(TALLK).join(', ') + '; the cutaway\'s stubs ' + (CUTK.more || 0) + ' square more each way; a figure\'s window ' + JSON.stringify(IPK.WIN),
-        TALLK.yard_wagonT === 1 && TALLK.yard_wagonRim === 1 && typeof IPK.wagonHid === 'function' && CUTK.more === 1 && !!IPK.WIN && IPK.WIN.near === 5);
+        TALLK.yard_wagon === 1 && IPK.WAGON.yard_wagon === 1 && typeof IPK.wagonHid === 'function' && CUTK.more === 1 && !!IPK.WIN && IPK.WIN.near === 5);
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     HK.playing = false; HK.cur = null; if (InK) { InK.stay = false; InK.pinned = null; }
     D.store.get = stGK; D.store.set = stSK; D.music = muK;
@@ -22826,6 +22845,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // row the art desk's stall opening onto the aisle as drawn, its south row the reversed stall mirrored (its head wall to the camera), the troughs that stood for its mangers
   // gone; Amara's wagon drawn tail to the camera over its 4 x 2 on its night (the code's wagon given way), its rim drawn again after the two who stand in its bed, who stand
   // on its floor a quarter square in from their squares' middles. The pixels (the feet on the diamonds' corners, the rim the wagon's own) are dev/barnwagon-probe.py's
+  // RE-POINTED 11-21 (the wagon re-laid NE, Griz: "C: box NE, Willem on it"): checks 3-5 ask the new layout -- yard_wagon over the 2 x 4 at In.WAGONAT 11,27, Willem on
+  // the box at 12,27 and down to the greys' heads for the fight, ONE in the back inside the arch (IP.archDraw); the angle pass's pieces only in the atlas (check 1)
   if (get('mode', '') === 'barnwagon1110') {
     var repBw = { checks: [], errors: [] }, memBw = {}, stGBw = D.store.get, stSBw = D.store.set, InBw = D.inn, IPb = D.innprops, RBw = D.roam;
     function okBw(what, v) { repBw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -22835,7 +22856,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       D.seed = +get('seed', 1110);
       // 1. the sheet: the four new pieces, their footprints, the source naming the angle pass
-      var S2 = D.SHEETS.innprops_p2 || { tiles: {}, foot: {} }, nmB = ['barn_stallN', 'barn_stallS', 'yard_wagonT', 'yard_wagonRim'], ftB = ['2,2', '2,2', '4,2', '4,2'];
+      // (and since 11-21, the wagon re-laid NE: the first page-6 drawing, yard_wagon, cut 2 x 4 along y, is the one laid; the angle pass's yard_wagonT and its rim stay in the atlas, unused)
+      var S2 = D.SHEETS.innprops_p2 || { tiles: {}, foot: {} }, nmB = ['barn_stallN', 'barn_stallS', 'yard_wagonT', 'yard_wagonRim', 'yard_wagon'], ftB = ['2,2', '2,2', '4,2', '4,2', '2,4'];
       okBw('innprops_p2: ' + nmB.map(function (n) { return n + ' ' + (S2.tiles[n] ? (S2.foot[n] || []).join('x') : 'NONE'); }).join(', ') + ' -- the source names the angle pass (' + /ART-36-ANGLE-REVISION-1110/.test(S2.source) + ')',
         nmB.every(function (n, k) { return !!S2.tiles[n] && (S2.foot[n] || []).join() === ftB[k]; }) && /ART-36-ANGLE-REVISION-1110/.test(S2.source));
       // 2. the barn: the north row the new stall as drawn at 6,4 9,4 12,4; the south row the reversed one at 6,7 9,7 12,7; no old stall, partitions or trough in it
@@ -22843,24 +22865,39 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var oldB = fB.pieces.filter(function (p) { return p[0] === 'barn_stall' || p[0] === 'barn_stallsides' || (p[0] === 'yard_trough' && p[2] < 10); }).length;
       okBw('the barn: north row ' + atB('barn_stallN').join(' | ') + '; south row ' + atB('barn_stallS').join(' | ') + '; the 11-05 stall, partitions and mangers\' troughs left ' + oldB,
         atB('barn_stallN').join() === '6,4 2x2,9,4 2x2,12,4 2x2' && atB('barn_stallS').join() === '6,7 2x2,9,7 2x2,12,7 2x2' && oldB === 0);
-      // 3. the yard by day: no wagon; on the wagon night (its squares on the floor, In.map): the wagon over its 4 x 2 at In.WAGONAT and its rim a depth over it, the code's wagon given way
+      // 3. the yard by day: no wagon; on the wagon night (its squares on the floor, In.map): RE-LAID 11-21 (Griz: "C: box NE, Willem on it"; "12,27 is good") -- yard_wagon
+      // over its 2 x 4 along y at In.WAGONAT [11, 27] (V the open box on the NE row, U the cover on the three behind it), nothing of the angle pass laid, the code's wagon given way
       floorBw('?roam=halfway&hour=10&day=5&at=10,22'); var dayB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return /^yard_wagon/.test(p[0]); }).length;
-      var Bn = floorBw('?roam=halfway&hour=23&day=12&at=10,22'), wB = InBw.WAGONAT; Bn.roam.flags.wagonIn = 1; InBw.stage(Bn, [InBw.DOORS.front[0] + 1, InBw.DOORS.front[1]], 'inn'); Bn = topBw();
+      var Bn = floorBw('?roam=halfway&hour=23&day=12&at=10,22'), wB = InBw.WAGONAT, WLb = InBw.WAGONL; Bn.roam.flags.wagonIn = 1; InBw.stage(Bn, [InBw.DOORS.front[0] + 1, InBw.DOORS.front[1]], 'inn'); Bn = topBw();
       var mB = D.iso.map, wl = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return /^yard_wagon/.test(p[0]); }).map(function (p) { return p[0] + '@' + p[1] + ',' + p[2] + ' ' + p[3] + 'x' + p[4] + (p[7] ? ' +' + p[7] : ''); });
-      var sqB = mB ? mB.props.filter(function (p) { return p.sq && p.sq.x >= wB[0] && p.sq.x < wB[0] + 4 && p.sq.y >= wB[1] && p.sq.y <= wB[1] + 1; }) : [], codeB = sqB.filter(function (p) { return p.kind === 'block' || p.kind === 'rock'; }).length;
-      okBw('the wagon: by day ' + dayB + ' laid; on its night ' + wl.join(', ') + ' (In.WAGONAT ' + wB.join(',') + '), its eight squares ' + sqB.length + ' props, the code\'s blocks left ' + codeB,
-        dayB === 0 && wl.join() === 'yard_wagonT@' + wB.join(',') + ' 4x2,yard_wagonRim@' + wB.join(',') + ' 4x2 +0.15' && codeB === 0 && sqB.length === 16);
-      // 4. the two in the bed: on its floor (In.BEDZ, the drawn bed's) and a quarter square in from their squares' middles; the rim over them (each a depth over its own square's
-      // rider, 0.6) and under one standing past the tail (12,18: its square's 30.5 against the rim's own square 11,19 at 30.65 -- the rim on 11,18 is 29.65)
-      var YB = InBw.yardCast(Bn, Bn.roam.flags), bed = (Bn.riders || []).filter(function (r) { return r.yard && !r.team; }).map(function (r) { return r.x + ',' + r.y + ' gz ' + r.gz + ' dy ' + r.dy; });
-      var rimD = sqB.filter(function (p) { return p.depth % 1 > 0.6; }).map(function (p) { return p.sq.x + ',' + p.sq.y + ':' + p.depth.toFixed(2); }).sort();
-      okBw('the two in the bed: ' + bed.join(' | ') + ' (In.BEDZ ' + InBw.BEDZ + ', IP.BEDZ ' + IPb.BEDZ + '); the rim\'s depths ' + rimD.join(' '),
-        bed.length === 2 && InBw.BEDZ === IPb.BEDZ && IPb.BEDZ === 20 && bed[0] === (wB[0] + 3) + ',' + wB[1] + ' gz 20 dy 0.25' && bed[1] === (wB[0] + 3) + ',' + (wB[1] + 1) + ' gz 20 dy -0.25'
-        && rimD.indexOf((wB[0] + 3) + ',' + wB[1] + ':' + (wB[0] + 3 + wB[1] + 0.65).toFixed(2)) >= 0 && rimD.indexOf((wB[0] + 3) + ',' + (wB[1] + 1) + ':' + (wB[0] + 4 + wB[1] + 0.65).toFixed(2)) >= 0);
+      var rowsB = RBw.def.rows, vB = [0, 1, 2, 3].map(function (j) { return rowsB[wB[1] + j].substr(wB[0], 2); }).join('/');
+      var sqB = mB ? mB.props.filter(function (p) { return p.sq && p.sq.x >= wB[0] && p.sq.x <= wB[0] + 1 && p.sq.y >= wB[1] && p.sq.y <= wB[1] + 3; }) : [], codeB = sqB.filter(function (p) { return p.kind === 'block' || p.kind === 'rock'; }).length;
+      var wsqB = {}; sqB.forEach(function (p) { if (p.piece === 'yard_wagon') wsqB[p.sq.x + ',' + p.sq.y] = 1; });
+      okBw('the wagon: by day ' + dayB + ' laid; on its night ' + wl.join(', ') + ' (In.WAGONAT ' + wB.join(',') + '), its rows ' + vB + ', its eight squares ' + Object.keys(wsqB).length + ' under yard_wagon (' + sqB.length + ' props), the code\'s blocks left ' + codeB,
+        dayB === 0 && wB.join() === '11,27' && wl.join() === 'yard_wagon@' + wB.join(',') + ' 2x4' && /^VV\/[UW]{2}\/[UW]{2}\/[UW]{2}$/.test(vB) && codeB === 0 && Object.keys(wsqB).length === 8);
+      // 4. the yard's cast on it (11-21): Willem UP ON THE BOX (its near square In.WAGONL.box 12,27, drawn on the box's floor, liftZ = In.BOXZ = IP.BOXZ, not yet at the traces);
+      // Amara beside the box (WAGONL.down); the greys 1 x 2 along y before it (WAGONL.team), heads NE; ONE in the back, at WAGONL.back inside the arch (r.arch) in the glamour's own
+      // look (goblinchild_p1, not the combat goblin), on the drawn floor (In.BEDZ = IP.BEDZ); and IP.archDraw takes it -- drawn at the drawing's own px, clipped to the arch's opening
+      var YB = InBw.yardCast(Bn, Bn.roam.flags), bed = (Bn.riders || []).filter(function (r) { return r.yard && !r.team; }).map(function (r) { return r.x + ',' + r.y + ' gz ' + r.gz + ' ' + r.sheet + (r.arch ? ' arch' : ''); });
+      var teamB = (Bn.riders || []).filter(function (r) { return r.yard && r.team; }).map(function (r) { return r.x + ',' + r.y + ' ' + r.foot.join('x') + ' f' + r.facing; });
+      var wiB = YB.willem, amB = YB.amara, clipB = 0, drawnB = [], ctxB = { save: function () { }, restore: function () { }, beginPath: function () { }, moveTo: function () { }, lineTo: function () { }, closePath: function () { }, clip: function () { clipB++; } };
+      var imB = S2.image, hadB = D.images[imB]; if (!(hadB && hadB.naturalWidth)) { var cvB = document.createElement('canvas'); cvB.width = cvB.height = 8; Object.defineProperty(cvB, 'naturalWidth', { value: 8 }); D.images[imB] = cvB; } // (the benches fetch no images: the sheet stands in as a blank canvas, as waterby1106's do)
+      var archR = (Bn.riders || []).filter(function (r) { return r.arch; })[0], tookB =archR ? IPb.archDraw(ctxB, archR, function (x, y) { drawnB.push([x, y]); }) : false;
+      okBw('the yard\'s cast: Willem ' + (wiB ? wiB.x + ',' + wiB.y + ' on the box ' + !!wiB.onBox + ' liftZ ' + wiB.liftZ + ' traces ' + !!wiB.traces : 'NONE') + ' (In.BOXZ ' + InBw.BOXZ + ', IP.BOXZ ' + IPb.BOXZ + '); Amara ' + (amB ? amB.x + ',' + amB.y : 'NONE') + '; the team ' + teamB.join(' | ') + '; in the back ' + bed.join(' | ') + ' (In.BEDZ ' + InBw.BEDZ + '); the arch drawn by IP.archDraw ' + tookB + ', clipped ' + clipB + ', once ' + drawnB.length + ' (laid: ' + (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagon'; }).length + ')',
+        !!wiB && wiB.x === WLb.box[0] && wiB.y === WLb.box[1] && wiB.onBox === true && !wiB.traces && wiB.liftZ === IPb.BOXZ && InBw.BOXZ === IPb.BOXZ && IPb.BOXZ === 26 && WLb.box.join() === '12,27'
+        && !!amB && amB.x === WLb.down[0] && amB.y === WLb.down[1]
+        && teamB.join(' | ') === WLb.team.map(function (q) { return q.join(',') + ' 1x2 f5'; }).join(' | ')
+        && bed.length === 1 && bed[0] === WLb.back.join(',') + ' gz 20 goblinchild_p1 arch' && WLb.back.join() === (wB[0] + 1) + ',' + (wB[1] + 3) && InBw.BEDZ === IPb.BEDZ
+        && tookB === true && clipB === 1 && drawnB.length === 1);
+      if (hadB) D.images[imB] = hadB; else delete D.images[imB];
+      // 4b. Willem down to the greys' heads when the yard turns to a fight (In.willemDown, RULED 11-04 §1 "Willem at the traces"): off the box, at WAGONL.heads, the traces his
+      var gWB = InBw.willemDown(Bn, YB, true); while (!gWB.next().done) { }
+      okBw('Willem down for the fight: ' + wiB.x + ',' + wiB.y + ' (WAGONL.heads ' + WLb.heads + ') on the box ' + !!wiB.onBox + ', liftZ ' + (wiB.liftZ || 0) + ', traces ' + !!wiB.traces,
+        wiB.x === WLb.heads[0] && wiB.y === WLb.heads[1] && !wiB.onBox && !wiB.liftZ && wiB.traces === true);
       InBw.yardClear(Bn, YB); D.scenes.length = 0;
       // 5. the show's door for his eye, ?innshow&beat=wagonyard: the yard on the wagon's night, the wagon laid in its place
       var bwB = InBw.BEATS.filter(function (b) { return b.id === 'wagonyard'; })[0], wyB = '';
-      if (bwB) { InBw.play(bwB); topBw(); wyB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagonT'; }).map(function (p) { return p[1] + ',' + p[2]; }).join(); D.house.playing = false; D.house.cur = null; InBw.pinned = null; }
+      if (bwB) { InBw.play(bwB); topBw(); wyB = (IPb.laid ? IPb.laid.pieces : []).filter(function (p) { return p[0] === 'yard_wagon'; }).map(function (p) { return p[1] + ',' + p[2]; }).join(); D.house.playing = false; D.house.cur = null; InBw.pinned = null; }
       okBw('the show\'s beat wagonyard (' + !!bwB + '): the wagon laid at ' + (wyB || 'nowhere'), !!bwB && wyB === wB.join());
       D.scenes.length = 0;
     } catch (eBw) { repBw.errors.push(String(eBw && eBw.stack || eBw).slice(0, 900)); }
