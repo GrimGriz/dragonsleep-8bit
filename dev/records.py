@@ -162,7 +162,8 @@ def squares_line(ts):
         if w.get('seen') is False: s += ' unseen'
         return s
     foes, allies = ts.get('foes') or [], ts.get('allies') or []
-    return '      SQUARES  foes: %s   allies: %s' % (' | '.join(one(w) for w in foes) or '-', ' | '.join(one(w) for w in allies) or '-')
+    folk = ts.get('folk') or []  # (a floor's own people on its fight, nobody's allies: deep16/js/record.js turnStart, 11-21)
+    return '      SQUARES  foes: %s   allies: %s' % (' | '.join(one(w) for w in foes) or '-', ' | '.join(one(w) for w in allies) or '-') + ('   folk: %s' % ' | '.join(one(w) for w in folk) if folk else '')
 
 
 def with_squares(tr, steps):

@@ -72,7 +72,8 @@
     var live = function (w) { return !w.dead && w.hp > 0 && !w.left && !w.fled; };
     var o = { slots: u.slots && u.slots.slice(), conds: Object.keys(u.conds || {}), torch: u.torch && u.torch.lit ? (u.torch.kind === 'lantern' ? (u.torch.hood ? (u.torch.item || 'lantern') + ' (hooded)' : (u.torch.item || 'lantern')) : true) : false,
       foes: B.units.filter(function (w) { return w.side !== u.side && live(w); }).map(function (w) { return brief(B, w, u); }),
-      allies: B.units.filter(function (w) { return w.side === u.side && w !== u && live(w); }).map(function (w) { return brief(B, w, u); }),
+      allies: B.units.filter(function (w) { return w.side === u.side && w !== u && live(w) && !folk(w); }).map(function (w) { return brief(B, w, u); }),
+      folk: B.units.filter(function (w) { return w !== u && live(w) && folk(w); }).map(function (w) { return brief(B, w, u); }), // (11-21, the reader of his 11-20 record: the gulch's Ettercap stood among ALLIES -- a floor's own people stand on its fights on the party's side, nobody's allies (ours, above): their own list, dev/records.py prints it)
       ai: plans(B, u, false, 3, fresh), aiBonus: plans(B, u, true, 2, fresh) };
     try { o.light = D.light.name(D.light.levelAt(B, u.x, u.y)); } catch (e) { /* (a lit map: nothing to say) */ }
     return o;

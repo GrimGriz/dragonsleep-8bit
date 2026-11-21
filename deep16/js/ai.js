@@ -315,7 +315,10 @@
       B.card(['{r}' + u.name + ' gets the team loose.{/}  "Up! Up!"  The pair are on the greys and going for the road.'], 400);
       yield 40; return;
     }
-    B.card(['{o}' + u.name + '{/} ' + FUMBLE[(n - 1) % FUMBLE.length] + '  {g}(his action: the harness){/}']);
+    // (11-21, the reader of his 11-20 record: "Willem Glass drops a buckle in the dark" with no darkness up -- the two lines that say "in the dark" only where his square is dark)
+    var darkF = !!(D.light && D.light.levelAt && D.light.levelAt(B, u.x, u.y) === 0), fl = FUMBLE[(n - 1) % FUMBLE.length];
+    if (!darkF) fl = fl.replace(' in the dark and gropes for it', ' and gropes for it').replace(' in the dark', '');
+    B.card(['{o}' + u.name + '{/} ' + fl + '  {g}(his action: the harness){/}']);
     yield 40;
   }
 
