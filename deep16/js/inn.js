@@ -129,7 +129,8 @@
   In.named = function (f) { return f && f.gennetNamed ? 'Gennet Waterby' : 'The inn lady'; };
   In.NAME = { gennet: In.named, gennetGrief: In.named, gennetYard: In.named, snootRunner: function () { return 'A runner from the Pit'; },
     amaraYard: function () { return 'Amara'; }, willemYard: function () { return 'Willem Glass'; }, katYard: function () { return 'A traveler'; },
-    wagonGoblin: function (f) { return f.glamourSeen ? 'A child, chained' : 'A goblin, chained'; } };
+    wagonGoblin: function (f) { return f.glamourSeen ? 'A child, chained' : 'A goblin, chained'; },
+    barnGoblin: function (f) { return f.glamourBroken ? 'A child, chained' : 'A goblin, chained'; } }; // (11-21, the reader of his 11-20 record: the raw id "barnGoblin" stood in a fight's SQUARES -- the end stall's one had no name on the floor; its talk's own words, In.barnScene's door)
   In.LINES = {
     arrive: ['The Halfway Inn: the only well on the Pit road, a long day and a half from either end. A long low stone house between the road and the water.',
       'Halfway Lake is older than the inn and named it. Knee-shallow forty paces out; then, off the point, it goes.'],
@@ -175,9 +176,13 @@
   // first WAGON DAY 12, not 6 (his 10-31 save was still in Silverton on day 9). KATARINA waits at the inn from her arrival on day 4 (the clock lane's "inn night = Day 4",
   // RULED 10-13) through the first WAGON DAY; she rides out with the wagon, or walks south the morning after when the wagon was stopped (her last day, In.katLast: the book
   // given, the first game's "the day after"); her book in the drawer after unless she gave it
-  In.WAGON = { first: 12, every: 28 };
+  // NO SECOND WAGON (RULED 11-19, Griz to the clock-road seat: "build it - there is no second wagon (what happens in the Tower in Silverton after the snoot precludes another
+  // even if she and willem are missed)"; built 11-21 by the inn-notes seat): the wagon comes on cycle 0 only (`last`) -- no WAGON DAY 40, no mark on THE WORLD's road after the
+  // first (js/wagon.js Wg.at), and no child for a later due: a cycle past `last` keeps no offering (In.offering 'none') -- the lake's due still turns every 28 (In.dueDay), and
+  // a party at the inn on that night meets it as any night with no offering in the house (js/secondact.js A.dueNight: the sacrifice supper, or the lake unfed)
+  In.WAGON = { first: 12, every: 28, last: 0 };
   In.KAT = { from: 4 };       // (her arrival: the fourth morning after the moot, her finished book in hand)
-  In.isWagonDay = function (d) { return d >= In.WAGON.first && (d - In.WAGON.first) % In.WAGON.every === 0; };
+  In.isWagonDay = function (d) { return d >= In.WAGON.first && (d - In.WAGON.first) % In.WAGON.every === 0 && In.cycle(d) <= In.WAGON.last; };
   In.cycle = function (d) { return Math.floor((d - In.WAGON.first) / In.WAGON.every); };
   In.wagonTonight = function (f, d) { return In.isWagonDay(d) && f.wagonCycle !== In.cycle(d); };
   // THE DUE THREE NIGHTS ON (RULED 11-05, Griz: "hate to do it, but let's move the offering to 3 nights after wagon night. goblin in the barn if they fail to reveal the illusion, 'one
@@ -226,7 +231,7 @@
   In.elsbethLeaveDay = function (f) { f = f || {}; if (In.elsbethStays(f) || !(f.lakeDone || f.doranDead)) return null; var ds = []; if (f.lakeDone) ds.push(f.lakeDay != null ? f.lakeDay : -99); if (f.doranDead) ds.push(f.doranDeadDay != null ? f.doranDeadDay : -99); return Math.min.apply(null, ds) + 1; };
   In.elsbethAway = function (f, d) { var L0 = In.elsbethLeaveDay(f); return L0 != null && d >= L0; };
   In.candleTick = function (f) { if (f && !f.elsbethCandle && In.elsbethAway(f, In.day(null))) f.elsbethCandle = 1; return !!(f && f.elsbethCandle); };
-  In.offering = function (f, c) { return f.dueOffC === c ? f.dueOff : 'goblin'; };
+  In.offering = function (f, c) { return f.dueOffC === c ? f.dueOff : c > In.WAGON.last ? 'none' : 'goblin'; }; // (no wagon past the first: no child for its due -- In.WAGON.last, 11-21)
   In.BARN = [7, 5]; // (the barn's west end stall, the far end from its door)
   In.barnGoblinOn = function (f, d) { var c = In.cycle(d); return c >= 0 && d >= In.WAGON.first + c * In.WAGON.every && d <= In.dueDay(c) && f.dueCycle !== c && (In.offering(f, c) === 'goblin' || f.barnC === c) && !f.lakeDone && !f.barnFreed; }; // (barnC: the one seen through in the barn, a child there still)
   In.passTo = function (B, hour) { // (the clock on to the next `hour` -- past midnight, the due's -- the floor lit for it; no rest)
@@ -1807,13 +1812,14 @@
     // downstairs but apparently willem put the horses away and they stayed the night without me interacting as aurdin downstairs"). The scene stops here with the watcher at the
     // stair's foot and the floor handed back; what the rest needs is kept (In.invest, and f.invest for a save); In.wagonRest plays it from a step out of the house, or the quiet
     // night from the stair or from a bed taken (the D.roam.arrive wrap, T.fire's inn:stair, In.sleep)
+    // RE-CUT 11-21 (Griz on eyes-wagon-wait-1118: "Gennet and the child have just come through the inn door and on investigate Gennet is in her spot selling me a room.
+    // Meanwhile if the player actually stalled in the room, text implies Willem and Amara put the horses up and take the big room. Investigate needs to take the player all
+    // the way out the front door and not allow the roam."): the wait is gone -- INVESTIGATE comes down the stair and walks the watcher straight out of the front door into
+    // the yard (In.wagonRest's own walk), the floor never handed back. In.investOf / In.investGo stay for a save made in the old wait
     if (a === 0) {
       if (upstairs) In.comeDown(B); // (down the stair: the token at its foot)
       if (watcher !== R0.token) In.lead(B, watcher); // (the watcher's figure alone: the token is the watcher's from here)
-      yield* In.card(B, [In.WN.investWait.split('{name}').join(watcher.name)], 360);
-      In.invest = C; f.invest = { d: d, watcher: keyOf(watcher), lead0: R0.lead0 ? keyOf(R0.lead0) : null, paid: paid, stay: R0.stay || null };
-      In.trail('INVESTIGATE: ' + watcher.name + ' is down in the common room; the night waits on a step out of the house or back up the stair');
-      return 'wait';
+      In.trail('INVESTIGATE: ' + watcher.name + ' down the stair and straight out of the front door (no wait, 11-21)');
     }
     return yield* In.wagonRest(B, C);
   };
@@ -1867,7 +1873,8 @@
       In.setOffering(f, In.cycle(d), seen ? 'kept' : 'goblin'); if (seen) f.kidAtInn = 1; // (the one she took: in the barn's end stall three nights, a goblin to the eye while the glamour holds)
       morning = L('wagon.morning.' + (seen ? 'quietSeen' : 'quiet'));
     } else if (how === 'bribe') {
-      In.leadBack(B);
+      // (THE ONE OUTSIDE STAYS THE ONE OUTSIDE, 11-21, his note on eyes-wagon-bribe-kat-1118: "solo vivian investigate turned into barley or party icon at some point" -- the
+      // lead was put back in front here, in the yard, with the rest of the party asleep upstairs: it goes back at the front door now, as the one who took the gold goes in)
       st.silver(500); D.sfx('coin'); f.wagonOutcome = 'bribe'; f.glamourBroken = 1; f.elsbethSilent = 1; f.katGone = 1; f.kidAtInn = 1;
       yield* In.card(B, [L('g.foundSilver', { n: 500 }), In.WN.bribeTaken], 360);
       var katUp = !!f.katYard; // (11-05: only while she is at the inn -- a later cycle's wagon night has no traveler to climb up)
@@ -1880,7 +1887,7 @@
       if (Y.kat) { yield* In.katMessage(B, Y, outside); f.katSouth = 1; f.katTell = 1; In.trail('Katarina stays: her message to Amara, and south at first light'); }
       In.yardClear(B, Y); delete f.wagonIn; In.lay(B, null, true); // (the wagon gone up the road: the yard laid without it)
       yield* In.card(B, [katUp ? In.WN.bribeGoneKat : In.WN.bribeGone], 360);
-      yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]);
+      yield* R.walkTo(B, [In.DOORS.front[0] + 1, In.DOORS.front[1]]); In.leadBack(B);
       In.setOffering(f, In.cycle(d), 'kept');
       morning = L('wagon.morning.bribe');
     } else {
@@ -2003,7 +2010,14 @@
     // KATARINA GOES WITH THE WAGON (11-13, his 0515Z note on eyes-wagon-seethrough-1112: "Kat goes with the wagon as when we return from chase"): with the wagon stopped in
     // the yard she had stayed the night and given her book across the table the next day; now she rides south on the bench beside Doran, as she does when the party
     // chases (ruling 28) -- her table cleared, her book and its letter in the big room's drawer (In.bookInDrawer reads f.katRode)
-    if (!f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from) { f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives (the yard)'); yield* In.card(B, [In.WN.katRides.split('{who}').join(f.katLooked ? 'Katarina' : 'The one with the pen')], 360); }
+    // (SHE WALKS TO IT, 11-21, his note on eyes-doran-drive-1118b: "that works, but Kat doesn't get on the wagon and it says she does" -- the card told it with nobody walking:
+    // she comes out of the front door in her own figure, walks to the bench Doran went up on, and is gone with it as the card is said)
+    if (!f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from) {
+      f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives (the yard): out of the front door and up on the bench');
+      var wk = In.WAGONAT, ku = In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: f.katLooked ? 'Katarina' : 'A traveler', face: [-1, 0] }); ku.bystander = true;
+      yield* In.walk(B, ku, [wk[0] + 1, wk[1] - 1], [-1, 0]); In.katBoarded = [ku.x, ku.y];
+      yield* In.card(B, [In.WN.katRides.split('{who}').join(f.katLooked ? 'Katarina' : 'The one with the pen')], 360); In.gone(B, ku);
+    }
   };
   // BACK FROM THE CHASE, RE-CUT (RULED 11-12, rulings 51-54; Griz, 11-11: "If the party chases she'd have the girl on standby with doran having taken the wagon and
   // the other kids down to the Pit ... and their like to lose most of the reward they find in the wagon, Kat would probably take that wagon, Gennet be like 'oh

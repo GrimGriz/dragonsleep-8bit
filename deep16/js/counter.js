@@ -687,7 +687,9 @@
     openOff(); try { return stepOpen.apply(this, arguments); } finally { if (!SAVED) openOn(this); }
   };
   // the typing: from a page's first frame, C.OPEN.cps characters a frame, the keeper's words then the hero's answers
-  Counter.prototype.openRows = function () { var w = this.wait || {}; return w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : []; };
+  // (THE ASK'S OWN WORDS WITH NO HERO, 11-21, his note on eyes-wagon-bribe-kat-1118: "there was no text above 'take gold'" -- an open screen's ask by one speaking with no hero
+  // answering, Amara's bribe, drew its choices under an empty box: its prompt is the box's words now, the first page of it, typed out before the choices take a click)
+  Counter.prototype.openRows = function () { var w = this.wait || {}; if (w.ask && !w.say && !this.hero) { var ar = this.askRows; if (!ar || ar.w !== w) ar = this.askRows = { w: w, rows: this.paginate(w.ask)[0] || [] }; return ar.rows; } return w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : []; };
   Counter.prototype.typeSync = function () { var ta = this.typeAt; if (!ta || ta.w !== this.wait || ta.page !== this.page) this.typeAt = { w: this.wait, page: this.page, t0: this.t, doneT: null }; return this.typeAt; };
   Counter.prototype.sinceTyped = function () { var ta = this.typeSync(); if (ta.doneT == null && this.typed()) ta.doneT = this.t; return ta.doneT == null ? -1 : this.t - ta.doneT; };
   Counter.prototype.typeN = function () { return Math.floor((this.t - this.typeSync().t0) * C.OPEN.cps); };

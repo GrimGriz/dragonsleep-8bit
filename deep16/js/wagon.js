@@ -25,7 +25,7 @@
   Wg.CART = { mi: 17, from: 7, to: 19 }; // (the realm's cart-day: 17 miles, seven to seven -- his to move)
   Wg.INN_HOUR = 18; Wg.LEAVE_HOUR = 7;     // (at the inn at dusk on WAGON DAY: js/inn.js In.wagonTonight reads the day; away at first light the morning after)
   Wg.pace = function () { return Wg.CART.mi / (Wg.CART.to - Wg.CART.from); };
-  Wg.cal = function () { return (In && In.WAGON) || { first: 12, every: 28 }; }; // (the first WAGON DAY 12 since 11-05: js/inn.js In.WAGON)
+  Wg.cal = function () { return (In && In.WAGON) || { first: 12, every: 28, last: 0 }; }; // (the first WAGON DAY 12 since 11-05: js/inn.js In.WAGON)
 
   // ---------------------------------------------------------------- the road: the Pit to Silverton as one line of miles (the Pit road to the fork, the mile on to the town)
   var RT = null;
@@ -98,7 +98,7 @@
     var R = Wg.route(); if (!R || t == null) return null;
     var c = Wg.cal(), pace = Wg.pace(), day = W.dayAt(t), k0 = Math.round((day - c.first) / c.every);
     for (var i = -1; i <= 1; i++) {
-      var k = k0 + i; if (k < 0 || Wg.stopped(f, k)) continue;
+      var k = k0 + i; if (k < 0 || (c.last != null && k > c.last) || Wg.stopped(f, k)) continue; // (c.last: no second wagon, RULED 11-19 -- js/inn.js In.WAGON)
       var Lg = Wg.legs(k); if (!Lg) return null;
       var hr = ((t % 24) + 24) % 24, moving = hr >= Wg.CART.from && hr < Wg.CART.to;
       if (t >= Lg.departPit && t < Lg.arriveInn) { var s1 = Math.min(R.inn, Wg.cartHours(Lg.departPit, t) * pace); return { k: k, leg: 'south', s: s1, pt: Wg.pt(s1), moving: moving, legs: Lg }; }
