@@ -1,0 +1,827 @@
+{
+ "game": "DRAGONSLEEP",
+ "kind": "hero-situations-feedback",
+ "v": 2,
+ "from": "the second game",
+ "at": "2026-11-21T05:27:59.427Z",
+ "notes": "-- day 13 · 05:00 dawn · The Halfway Inn (the yard and the shore) 42,13 · Sylvia's card eyes-bribe-words-1121 --\nI think I just saw a line about the kid not being here (after taking the bribe) but she's outback because wagon night isn't sacrifice night anymore\n\n-- day 12 · 23:30 night · The Halfway Inn (the yard and the shore) 14,18 · in the fight The Halfway Inn: Amara, Willem Glass (started 2026-11-21T04:57:27.156Z) · Sylvia's card eyes-bribe-words-1121 --\nuse case for multiple heroes on second watch (second is there, highest perception at the window - wake the party is removed from the investigate popup and investigate wakes the party (whoever is included on watch when watch is char+1 or more wakes the sleepers on the investigate of char 1) - in this case (lymen brought by second watch waking) - he gets a portrait and line after Amara but player still gets bribe choice\n\na slow pan and zoom to the goblin still in the wagon if/when the illusion breaks \n\nrefusing bribe combat - child handed off appears back in wagon\n\n-- day 12 · 18:00 dusk · The Halfway Inn (the yard and the shore) 4,17 · Sylvia's card eyes-bribe-words-1121 --\nthis inn sign needs transparency coding during the fight\n\n-- day 12 · 18:00 dusk · The Halfway Inn (the yard and the shore) 17,8 · Sylvia's card eyes-bribe-words-1121 --\nit's like there's a goblin following me!  (after the fight they'd be proof against the illusion - finding a goblin in the barn is more them not going downstairs)\n\n-- day 12 · 18:00 dusk · The Halfway Inn (the common room and the rooms) 18,18 · Sylvia's card eyes-bribe-words-1121 --\nelsbeth was townswoman in goblin scene and Kat is still here?",
+ "page": "https://grimgriz.github.io/dragonsleep-8bit/deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121c&tour=1",
+ "game2": {
+  "slot": null,
+  "where": "town / built",
+  "at": {
+   "town": "inn",
+   "gate": "west",
+   "sq": [
+    18,
+    18
+   ],
+   "dir": "left"
+  },
+  "world": {
+   "map": "near",
+   "hex": [
+    68,
+    21
+   ],
+   "t": 282
+  },
+  "day": 12,
+  "hour": 18,
+  "time": "dusk",
+  "lead": "barley",
+  "hired": [
+   "barley",
+   "aurdin",
+   "vivian",
+   "lymen"
+  ],
+  "silver": 60,
+  "renown": 0,
+  "steps": 0,
+  "party": [
+   {
+    "name": "Barley",
+    "cls": "fighter",
+    "lvl": 3,
+    "hp": "39/39",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": ""
+   },
+   {
+    "name": "Aurdin",
+    "cls": "wizard",
+    "lvl": 3,
+    "hp": "18/18",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": "4/2 of 4/2"
+   },
+   {
+    "name": "Vivian",
+    "cls": "rogue",
+    "lvl": 3,
+    "hp": "27/27",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": ""
+   },
+   {
+    "name": "Lymen",
+    "cls": "paladin",
+    "lvl": 3,
+    "hp": "36/36",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": "3 of 3"
+   }
+  ],
+  "quests": [
+   "SYLVIA'S CARD (done)",
+   "Company (done)"
+  ],
+  "screens": [
+   "world",
+   "Battle",
+   "housenotes"
+  ]
+ },
+ "trail": [
+  {
+   "k": "talk",
+   "s": "gennet",
+   "t": 282,
+   "at": "2026-11-21T05:21:08.589Z"
+  },
+  {
+   "k": "talk",
+   "s": "barnGoblin",
+   "t": 282,
+   "at": "2026-11-21T05:23:44.741Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: the barn: freed as a goblin, the glamour unseen",
+   "t": 282,
+   "at": "2026-11-21T05:23:52.491Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: out of the barn: the glamour unseen, renown 0, Doran home, Elsbeth's tier 0, the due in three nights",
+   "t": 282,
+   "at": "2026-11-21T05:23:57.559Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: the insight is Barley's: +1, once, on Barley's own look against the glamour",
+   "t": 282,
+   "at": "2026-11-21T05:24:12.542Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Barley passive Insight 14 vs DC 12, read: watched",
+   "t": 282,
+   "at": "2026-11-21T05:24:12.542Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Aurdin passive Arcana 15 vs DC 13, read: glamour",
+   "t": 282,
+   "at": "2026-11-21T05:24:12.542Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Vivian passive Perception 16 vs DC 12, read: touch",
+   "t": 282,
+   "at": "2026-11-21T05:24:12.542Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen: It was chained by the ankle.",
+   "t": 282,
+   "at": "2026-11-21T05:24:19.375Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Barley passive Insight 14 vs DC 12, read: notlook",
+   "t": 282,
+   "at": "2026-11-21T05:24:24.258Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen: It was on a chain. It comes with us.",
+   "t": 282,
+   "at": "2026-11-21T05:24:29.408Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Barley passive Insight 14 vs DC 12, read: price",
+   "t": 282,
+   "at": "2026-11-21T05:24:36.708Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen: Keep your silver.",
+   "t": 282,
+   "at": "2026-11-21T05:24:39.392Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Vivian passive Perception 16 vs DC 13, read: purse",
+   "t": 282,
+   "at": "2026-11-21T05:24:53.092Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen: The well's not yours to shut. And the child's not yours to keep.",
+   "t": 282,
+   "at": "2026-11-21T05:24:59.258Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen Persuasion 19 + 2 = 21 vs DC 12, made (silent)",
+   "t": 282,
+   "at": "2026-11-21T05:25:07.425Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen: Doran. Look at whose arm that is, and tell me what she's kept for.",
+   "t": 282,
+   "at": "2026-11-21T05:25:13.625Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: out of the barn: END D",
+   "t": 282,
+   "at": "2026-11-21T05:25:36.742Z"
+  },
+  {
+   "k": "act",
+   "s": "THE SECOND ACT: Doran confesses in the yard: the thing in the lake",
+   "t": 282,
+   "at": "2026-11-21T05:25:36.776Z"
+  },
+  {
+   "k": "talk",
+   "s": "katarina",
+   "t": 282,
+   "at": "2026-11-21T05:27:11.743Z"
+  }
+ ],
+ "card": {
+  "id": "eyes-bribe-words-1121",
+  "title": "THE BRIBE'S WORDS OVER \"TAKE THE GOLD\", and Vivian stays the one in the yard (11-21)",
+  "obj": "Vivian on the second watch, INVESTIGATE: read Amara's offer over TAKE THE GOLD, take it, and see Vivian stay in front.",
+  "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121c"
+ },
+ "save": {
+  "v": 1,
+  "lead": "barley",
+  "hired": [
+   "barley",
+   "aurdin",
+   "vivian",
+   "lymen"
+  ],
+  "party": [
+   {
+    "id": "barley",
+    "name": "Barley",
+    "cls": "fighter",
+    "lvl": 3,
+    "xp": 900,
+    "base": {
+     "str": 16,
+     "dex": 13,
+     "con": 16,
+     "int": 9,
+     "wis": 14,
+     "cha": 11
+    },
+    "abil": {
+     "str": 16,
+     "dex": 13,
+     "con": 16,
+     "int": 9,
+     "wis": 14,
+     "cha": 11
+    },
+    "maxhp": 39,
+    "hp": 39,
+    "equip": {
+     "weapon": "threshingflail",
+     "armor": null,
+     "shield": null,
+     "ring": null
+    },
+    "known": [],
+    "feats": {
+     "secondWind": 1,
+     "actionSurge": 1,
+     "indomitable": 0
+    },
+    "conds": {},
+    "ko": false,
+    "subclass": "Champion",
+    "look": "barley",
+    "weapon": "flail",
+    "skills": {
+     "Athletics": 5,
+     "Perception": 4,
+     "Insight": 4,
+     "Survival": 4
+    },
+    "saveProf": [
+     "str",
+     "con"
+    ],
+    "attuned": [],
+    "slotsMax": [],
+    "slots": [],
+    "chose": {
+     "3": {
+      "archetype": "Champion"
+     }
+    }
+   },
+   {
+    "id": "aurdin",
+    "name": "Aurdin",
+    "cls": "wizard",
+    "lvl": 3,
+    "xp": 900,
+    "base": {
+     "str": 11,
+     "dex": 14,
+     "con": 10,
+     "int": 17,
+     "wis": 9,
+     "cha": 13
+    },
+    "abil": {
+     "str": 11,
+     "dex": 14,
+     "con": 10,
+     "int": 17,
+     "wis": 9,
+     "cha": 13
+    },
+    "maxhp": 18,
+    "hp": 18,
+    "equip": {
+     "weapon": "quarterstaff",
+     "armor": null,
+     "shield": null,
+     "ring": null
+    },
+    "known": [
+     "firebolt",
+     "light",
+     "acidsplash",
+     "burninghands",
+     "magicmissile",
+     "shield",
+     "sleep",
+     "detectmagic",
+     "mageArmor",
+     "thunderwave",
+     "scorchingray",
+     "ropetrick"
+    ],
+    "feats": {
+     "arcaneRecovery": 1
+    },
+    "conds": {},
+    "ko": false,
+    "subclass": "School of Evocation",
+    "look": "aurdin",
+    "weapon": "staff",
+    "skills": {
+     "Arcana": 5,
+     "Investigation": 5,
+     "Religion": 5,
+     "Insight": 1
+    },
+    "saveProf": [
+     "int",
+     "wis"
+    ],
+    "attuned": [],
+    "slotsMax": [
+     4,
+     2
+    ],
+    "slots": [
+     4,
+     2
+    ],
+    "prepared": [
+     "mageArmor",
+     "shield",
+     "magicmissile",
+     "burninghands",
+     "sleep"
+    ],
+    "chose": {
+     "3": {
+      "spells": [
+       "scorchingray",
+       "ropetrick"
+      ]
+     }
+    }
+   },
+   {
+    "id": "vivian",
+    "name": "Vivian",
+    "cls": "rogue",
+    "lvl": 3,
+    "xp": 900,
+    "base": {
+     "str": 10,
+     "dex": 16,
+     "con": 12,
+     "int": 12,
+     "wis": 14,
+     "cha": 13
+    },
+    "abil": {
+     "str": 10,
+     "dex": 16,
+     "con": 12,
+     "int": 12,
+     "wis": 14,
+     "cha": 13
+    },
+    "maxhp": 27,
+    "hp": 27,
+    "equip": {
+     "weapon": "candleknife",
+     "armor": "leather",
+     "shield": null,
+     "ring": null
+    },
+    "known": [],
+    "feats": {},
+    "conds": {},
+    "ko": false,
+    "subclass": "Thief",
+    "look": "vivian",
+    "weapon": "dagger",
+    "skills": {
+     "Sleight of Hand": 7,
+     "Perception": 6,
+     "Stealth": 5,
+     "Insight": 4,
+     "Deception": 3,
+     "Investigation": 3,
+     "Acrobatics": 3
+    },
+    "saveProf": [
+     "dex",
+     "int"
+    ],
+    "attuned": [],
+    "slotsMax": [],
+    "slots": [],
+    "chose": {
+     "3": {
+      "archetype": "Thief"
+     }
+    }
+   },
+   {
+    "id": "lymen",
+    "name": "Lymen",
+    "cls": "paladin",
+    "lvl": 3,
+    "xp": 900,
+    "base": {
+     "str": 17,
+     "dex": 10,
+     "con": 15,
+     "int": 8,
+     "wis": 12,
+     "cha": 14
+    },
+    "abil": {
+     "str": 17,
+     "dex": 10,
+     "con": 15,
+     "int": 8,
+     "wis": 12,
+     "cha": 14
+    },
+    "maxhp": 36,
+    "hp": 36,
+    "equip": {
+     "weapon": "longsword",
+     "armor": "chainmail",
+     "shield": "shield",
+     "ring": null
+    },
+    "known": [
+     "bless",
+     "curewounds",
+     "shieldoffaith",
+     "divinefavor"
+    ],
+    "feats": {
+     "channel": 1,
+     "lay": 15,
+     "relentless": 1
+    },
+    "conds": {},
+    "ko": false,
+    "subclass": "Oath of Devotion",
+    "look": "lymen",
+    "weapon": "sword",
+    "skills": {
+     "Athletics": 5,
+     "Insight": 3,
+     "Religion": 1,
+     "Intimidation": 4
+    },
+    "saveProf": [
+     "wis",
+     "cha"
+    ],
+    "attuned": [],
+    "slotsMax": [
+     3
+    ],
+    "slots": [
+     3
+    ],
+    "prepared": [
+     "bless",
+     "curewounds",
+     "shieldoffaith"
+    ],
+    "chose": {
+     "3": {
+      "archetype": "Oath of Devotion"
+     }
+    }
+   }
+  ],
+  "guests": [],
+  "inv": [
+   {
+    "id": "simples",
+    "n": 3
+   },
+   {
+    "id": "kit",
+    "n": 1
+   }
+  ],
+  "silver": 60,
+  "renown": 0,
+  "steps": 0,
+  "flags": {
+   "councilNotice": 1,
+   "councilSeen": 1,
+   "reachedInn": 1
+  },
+  "kills": {},
+  "world": {
+   "at": [
+    68,
+    21
+   ],
+   "from": null,
+   "t": 282,
+   "today": 0,
+   "seed": 4236939066,
+   "map": "near",
+   "pos": [
+    117.567,
+    27.918
+   ],
+   "svAt": {
+    "site": "inn",
+    "since": 282
+   }
+  },
+  "at": {
+   "town": null
+  },
+  "made": 1795238301489,
+  "saved": 0,
+  "staged": true,
+  "snootRoad": {
+   "day": 1,
+   "boardDay": 14,
+   "bands": [
+    {
+     "id": "gk1",
+     "tribe": "gray",
+     "hex": [
+      7,
+      17
+     ],
+     "offset": [
+      15,
+      17
+     ],
+     "of": 18,
+     "left": {
+      "gloryseekergray": 3,
+      "gnollgray": 9,
+      "hyena": 6
+     },
+     "gone": false,
+     "busy": false,
+     "burned": 0
+    }
+   ],
+   "burned": [],
+   "atBoard": {
+    "day": 14,
+    "boardDay": 14,
+    "bands": [
+     {
+      "id": "gk1",
+      "tribe": "gray",
+      "hex": [
+       13,
+       20
+      ],
+      "offset": [
+       23,
+       20
+      ],
+      "of": 18,
+      "left": {
+       "gloryseekergray": 3,
+       "gnollgray": 9,
+       "hyena": 6
+      },
+      "gone": false,
+      "busy": false,
+      "burned": 9
+     },
+     {
+      "id": "sg1",
+      "tribe": "skull",
+      "hex": [
+       15,
+       18
+      ],
+      "offset": [
+       24,
+       18
+      ],
+      "of": 18,
+      "left": {
+       "gloryseeker": 3,
+       "gnoll": 9,
+       "hyena": 6
+      },
+      "gone": false,
+      "busy": false,
+      "burned": 7
+     },
+     {
+      "id": "sg2",
+      "tribe": "skull",
+      "hex": [
+       15,
+       20
+      ],
+      "offset": [
+       25,
+       20
+      ],
+      "of": 18,
+      "left": {
+       "gloryseeker": 3,
+       "gnoll": 9,
+       "hyena": 6
+      },
+      "gone": false,
+      "busy": false,
+      "burned": 7
+     },
+     {
+      "id": "wl2",
+      "tribe": "wall",
+      "hex": [
+       13,
+       19
+      ],
+      "offset": [
+       22,
+       19
+      ],
+      "of": 12,
+      "left": {
+       "gnoll": 8,
+       "hyena": 4
+      },
+      "gone": false,
+      "busy": false,
+      "burned": 0
+     }
+    ],
+    "burned": [
+     "s168",
+     "s137",
+     "s169",
+     "s170",
+     "s192",
+     "s201",
+     "s122",
+     "s126",
+     "s193",
+     "s224",
+     "s257",
+     "s184",
+     "s202",
+     "s203",
+     "s139",
+     "s149",
+     "s235",
+     "s105",
+     "s171",
+     "s182",
+     "s138",
+     "s123",
+     "s140"
+    ]
+   }
+  },
+  "trail": [
+   {
+    "k": "talk",
+    "s": "gennet",
+    "t": 282,
+    "at": "2026-11-21T05:21:08.589Z"
+   },
+   {
+    "k": "talk",
+    "s": "barnGoblin",
+    "t": 282,
+    "at": "2026-11-21T05:23:44.741Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: the barn: freed as a goblin, the glamour unseen",
+    "t": 282,
+    "at": "2026-11-21T05:23:52.491Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: out of the barn: the glamour unseen, renown 0, Doran home, Elsbeth's tier 0, the due in three nights",
+    "t": 282,
+    "at": "2026-11-21T05:23:57.559Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: the insight is Barley's: +1, once, on Barley's own look against the glamour",
+    "t": 282,
+    "at": "2026-11-21T05:24:12.542Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Barley passive Insight 14 vs DC 12, read: watched",
+    "t": 282,
+    "at": "2026-11-21T05:24:12.542Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Aurdin passive Arcana 15 vs DC 13, read: glamour",
+    "t": 282,
+    "at": "2026-11-21T05:24:12.542Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Vivian passive Perception 16 vs DC 12, read: touch",
+    "t": 282,
+    "at": "2026-11-21T05:24:12.542Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen: It was chained by the ankle.",
+    "t": 282,
+    "at": "2026-11-21T05:24:19.375Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Barley passive Insight 14 vs DC 12, read: notlook",
+    "t": 282,
+    "at": "2026-11-21T05:24:24.258Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen: It was on a chain. It comes with us.",
+    "t": 282,
+    "at": "2026-11-21T05:24:29.408Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Barley passive Insight 14 vs DC 12, read: price",
+    "t": 282,
+    "at": "2026-11-21T05:24:36.708Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen: Keep your silver.",
+    "t": 282,
+    "at": "2026-11-21T05:24:39.392Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Vivian passive Perception 16 vs DC 13, read: purse",
+    "t": 282,
+    "at": "2026-11-21T05:24:53.092Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen: The well's not yours to shut. And the child's not yours to keep.",
+    "t": 282,
+    "at": "2026-11-21T05:24:59.258Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen Persuasion 19 + 2 = 21 vs DC 12, made (silent)",
+    "t": 282,
+    "at": "2026-11-21T05:25:07.425Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen: Doran. Look at whose arm that is, and tell me what she's kept for.",
+    "t": 282,
+    "at": "2026-11-21T05:25:13.625Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: out of the barn: END D",
+    "t": 282,
+    "at": "2026-11-21T05:25:36.742Z"
+   },
+   {
+    "k": "act",
+    "s": "THE SECOND ACT: Doran confesses in the yard: the thing in the lake",
+    "t": 282,
+    "at": "2026-11-21T05:25:36.776Z"
+   },
+   {
+    "k": "talk",
+    "s": "katarina",
+    "t": 282,
+    "at": "2026-11-21T05:27:11.743Z"
+   }
+  ]
+ }
+}
