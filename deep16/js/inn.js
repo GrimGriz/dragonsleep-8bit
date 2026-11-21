@@ -1412,6 +1412,7 @@
     if (!o.foe && D.counter) D.counter.dress(u, o.id); // (one with a figure of their own wears it, as on the floor (js/town.js T.people): Gennet in the yard and on the due's walk, Katarina in the yard on the wagon night -- js/counter.js C.FIG, 11-05; the facing is the scene's, below)
     u.facing =D.spr.facingFor(o.face ? o.face[0] : -1, o.face ? o.face[1] : 0); u.anim = 'idle'; u.animT = B.t;
     if (o.lantern) { u.torch = D.light.make('lantern', false); D.light.regrip(u); }
+    if (o.id === 'lakeChuul' && o.kind === 'chuul' && D.secondact && D.secondact.lakeThing) D.secondact.lakeThing(u); // (the story's thing in the lake: the SRD's chuul and 20 hit points -- RULED 11-21, js/secondact.js A.lakeThing)
     B.units.push(u); D.grid.setup(B.map, B.units); B.cache = null;
     return u;
   };

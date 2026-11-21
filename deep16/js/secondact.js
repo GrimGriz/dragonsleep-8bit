@@ -145,6 +145,10 @@
     Y.gennet.guards = Y.kid.id;
     return Y;
   };
+  // THE THING IN THE LAKE, THE STORY'S (RULED 11-21, Griz: "give it 20 more HP as story-variant of SRD one or something"): the SRD's chuul (data/foes.js, 93) and A.LAKE_HP
+  // more, whole, wherever the story stands it -- A.lakeFight below; data/fights.js `chuul` carries the same number (113) for its own door
+  A.LAKE_HP = 20;
+  A.lakeThing = function (u) { if (!u || u.lakeThing) return u; var base = (window.D16 && window.D16.FOES && window.D16.FOES.chuul && window.D16.FOES.chuul.hp) || u.maxhp; u.maxhp = u.hp = base + A.LAKE_HP; u.lakeThing = true; return u; }; // (whole as it is stood: js/inn.js In.unit)
   A.clear = function (B, Y) { ['gennet', 'orrin', 'pell', 'kid', 'doran', 'elsbeth', 'chuul', 'frog'].forEach(function (k) { if (Y[k] && B.units.indexOf(Y[k]) >= 0) In.gone(B, Y[k]); Y[k] = null; }); };
   A.walkAll = function* (B, Y, to) { // (the two of them down the path to a square, the lantern with them)
     yield* In.walk(B, Y.gennet, [to[0], to[1]], [1, 0]);
@@ -910,7 +914,11 @@
     ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
     F.runWhenHurt = null; F.fledEnds = false; F.loosen = null; F.exit = []; F.noFlee = false;
     var at = Y.chuul ? [Y.chuul.x, Y.chuul.y] : A.DEEP;
-    Y.frog = In.unit(B, { id: 'lakeFrog', kind: 'giantfrog', at: [at[0] - 1, at[1] + 2], name: 'Giant Frog', face: [-1, 0], foe: true }); Y.frog.flees = false;
+    // NO FROG, AND THE THING ITSELF HEAVIER (RULED 11-21, Griz: "lake feeds until the chuul dies, but pull that fight-balance frog and give it 20 more HP as story-variant of SRD
+    // one or something"): the giant frog that came up with it was the difficulty lane's §2.3, "half again" for the fight's balance (`2098777`, 10-28) -- pulled; the thing in the
+    // lake stands alone, the SRD's chuul with A.LAKE_HP more hit points (A.lakeThing, on every one of it the story stands), the SRD block itself (data/foes.js chuul) as it is for
+    // the Pocket DM and the ladder. Y.frog stays null: what read it reads nothing
+    Y.frog = null; // (its hit points are laid as it is stood: js/inn.js In.unit, 'lakeChuul')
     var rounds = (Fd && Fd.ring && Fd.ring.rounds) || [1, 4, 7, 10], con0 = ring && ring.saves ? ring.saves.con : null;
     // (the ring is the Ring of Water Walking since 11-16 (RULED 2026-11-16, Griz: "We could script the chuul to target that ring wearer and have Winters make it the ring he was holding for someone ready for the chuul", then "Yes to both."): no +3 to CON saves -- the SRD's ring has
     // none -- and on the Ring of Binding's rounds the thing still turns on its wearer, its words A.RING_WHY on the turn's card, js/ai.js brute)
@@ -934,7 +942,7 @@
       // THE SHOW's take (A.BEATS 'take', A.holdShow): the four's hands held while it takes her -- each turn passed, no opportunity attack (lakeTake), its grab's d20 pinned -- and its frog
       // asleep; once it has gone down (or been struck at) the hands are the player's again
       if (A.holdShow && c && c.take) {
-        Y.frog.conds.asleep = { by: 'show' };
+        if (Y.frog) Y.frog.conds.asleep = { by: 'show' };
         var heroT0 = B.hasOwnProperty('heroTurn') ? B.heroTurn : null;
         // (THE HANDS LET GO ONCE SHE IS IN ITS CLAWS, 11-21, his note on eyes-lake-take-1112h: "couldn't wound it, actions held as it accepted her as offering" -- the card says
         // "wound it, or the lake has its offering" and the show had held every turn to the deep: the hands are held only while it comes up and grabs her, then they are his)
@@ -975,7 +983,7 @@
     }
     R0.fights++; R0.lastOutcome = null;
     try { D.music('boss'); } catch (e) { }
-    yield* Rm.engage(B, { foes: [Y.chuul, Y.frog], why: 'lake', zone: null }, false, 'lake');
+    yield* Rm.engage(B, { foes: [Y.chuul, Y.frog].filter(Boolean), why: 'lake', zone: null }, false, 'lake');
     var o = R0.lastOutcome;
     B.hurt = hurt0; if (!ownAtk) delete B.attack; else B.attack = atk0; if (!ownExec) delete B.exec; else B.exec = exec0; if (RUx.save !== save0) RUx.save = save0;
     if (c) { if (c.take && c.take.unhold) c.take.unhold(); delete c.take; if (c.script === 'lakeTake') c.script = null; }
@@ -998,7 +1006,10 @@
     if (f.lakeDone || !f.duePaid || f.ringWarmNight === (f.dueCycle || 0) + 1) return null;
     var ring = A.hasRing(B); if (!ring) return null;
     f.ringWarmNight = (f.dueCycle || 0) + 1; // (once a due night)
-    var a = yield* In.ask(B, 'THE RING IS WARM', [].concat(L('due.after')), [A.LINES.opts.down, A.LINES.opts.bed]);
+    // ON THE PATH, A CARD (RULED 11-21, Griz, "inn - 4 and 5 leans", on the inn-notes seat's lean to his "it calls me down to the point, but I'm already standing outside - isn't that
+    // for when you're watching from upstairs?": "on the path the ring's warmth is a card and the party walks to the stone; GO DOWN / BACK TO BED stays for the window"): stood out
+    // of the light on the path, already outside, the warmth is said and they go down; the ask is for the window and the house
+    var a = onPath ? (yield* In.card(B, [].concat(L('due.after')), 360), 0) : yield* In.ask(B, 'THE RING IS WARM', [].concat(L('due.after')), [A.LINES.opts.down, A.LINES.opts.bed]);
     A.trail('the ring warm after the due: ' + (a === 0 ? 'down to the point' : 'back to bed') + (onPath ? ' (from the path)' : ''));
     if (a !== 0) return 'bed';
     yield* R().walkTo(B, [A.STONE[0] - 2, A.STONE[1]]); // (by the flat stone, as the rise's beat stands them: the frog comes up on the square past it)
@@ -1085,7 +1096,7 @@
     { id: 'poisonall', beat: 'poison', label: 'THE POISON DINNER: all asleep -- the drag, and awake on the stone (11-05)', note: 'The same supper, every save failed: the table tilts away. The drag, ten minutes, a save every two (the dice pinned: the first makes three of five, +3). On the stone as the water heaves, each saves again with its bonus: the first wakes, the rest sleep on -- shake them awake (HELP) while it comes up out of the deep; three rounds with nobody up and it takes one.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 2, 2, 2, 19, 19, 19, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 12, 2, 2, 2] },
     { id: 'risenone', beat: 'rise', label: 'BEAT 4: the rise with nobody at the shore', note: 'The child taken and the party back at the path\'s head: the water heaves, nothing stands on the stone, it goes down. The god seen: Elsbeth\'s third tier is yours for nothing after.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, far: true },
     { id: 'ringwarm', beat: 'fork', label: 'THE RING WARM after the due: LET IT BE, then down to the point (11-05)', note: 'The yard won, the lead wearing the Ring of Water Walking (Winters gives it at the lead\'s 3rd). The fork: LET IT BE -- the lantern walks, only the inn lady comes back. Then "The ring on your hand is warm. Go down to the point." -- GO DOWN TO THE POINT: at the flat stone the water heaves, it turns toward the ring, and the fight on the point with its frog; the ring\'s rounds. BACK TO BED: the ring cold by morning.', flags: { wagonOutcome: 'inn' }, dice: [19, 19, 19], ring: true },
-    { id: 'standring', beat: 'path', label: 'STAND ASIDE with the ring on: the take, then the ring warm (11-05)', note: 'The path, the lead wearing the Ring of Water Walking. STAND ASIDE: the offering set on the flat stone, the take, the lantern back up the path alone -- then the ring warm: GO DOWN TO THE POINT, the fight; BACK TO BED, the morning.', flags: { wagonOutcome: 'inn' }, ring: true },
+    { id: 'standring', beat: 'path', label: 'STAND ASIDE with the ring on: the take, then the ring warm (11-05)', note: 'The path, the lead wearing the Ring of Water Walking. STAND ASIDE: the offering set on the flat stone, the take, the lantern back up the path alone -- then the ring warm, said on a card, and you go down to the point: the fight (11-21: on the path there is no BACK TO BED; that ask is the window\'s).', flags: { wagonOutcome: 'inn' }, ring: true },
     { id: 'rowboat', beat: 'boat', label: 'THE ROWBOAT BY DAY: sound the deep (11-05)', note: 'Two in the afternoon on the point by the rowboat, no wagon tonight. LEAVE IT, or PUSH OUT AND SOUND THE DEEP -- "the worst decision available here": the line goes down and down, and something comes up with it. The fight off the boat\'s end of the point, ring or not (here, the lead wears it: the ring\'s rounds).', flags: {}, ring: true },
     { id: 'wand', beat: 'wand', label: 'ELSBETH\'S WAND in the kitchen', note: 'Day 12 at six, inside by the tub, her first telling had already. E on Elsbeth: CALL GENNET A FRAUD -- the hand goes in the apron: the word, a WIS save at 15 (the dice pinned to fail), and you walk out of the kitchen; PRESS ON and the other word empties it. She is done for the night.', flags: { dishes: 1, elsbethTier: 1 }, dice: [2, 2, 2, 2] } // (dishes: her first telling is by day and by renown or the notice since 11-12, ruling 58 -- the wand's show starts past it)
   ];

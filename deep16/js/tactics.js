@@ -788,6 +788,10 @@
     Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
     if (go && (go.x !== u.x || go.y !== u.y)) { yield* walk(B, u, go); if (u.dead || u.hp <= 0) return; }
     if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
+      // (OFF THE FIELD, THE BLOWS FIRST, 11-21: Griz, "6 was that the exit square was the square he moved to so the exit ran before the opportunity attack fired (almost certain)" --
+      // so it was, here: Willem, a class wizard, stood on an exit square beside Lymen at the end of R2 in his gulch fight of 11-20, and was "gone" in R3 with no step and no blow
+      // asked. Leaving by the exit is leaving the reach of those beside it: their opportunity attacks first, js/battle.js provoke; js/ai.js `leaving` for the stat blocks)
+      yield* B.provoke(u, 'leaving the field'); if (u.dead || u.hp <= 0) return;
       u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
       B.card(['{o}' + u.name + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30; return;
     }

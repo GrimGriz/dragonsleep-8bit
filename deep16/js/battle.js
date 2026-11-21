@@ -4379,10 +4379,14 @@
     var s = h.size || 1, d = CLAW8[((h.facing || 0) % 8 + 8) % 8], n = d[0] && d[1] ? Math.SQRT1_2 : 1, ux = d[0] * n, uy = d[1] * n, f = s / 2 + 0.1, l = (side || 1) * 0.3 * s;
     return { x: ux * f - uy * l, y: uy * f + ux * l };
   };
+  Battle.LUNGE5 = 0.45; // (the least surge of a grab, in squares: one in close still sees the claw reach -- 11-21)
   Battle.prototype.clawIn = function* (att, tgt) {
     var held = Battle.clawHeld(this, att), side = held.some(function (w) { return w.inClaws.side === 1; }) ? -1 : 1, s = att.size || 1, ts = tgt.size || 1;
     var cx = att.x + (s - 1) / 2, cy = att.y + (s - 1) / 2, tx = tgt.x + (ts - 1) / 2, ty = tgt.y + (ts - 1) / 2, cp = Battle.clawPoint(att, side), lx = tx - cx - cp.x, ly = ty - cy - cp.y;
     var d = CLAW8[((att.facing || 0) % 8 + 8) % 8], dl = Math.sqrt(d[0] * d[0] + d[1] * d[1]) || 1, pr = (lx * d[0] + ly * d[1]) / dl; if (pr < 0) { lx -= pr * d[0] / dl; ly -= pr * d[1] / dl; } // (never a surge backward: one already in close is taken where the claw is)
+    // A LUNGE AT 5 FT TOO (RULED 11-21, Griz, "inn - 4 and 5 leans", on the seat's lean to his "it walks up within 5 feet and doesn't seem to lunge" and "the lunge animation plays on
+    // attacks from 10 ft": "a short lunge on its 5-ft pincer too, so every grab reads"): one in close is reached for all the same -- the surge at least Battle.LUNGE5 of a square along its facing
+    var ll = Math.sqrt(lx * lx + ly * ly); if (ll < Battle.LUNGE5) { var fw = Battle.LUNGE5 - ll; lx += fw * d[0] / dl; ly += fw * d[1] / dl; var l2 = Math.sqrt(lx * lx + ly * ly) || 1; if (l2 < Battle.LUNGE5) { lx *= Battle.LUNGE5 / l2; ly *= Battle.LUNGE5 / l2; } }
     att.tween = { fx: att.x, fy: att.y, fz: G.gzAt(att, att.x, att.y), t: 0, dur: this.pace(LUNGE, true), mode: 'lunge', lx: lx, ly: ly, grab: tgt.id };
     tgt.inClaws = { by: att.id, side: side, from: [tgt.x, tgt.y] };
     tgt.x = att.x; tgt.y = att.y; delete tgt.tween; tgt.anim = 'idle';

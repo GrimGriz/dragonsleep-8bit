@@ -722,6 +722,7 @@
       Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
       if (go && (go.x !== u.x || go.y !== u.y)) { yield* walkTo(B, u, go); if (u.dead || u.hp <= 0) return; }
       if (exits.some(function (x) { return G.foot(u).some(function (q) { return x[0] === q[0] && x[1] === q[1]; }); })) { // (any square of its space on the way off: a rider on a grey stands 2x2 -- js/battle.js Battle.mountUp, 11-05)
+        if (!(yield* leaving(B, u))) return; // (the blows of those beside it first: 11-21)
         u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
         B.card(['{o}' + u.name + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30; return;
       }
@@ -807,6 +808,11 @@
     yield 34; u.anim = 'idle';
     return true;
   }
+  // OFF THE FIELD, THE BLOWS FIRST (11-21, Griz on Lymen's missing opportunity attack as Willem left the gulch fight: "6 was that the exit square was the square he moved to so the
+  // exit ran before the opportunity attack fired (almost certain)" -- so it was: in his record of 11-20, 01:30:52Z, Willem ended R2 on an exit square beside Lymen, and in R3 he
+  // was "gone" with no step, so no walk ever asked for the blow): one leaving by an exit square is leaving the reach of everyone beside it, and they get their opportunity
+  // attacks first (js/battle.js provoke, its own rules of who can take one); false if that drops it, and it stays where it fell
+  function* leaving(B, u) { yield* B.provoke(u, 'leaving the field'); return !(u.dead || u.hp <= 0); }
   function* bolt(B, u) {
     var T = u.turn, exits = B.fight.exit || B.map.def.exit || [];
     if (!exits.length || !T.action || u.conds.restrained || u.conds.dancing) return false; // (held fast, or a dancer "must use all its movement to dance": no Dash to make for the door)
@@ -825,6 +831,7 @@
     if (best) yield* walkTo(B, u, best);
     if (u.dead || u.hp <= 0) return true;
     if (exits.some(function (x) { return G.foot(u).some(function (q) { return x[0] === q[0] && x[1] === q[1]; }); })) { // (any square of its space on the way off: a rider on a grey stands 2x2 -- js/battle.js Battle.mountUp, 11-05)
+      if (!(yield* leaving(B, u))) return true; // (the blows of those beside it first: 11-21)
       u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
       if (u.holding && u.holding.length) B.release(u);
       B.card(['{o}' + the(B, u) + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30;

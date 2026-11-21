@@ -257,9 +257,10 @@
       introRing: 'It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on them.)', // (the 8-bit box has said the water heaves)
       introNoRing: 'Nobody wears the Ring of Binding. It turns toward whoever is nearest the water.',
       from: 'the 8-bit game: events.js S.lakeFight, the base game\'s capstone (the chuul; the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on the wearer). The water hand-waved: it swims, nobody else does', won: 'THE DEEP IS ONLY WATER NOW.',
-      // the chuul's frog (half again: the overseer's answer 3 on Griz's 10-03 "CR your call", the difficulty lane §2.3): one giant frog out of the shallows, the lake's own (SRD 5.1
-      // Giant Frog, CR 1/4, it swims), on the point's water, row 4; the ring's rounds untouched. For four at 4 (PK.diff): 1100 MEDIUM before, 1725 HARD after (x1.57). invented.json#early-fights-half-again
-      foes: [{ id: 'chuul', kind: 'chuul', at: [8, 2] }, { id: 'frog', kind: 'giantfrog', at: [5, 4] }], wave: null },
+      // ~~the chuul's frog (half again: the overseer's answer 3 on Griz's 10-03 "CR your call", the difficulty lane §2.3)~~ PULLED 11-21, and the thing itself the story's (RULED, Griz:
+      // "pull that fight-balance frog and give it 20 more HP as story-variant of SRD one or something"): the chuul alone at the SRD's 93 hit points and 20 more, 113 -- js/secondact.js
+      // A.LAKE_HP, A.lakeThing, as the floor stands it; `chuul-ladder` below and the SRD block (data/foes.js chuul) as they were
+      foes: [{ id: 'chuul', kind: 'chuul', at: [8, 2], hp: 113 }], wave: null },
     { id: 'chuul-ladder', level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss', // (the ladder's own, 10-28: above, at ettercap-ladder)
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
