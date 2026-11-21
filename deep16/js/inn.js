@@ -115,10 +115,32 @@
     { id: 'katarina', at: [26, 20], look: 'kat', dir: 'right', cond: '!flag:katGone' }                                   // (writing by the fire)
   ];
   In.RUNNER = [12, 16];       // (the Snoot's runner by the well)
-  In.WAGONAT = [8, 18];       // (THE WAGON NIGHT: the wagon pulled in on the yard's ring, its cover three squares and its open bed at the tail, two rows)
+  // THE WAGON NIGHT'S WAGON, RE-LAID 11-21 (Griz, a solo session on the scene from the window: "the wagon facing horses NE, where we quit pretending where we put the kids
+  // is the 'back' of the wagon and put willem up there and try draw the solo goblin-child in the actual back of the wagon"; asked which drawing, "C: box NE, Willem on it"):
+  // the art desk's first page-6 wagon (innprops_p2 yard_wagon, cut for a 2 x 4 along y) in place of the angle pass's yard_wagonT -- pulled in along the yard's y, the
+  // team before its open box at the NE end, Willem up on the box with the reins, its cover over the next three rows and the arch of its back to the SW, toward the
+  // camera, the one in the back drawn inside it (js/innprops.js IP.archDraw). In.WAGONAT is the back corner of its 2 x 4; In.WAGONL names every place the night uses.
+  // MOVED SOUTH, the same day (Griz: "the main reason for all this is how close willem is to the road in the fight" -- he stood three squares off the road's ways out;
+  // "moving the wagon piece with willem as centering point", Willem on the box where he had walked Barley, 12,30, then "12,27 is good given meeting position and fight
+  // flee distance" -- ten squares from the road; standing, "he can stand, it's a short scene"; and "amara's back of the wagon retreival bringing her to discussion with
+  // Gennet around 14, 22", the order kept, "i'm not changing fetching order"): the greeting up the yard, then Amara round to the back for the one handed over and up the
+  // yard with it to the inn lady (WAGONL.meet)
+  In.WAGONAT = [11, 27];
+  In.WAGONL = (function (w) { return {
+    box: [w[0] + 1, w[1]],                          // (Willem up on the box: its near square -- the far one stands behind the cover's end)
+    down: [w[0] + 2, w[1]],                         // (beside the box, where one comes down or climbs up: Amara down to greet, Doran and Katarina up)
+    team: [[w[0], w[1] - 2], [w[0] + 1, w[1] - 2]], // (the greys side by side before the box, each 1 x 2 along y, their heads NE)
+    heads: [w[0] + 2, w[1] - 2],                    // (Willem at the traces: beside the near grey's chest)
+    back: [w[0] + 1, w[1] + 3],                     // (the one in the back, inside the arch)
+    tail: [w[0] + 1, w[1] + 4],                     // (behind the arch: where the one handed over is lifted down)
+    behind: [w[0] + 2, w[1] + 4],                   // (where Amara stands to lift the one down out of the back)
+    greet: [15, 22],                                // (where the inn lady stops to greet Amara: his "around 14, 22", the two either side of it)
+    meet: { amara: [13, 22], kid: [14, 23] },        // (Amara and the one she brought, at the greeting)
+    out: [w[0] + 5, w[1] - 2]                       // (where one out of the house walks up to, by the wagon)
+  }; })(In.WAGONAT);
   In.YARDFOLK = [
-    { id: 'amaraYard', at: [7, 18], look: 'amara', dir: 'right' }, { id: 'willemYard', at: [7, 19], look: 'willem', dir: 'right' },
-    { id: 'wagonGoblin', at: [12, 19], look: 'goblin', dir: 'left' }, { id: 'gennetYard', at: [17, 18], look: 'innlady', dir: 'left' }, { id: 'katYard', at: [17, 20], look: 'kat', dir: 'left' }
+    { id: 'amaraYard', at: In.WAGONL.down.slice(), look: 'amara', dir: 'right' }, { id: 'willemYard', at: In.WAGONL.box.slice(), look: 'willem', dir: 'up' },
+    { id: 'wagonGoblin', at: In.WAGONL.tail.slice(), look: 'goblin', dir: 'left' }, { id: 'gennetYard', at: [17, 18], look: 'innlady', dir: 'left' }, { id: 'katYard', at: [17, 20], look: 'kat', dir: 'left' }
   ];
   Object.assign(M.LAY, { wagon: ['W'], wagonBed: ['V'] });
   In.KINDS = { doranYard: 'commoner', doranIn: 'commoner', gennet: 'commonerwoman', gennetGrief: 'commonerwoman', elsbeth: 'commonerwoman', katarina: 'commonerwoman',
@@ -254,7 +276,7 @@
     var dd = In.day(In.q); if (flags) { if (flags.lakeDone && flags.lakeDay == null) flags.lakeDay = dd; if (flags.doranDead && flags.doranDeadDay == null) flags.doranDeadDay = dd; } // (a deed with no day kept -- an older save, a test door: its day the first the inn sees it)
     var npcs = In.FOLK.filter(function (p) { return (inside === 'inn' || p.out) && In.when(p.when, hour) && (p.id !== 'elsbeth' || !In.elsbethAway(flags || {}, dd)) && (p.id !== 'katarina' || (In.katHere(flags || {}, dd) && !(flags && flags.wagonIn && flags.katYard))) && !(flags && flags.wagonIn && In.INDOORS[p.id]); }).map(function (p) { return { id: p.id, x: p.at[0], y: p.at[1], look: p.look, dir: p.dir, cond: p.cond }; });
     if (flags && flags.wagonIn) { // (THE WAGON NIGHT staged in the yard: the wagon pulled in, the pair by its team, the one at its tail, the inn lady with her lantern, the traveler come down)
-      rows = rows.map(function (r, y) { var w = In.WAGONAT; if (y < w[1] || y > w[1] + 1) return r; return r.split('').map(function (c, x) { return x >= w[0] && x < w[0] + 3 ? 'U' : x === w[0] + 3 ? 'V' : c; }).join(''); });
+      rows = rows.map(function (r, y) { var w = In.WAGONAT; if (y < w[1] || y > w[1] + 3) return r; return r.split('').map(function (c, x) { return x < w[0] || x > w[0] + 1 ? c : y === w[1] ? 'V' : 'U'; }).join(''); }); // (2 x 4 along y, 11-21: the open box V at the NE end, the cover U behind it)
       // (the yard's people -- the pair, the one at the tail, the inn lady with her lantern, the traveler -- are stood and moved by the night's script, In.wagonNight: In.YARDFOLK keeps their squares)
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
@@ -1430,6 +1452,21 @@
     else while (p.length) { var nx = p.shift(), dx = nx[0] - u.x, dy = nx[1] - u.y; In.hop(B, u, nx); if (rider) { In.hop(B, rider, nx); rider.anim = 'idle'; rider.facing = D.spr.facingFor(-dx, -dy); if (rider.liftX) rider.liftX = (dx - dy) > 0 ? -Math.abs(rider.liftX) : (dx - dy) < 0 ? Math.abs(rider.liftX) : rider.liftX; } D.grid.setup(B.map, B.units); yield In.PACE; } // (a carried one on the shoulder away from the way they go: 11-18)
     u.anim = 'idle'; u.animT = B.t; if (face) u.facing = D.spr.facingFor(face[0], face[1]); B.cache = null;
   };
+  // FIGURES WALKING AT ONCE (11-21, the wagon moved south: the inn lady down the yard while Amara comes up it): each by its own way, a step each to a beat, as In.walk
+  // walks one -- list: [[u, to, face], ...]; one with no way there is set there
+  In.walkAll = function* (B, list) {
+    var ws = list.filter(function (e) { return e && e[0] && B.units.indexOf(e[0]) >= 0; }).map(function (e) {
+      var u = e[0], to = e[1], p = u.x === to[0] && u.y === to[1] ? [] : In.walkWay(u, to);
+      if (!p) { u.x = to[0]; u.y = to[1]; u.tween = null; p = []; }
+      return { u: u, p: p, face: e[2] };
+    });
+    D.grid.setup(B.map, B.units);
+    while (ws.some(function (w) { return w.p.length; })) {
+      ws.forEach(function (w) { if (w.p.length) In.hop(B, w.u, w.p.shift()); else if (w.u.anim === 'walk' && !w.u.tween) { w.u.anim = 'idle'; w.u.animT = B.t; } });
+      D.grid.setup(B.map, B.units); yield In.PACE;
+    }
+    ws.forEach(function (w) { w.u.anim = 'idle'; w.u.animT = B.t; if (w.face) w.u.facing = D.spr.facingFor(w.face[0], w.face[1]); }); B.cache = null;
+  };
   In.cam = function* (B, at, ticks) { yield* B.camTo({ gx: at[0], gy: at[1], gz: 0 }, D.iso.zoom, ticks || 24); };
   // THE CAMERA DRAWN BACK (11-18, his "zoom out instead of panning to the wagon"): the deepest of the zoom's own steps (js/ui.js UI.zooms) that holds every one of `pts`
   // ([x, y, z px]) in the view less the cards' strip above and the bar below, never closer than it was, eased there over `ticks`; the zoom it had is kept (In.zoom0)
@@ -1529,7 +1566,7 @@
   In.run = function* (B, u, to, face) { var p0 = In.PACE; In.PACE = 4; try { yield* In.walk(B, u, to, face); } finally { In.PACE = p0; } };
   In.katMessage = function* (B, Y, outside) {
     var f = B.roam.flags, k = Y.kat, am = Y.amara, nm = f.katLooked ? 'Katarina' : 'The young woman from upstairs'; if (!k) return;
-    var to = am && B.units.indexOf(am) >= 0 ? In.beside(B, k, am) : [In.WAGONAT[0] + 2, In.WAGONAT[1] - 1]; // (In.beside(B, who walks, to whom))
+    var to = am && B.units.indexOf(am) >= 0 ? In.beside(B, k, am) : [In.WAGONL.down[0] + 1, In.WAGONL.down[1]]; // (In.beside(B, who walks, to whom))
     yield* In.run(B, k, to, am ? [am.x - to[0], am.y - to[1]] : [-1, 0]); if (am) am.facing = D.spr.facingFor(k.x - am.x, k.y - am.y);
     yield* In.card(B, [In.WN.katRun.split('{who}').join(nm)], 360);
     var ear = (outside || []).filter(function (u) { return u && u.src && In.perceives(u.src, 15); })[0];
@@ -1543,7 +1580,7 @@
   // top right, Amara top left, as they stand; the caller draws the camera back out after (In.zoomOut) for what the window sees next and the watcher's choice
   In.greeting = function* (B, Y, f) {
     var C = D.counter, SO = C && C.SHEETOF, z1 = In.zoom0 != null ? In.zoom0 : D.iso.zoom, a = Y.amara, g = Y.gennet;
-    var mid = a && g ? [(a.x + g.x) / 2, (a.y + g.y) / 2] : [In.WAGONAT[0] + 3, In.WAGONAT[1]];
+    var mid = a && g ? [(a.x + g.x) / 2, (a.y + g.y) / 2] : [(In.WAGONL.down[0] + In.WAGONL.greet[0]) / 2, In.WAGONL.down[1]];
     if (B.camTo && D.iso) yield* B.camTo({ gx: mid[0], gy: mid[1], gz: 0 }, z1, 30);
     In.greeted = { zoom: D.iso.zoom, at: mid }; In.trail('the greeting close in on the wagon (zoom ' + (+D.iso.zoom.toFixed(3)) + '), on their own faces');
     if (!C || !C.Counter) { yield* In.card(B, [In.who('The inn lady', L('wagon.greet1'))], 300); yield* In.card(B, [In.who('Amara', L('wagon.greet2'))], 300); yield* In.card(B, [In.who('The inn lady', L('wagon.greet3'))], 300); return; }
@@ -1569,7 +1606,7 @@
   // drive itself is said after (content/text.json wagon.doranTakes, RULED 09-24). His words the seat's drafts (invented.json halfway-doran-drive-1118)
   In.DORAN_DRIVE = ['"Leave them to me. I\'ll take them back down the road myself, tonight, while their own team\'s still in the traces."', '"Newland\'s a long road past the Pit. Best they\'re not in this yard come morning."'];
   In.doranDrive = function* (B) {
-    var C = D.counter, SO = C && C.SHEETOF, t = B.roam.token, w = In.WAGONAT, bench = [w[0] + 1, w[1] - 1];
+    var C = D.counter, SO = C && C.SHEETOF, t = B.roam.token, bench = In.WAGONL.down.slice(); // (he climbs up from beside the box, 11-21)
     var dn = In.unit(B, { id: 'doranDrive', kind: 'commoner', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: 'Doran Waterby', face: [-1, 0] }); dn.bystander = true; if (C && C.dress) C.dress(dn, 'doranYard');
     if (t && B.units.indexOf(t) >= 0) { var q = In.beside(B, dn, t); yield* In.walk(B, dn, q, [t.x - q[0], t.y - q[1]]); }
     In.trail('Doran comes out to the wagon: his drive on his own face');
@@ -1585,18 +1622,34 @@
   In.leadBack = function (B) { var R0 = B.roam, l0 = R0.lead0; R0.lead0 = null; if (l0 && R0.token !== l0 && R0.members.indexOf(l0) >= 0) In.lead(B, l0); };
   // the yard's cast: the pair down off the bench by the wagon, Willem at the greys' heads; the two in the bed and the team as riders (drawn where they stand, js/ui.js); the traveler come down
   In.BEDZ = 12; In.BEDIN = 0; // (the bed's floor, px over the ground, and how far in from its rims the two stand, a part of a square: the code's wagon's; js/innprops.js sets the drawn wagon's, 11-10)
-  In.bedRiders = function (B, Y, f, noTeam) { // (the two in the open bed, and the team in its traces unless it is gone)
-    var w = In.WAGONAT, seen = !!(f.glamourSeen || f.glamourBroken);
-    Y.riders = [{ x: w[0] + 3, y: w[1], sheet: seen ? 'kid1_p0' : 'goblin_p2', after: 'kid1_p0', facing: 3, gz: In.BEDZ, dy: In.BEDIN, foot: [1, 1], anim: 'idle', animT: 0 },
-      { x: w[0] + 3, y: w[1] + 1, sheet: seen ? 'kid2_p0' : 'goblin_p2', after: 'kid2_p0', facing: 3, gz: In.BEDZ, dy: -In.BEDIN, foot: [1, 1], anim: 'idle', animT: 0 }].concat(noTeam ? [] : [
-      { x: w[0] - 2, y: w[1], sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 },
-      { x: w[0] - 2, y: w[1] + 1, sheet: 'horsegrey_p1', facing: 3, gz: 0, foot: [2, 1], team: true, blocks: true, anim: 'idle', animT: 0 }]);
+  In.BOXZ = 12; // (the box's floor that Willem stands on, px over the ground: the code's wagon's; js/innprops.js sets the drawn one's, 11-21)
+  // WILLEM OFF THE BOX (11-21): down beside the cover and to the near grey's chest, the traces in his hands -- where the yard's fight wants him (RULED 11-04 §1: "Willem at the
+  // traces"). Walked when the party steps out into the yard (In.wagonRest); `now` sets him there at once (a fight begun some other way: In.yardFight)
+  In.willemDown = function* (B, Y, now) {
+    var u = Y && Y.willem, L = In.WAGONL; if (!u || !u.onBox || B.units.indexOf(u) < 0) return;
+    delete u.onBox; delete u.liftZ; u.x = L.down[0]; u.y = L.down[1] + 1; u.tween = null; D.grid.setup(B.map, B.units); B.cache = null;
+    In.trail('Willem down off the box to the greys\' heads' + (now ? ' (at once)' : ''));
+    if (now) { u.x = L.heads[0]; u.y = L.heads[1]; D.grid.setup(B.map, B.units); }
+    else yield* In.walk(B, u, L.heads, [-1, 0]);
+    u.facing = D.spr.facingFor(-1, 0); u.anim = 'idle'; u.animT = B.t; u.traces = true;
+  };
+  In.bedRiders = function (B, Y, f, noTeam) { // (the one in the back, and the team in its traces unless it is gone)
+    // (RE-LAID 11-21, his "try draw the solo goblin-child in the actual back of the wagon": one, inside the arch of the back, for the seven -- drawn there, clipped to the
+    // arch's opening, by js/innprops.js IP.archDraw (r.arch); with the code's wagon it stands on the back's floor. The greys 1 x 2 along y before the box, heads NE)
+    // (the glamour's own look, the child's size and empty-handed -- data/foes.js glamourgoblin, goblinchild_p1 -- not the combat goblin, goblin_p2, that the two in the
+    // bed wore before: his "the combat goblin is what I see in the back of your wagon in the pane though", 11-21)
+    var L = In.WAGONL, seen = !!(f.glamourSeen || f.glamourBroken), gl = (D.FOES.glamourgoblin && D.FOES.glamourgoblin.sheet) || 'goblinchild_p1';
+    Y.riders = [{ x: L.back[0], y: L.back[1], sheet: seen ? 'kid1_p0' : gl, after: 'kid1_p0', facing: 1, gz: In.BEDZ, foot: [1, 1], arch: true, anim: 'idle', animT: 0 }].concat(noTeam ? [] : L.team.map(function (q) {
+      return { x: q[0], y: q[1], sheet: 'horsegrey_p1', facing: 5, gz: 0, foot: [1, 2], team: true, blocks: true, anim: 'idle', animT: 0 }; }));
     B.riders = (B.riders || []).filter(function (r) { return !r.yard; }).concat(Y.riders.map(function (r) { r.yard = true; return r; })); In.teamBlock(B);
   };
   In.yardCast = function (B, f) {
-    var w = In.WAGONAT, Y = {}; In.bedRiders(B, Y, f, false);
-    Y.amara = In.unit(B, { id: 'amaraYard', kind: 'amara', at: [w[0] + 1, w[1] - 1], name: 'Amara', face: [1, 0], foe: true });
-    Y.willem = In.unit(B, { id: 'willemYard', kind: 'willem', at: [w[0] - 3, w[1]], name: 'Willem Glass', face: [-1, 0], foe: true, traces: true });
+    var L = In.WAGONL, Y = {}; In.bedRiders(B, Y, f, false);
+    Y.amara = In.unit(B, { id: 'amaraYard', kind: 'amara', at: L.down.slice(), name: 'Amara', face: [1, 0], foe: true });
+    // (Willem UP ON THE BOX with the reins, 11-21: "put willem up there" -- drawn on the box's floor (u.liftZ, a drawing only: js/ui.js unitPos), not yet at the traces;
+    // he comes down to the greys' heads and takes them when the yard turns to a fight: In.willemDown)
+    Y.willem = In.unit(B, { id: 'willemYard', kind: 'willem', at: L.box.slice(), name: 'Willem Glass', face: [0, -1], foe: true });
+    Y.willem.onBox = true; Y.willem.liftZ = In.BOXZ;
     Y.kat = f.katYard ? In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: In.YARDFOLK[4].at.slice(), name: 'A traveler', face: [-1, 0] }) : null;
     return Y;
   };
@@ -1785,22 +1838,28 @@
     // ZOOM OUT, NOT A PAN (11-18, his playthrough NOTES on the wagon night: "zoom out instead of panning to the wagon"): from the one at the window the camera draws back
     // until the window, the wagon and the door between them are all in the frame, and holds there while the yard plays; the zoom he had comes back as somebody goes down
     // (In.comeDown), at the fight, or as the night goes to bed (In.zoomBack)
-    yield* In.zoomOut(B, [[R0.token.x, R0.token.y, R0.upView ? R0.upView.z : 0], [w[0] - 3, w[1]], [w[0] + 5, w[1] + 1], [In.DOORS.front[0], In.DOORS.front[1]]], 40);
+    var WL = In.WAGONL, frameW = [[R0.token.x, R0.token.y, R0.upView ? R0.upView.z : 0], [WL.team[0][0], WL.team[0][1] - 1], WL.tail.slice(), WL.greet.slice(), [In.DOORS.front[0], In.DOORS.front[1]]]; // (the window, the team's heads, the back, the door: 11-21)
+    yield* In.zoomOut(B, frameW, 40);
     yield* In.card(B, [In.WN.turnsIn.split('{name}').join(watcher.name)], 420);
     Y.gennet = In.unit(B, { id: 'gennetYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: In.named(f), face: [-1, 0], lantern: true });
-    yield* In.walk(B, Y.gennet, [w[0] + 5, w[1]], [-1, 0]);
+    // (THE GREETING UP THE YARD, 11-21, the wagon moved south: the inn lady out of the front door and Amara down off the box and up the yard, to meet round 14, 22 --
+    // his "Gennet and Amara would change meeting place slightly"; the order kept, his "i'm not changing fetching order": the greeting, then the one fetched from the back)
+    yield* In.walkAll(B, [[Y.gennet, WL.greet, [-1, 0]], [Y.amara, WL.meet.amara, [1, 0]]]);
     yield* In.greeting(B, Y, f); // (close in on the two at the wagon, their words on their faces -- then drawn back again for what the window sees next: RULED 11-18)
-    yield* In.zoomOut(B, [[R0.token.x, R0.token.y, R0.upView ? R0.upView.z : 0], [w[0] - 3, w[1]], [w[0] + 5, w[1] + 1], [In.DOORS.front[0], In.DOORS.front[1]]], 30);
+    yield* In.zoomOut(B, frameW, 30);
     // (THE WATCHER'S ALONE, RULED 11-13, Griz, asked whether the wagon night's greeting reads should be the watcher's alone: "10 - yes"; and on whose insight speaks on the
     // watch, those awake: "2, 3 - keep" -- the others are asleep in the room: the two reads at the greeting are the watcher's own passive Insight, and the watcher says them)
     if (Y.kat && In.readOf(watcher, 'Insight', In.KL.DC.knew)) { f.katKnewAmara = 1; yield* In.insightSay(B, In.KL.knew, [watcher]); } // (11-05, the module §5: the traveler and Amara have met before, Insight 13 -- it opens her message, asked after the wagon: In.katScene)
     // BEAT 0 (the lane's §10.3, RULED): the handover at the greeting -- one lifted down and led inside by the hand; its read from the window
-    Y.kid = In.unit(B, { id: 'wagonKid', kind: 'glamourgoblin', at: [w[0] + 4, w[1] + 1], name: 'A goblin, chained', face: [1, 0] });
-    yield* In.walk(B, Y.kid, [w[0] + 4, w[1]], [1, 0]); yield 10;
+    // (11-21: Amara back down the yard to the wagon's back, one lifted down out of it, and the two up the yard to the inn lady -- "amara's back of the wagon retrieval bringing
+    // her to discussion with Gennet around 14, 22"; then the inn lady takes it in, and Amara goes back to the box's side)
+    yield* In.walk(B, Y.amara, WL.behind, [-1, 0]);
+    Y.kid = In.unit(B, { id: 'wagonKid', kind: 'glamourgoblin', at: WL.tail.slice(), name: 'A goblin, chained', face: [1, 0] }); yield 12; // (lifted down out of the back, behind the arch)
+    yield* In.walkAll(B, [[Y.amara, WL.meet.amara, [1, 0]], [Y.kid, WL.meet.kid, [1, 0]]]); yield 10;
     yield* In.card(B, [L('wagon.handover')], 360);
     f.kidTaken = 1; // (the due three nights on since 11-05 -- In.DUE; what she keeps for it, by how the night goes: In.setOffering below)
     if (In.readOf(watcher, 'Insight', 13)) { f.glamourSuspect = 1; yield* In.insightSay(B, In.WN.suspect, [watcher]); }
-    yield* In.walk(B, Y.gennet, [In.DOORS.front[0] - 1, In.DOORS.front[1]]); yield* In.walk(B, Y.kid, [In.DOORS.front[0] - 1, In.DOORS.front[1] + 1]);
+    yield* In.walkAll(B, [[Y.gennet, [In.DOORS.front[0] - 1, In.DOORS.front[1]]], [Y.kid, [In.DOORS.front[0] - 1, In.DOORS.front[1] + 1]], [Y.amara, WL.down, [1, 0]]]);
     In.gone(B, Y.gennet); Y.gennet = null; In.gone(B, Y.kid); Y.kid = null; yield 10;
     // the watcher's look from the window (the first game's Perception 15; the handover's read sharpens it)
     var sawW = !paid && In.perceives(watcher.src, 15, f.glamourSuspect ? 5 : 0); yield* In.edgeCard(B); if (sawW) yield* In.breakGlamour(B, st, f, Y);
@@ -1832,7 +1891,8 @@
       outside = a === 0 ? [watcher] : party.slice();
       if (a !== 0) { if (upstairs) In.comeDown(B); yield* In.card(B, [L('wagon.wake', { name: watcher.name })], 300); } // (WAKE THE PARTY: down the stair together and out; INVESTIGATE came down before its wait)
       else yield* In.card(B, [In.WN.investOut.split('{name}').join(watcher.name)], 240);
-      yield* R.walkTo(B, [w[0] + 6, w[1]]); // (out the front door into the yard: a step out roofs the house as ever)
+      yield* R.walkTo(B, In.WAGONL.out.slice()); // (out the front door into the yard: a step out roofs the house as ever)
+      yield* In.willemDown(B, Y); // (someone out of the house: Willem down off the box to the greys' heads, 11-21)
       var sawY = !f.glamourSeen && outside.some(function (u) { return In.perceives(u.src, 12, f.glamourSuspect ? 5 : 0); }); yield* In.edgeCard(B); if (sawY) yield* In.breakGlamour(B, st, f, Y);
       if (!f.glamourSeen) {
         yield* In.card(B, [In.who('Amara', In.WN.lieYard)], 360);
@@ -1969,6 +2029,7 @@
     ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
     for (var y = 0; y < R.def.h; y++) for (var x = 0; x < 3; x++) exits.push([x, y]);
     F.runWhenHurt = 'willem'; F.fledEnds = true; F.loosen = 3; F.exit = exits; F.noFlee = false; B.hitAtTraces = false; B.teamLoose = false;
+    yield* In.willemDown(B, Y, true); // (still up on the box: at the traces before the fight's first turn, 11-21)
     var foes = [Y.amara, Y.willem].filter(function (u) { return u && B.units.indexOf(u) >= 0; });
     foes.forEach(function (u) { u.flees = false; delete u.roamAside; });
     In.lastFight = { foes: foes.length, hp: foes.map(function (u) { return u.hp; }), onFloor: [Y.amara, Y.willem].map(function (u) { return !!u && B.units.indexOf(u) >= 0; }) }; R0.fights++; R0.lastOutcome = null;
@@ -2015,8 +2076,8 @@
     // she comes out of the front door in her own figure, walks to the bench Doran went up on, and is gone with it as the card is said)
     if (!f.katGave && !f.katGone && !f.katRode && In.day(D.roam.q) >= In.KAT.from) {
       f.katGone = 1; f.katRode = 1; In.trail('Katarina rides south on the wagon Doran drives (the yard): out of the front door and up on the bench');
-      var wk = In.WAGONAT, ku = In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: f.katLooked ? 'Katarina' : 'A traveler', face: [-1, 0] }); ku.bystander = true;
-      yield* In.walk(B, ku, [wk[0] + 1, wk[1] - 1], [-1, 0]); In.katBoarded = [ku.x, ku.y];
+      var ku = In.unit(B, { id: 'katYard', kind: 'commonerwoman', at: [In.DOORS.front[0] - 1, In.DOORS.front[1]], name: f.katLooked ? 'Katarina' : 'A traveler', face: [-1, 0] }); ku.bystander = true;
+      yield* In.walk(B, ku, In.WAGONL.down.slice(), [-1, 0]); In.katBoarded = [ku.x, ku.y]; // (up from beside the box, where Doran went: 11-21)
       yield* In.card(B, [In.WN.katRides.split('{who}').join(f.katLooked ? 'Katarina' : 'The one with the pen')], 360); In.gone(B, ku);
     }
   };

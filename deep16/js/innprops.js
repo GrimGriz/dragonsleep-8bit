@@ -16,6 +16,7 @@
   // chimney; innwalls_p1 pages 7, 8 and 9A's walls, roofs and lamps)
   var IP = D.innprops = {}, SHEETS = ['innprops_p1', 'innprops_p2', 'innwalls_p1'], SHEET = SHEETS[0], HW = 32, HH = 16;
   IP.on = !/[?&]props=code\b/.test(typeof location !== 'undefined' ? location.search || '' : '');
+  IP.BOXZ = 26; if (IP.on) In.BOXZ = IP.BOXZ; // (the drawn wagon's open box at its NE end: its floor px over the ground, Willem stood on it -- 11-21)
   IP.BEDZ = 20; IP.BEDIN = 0.25; if (IP.on) { In.BEDZ = IP.BEDZ; In.BEDIN = IP.BEDIN; } // (the drawn wagon's bed: its floor px over the ground -- its bottom stands about 18 up -- and its rims a fifth of a square in from its two squares' outer edges: the two in the bed stand on it, a quarter square in from their squares' middles, 11-10)
   function sheet(name) {
     var key = SHEET;
@@ -133,12 +134,23 @@
   // party outside within 6 squares of the front step, the house's west end goes see-through over the rows three each side of the door (y 15-21), from the door out toward the
   // road (x 13-19), as high as a figure stands -- the walls only: the west wall's stubs along the door's line, the doorway a gap in them, nothing of the room (its things and
   // its people are under the roof, IP.dress); a lantern post at the step (In.ROWS 'l' at 17,17)
-  IP.TALL = { inn_hearth: 1, up_chimney: 1, yard_wagonT: 1, yard_wagonRim: 1 };
+  IP.TALL = { inn_hearth: 1, up_chimney: 1, yard_wagonT: 1, yard_wagonRim: 1, yard_wagon: 1 };
   // THE WAGON SEE-THROUGH (11-12, the inn seat; Griz to the desk, 11-11: "forgot to mention we're gonna have to transparency the wagon during the inn fight"): Amara's
   // wagon stands four squares long under its canvas in the middle of the yard's fight. In a fight on the floor it is drawn faint, as the big fire's chimney is (IP.fightOn),
   // and walking it goes faint while it hides the party (its canvas and its tail's rail together)
-  IP.WAGON = { yard_wagonT: 1, yard_wagonRim: 1 };
+  IP.WAGON = { yard_wagonT: 1, yard_wagonRim: 1, yard_wagon: 1 };
   IP.wagonHid = function () { return IP.seeing.groups.some(function (g) { return IP.WAGON[g.name] && g.hide; }); };
+  // THE ONE IN THE BACK, INSIDE THE ARCH (11-21, Griz: "try draw the solo goblin-child in the actual back of the wagon"): the rider (inn.js In.bedRiders, r.arch) drawn
+  // standing on the back's floor in the drawing's own px and clipped to the arch's opening, so the canvas rim and the end board stand in front of it. Its depth is the back
+  // squares' + 0.6 (js/ui.js), after both of the back row's cuts. False with the code's wagon or none laid: the rider is drawn as any other
+  IP.ARCH = { feet: [35, 93], poly: [[21, 50], [25, 46], [31, 44], [38, 44], [44, 46], [48, 50], [50, 56], [51, 70], [51, 98], [20, 83], [20, 60]] };
+  IP.archDraw = function (ctx, r, drawR) {
+    var laid = IP.laid && IP.laid.pieces && IP.laid.pieces.some(function (pc) { return pc[0] === 'yard_wagon'; }), bx = laid && boxes('yard_wagon'); if (!bx) return false;
+    var q = bx[0], wa = In.WAGONAT, c = iso.center(wa[0], wa[1], 0), s = iso.toScreen(c.x, c.y), ox = Math.round(s.x - q[4]), oy = Math.round(s.y - q[5] - HH); // (the drawing's top left, as its first cut is laid: IP.slices)
+    ctx.save(); ctx.beginPath(); IP.ARCH.poly.forEach(function (p, k) { if (k) ctx.lineTo(ox + p[0], oy + p[1]); else ctx.moveTo(ox + p[0], oy + p[1]); }); ctx.closePath(); ctx.clip();
+    try { drawR(ox + IP.ARCH.feet[0], oy + IP.ARCH.feet[1]); } finally { ctx.restore(); }
+    return true;
+  };
   IP.CUT = { step: [18, 18], near: 6, x0: 13, x1: 19, y0: 15, y1: 21, h: 84, see: 0.22, more: 1 };
   IP.WIN = { rx: 46, ry: 50, up: 18, h: 56, near: 5 }; // (wider and lower since 11-12, 22 x 40 at 26 up before: the window takes in the squares beside the figure and the one south of it, so the wall's stubs in it can be seen) // (a figure's window: an ellipse round it, its middle `up` px over the feet; a figure's height where the sheet does not say)
   IP.seeing = { figs: [], cut: false, groups: [] };
@@ -197,13 +209,13 @@
   IP.dress = function (m) {
     if (!IP.on || !D.SHEETS || !D.SHEETS[SHEET]) return;
     var up = m.def && m.def.key === In.UP, got = IP.find(up ? In.UPROWS : In.ROWS, up, { lit: !!(m.def && (m.def.night || m.def.dusk)) }), mine = {};
-    // AMARA'S WAGON (11-10, the angle pass of page 6: drawn tail to the camera, as it stands on its night): on the yard's ring wherever the night's floor has it (inn.js In.map
-    // writes its squares, U U U V, on In.WAGONAT's two rows -- the loaded floor's rows read them as the grid's own, W W W V) -- the drawing over its 4 x 2, the code's wagon
-    // under it given way; the two in the bed stand on its floor (In.BEDZ)
-    var wr = !up && m.def && m.def.rows, wa = In.WAGONAT, wc = wr && wr[wa[1]] ? wr[wa[1]].charAt(wa[0]) : '';
-    if ((wc === 'U' || wc === 'W') && wr[wa[1]].charAt(wa[0] + 3) === 'V' && D.SHEETS.innprops_p2 && D.SHEETS.innprops_p2.tiles.yard_wagonT) {
-      got.pieces.push(['yard_wagonT', wa[0], wa[1], 4, 2]);
-      got.pieces.push(['yard_wagonRim', wa[0], wa[1], 4, 2, false, null, 0.15]); // (its tail's rail and board again, after the two in the bed (a rider's depth is its square's + 0.6) and before one standing past the tail)
+    // AMARA'S WAGON, RE-LAID 11-21 (Griz: "C: box NE, Willem on it" -- the first page-6 drawing, yard_wagon, cut for a 2 x 4 along y, in place of 11-10's angle pass,
+    // yard_wagonT, whose open box faced the camera): on the yard wherever the night's floor has it (inn.js In.map writes its squares on In.WAGONAT's 2 x 4 -- V the open box
+    // at the NE end, U the cover behind it; the loaded floor's rows read U as the grid's own W) -- the drawing over them, the code's wagon under it given way; Willem stands on
+    // the box (In.BOXZ), the one in the back inside the arch (IP.archDraw)
+    var wr = !up && m.def && m.def.rows, wa = In.WAGONAT, wc = wr && wr[wa[1] + 1] ? wr[wa[1] + 1].charAt(wa[0]) : '';
+    if ((wc === 'U' || wc === 'W') && wr[wa[1]].charAt(wa[0]) === 'V' && D.SHEETS.innprops_p2 && D.SHEETS.innprops_p2.tiles.yard_wagon) {
+      got.pieces.push(['yard_wagon', wa[0], wa[1], 2, 4]);
     }
     // (a house roofed over -- the party outside it, or in another -- keeps its things under its roof: only what stands in the open or in the house the party is in)
     var ins = m.def && m.def.inside || null, seen = function (x, y) { if (up) return true; var b = In.inHouse(x, y); return !b || b === ins; };

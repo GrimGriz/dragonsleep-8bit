@@ -331,7 +331,7 @@
     c.backAt = M.hourNow(D.roam.q, B);
     yield* In.card(B, [Ch.backLine(c.backAt)], 360);
     var lo = Ch.passWalk(B, Ch.WALK_HOURS);
-    yield* M.go(B, In.KEY, [In.WAGONAT[0] + 6, In.WAGONAT[1] + 2], [-1, 0], lo.length ? ['{g}' + lo.join(' ') + '{/}'] : null);
+    yield* M.go(B, In.KEY, [14, 20], [-1, 0], lo.length ? ['{g}' + lo.join(' ') + '{/}'] : null); // (the yard before the front door, where it always came back to: no longer read off the wagon, which moved south 11-21 -- js/inn.js In.WAGONAT)
   };
 
   // ---------------------------------------------------------------- the floors' scripts: the chase first on the gulch floor; the walk back's yard first on the inn's

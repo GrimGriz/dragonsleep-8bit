@@ -1579,7 +1579,9 @@
         objs.push({ depth: r.x + r.y + (f[0] - 1) + (f[1] - 1) + 0.6, gz: r.gz, draw: function (ctx) {
           var a = r.anim && r.anim !== 'idle' && D.spr.anim(r.sheet, r.anim) && B.t - r.animT <= D.spr.duration(r.sheet, r.anim) + 6 ? r.anim : 'idle';
           if (f[0] > 1 || f[1] > 1) { ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(s.x, s.y, 20, 7, 0, 0, 7); ctx.fill(); }
-          D.spr.draw(ctx, r.sheet, a, r.facing, a === 'idle' ? B.t + r.x * 7 + r.y * 13 : B.t - r.animT, s.x, s.y, a === 'idle' ? {} : { once: true });
+          var drawR = function (x, y) { D.spr.draw(ctx, r.sheet, a, r.facing, a === 'idle' ? B.t + r.x * 7 + r.y * 13 : B.t - r.animT, x, y, a === 'idle' ? {} : { once: true }); };
+          if (r.arch && D.innprops && D.innprops.archDraw && D.innprops.archDraw(ctx, r, drawR)) return; // (the one in the wagon's back, inside its arch: js/innprops.js, 11-21)
+          drawR(s.x, s.y);
         } });
       });
       FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: f.depth != null ? f.depth : 1e6, gz: 0, draw: function (c) { f.draw(c); } }); }); // (f.depth: an effect that lies on the floor, FX.ripples at -1, is sorted in under the figures)
@@ -1743,7 +1745,7 @@
     return Math.max(0, d.waterLevel - G.map.gz(x, y));
   };
   function unitPos(B, u) {
-    var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy) + (u.upZ || 0) + UI.waterLift(u, gx, gy); // (drawAt: where a caster stands while his floating weapon swings; upZ: a figure drawn a storey up, no rule in it -- the party at the big room's window, js/secondact.js A.atWindow, 11-12)
+    var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy) + (u.upZ || 0) + (u.liftZ || 0) + UI.waterLift(u, gx, gy); // (drawAt: where a caster stands while his floating weapon swings; upZ: a figure drawn a storey up, no rule in it -- the party at the big room's window, js/secondact.js A.atWindow, 11-12; liftZ: one drawn standing up on a thing, sorted where it stands -- Willem on the wagon's box, js/inn.js, 11-21)
     var hangR = u.hang && u.hang.rope && G.hanging(u) ? u.hang.rope : null, onR = hangR;
     if (hangR && !u.tween) { var L0 = ropeLine(hangR); gx = L0[0]; gy = L0[1]; }
     if (u.tween) {
