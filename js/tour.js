@@ -223,6 +223,7 @@
     B.keyU = function (e) { if (!B.up || B.noting || e.target === (B.noting && B.noting.el)) return; e.stopImmediatePropagation(); };
     B.click = function (e) { if (B.up && D && D.canvas && e.target === D.canvas) lower(B); };
     window.addEventListener('keydown', B.keyH, true); window.addEventListener('keyup', B.keyU, true); window.addEventListener('mousedown', B.click, true);
+    B.leave = function () { keepTyped(B); }; window.addEventListener('pagehide', B.leave); window.addEventListener('beforeunload', B.leave); // (the page left with the line open: a reload, back, LEAVE)
     bar.addEventListener('click', function (e) { barClick(B, e); });
     card.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-k]'); if (b) act(B, b.getAttribute('data-k')); });
     draw(B);
@@ -232,6 +233,7 @@
   T.unmount = function () {
     var B = T.bar; if (!B) return; T.bar = null;
     window.removeEventListener('keydown', B.keyH, true); window.removeEventListener('keyup', B.keyU, true); window.removeEventListener('mousedown', B.click, true);
+    keepTyped(B); window.removeEventListener('pagehide', B.leave); window.removeEventListener('beforeunload', B.leave);
     [B.el, B.card, document.getElementById('swann-css')].forEach(function (e) { if (e && e.parentNode) e.parentNode.removeChild(e); });
     document.body.style.paddingTop = B.pad0; document.body.style.boxSizing = B.box0;
     var D = window.D16; if (D) { D.barH = 0; if (D.canvas && D.fit) D.fit(); }
@@ -259,7 +261,7 @@
     B.card.innerHTML = '<p class="her">' + esc((T.LINES.card[B.k] || ('Card ' + (B.k + 1) + '.')) + ' ' + cap(p.name) + '.') + '</p><h2>' + esc(obj || r.title) + '</h2>' +
       (obj ? '<p class="ttl">' + esc(r.title) + '</p><button class="bn" data-k="bnote" title="B: the builders\' note, open or shut">' + (open ? '&#9662;' : '&#9656;') + ' the builders\' note</button>' + (open ? '<div class="bnote">' + note + '</div>' : '') : note) +
       (now ? '<p class="now">' + now + '</p>' : '') +
-      (B.noting ? '<input id="swann-note" type="text" maxlength="800" autocomplete="off" placeholder="what you saw -- Enter keeps it, Esc leaves it">' : '') +
+      (B.noting ? '<input id="swann-note" type="text" maxlength="800" autocomplete="off" placeholder="what you saw -- kept as you type; Enter goes on, Esc closes the line">' : '') +
       '<p class="keys">' + T.VERDICTS.map(function (v) { return '<kbd>' + v[2] + '</kbd>' + v[1]; }).join(' ') + ' <kbd>N</kbd>a note <kbd>P</kbd>pass (don\'t need to see it) <kbd>&larr;</kbd><kbd>&rarr;</kbd>the other cards' + (obj ? ' <kbd>B</kbd>the builders\' note' : '') +
       ' <kbd>Enter</kbd>lay the card down and look (<kbd>H</kbd>brings it back)</p>';
     if (B.noting) noteField(B);
@@ -275,14 +277,20 @@
       if (keep && then) { answered(B, 'note'); return; }
       draw(B);
     };
-    el.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); done(true); } else if (e.key === 'Escape') { e.preventDefault(); done(false); } });
+    // KEPT AS HE TYPES (11-21, the shows-notes seat -- Griz on eyes-ambush-r1-1111, "note disappeared again.", then "'notes' in question is the sylvia card row note (typed one
+    // before the one that mentions they disappeared, it disappeared - we've fixed similar before)"): the line was kept only by Enter, by a blur on a line N opened, or by a
+    // verdict key (the 11-19 fix) -- a click on the game (lower), Esc, a reload, the browser's back, LEAVE or another card each dropped what was typed, and a line 2 or 3
+    // opened was never kept on a blur. Every keystroke goes into the store now, and Esc closes the line keeping what is in it (Enter, as ever, keeps it and goes on)
+    el.addEventListener('input', function () { if (B.noting && B.noting.el === el) T.note(here.id, el.value); });
+    el.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); done(true); } else if (e.key === 'Escape') { e.preventDefault(); T.note(here.id, el.value); B.noting = null; draw(B); } });
     el.addEventListener('keyup', function (e) { e.stopPropagation(); });
-    el.addEventListener('blur', function () { if (B.noting && B.noting.el === el && !B.noting.then) done(true); });
+    el.addEventListener('blur', function () { if (B.noting && B.noting.el === el) { if (B.noting.then) T.note(here.id, el.value); else done(true); } });
     B.noting.done = done;
     setTimeout(function () { try { el.focus(); } catch (e) { /* (no focus: Enter still keeps it) */ } }, 0);
   }
   function raise(B) { B.up = true; var D = window.D16; if (D && D.input) { D.input.held = {}; D.input.clear(); } draw(B); }
-  function lower(B) { B.up = false; B.noting = null; draw(B); var D = window.D16; if (D && D.canvas) try { D.canvas.focus(); } catch (e) { /* (no focus) */ } }
+  function keepTyped(B) { var here = B.row(); if (B.noting && B.noting.el && here && here.r) T.note(here.id, B.noting.el.value); } // (what is in the line, into the store: laid down, the page left)
+  function lower(B) { keepTyped(B); B.up = false; B.noting = null; draw(B); var D = window.D16; if (D && D.canvas) try { D.canvas.focus(); } catch (e) { /* (no focus) */ } }
   // an answer: a beat in the bar, then on to the next card face down, or her table
   function answered(B, what) {
     var FB = T.fb(), here = B.row(), f = FB[here.id] || {}, nx = T.nextCard(B.d, B.k, FB);

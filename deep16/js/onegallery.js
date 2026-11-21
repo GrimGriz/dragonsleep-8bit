@@ -192,11 +192,11 @@
     if (f.v === 'broken' || f.v === 'unclear') noteField(B, id); // (what broke, in his words, then and there)
   }
   // A NOTE WITH THE VERDICT (10-28, Griz: "i didn't see an option to type a note when marking it broken"): V onto broken or unclear opens a line over the column for
-  // his words, T on any verdict; Enter or a click away keeps them, Esc leaves the note as it was. The same store as situations.html's note, so SAVE carries it
+  // his words, T on any verdict; Enter or a click away keeps them (since 11-21 each keystroke too), Esc leaves the note as it was. The same store as situations.html's note, so SAVE carries it
   function noteField(B, id) {
     closeNote();
     var f0 = fbGet()[id] || {}, el = document.createElement('input');
-    el.type = 'text'; el.value = f0.note || ''; el.placeholder = 'what you saw -- Enter keeps it, Esc leaves it'; el.maxLength = 800;
+    el.type = 'text'; el.value = f0.note || ''; el.placeholder = 'what you saw -- kept as you type; Enter keeps it, Esc leaves it as it was'; el.maxLength = 800;
     el.style.cssText = 'position:fixed;z-index:30;box-sizing:border-box;font:13px system-ui,sans-serif;padding:2px 5px;border:1px solid #c8a040;border-radius:3px;background:#14101e;color:#f0e8d8;outline:none;';
     var place = function () { var cv = D.canvas; if (!cv) return; var r = cv.getBoundingClientRect(), s = r.width / D.W; el.style.left = Math.round(r.left + 3 * s) + 'px'; el.style.top = Math.round(r.top + (STRIP + 1) * s) + 'px'; el.style.width = Math.round((COL - 6) * s) + 'px'; el.style.height = Math.max(20, Math.round(13 * s)) + 'px'; };
     var done = function (keep) {
@@ -204,7 +204,11 @@
       if (keep) { var F2 = fbGet(), g = F2[id] = F2[id] || {}; g.note = String(el.value || '').trim(); g.at = new Date().toISOString(); fbPut(F2); B.one.fb = F2; D.sfx('confirm'); }
       closeNote();
     };
-    el.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); done(true); } else if (e.key === 'Escape') { e.preventDefault(); done(false); } });
+    // (kept as he types -- 11-21, the shows-notes seat, the same fix as Sylvia's card line, js/tour.js: a reload or the browser's back with the line open dropped what was
+    // typed; Griz, "note disappeared again." Esc still leaves the note as it was, the 10-28 rule: what the line opened with is put back)
+    var putNote = function (s) { var F2 = fbGet(), g = F2[id] = F2[id] || {}; g.note = String(s || '').trim(); g.at = new Date().toISOString(); fbPut(F2); B.one.fb = F2; };
+    el.addEventListener('input', function () { if (OG.note && OG.note.el === el) putNote(el.value); });
+    el.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); done(true); } else if (e.key === 'Escape') { e.preventDefault(); if (OG.note && OG.note.el === el) putNote(f0.note || ''); done(false); } });
     el.addEventListener('blur', function () { done(true); });
     place(); document.body.appendChild(el); D.typing = true; D.input.held = {}; // (the V that opened it lifts while the field has the keys: let it go, or the next V is never a press)
     OG.note = { el: el, place: place, id: id, done: done };

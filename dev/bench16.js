@@ -28684,6 +28684,57 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // deaf while the card is up and its own keys again when it is down; the last answer to her table); the ear file carrying them (js/onegallery.js OG.earFile); the
   // deck's end at her table (js/swann.js S.Table: the six turned face up, her line from his words, the owl's count, DEAL SIX MORE, TURN THE NEXT CARD); her booth's
   // READ THE CARDS with the tester switch on and never off (js/hours.js C.SCRIPTS.swann). On a stand-in eyes list and this page's store, put back after
+  // SYLVIA'S NOTE LINE KEEPS WHAT IS TYPED (mode=notes1121; 11-21, the shows-notes seat -- Griz on eyes-ambush-r1-1111, "note disappeared again.", then "'notes' in question is
+  // the sylvia card row note (typed one before the one that mentions they disappeared, it disappeared - we've fixed similar before)"): a note typed on her card's line, then
+  // every way off the card -- a click on the game, Esc, a reload, the browser's back, LEAVE, a second card opened -- and the card taken up again: the note is in the store and
+  // on the card. A page left mid-line is left as a crash leaves it (no handler of the bar's run): what is typed must be in the store already. Typing as the pane types: the
+  // field's value set and its input event, the keys dispatched (the pane sends no keydown)
+  if (get('mode', '') === 'notes1121') {
+    var repT = { checks: [], errors: [] }, okT = function (c, s) { repT.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var TT = window.DS && window.DS.TOUR, keepT = ['dsl-situations-feedback:v1', 'dsl-swann-deck:v1'], lsT = {}, eyes0T = window.DS && window.DS.EYES, nav0T = TT && TT.nav, dl0T = TT && TT.navDelay, cv0T = D.canvas;
+    keepT.forEach(function (k) { try { lsT[k] = localStorage.getItem(k); } catch (e) { lsT[k] = null; } });
+    try {
+      if (!TT) throw new Error('no DS.TOUR on the page');
+      var ET = {}; ['a', 'b', 'c', 'd', 'e', 'f'].forEach(function (x, i) { ET['eyes-note-' + x + '-1121'] = { pri: 1, title: 'card ' + x, obj: 'Card ' + x + ': look at it.', pt: 'the eyes', look: 'a thing', url: 'deep16/?pocket&fresh=' + i }; });
+      window.DS.EYES = ET; localStorage.removeItem('dsl-situations-feedback:v1'); localStorage.removeItem('dsl-swann-deck:v1');
+      var dT = TT.deal(), navT = []; TT.nav = function (h) { navT.push(h); }; TT.navDelay = 0;
+      var cvT = document.createElement('canvas'); cvT.width = 32; cvT.height = 32; document.body.appendChild(cvT); // (the game's canvas, for a click on the game: D.canvas only for the click -- the bar's mount fits a canvas it holds)
+      var fbT = function (id) { return (JSON.parse(localStorage.getItem('dsl-situations-feedback:v1') || '{}')[id] || {}).note || ''; };
+      var keyT = function (code, k, el) { (el || document.body).dispatchEvent(new KeyboardEvent('keydown', { code: code, key: k, bubbles: true })); (el || document.body).dispatchEvent(new KeyboardEvent('keyup', { code: code, key: k, bubbles: true })); };
+      var typeT = function (el, s) { for (var i = 0; i < s.length; i++) { keyT('Key' + s[i].toUpperCase(), s[i], el); el.value += s[i]; el.dispatchEvent(new Event('input', { bubbles: true })); } };
+      // a page gone with no word to the bar (a crash, a reload, back, LEAVE): its listeners off and its nodes out, nothing of the bar's run
+      var gone = function () { var B = TT.bar; if (!B) return; TT.bar = null; window.removeEventListener('keydown', B.keyH, true); window.removeEventListener('keyup', B.keyU, true); window.removeEventListener('mousedown', B.click, true); if (B.leave) { window.removeEventListener('pagehide', B.leave); window.removeEventListener('beforeunload', B.leave); } [B.el, B.card, document.getElementById('swann-css')].forEach(function (e) { if (e && e.parentNode) e.parentNode.removeChild(e); }); };
+      var PATHS = [
+        ['a click on the game', 'KeyN', function () { D.canvas = cvT; try { cvT.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); } finally { D.canvas = cv0T; } }],
+        ['Esc in the line', 'KeyN', function (el) { keyT('Escape', 'Escape', el); }],
+        ['a reload (opened by 2, broken)', 'Digit2', function () { }],
+        ['the browser\'s back', 'KeyN', function () { }],
+        ['LEAVE (the door\'s own way out)', 'Digit3', function () { }],
+        ['a second card opened from the bar', 'KeyN', function () { var c = document.querySelector('#swann-bar [data-card="' + 0 + '"]'); if (c) c.dispatchEvent(new MouseEvent('click', { bubbles: true })); }]
+      ];
+      PATHS.forEach(function (p, k) {
+        var id = dT.ids[k], words = 'note ' + k + ' typed on the card';
+        TT.mount(k); navT.length = 0; keyT(p[1], p[1].slice(-1).toLowerCase());
+        var el = document.getElementById('swann-note');
+        if (!el) { okT(false, p[0] + ': the note line opened'); gone(); return; }
+        typeT(el, words); p[2](el); gone();
+        var inStore = fbT(id) === words;
+        TT.mount(k); var shows = (document.getElementById('swann-card').textContent || '').indexOf(words) >= 0;
+        keyT('KeyN', 'n'); var el2 = document.getElementById('swann-note'), refill = !!el2 && el2.value === words; gone();
+        okT(inStore && shows && refill, p[0] + ': the typed note kept (in the store ' + inStore + ', on the card ' + shows + ', the line opens with it ' + refill + ')');
+      });
+      // and Enter, as ever: kept, and a note opened by N stays on the card; a line emptied by hand is no note
+      TT.mount(0); keyT('KeyN', 'n'); var elE = document.getElementById('swann-note'); elE.value = ''; elE.dispatchEvent(new Event('input', { bubbles: true })); gone();
+      okT(fbT(dT.ids[0]) === '', 'a line emptied by hand leaves no note (the card face down again)');
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    try { if (TT && TT.bar) TT.unmount(); } catch (e) { }
+    if (TT) { TT.nav = nav0T; TT.navDelay = dl0T; } D.canvas = cv0T; if (window.DS) window.DS.EYES = eyes0T;
+    keepT.forEach(function (k) { try { if (lsT[k] == null) localStorage.removeItem(k); else localStorage.setItem(k, lsT[k]); } catch (e) { } });
+    if (errs.length) repT.errors = repT.errors.concat(errs);
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
   if (get('mode', '') === 'swann1111') {
     var repW = { checks: [], errors: [] }, okW = function (c, s) { repW.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
     var TW = window.DS && window.DS.TOUR, keepW = ['dsl-situations-feedback:v1', 'dsl-situations-lastsave', 'dsl-swann-deck:v1', 'deep16.tester'], lsW = {}, eyes0W = window.DS && window.DS.EYES, nav0W = TW && TW.nav, dl0W = TW && TW.navDelay;
@@ -28836,6 +28887,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       OGy.noteField(Bn, 'eyes-b-1028'); OGy.note.el.value = 'something else'; OGy.note.el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       var left = (JSON.parse(localStorage.getItem('dsl-situations-feedback:v1'))['eyes-b-1028'] || {}).note;
       window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT', key: 't' })); var tKey = !!IY.edge.note; window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyT', key: 't' })); IY.clear();
+      // (11-21, the shows-notes seat: kept as typed -- the page left with the line open, a reload or back, keeps what is in it; Esc after typing still puts back what was there)
+      OGy.noteField(Bn, 'eyes-b-1028'); OGy.note.el.value = 'typed then the page left'; OGy.note.el.dispatchEvent(new Event('input', { bubbles: true }));
+      var asTyped = (JSON.parse(localStorage.getItem('dsl-situations-feedback:v1'))['eyes-b-1028'] || {}).note; OGy.note.el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      var backAgain = (JSON.parse(localStorage.getItem('dsl-situations-feedback:v1'))['eyes-b-1028'] || {}).note;
+      okY(asTyped === 'typed then the page left' && backAgain === 'the breath stays up on its idle', 'the line keeps each keystroke in the store (' + JSON.stringify(asTyped) + '), and Esc after typing puts back ' + JSON.stringify(backAgain));
       IY.held.verdict = true; OGy.noteField(Bn, 'eyes-b-1028'); OGy.closeNote(); var vFree = !IY.held.verdict;
       okY(opn && kept === 'the breath stays up on its idle' && shut && left === 'the breath stays up on its idle' && !OGy.note && tKey && vFree && OGy.earFile('2026-10-28T03:00:00.000Z').items[0].note === kept,
         'a note with a verdict: the line opens over the column (' + opn + '), Enter keeps "' + kept + '" and gives the keys back (' + shut + '), Esc leaves it (' + JSON.stringify(left) + '), T is its key (' + tKey + '), a held V let go (' + vFree + '), and SAVE carries it');

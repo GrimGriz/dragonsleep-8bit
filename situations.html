@@ -110,7 +110,10 @@
   var FKEY = 'dsl-situations-feedback:v1', VERDICTS = [['works', '✓ works'], ['broken', '✗ broken'], ['unclear', '? unclear'], ['hard', 'too hard'], ['easy', 'too easy']];
   var VL = {}; VERDICTS.forEach(function (v) { VL[v[0]] = v[1]; });
   var FB = {}; try { FB = JSON.parse(get(FKEY) || '{}') || {}; } catch (e) { FB = {}; }
-  function saveFB() { put(FKEY, JSON.stringify(FB)); count(); }
+  // (one row at a time into what the store holds NOW, 11-21, the shows-notes seat: this page wrote back the whole store it read when it opened, so a note typed at
+  // Sylvia's card or in the gallery since -- another tab, the same device -- was wiped by the next verdict here. Griz: "note disappeared again." The CLEAR still wipes all)
+  function saveFB(id) { if (id != null) { var cur = {}; try { cur = JSON.parse(get(FKEY) || '{}') || {}; } catch (e) { cur = {}; } if (FB[id]) cur[id] = FB[id]; else delete cur[id]; FB = cur; } put(FKEY, JSON.stringify(FB)); count(); }
+  window.addEventListener('storage', function (e) { if (e.key !== FKEY) return; try { FB = JSON.parse(e.newValue || '{}') || {}; } catch (x) { FB = {}; } count(); }); // (another tab's notes, kept in hand)
   function noted(id) { var f = FB[id]; return !!(f && (f.v || (f.note || '').trim())); }
   // six a page, most wanted first (10-06, Griz: "Bulk processing is good, but do like 6 items per page by any priority they might have"):
   // the eyes rows (js/eyes.js: built, never seen) by their pri, then the story situations (pri 4) in the story's order; a row already
@@ -189,13 +192,13 @@
     var it = b.closest('.item'), id = it.getAttribute('data-id'), v = b.getAttribute('data-v'), f = FB[id] = FB[id] || {};
     f.v = f.v === v ? '' : v; f.at = new Date().toISOString();
     it.querySelectorAll('.chips button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === f.v); });
-    it.classList.toggle('noted', noted(id)); saveFB();
+    it.classList.toggle('noted', noted(id)); saveFB(id);
   });
   list.addEventListener('input', function (e) {
     if (e.target.tagName !== 'TEXTAREA') return;
     var it = e.target.closest('.item'), id = it.getAttribute('data-id'), f = FB[id] = FB[id] || {};
     f.note = e.target.value; f.at = new Date().toISOString();
-    it.classList.toggle('noted', noted(id)); saveFB();
+    it.classList.toggle('noted', noted(id)); saveFB(id);
   });
   function stamp() { return new Date().toISOString().slice(0, 10); }
   // the save's name carries the time (10-06: a day-only name let his 14:29Z save replace his 08:44Z one in play-records/; the Pocket DM's files carry it)
