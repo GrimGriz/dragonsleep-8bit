@@ -4423,6 +4423,26 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var lay0 = cl.feats.lay; cl.feats.lay = 10; RU6.startTurn(cl); Bc.active = cl; runIf(Bc.layOnHands(cl, fg)); var hp7 = fg.hp; cl.feats.lay = lay0;
       okIf('ONE OF OURS IN ITS CLAWS, REACHED: the fighter held ' + held7 + ' and down; the cleric at ' + nx7 + ' -- a touch at its square ' + v7 + ', Cure Wounds there takes ' + (sp7 && sp7.name) + ' (the occupant ' + (G6.occupant(ch.x, ch.y) || {}).name + '), Lay on Hands: ' + hp7 + ' HP',
         held7 && !!nx7 && v7 === 'ok' && sp7 === fg && hp7 > 0);
+      // ---------------------------------------------------------------- 7e. A LUNGE AT 5 FT TOO (RULED 11-21, his "inn - 4 and 5 leans": "a short lunge on its 5-ft pincer too"): the fighter let
+      // go and stood beside it, the grab again -- the claw's surge at least Battle.LUNGE5 of a square
+      Bc.release(ch, fg); fg.hp = fg.maxhp; fg.ko = false; ch.holding = []; sqAt(fg, ch, 5); G6.setup(G6.map, Bc.units); RU6.startTurn(ch); Bc.active = ch; var dd7e = G6.dist(ch, fg);
+      pinIf([18, 18]); runIf(Bc.attack(ch, fg, pin1)); D.d = d0If; var tw7e = ch.tween, l7e = tw7e && tw7e.mode === 'lunge' ? Math.sqrt(tw7e.lx * tw7e.lx + tw7e.ly * tw7e.ly) : 0;
+      okIf('A LUNGE AT 5 FT: the fighter beside it (' + dd7e + ' ft before the grab), held ' + !!(fg.inClaws && fg.inClaws.by === ch.id) + ', the surge ' + l7e.toFixed(2) + ' of a square (the least ' + D.Battle.LUNGE5 + ')',
+        !!(fg.inClaws && fg.inClaws.by === ch.id) && l7e >= D.Battle.LUNGE5 - 1e-6);
+      Bc.release(ch, fg); ch.holding = [];
+      // ---------------------------------------------------------------- 7d. OFF THE FIELD, THE BLOWS FIRST (11-21, Griz: "6 was that the exit square was the square he moved to so the exit ran
+      // before the opportunity attack fired (almost certain)" -- his gulch fight of 11-20, Willem gone from beside Lymen with no blow asked): Willem running, already on an exit square, a
+      // fighter beside him with his reaction -- the fighter's opportunity attack comes before "is gone"
+      var Bx7 = D.npcFight('?npc=willem&lvl=3&vs=fighter:3', {}); D.battle = Bx7; Bx7.enter(); while (!Bx7.order.length) Bx7.co.next(); Bx7.dark = false; Bx7.answer = function () { this.req = null; };
+      var wl7 = Bx7.units.filter(function (w) { return w.side === 'foe'; })[0], ft7 = Bx7.units.filter(function (w) { return w.side === 'party'; })[0];
+      ft7.guest = true; ft7.hp = ft7.maxhp = 200; wl7.hp = wl7.maxhp = 300; wl7.flees = true; Bx7.fight.exit = [[wl7.x, wl7.y]]; Bx7.fight.runWhenHurt = 'willem';
+      var adj7 = [[wl7.x + 1, wl7.y], [wl7.x - 1, wl7.y], [wl7.x, wl7.y + 1], [wl7.x, wl7.y - 1]].filter(function (q) { return G6.canStand(ft7, q[0], q[1]) && !G6.occupant(q[0], q[1], ft7); })[0];
+      if (adj7) { ft7.x = adj7[0]; ft7.y = adj7[1]; delete ft7.tween; } G6.setup(G6.map, Bx7.units); ft7.reaction = 1; Bx7.cards = [];
+      RU6.startTurn(wl7); Bx7.active = wl7; var log7a = (Bx7.log || []).length; var pc7 = 0; Bx7.provoke = function* () { pc7++; var T7 = wl7.turn; why7b = { dis: !!(T7 && T7.disengaged), rx: ft7.reaction, d: G6.dist(ft7, wl7) }; yield* D.Battle.prototype.provoke.apply(this, arguments); }; var why7b = null; runIf(D.ai.turn(Bx7, wl7)); delete Bx7.provoke;
+      var said7 = strip((Bx7.log || []).slice(log7a).join(' / ') + ' / ' + (Bx7.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ')), oa7 = said7.indexOf('an opportunity attack on'), gone7 = said7.indexOf('is gone');
+      var why7 = { ranged: !!(ft7.weapon && ft7.weapon.ranged), dist: G6.dist(ft7, wl7), arm: G6.armOf(ft7), sees: !!D.magic.sees(Bx7, ft7, wl7), act: RU6.canAct(ft7), rx: ft7.reaction, at: [wl7.x, wl7.y], dis: !!(wl7.turn && wl7.turn.disengaged), eth: !!wl7.ethereal, on: !!(D.features && D.features.openingNight && D.features.openingNight(wl7)), acted: !!ft7.acted, ch: !!RU6.charmedBy(ft7, wl7), hostile: G6.hostile(wl7, ft7), turned: !!ft7.conds.turned, provoked: pc7, then: why7b };
+      okIf('OFF THE FIELD, THE BLOWS FIRST (' + JSON.stringify(why7) + '): Willem on an exit square beside the fighter (' + adj7 + ') -- the blow at ' + oa7 + ', "is gone" at ' + gone7 + ', fled ' + !!wl7.fled + ': ' + said7.slice(0, 300),
+        !!adj7 && oa7 >= 0 && gone7 > oa7 && !!wl7.fled);
       // ---------------------------------------------------------------- 7c. GENNET'S SHIELD (11-21, the reader's find 4: she kept a shield's AC with the crossbow in both hands): built as the
       // SRD Cult Fanatic, leather alone, AC 13 -- no shield in her hand to keep
       var gB7 = D.npc && D.npc.build ? D.npc.build('gennet', 4, 'foe') : null, gU7 = gB7 && (gB7.unit || gB7);
@@ -4474,6 +4494,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okIf('GENNET DOWN AND REACHED: cut down in its claws on ' + t5f.s.cut + '\'s turn -- ' + JSON.stringify(t5f.s.cutAt) + '; healed by ' + t5f.s.healed + ' to ' + t5f.s.healAt + '; at the fight\'s end dead ' + !!t5f.f.gennetDead + ', taken ' + !!t5f.f.gennetTaken + ' || NOT REACHED: ' + JSON.stringify(t5g.s.cutAt) + ', at the end dead ' + t5g.f.gennetDead,
         !!t5f.s.cutAt && t5f.s.cutAt.ko && !t5f.s.cutAt.dead && t5f.s.cutAt.side === 'party' && !t5f.s.cutAt.gd && t5f.s.healAt > 0 && !t5f.f.gennetDead && /* (healed before its turn and never wounded, it may still carry her down: the take, as ruled) */
         !!t5g.s.cutAt && t5g.s.cutAt.ko && !t5g.s.cutAt.dead && !t5g.s.cutAt.gd && t5g.f.gennetDead === 1);
+      // THE THING IN THE LAKE, THE STORY'S (RULED 11-21, Griz: "pull that fight-balance frog and give it 20 more HP as story-variant of SRD one or something"): stood on the floor it is the
+      // SRD's chuul and 20 (113); the take's fight brings no frog; the story's grid fight the same, the ladder's and the SRD block as they were
+      var Blk = stageIf('?roam=halfway&hour=23&day=' + InIf.WAGON.first + '&at=38,18&flags=' + BASEIf), lk = unit0If(Blk, { id: 'lakeChuul', kind: 'chuul', at: AIf.DEEP.slice(), name: 'The thing in the lake', face: [-1, 0], foe: true }), Fch = D.fight('chuul'), Fcl = D.fight('chuul-ladder');
+      var frogs5 = (t5a.o.match(/Giant Frog/g) || []).length;
+      okIf('THE THING IN THE LAKE, THE STORY\'S: stood ' + lk.hp + '/' + lk.maxhp + ' (the SRD ' + D.FOES.chuul.hp + '); the take\'s fight with no frog (' + frogs5 + ' "Giant Frog" in it); the grid\'s chuul ' + JSON.stringify(Fch.foes) + ', the ladder\'s ' + JSON.stringify(Fcl.foes),
+        lk.maxhp === D.FOES.chuul.hp + 20 && lk.hp === lk.maxhp && D.FOES.chuul.hp === 93 && frogs5 === 0 && Fch.foes.length === 1 && Fch.foes[0].hp === 113 && Fcl.foes.length === 1 && !Fcl.foes[0].hp);
       var t5c = run5({ hurt: true });
       okIf('THE TAKE, hurt before it rises: its turn ' + t5c.s.script + ', no nearest-offering line ' + !/the nearest offering\./.test(t5c.o.replace(/It turns toward the one on the path: the nearest offering\./, '')) + ', taken ' + !!t5c.f.gennetTaken + ', the lake done ' + t5c.f.lakeDone,
         t5c.s.script === 'none' && !/IN ITS CLAWS/.test(t5c.o) && !t5c.f.gennetTaken && t5c.f.lakeDone === 1);
@@ -4601,7 +4627,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B7 = stageWn('?roam=halfway&hour=23&day=' + InWn.WAGON.first + '&at=37,18&flags=' + BASEWn, { secondAct: { beat: 'path' } }, ringOn);
       var o7 = flowWn(B7, ['STAND ASIDE', 'GO DOWN TO THE POINT']), f7 = B7.roam.flags;
       okWn('STAND ASIDE on the path, the ring worn: ' + sl(o7, /You stand out of the light/, 1300) + ' -- paid ' + f7.duePaid + ', the lake done ' + f7.lakeDone,
-        /You stand out of the light/.test(o7) && /At the flat stone the offering is set down/.test(o7) && /The ring on your hand is warm/.test(o7) && /INITIATIVE/.test(o7) && /The deep is only water now/.test(o7) && f7.duePaid === 1 && f7.lakeDone === 1);
+        /You stand out of the light/.test(o7) && /At the flat stone the offering is set down/.test(o7) && /The ring on your hand is warm/.test(o7) && !/> GO DOWN TO THE POINT|> BACK TO BED/.test(o7) /* (on the path a card, no ask: RULED 11-21, his "inn - 4 and 5 leans") */ && /INITIATIVE/.test(o7) && /The deep is only water now/.test(o7) && f7.duePaid === 1 && f7.lakeDone === 1);
       // 8. THE ROWBOAT BY DAY (no wagon, no ring): the boat's square on the floor; LEAVE IT -- nothing; PUSH OUT AND SOUND THE DEEP -- the line goes down, something comes up, not ready, the fight
       var B8 = stageWn('?roam=halfway&hour=14&day=' + (InWn.dueDay(0) + 1) + '&at=45,21', { secondAct: { beat: 'boat' } }), tr8 = ((RWn.def.src8 || {}).triggers || RWn.def.triggers || []).filter(function (t) { return t.script === 'inn:rowboat'; })[0];
       var o8a = flowWn(B8, ['LEAVE IT', 'LEAVE IT']), f8 = B8.roam.flags; // (twice: the flow's own queued E finds the boat again now that the deep's words are only on the four straight out from the stone, 11-13)

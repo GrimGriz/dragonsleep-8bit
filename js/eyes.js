@@ -22,6 +22,27 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    // THE INN-NOTES SEAT, second run (inn-notes-1121), 11-21 (Opus): his answers to its four, "inn - 4 and 5 leans", "6 was that the exit square ...", "7 lake feeds until the chuul dies, but pull that fight-balance frog ..."
+    'eyes-lake-thing-alone-1121b': { pri: 1, group: G2, title: 'THE THING IN THE LAKE ALONE: no frog, 20 more hit points than the SRD\'s (113) (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the inn-notes seat, second run; deep16/js/secondact.js A.lakeThing; data/fights.js chuul)',
+      obj: 'At the flat stone with no ring, fight the thing in the lake: alone now, and harder to kill. Does it feel right?',
+      url: 'deep16/?show=secondact&beat=risenoring&lvl=3&fresh=1121h',
+      steps: [['halfway', 44, 18, 'the flat stone: it comes up']],
+      look: 'A LIVE DOOR. Your "pull that fight-balance frog and give it 20 more HP as story-variant of SRD one or something": the giant frog that came up with it (the difficulty lane\'s "half again", 10-28) is gone, and the story\'s chuul has 113 hit points, the SRD\'s 93 and 20. The Pocket DM\'s and the ladder\'s chuul keep the SRD\'s. Judge: the fight\'s weight. (In place of eyes-chuul-frog-1028, cut.)' },
+    'eyes-standring-card-1121b': { pri: 2, group: G2, title: 'STAND ASIDE WITH THE RING: the warmth on a card on the path, and down to the stone (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the inn-notes seat, second run; deep16/js/secondact.js A.ringWarm)',
+      obj: 'On the path with the ring, STAND ASIDE: after the take, the ring warms on a card and you go down. No ask.',
+      url: 'deep16/?show=secondact&beat=standring&lvl=3&fresh=1121i',
+      steps: [['halfway', 38, 18, 'the path\'s head: STAND ASIDE'], ['halfway', 44, 18, 'the flat stone: the fight']],
+      look: 'A LIVE DOOR. Your "inn - 4 and 5 leans", on "it calls me down to the point, but I\'m already standing outside": on the path the ring\'s warmth is said on a card and the party goes down to the point -- GO DOWN / BACK TO BED stays for the window. Judge: does it read as one walk?' },
+    'eyes-lunge-5ft-1121b': { pri: 2, group: G2, title: 'THE GRAB AT 5 FT LUNGES TOO (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the inn-notes seat, second run; deep16/js/battle.js clawIn, Battle.LUNGE5)',
+      obj: 'Stay at the water: watch it walk up to Gennet and grab her from beside her. Does the claw reach out now?',
+      url: 'deep16/?show=secondact&beat=take&lvl=3&fresh=1121j',
+      steps: [['halfway', 44, 18, 'the flat stone: watch Gennet']],
+      look: 'A SHOW. Your "inn - 4 and 5 leans", on "it walks up within 5 feet and doesn\'t seem to lunge" and "the lunge animation plays on attacks from 10 ft": a grab from beside its target surges out at least half a square and back, as one from 10 ft does. Judge: does every grab read?' },
+    'eyes-exit-blow-1121b': { pri: 2, group: G2, title: 'OFF THE FIELD, THE BLOWS FIRST: one leaving by an exit square beside you draws your opportunity attack (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the inn-notes seat, second run; deep16/js/ai.js leaving, deep16/js/tactics.js fleeTurn)',
+      obj: 'Win the yard fight\'s first blows, then stand beside Willem or Amara at the road: as they leave, you are asked for the blow.',
+      url: 'deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121k',
+      steps: [['halfway', 2, 18, 'the road\'s edge: their way off']],
+      look: 'A LIVE DOOR. Your "6 was that the exit square was the square he moved to so the exit ran before the opportunity attack fired (almost certain)": so it was -- in your gulch fight of 11-20 Willem ended round 2 on an exit square beside Lymen, and in round 3 he was gone with no step, so nothing asked for the blow. Now one leaving by an exit square is leaving your reach: OPPORTUNITY ATTACK? first. Judge: are you asked?' },
     // THE INN-NOTES SEAT (inn-notes-1121), 11-21 (Opus; the Halfway Inn lane's "2026-11-20 -- READY FOR A SEAT", his "Go on 1-5"): his nine card notes of 11-20 and the reader's finds
     'eyes-kat-boards-1121': { pri: 1, group: G2, title: 'KATARINA WALKS TO THE WAGON after Doran\'s drive, as the card says she goes up on the bench (11-21)', pt: 'the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/inn.js In.yardAfter)',
       obj: 'Win the yard fight, hear Doran out, then watch Katarina come out of the door and up onto the bench.',
@@ -1265,10 +1286,6 @@
       obj: 'Cross the Seam on the dwarves\' road as the xorns glide through the walls — do they walk on the road?',
       look: 'Your "dwarven road should be solid stone": the road\'s squares are worked stone now -- the xorns glide through the wall, the seam and the cave floor but not under the road; on it they walk, and one under the ground across the road from you comes up and walks over it. The look is unchanged.',
       url: 'deep16/?npc=xorn,xorn&lvl=8&map=seamwall&fresh=29a' },
-    'eyes-chuul-frog-1028': { pri: 2, group: G2, title: 'The Thing in the Lake with a giant frog out of the shallows (10-28)', pt: 'the difficulty lane §2.3 (deep16/data/fights.js chuul; the overseer\'s answer 3 on your 10-03 “CR your call”)',
-      obj: 'Wearing Winters\' ring, fight the thing in the lake and its frog — does it put a hero or two down?',
-      url: 'deep16/?fight=chuul&fresh=28k',
-      look: 'The point at night, level 4, Barley in the Ring of Binding: the chuul comes up out of the deep, and a giant frog with it out of the shallows to the west, the lake\'s own. The ring\'s rounds (1, 4, 7, 10) as before. The bench reads it 20 won of 20 with nobody down even so (three frogs: 19 of 20, a quarter of a down) -- under your sentence\'s 75% with a down or two, so how it plays in your hands is the measure. The ladder\'s rung 4 keeps the chuul alone (chuul-ladder).' },
     'eyes-crew-skell-1028': { pri: 2, group: G2, title: 'The Night Crew with its fourth: Skell, Hask\'s lieutenant, in a crewman\'s place (10-28)', pt: 'the difficulty lane §2.2, your “Take the leans” (deep16/data/foes.js skell, deep16/data/fights.js crew)',
       obj: 'Put down Hask\'s Night Crew in the Burial, Skell and all — should Skell have a look of his own?',
       url: 'deep16/?fight=crew&fresh=28k',
