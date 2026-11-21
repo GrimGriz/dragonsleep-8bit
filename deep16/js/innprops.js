@@ -139,6 +139,10 @@
   // wagon stands four squares long under its canvas in the middle of the yard's fight. In a fight on the floor it is drawn faint, as the big fire's chimney is (IP.fightOn),
   // and walking it goes faint while it hides the party (its canvas and its tail's rail together)
   IP.WAGON = { yard_wagonT: 1, yard_wagonRim: 1, yard_wagon: 1 };
+  // FAINT WHILE A FIGHT IS ON THE FLOOR (IP.fightOn): the big fire's chimney (11-06), the wagon (11-12) and, 11-21, the inn's sign on its post by the road (his NOTES on the
+  // wagon night's yard fight, at 4,17: "this inn sign needs transparency coding during the fight")
+  IP.FIGHTSEE = { inn_hearth: 1, yard_wagonT: 1, yard_wagonRim: 1, yard_wagon: 1, yard_sign: 1 };
+  IP.faint = function (name) { return !!(IP.FIGHTSEE[name] && IP.fightOn()); };
   IP.wagonHid = function () { return IP.seeing.groups.some(function (g) { return IP.WAGON[g.name] && g.hide; }); };
   // THE ONE IN THE BACK, INSIDE THE ARCH (11-21, Griz: "try draw the solo goblin-child in the actual back of the wagon"): the rider (inn.js In.bedRiders, r.arch) drawn
   // standing on the back's floor in the drawing's own px and clipped to the arch's opening, so the canvas rim and the end board stand in front of it. Its depth is the back
@@ -232,7 +236,7 @@
         m.props.push({ innProp: true, kind: 'innprop', piece: pc[0], sq: sq, depth: sq.x + sq.y + 0.5 + (pc[7] || 0), gz: 0, draw: function (ctx) { // ([7]: a depth of its own over the square's -- the wagon's rim)
           var f = anim ? Math.floor(now() * fps + pc[6] * 3) % 3 : 0;
           var sl = IP.slices(pc[0], f, pc[3], pc[4], pc[5]), p = sl && sl[i + ',' + j]; if (!p) return;
-          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = ((pc[0] === 'inn_hearth' || IP.WAGON[pc[0]]) && IP.fightOn()) || !!(grp && grp.hide) || (IP.WAGON[pc[0]] && IP.wagonHid());
+          var c = iso.center(sq.x, sq.y, 0), s = iso.toScreen(c.x, c.y), see = IP.faint(pc[0]) || !!(grp && grp.hide) || (IP.WAGON[pc[0]] && IP.wagonHid());
           if (see) { ctx.save(); ctx.globalAlpha = IP.SEE; } // (the big fire's chimney see-through while a fight is on the floor: IP.fightOn, 11-06; and walking, while it hides the party: IP.tick, 11-11)
           ctx.drawImage(p.canvas, Math.round(s.x - p.ax), Math.round(s.y - p.ay));
           if (see) ctx.restore();
