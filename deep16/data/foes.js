@@ -1114,8 +1114,10 @@
   // the cleric at Deepholm's door (the 8-bit game's deep.js EV.torvald, HOLD HIM; Griz 09-28: "under most circumstances it
   // shouldn't end in a fight, but given the weight of the scene ... redo it in 16"): a remedy in his pack for someone sick up
   // top, and he will not be held. He yields when he is beaten (`yields`: at half his hit points, standing, the fight is over)
+  // (his own drawn fight figure since 11-21, the art desk's ART-147-COMBAT -- the mace and Dvalgarda's disc, his spells on its Cast row, and his yield sat
+  // on its Sit row, js/battle.js Battle.sitYielded: torvald_p2, tools/silversands-fight-sheet.py, the cutter seat cutter-1121; the LPC torvald_p0 retires)
   torvald: {
-    name: 'Dwarf Cleric', type: 'humanoid', sheet: 'torvald_p0', cr: '3', ac: 13, hp: 50, speed: 25, size: 1, reach: 5, darkvision: 60, // (hp: cleric 5 at a max d8+2 a level, RULED 09-28)
+    name: 'Dwarf Cleric', type: 'humanoid', sheet: 'torvald_p2', cr: '3', ac: 13, hp: 50, speed: 25, size: 1, reach: 5, darkvision: 60, // (hp: cleric 5 at a max d8+2 a level, RULED 09-28)
     abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 }, init: 0, perception: 13,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 5, cha: 3 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },

@@ -233,7 +233,7 @@
       known: ['sacredflame', 'light', 'command', 'inflictwounds', 'shieldoffaith', 'holdperson', 'spiritualweapon'] },
     torvald: { name: 'Torvald', named: true, cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', // (the name for the Pocket DM; his fight's card keeps 'Dwarf Cleric')
       abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
-      equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true, look: 'torvald_p0', // (his own figure off the story's card: the Pocket DM, the tester ladder)
+      equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true, look: 'torvald_p2', // (his own figure off the story's card: the Pocket DM, the tester ladder -- the art desk's drawn one since 11-21, ART-147-COMBAT; torvald_p0 the LPC before it)
       known: ['sacredflame', 'light', 'curewounds', 'guidingbolt', 'sanctuary', 'lesserrestoration', 'spiritualweapon', 'holdperson', 'dispelmagic', 'spiritguardians'],
       // past his register's 5th (09-28h, Griz: "can we do the levels for the original classes up to nine"; the seat's picks, standing as
       // approved): the ward-keeper's -- Death Ward, Banishment, Mass Cure Wounds, Greater Restoration, Protection from Energy

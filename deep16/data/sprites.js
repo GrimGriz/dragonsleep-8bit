@@ -34099,6 +34099,108 @@ true
 ],
 "source": "drawn by the art desk (ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (his ART-147 pages), 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the made road is not on the grid; his fights keep torvald_p0"
 },
+"torvald_p2": {
+"image": "art/torvald_p2.png?v=a370badc61",
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 64,
+"fh": 80,
+"ax": 32,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"cast": {
+"y": 1920,
+"fw": 54,
+"fh": 80,
+"ax": 27,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2560,
+"fw": 50,
+"fh": 80,
+"ax": 25,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 68,
+"fh": 80,
+"ax": 34,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 3840,
+"fw": 68,
+"fh": 80,
+"ax": 34,
+"ay": 74,
+"frames": 1,
+"fps": 1
+},
+"sit": {
+"y": 4480,
+"fw": 54,
+"fh": 80,
+"ax": 27,
+"ay": 74,
+"frames": 1,
+"fps": 2
+},
+"sitdown": {
+"y": 5120,
+"fw": 54,
+"fh": 80,
+"ax": 27,
+"ay": 74,
+"frames": 4,
+"fps": 6
+}
+},
+"name": "Torvald",
+"hold": [
+"sit: the Sit Down's frame 4 held, the yield js/battle.js Battle.sitYielded shows when he gives up at half; sitdown: the whole four, in hand, played by nothing yet (a held last frame wants an engine hook)",
+"cast: one gesture for Spirit Guardians, Hold Person and Sanctuary, the disc raised on frame 4; the engine draws every spell's effect",
+"attack: S's contact foreshortened, a low follow-through on 5 (the art desk's own note)",
+"walk: foot offsets and the body's bob to be judged at engine playback (the art desk's own note)",
+"prone: the last Fall cel held"
+],
+"source": "drawn by the art desk (ART-147-COMBAT, 11-21: art-wanted section 89, Torvald Greyseam with mace and Dvalgarda's disc in five views, the Attack over the mannequin's one-handed guide), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "troll_p1": {
 "image": "art/troll_p1.png?v=0bec109335",
 "fw": 152,

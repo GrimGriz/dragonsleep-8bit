@@ -190,7 +190,60 @@ VS.LOOKS['trooperpike_p2'] = dict(BOXED, src='trooperpike', windows=_pw, name='P
     source='drawn by the art desk (PIKE-TROOPER-CUTTER-HANDOFF, 11-20: art-wanted section 93, the garrison\'s pike trooper in five views, the thrust and the '
            'rank over the mannequin\'s guides), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored')
 
-LOOKS_HERE = ('halldor_p2', 'brann_p2', 'hedda_p2', 'sectblade_p2', 'trooperpike_p2')
+# TORVALD GREYSEAM (11-21, the cutter seat cutter-1121, on Griz's "fresh isn't empty, more incoming as well": the art desk's ART-147-COMBAT-TORVALD-GREYSEAM-
+# CUTTER-HANDOFF, sorted to deep16/_src/torvald/2026-11-21-ART-147-COMBAT/; art-wanted 89's Torvald block): the mace in his right hand, Dvalgarda's iron disc in
+# his left, no shield. Its FRAME-MAP.csv names its columns its own way (source_file, source_x/_y/_w/_h: the drawing's box) and gives no ground line, only its
+# previews' placement -- every frame's box on one sole line, each page at one scale (preview_h over source_h, the same to a rounding across a page): that scale is
+# `pagescale`, so the Cast, the disc raised over his head, keeps the Idle's size where a height match would shrink it. Its HOLD-MAP: Prone is Fall 6's own cell
+# (its Prone pages a reference), and the Sit Down's frame 4 is the yielded pose held. The engine already sits a foe that yields at half on its sheet's `sit`
+# row (js/battle.js Battle.sitYielded), and that row loops, as Gennet's and Doran's one frame does: so `sit` is frame 4 alone, held, and the whole four-frame
+# sit-down is `sitdown`, in hand, played by nothing yet. Attack's contact and Cast's raised disc both on frame 4: `release` 3.
+TV_SRC, TV_BATCH = 'torvald', '2026-11-21-ART-147-COMBAT'
+N.update({'cast': 6, 'sit': 1, 'sitdown': 4})
+
+
+def torvald_windows():
+    import csv
+    d = os.path.join(VS.pix.SRC, TV_SRC, TV_BATCH)
+    if not os.path.isdir(d):
+        return [], {}
+    rows, out, sc = {}, [], {}
+    hold = {(r['facing'], r['hold_action'], int(r['hold_index'])): (r['source_action'], int(r['source_index']))
+            for r in csv.DictReader(open(os.path.join(d, 'HOLD-MAP.csv'), encoding='utf-8-sig'))}
+    byv = {}
+    for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
+        fn = 'Sources/' + r['source_file']
+        x, y, w, h = int(r['source_x']), int(r['source_y']), int(r['source_w']), int(r['source_h'])
+        box = (x, y, x + w, y + h)
+        win = (max(0, x - PAD), max(0, y - PAD), x + w + PAD, y + h + 2)   # (not padded below the box: S Sit 4's printed "4" stood in the pad, a speck under his boots)
+        sc.setdefault((TV_BATCH, fn), []).append(int(r['preview_h']) / float(h))
+        byv[(r['facing'], r['action'], int(r['index']))] = (TV_BATCH, r['facing'], r['action'], int(r['index']), fn, win, box, None)
+    for (v, act, i), wn in byv.items():
+        if act == 'prone':
+            continue                                                               # (the Prone pages: a reference -- the runtime prone is Fall 6 held)
+        row = 'sitdown' if act == 'sit' else act
+        out.append(wn[:2] + (row, i) + wn[4:]); rows.setdefault((v, row), []).append(i)
+    for (v, act, i), (sa, si) in hold.items():
+        out.append(byv[(v, sa, si)][:2] + (act, 0) + byv[(v, sa, si)][4:]); rows.setdefault((v, act), []).append(0)
+    for (v, rw), ns in rows.items():
+        assert sorted(ns) == list(range(N[rw])), (v, rw, sorted(ns))              # (every number once, none skipped)
+    assert set(v for v, _ in rows) == {'S', 'SE', 'E', 'NE', 'N'}, sorted(rows)
+    return out, {k: sorted(s)[len(s) // 2] for k, s in sc.items()}
+
+
+_tw, _tps = torvald_windows()
+VS.LOOKS['torvald_p2'] = dict(BOXED, src=TV_SRC, windows=_tw, name='Torvald', pagescale=_tps,
+    rows=[('idle', 4, 4), ('walk', 9, 8), ('attack', 12, 8), ('cast', 10, 6), ('flinch', 12, 4), ('hurt', 8, 6), ('prone', 1, 1), ('sit', 2, 1), ('sitdown', 6, 4)],
+    release={'attack': 3, 'cast': 3},
+    hold=['sit: the Sit Down\'s frame 4 held, the yield js/battle.js Battle.sitYielded shows when he gives up at half; sitdown: the whole four, in hand, played by nothing yet (a held last frame wants an engine hook)',
+          'cast: one gesture for Spirit Guardians, Hold Person and Sanctuary, the disc raised on frame 4; the engine draws every spell\'s effect',
+          'attack: S\'s contact foreshortened, a low follow-through on 5 (the art desk\'s own note)',
+          'walk: foot offsets and the body\'s bob to be judged at engine playback (the art desk\'s own note)',
+          'prone: the last Fall cel held'],
+    source='drawn by the art desk (ART-147-COMBAT, 11-21: art-wanted section 89, Torvald Greyseam with mace and Dvalgarda\'s disc in five views, the Attack over '
+           'the mannequin\'s one-handed guide), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored')
+
+LOOKS_HERE = ('halldor_p2', 'brann_p2', 'hedda_p2', 'sectblade_p2', 'trooperpike_p2', 'torvald_p2')
 
 if __name__ == '__main__':
     for lk in [a for a in sys.argv[1:] if a in LOOKS_HERE] or list(LOOKS_HERE):
