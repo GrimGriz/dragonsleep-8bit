@@ -459,7 +459,8 @@
     var ITEM = { label: 'ITEM', right: fast ? 'bonus' : '', ok: it.some(function (e) { return e.ok; }), why: it.length ? 'nothing usable now' : 'nothing in the pack for a fight', go: function () { S.openList(B, u, 'ITEM', it); } };
     if (!S.acts(u)) {
       var off = S.cmd(B, u, 'offhand');
-      return (off ? [{ label: 'OFF HAND', right: 'bonus', ok: !!off.ok, why: off.why, go: function () { S.pickFoe(B, u, 'OFF HAND', null, function (t) { return { do: 'offhand', target: t }; }); } }] : [])
+      var offW = off && /^BONUS ATTACK/.test(off.label) ? 'MAIN HAND' : 'OFF HAND'; // (the other hand's bonus attack, 11-21: the main hand's after an off-hand throw)
+      return (off ? [{ label: offW, right: 'bonus', ok: !!off.ok, why: off.why, go: function () { S.pickFoe(B, u, offW, null, function (t) { return { do: 'offhand', target: t }; }); } }] : [])
         .concat([MAGIC, SKILL, ITEM, { label: 'END TURN', ok: true, go: function () { S.send(B, u, { do: 'end' }); } }]);
     }
     return [

@@ -980,18 +980,21 @@
   // with a different light melee weapon that you're holding in the other hand"; battle.js `offhand`, rules.js R.twoWeapon -- RULED 10-15). The class AI never took it until 10-31
   // (Griz's play record). TX.offhandBlow(u): the blow as the exec makes it (the off hand's weapon, the ability modifier off its damage unless the style puts it back), or null where
   // there is no pair -- nothing in the off hand, not two light weapons (or a Symmetric Fighting pair), put away, thrown, disarmed
+  // (since 11-21 the OTHER hand's -- RULED, Griz: "yeah, let's get that in there": the main hand's when the Attack action threw from the off hand; D.Battle.bonusHand)
   TX.offhandBlow = function (u) {
     var R = DS_R(), h = u.src;
-    if (!h || !h.equip || !u.offhand || u.offhandSheathed || u.offhandThrown || u.conds.disarmed || !R.twoWeapon(h).ok) return null;
-    var od = R.offhandDamage(h, R.item(h.equip.offhand));
-    return Object.assign({}, u.offhand, { dice: od.dice, mod: od.mod, offhandSwing: true });
+    if (!h || !h.equip || u.conds.disarmed) return null;
+    var bh = D.Battle && D.Battle.bonusHand ? D.Battle.bonusHand(u) : null; if (!bh) return null;
+    var od = R.offhandDamage(h, R.item(bh.id));
+    return Object.assign({}, bh.w, { dice: od.dice, mod: od.mod, offhandSwing: true });
   };
   // ... and the AI's: run LAST (TX.turn, after every TX.AFTER), so the bonus action goes to the off hand only where nothing else wanted it -- Second Wind under half, a bonus spell worth
   // its slot, the rogue's Cunning Action, the monk's flurry, a bard's inspiration, a Drillyard play (TX.FIRST, before the action). At the foe in reach it would hurt most, the Attack
   // action's weapon the main one and a melee one (an alt thrown at range is no pair), and a called creature (Called to Account) counts the radiant a blow at another costs it
   TX.offhandAfter = function* (B, u) {
     var T = u.turn;
-    if (!T || !T.bonus || T.offhandDone || !T.attackAction || !(T.attacked > 0) || !T.swung || T.swung !== u.weapon || T.swung.ranged || !RU.canAct(u)) return;
+    if (!T || !T.bonus || T.offhandDone || !T.attackAction || !(T.attacked > 0) || !RU.canAct(u)) return;
+    if (!T.offAttacked && (!T.swung || T.swung !== u.weapon || T.swung.ranged)) return; // (the Attack action's weapon the main one and melee -- or, 11-21, its throw from the off hand: then the main hand's bonus blow)
     var blow = TX.offhandBlow(u); if (!blow) return;
     var best = null;
     foesOf(B, u).forEach(function (t) {
@@ -1000,7 +1003,7 @@
       if (!best || sc > best.sc) best = { sc: sc, t: t };
     });
     if (!best || best.sc <= 0.5) return;
-    B.card(['{y}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + '{/}: the ' + blow.name.toLowerCase() + ' in the off hand  {g}(two-weapon fighting: the bonus action){/}'], 160);
+    B.card(['{y}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + '{/}: the ' + blow.name.toLowerCase() + ' in the ' + (T.offAttacked && !T.mainAttacked ? 'main' : 'off') + ' hand  {g}(two-weapon fighting: the bonus action){/}'], 160);
     yield* B.exec(u, { do: 'offhand', target: best.t });
   };
   // a bonus-action spell still worth it after the action (a heal, the floating weapon's swing)

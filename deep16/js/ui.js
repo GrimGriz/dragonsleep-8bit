@@ -1314,7 +1314,8 @@
         // just eat the bonus action offhand attack rather than say 'no action to attack'"; his "yes" to the lean: in reach only, never the throw, a card that says so)
         if (!D.rules.charmedBy(u, foe) && G.dist(u, foe) <= G.reachOf(u)) {
           var ohC = B.commands(u).filter(function (k) { return k.id === 'offhand'; })[0];
-          if (ohC && ohC.ok && u.offhand) return UI.command(B, u, { do: 'offhand', target: foe }, ['{y}OFF HAND:{/} the action is spent, so the ' + u.offhand.name.toLowerCase() + ' in the off hand swings at the ' + B.shortName(foe) + ' on the bonus action.']);
+          var bhC = D.Battle.bonusHand ? D.Battle.bonusHand(u) : null; // (the OTHER hand's, 11-21: the main hand's when the Attack action threw from the off hand)
+          if (ohC && ohC.ok && bhC) return UI.command(B, u, { do: 'offhand', target: foe }, ['{y}' + (bhC.hand === 'main' ? 'BONUS ATTACK' : 'OFF HAND') + ':{/} the action is spent, so the ' + bhC.w.name.toLowerCase() + ' in the ' + (bhC.hand === 'main' ? 'main' : 'off') + ' hand swings at the ' + B.shortName(foe) + ' on the bonus action.']);
         }
         // (a foe out of reach, a throw remembered this fight (battle.js u.throwPick): the throw offered, asked in the DASH THERE? shape -- his "makes that click offering"; none
         // remembered yet, the refusal names the way to one -- the throw, 11-11)

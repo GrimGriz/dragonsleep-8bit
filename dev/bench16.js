@@ -18561,6 +18561,58 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preWh);
     return;
   }
+  // THE BONUS ATTACK GOES TO THE OTHER HAND (mode=otherhand1121; the grid's rules lane, 2026-11-21 -- RULED, Griz: "my grievance with the read above ... is that we're speaking of
+  // two weapons in this case. Drill threw his offhand weapon as attack and drew another one, kinda 3-weapon fighting. or two-weapon one-hand fighting... doesn't seem appropriate
+  // to this feat"; "aha! but if both weapons are light and legal, the main hand becomes the offhand if you use your attack for the throw?"; on the desk's "the bonus attack goes
+  // to the other hand from the one that made the action's attack, both weapons light", "yeah, let's get that in there"): Drill throws the off hand's dagger as his Attack -- the
+  // bonus attack is the shortsword in his main hand (named so on the ring), never the dagger drawn again; struck with the main hand, the off hand's as ever; no ability modifier on
+  // the bonus blow without the style; a rapier and a dagger no pair (not light); the AI's bonus blow the main hand's too
+  if (get('mode', '') === 'otherhand1121') {
+    var repOh = { checks: [], errors: [] }, d0Oh = D.d, RUoh = D.rules, GGoh = D.grid, BToh = D.Battle;
+    function okOh(what, v) { repOh.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runOh(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkOh(card) {
+      var Bx = D.npcFight('?npc=bugbear&lvl=3&vs=' + card, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false;
+      var d = Bx.units.filter(function (w) { return w.side === 'party'; })[0], f = Bx.units.filter(function (w) { return w.side === 'foe'; })[0], m = GGoh.map, o = null;
+      for (var y = 1; y + 2 < m.h && !o; y++) for (var x = 1; x + 3 < m.w && !o; x++) { var z = m.gz(x, y), good = true; for (var i = 0; i < 3 && good; i++) { var s = m.at(x + i, y); if (!s || !s.walk || m.gz(x + i, y) !== z) good = false; } if (good) o = [x, y]; }
+      Bx.units.forEach(function (w) { if (w !== d && w !== f) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } });
+      d.x = o[0]; d.y = o[1]; f.x = o[0] + 1; f.y = o[1]; f.hp = f.maxhp = 300; f.conds = {}; GGoh.setup(GGoh.map, Bx.units.filter(function (w) { return !w.dead; })); Bx.cache = null;
+      RUoh.startTurn(d); Bx.active = d; D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); };
+      return { B: Bx, d: d, f: f };
+    }
+    function cmdOh(h) { return (h.B.commands(h.d) || []).filter(function (c) { return c.id === 'offhand'; })[0]; }
+    function logOh(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }).join(' | '); }
+    var CARD = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger'; // (his card: throw1111)
+    var NOSTYLE = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..defense.drillyard+shortsword+off:dagger';
+    var RAPIER = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Rook..twf.drillyard+rapier+off:dagger';
+    try {
+      D.seed = 1121;
+      // 1. the Attack action thrown from the off hand: the bonus attack is the main hand's shortsword, named so -- not the dagger drawn again (the old: OFF HAND: DAGGER)
+      var h1 = mkOh(CARD); runOh(h1.B.exec(h1.d, { do: 'throw', target: h1.f, src: 'off' })); var c1 = cmdOh(h1), drew1 = !h1.d.offhandThrown;
+      okOh('after the off hand\'s throw (the dagger drawn again ' + drew1 + '): the bonus attack on the ring "' + (c1 && c1.label) + '" ok ' + !!(c1 && c1.ok) + ' ("' + (c1 && c1.note) + '")',
+        c1 && c1.ok && /SHORTSWORD \(MAIN HAND\)/.test(c1.label) && !/DAGGER/.test(c1.label));
+      // 2. made: the blow is the shortsword's, the bonus action spent; with the style, the STR +3 kept (1d6 at its half: 3 + 3)
+      var hp2 = h1.f.hp, n2 = (h1.B.logEntries || []).length; runOh(h1.B.exec(h1.d, { do: 'offhand', target: h1.f })); var l2 = logOh(h1.B, n2);
+      okOh('the bonus attack made: the bonus ' + h1.d.turn.bonus + ', the bugbear lost ' + (hp2 - h1.f.hp) + ' (want 6, the style keeps the STR +3), "' + l2.slice(0, 160) + '"',
+        h1.d.turn.bonus === 0 && hp2 - h1.f.hp === 6 && /main hand/.test(l2) && /shortsword/i.test(l2));
+      // 3. no style: the same bonus blow with no ability modifier (3)
+      var h3 = mkOh(NOSTYLE); runOh(h3.B.exec(h3.d, { do: 'throw', target: h3.f, src: 'off' })); var hp3 = h3.f.hp; runOh(h3.B.exec(h3.d, { do: 'offhand', target: h3.f }));
+      okOh('without the Two-Weapon Fighting style: the main hand\'s bonus blow lost the bugbear ' + (hp3 - h3.f.hp) + ' (want 3: no ability modifier)', hp3 - h3.f.hp === 3);
+      // 4. the Attack action struck with the main hand: the bonus attack the off hand's dagger, as ever
+      var h4 = mkOh(CARD); runOh(h4.B.exec(h4.d, { do: 'attack', target: h4.f })); var c4 = cmdOh(h4);
+      okOh('after the main hand\'s blow: "' + (c4 && c4.label) + '" ok ' + !!(c4 && c4.ok), c4 && c4.ok && /^OFF HAND: DAGGER/.test(c4.label));
+      // 5. not light: a rapier and a dagger -- no bonus attack either way
+      var h5 = mkOh(RAPIER); runOh(h5.B.exec(h5.d, { do: 'attack', target: h5.f })); var c5 = cmdOh(h5);
+      okOh('a rapier and a dagger (the rapier not light): the bonus attack on the ring ' + !!c5 + ' (' + window.DS.R.twoWeapon(h5.d.src).why + ')', !c5);
+      // 6. the AI: the same turn on the class AI -- the bonus blow the main hand's
+      var h6 = mkOh(CARD); runOh(h6.B.exec(h6.d, { do: 'throw', target: h6.f, src: 'off' })); h6.d.guest = true; var n6 = (h6.B.logEntries || []).length; runOh(D.tactics.offhandAfter(h6.B, h6.d)); var l6 = logOh(h6.B, n6);
+      okOh('the AI after an off-hand throw: "' + l6.slice(0, 140) + '", the bonus ' + h6.d.turn.bonus, /in the main hand/.test(l6) && h6.d.turn.bonus === 0);
+    } catch (e) { repOh.errors.push(String(e && e.stack || e)); }
+    D.d = d0Oh;
+    var preOh = document.createElement('pre'); preOh.id = 'out'; preOh.textContent = 'BENCH16 ' + JSON.stringify(repOh);
+    document.body.appendChild(preOh);
+    return;
+  }
   // THE FLOOR PICK-UP FROM THE SQUARE STOOD ON (mode=pickup1121; the grid's rules lane, 2026-11-21 -- Griz's card note on Drill's daggers, his ear file of 11-21 0112Z: "watch fight
   // review, party 'equip' menu showed dagger equipped (round after 2 throws), standing on dagger squares on the floor, bonus attack offhand wasn't in wheel"; then "re: Drill's
   // Daggers - how does the floor pickup work as coded?"; the desk's "Build pick-up from the square you stand on, and the equip menu's empty off hand?", his "either send that to a

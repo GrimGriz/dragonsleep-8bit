@@ -1316,9 +1316,10 @@
     if (T.attacksLeft > 0) out.push({ id: 'skipattack', icon: 'back', label: 'SKIP ATTACK', cost: 'F', ok: true, why: '', note: 'the attack' + (T.attacksLeft > 1 ? 's' : '') + ' left this turn go unspent' });
     // OFF HAND: two-weapon fighting (SRD 5.1; RULED 10-15 -- js/rules.js R.twoWeapon): after the Attack action, the bonus action, the weapon in the off hand at a foe in reach -- or
     // thrown, a weapon with the thrown property; no ability modifier on its damage unless negative, or the style (R.offhandDamage). Pyro's maces are his script's: a mace is not light
-    var twO = u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null;
+    // (since 11-21 the OTHER hand's: Battle.bonusHand -- the off hand's, or the main hand's when the Attack action threw from the off hand; the command named for what it swings)
+    var bhO = Battle.bonusHand(u), twO = bhO ? window.DS.R.twoWeapon(u.src) : null;
     // (a Twin Strike hand: OFF HAND only after a one-weapon ATTACK -- his "the bonus attack appearing on the ring if they do use the single attack", 11-03 night)
-    if (twO && twO.ok && !(twinC && (!T.attacked || T.twinDone))) { var reachO = this.foeInReach(u), thrO = Battle.offThrow(u); out.push({ id: 'offhand', label: 'OFF HAND: ' + u.offhand.name.toUpperCase(), cost: 'B', icon: u.offhand.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + u.offhand.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)).mod) + ' ' + u.offhand.type + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
+    if (twO && twO.ok && !(twinC && (!T.attacked || T.twinDone))) { var reachO = this.foeInReach(u), thrO = Battle.handThrow(bhO.id), mainO = bhO.hand === 'main'; out.push({ id: 'offhand', label: (mainO ? 'BONUS ATTACK: ' : 'OFF HAND: ') + bhO.w.name.toUpperCase() + (mainO ? ' (MAIN HAND)' : ''), cost: 'B', icon: bhO.w.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + bhO.w.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(bhO.id)).mod) + ' ' + bhO.w.type + (mainO ? ' -- the main hand: the Attack action threw from the off hand' : '') + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
     if (u.conds.restrained && !u.conds.restrained.pin && u.conds.restrained.kind !== 'stone') out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     // (greyed with its reason, 11-03 -- the desk's read of his record: "SPELLS: not now." when the slots were spent and nothing said so. Every spell's own `why` is in the list, js/magic.js M.list: one reason
@@ -1973,19 +1974,20 @@
         return;
       }
       case 'offhand': { // (two-weapon fighting's swing, the bonus action -- RULED 10-15; Pyro's script never sends it)
-        var twX = u.src && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null, tgX = c.target;
+        var bhX = Battle.bonusHand(u), twX = bhX ? window.DS.R.twoWeapon(u.src) : null, tgX = c.target; // (the OTHER hand's, 11-21: Battle.bonusHand)
         if (!twX || !twX.ok || !tgX || tgX.dead || (tgX.hp <= 0 && !tgX.regenDown) || !T.attackAction || !(T.bonus > 0) || T.offhandDone) return;
         if (RU.charmedBy(u, tgX)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tgX.side === 'foe' ? Battle.nm(tgX) : tgX.name) + '.{/}'], 200); return; }
-        var odX = window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)), atkX = Object.assign({}, u.offhand, { dice: odX.dice, mod: odX.mod, offhandSwing: true });
-        var thX = G.dist(u, tgX) > G.reachOf(u) ? Battle.offThrow(u) : null;
+        var hX = bhX.hand, wpX = bhX.w, odX = window.DS.R.offhandDamage(u.src, window.DS.R.item(bhX.id)), atkX = Object.assign({}, wpX, { dice: odX.dice, mod: odX.mod, offhandSwing: true });
+        var thX = G.dist(u, tgX) > G.reachOf(u) ? Battle.handThrow(bhX.id) : null;
         if (G.dist(u, tgX) > G.reachOf(u) && !thX) return;
         // (thrown: a hand's throw, no count -- before 11-11 it was `count: 1` under the weapon's name, and Drill's off-hand dagger spent his carried ALT dagger of the same name)
-        if (thX) atkX = Object.assign(atkX, { ranged: true, range: thX.range, thrown: true, hand: 'off', count: null, id: u.src.equip.offhand, name: u.offhand.name });
-        var srcX = thX ? Battle.throwSrc(this, u, 'off') : null;
-        if (srcX && !byAI(u)) { var wX = this.throwWarn(u, srcX); if (wX.length) { var aX = yield { prompt: { who: u, title: u.name + ': THROW THE ' + u.offhand.name.toUpperCase() + '?', lines: ['The bonus action: the off hand\'s ' + u.offhand.name.toLowerCase() + ' at ' + Battle.theWord(tgX) + ', ' + G.range(u, tgX) + ' ft.'].concat(wX), opts: [{ label: 'THROW', value: true }, { label: 'NOT NOW', value: false }] } }; if (!aX) return; } } // (the warnings, 11-11)
+        if (thX) atkX = Object.assign(atkX, { ranged: true, range: thX.range, thrown: true, hand: hX, count: null, id: bhX.id, name: wpX.name });
+        var srcX = thX ? Battle.throwSrc(this, u, hX) : null;
+        if (srcX && !byAI(u)) { var wX = this.throwWarn(u, srcX); if (wX.length) { var aX = yield { prompt: { who: u, title: u.name + ': THROW THE ' + wpX.name.toUpperCase() + '?', lines: ['The bonus action: the ' + (hX === 'main' ? 'main' : 'off') + ' hand\'s ' + wpX.name.toLowerCase() + ' at ' + Battle.theWord(tgX) + ', ' + G.range(u, tgX) + ' ft.'].concat(wX), opts: [{ label: 'THROW', value: true }, { label: 'NOT NOW', value: false }] } }; if (!aX) return; } } // (the warnings, 11-11)
         T.bonus = 0; T.offhandDone = true;
+        if (hX === 'main') this.card(['{g}(two-weapon fighting: the Attack action threw from the off hand, so the bonus attack is the ' + wpX.name.toLowerCase() + ' in the main hand){/}'], 160);
         yield* this.attack(u, tgX, atkX);
-        if (thX) this.throwAfter(u, srcX || { from: 'off', atk: atkX, name: u.offhand.name });
+        if (thX) this.throwAfter(u, srcX || { from: hX, atk: atkX, name: wpX.name });
         if (u.conds.hidden) delete u.conds.hidden;
         return;
       }
@@ -2094,6 +2096,7 @@
         T.attacksLeft--;
         if (ths.carried) T.freeObj = true; // (the draw: the turn's one free object interaction)
         u.throwPick = ths.key; // (remembered for the fight: THROW beside ATTACK -- his "once a player digs into action to do a throw (each fight)")
+        if (ths.from === 'off') T.offAttacked = true; else if (ths.from === 'main') T.mainAttacked = true; // (which hand the Attack action used: the bonus attack is the other's -- Battle.bonusHand, 11-21)
         yield* this.attack(u, tht, thw);
         this.throwAfter(u, ths);
         if (u.conds.hidden) delete u.conds.hidden;
@@ -2665,6 +2668,7 @@
     }
     if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
+    if (att.turn && !atk.offhandSwing && !(o && o.oa) && atk.hand !== 'off' && att.weapon && (atk === att.weapon || atk.hand === 'main' || atk.name === att.weapon.name)) att.turn.mainAttacked = true; // (the main hand struck this turn: Battle.bonusHand, 11-21)
     this.spendThrow(att, atk, tgt); // (out of the hand, hit or miss)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     if (att.side === 'foe') (this.logTail = this.logTail || {})[cid] = Battle.atkTail(att, tgt, atk, melee); // (the log's: where each stood, 11-05)
@@ -3983,6 +3987,24 @@
   };
   Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
   // the off hand's weapon thrown instead (SRD 5.1, two-weapon fighting: "If either weapon has the thrown property, you can throw the weapon"): its range, or none
+  // THE BONUS ATTACK GOES TO THE OTHER HAND (RULED 2026-11-21, Griz -- "Drill threw his offhand weapon as attack and drew another one, kinda 3-weapon fighting. or two-weapon
+  // one-hand fighting... doesn't seem appropriate to this feat"; "aha! but if both weapons are light and legal, the main hand becomes the offhand if you use your attack for the
+  // throw?"; on the desk's "the bonus attack goes to the other hand from the one that made the action's attack, both weapons light", "yeah, let's get that in there"). SRD 5.1
+  // (srd/08-combat.md, Two-Weapon Fighting): the bonus attack is "with a different light melee weapon that you're holding in the other hand". The turn's Attack action thrown
+  // from the off hand (T.offAttacked, exec 'throw'): the bonus attack is the MAIN hand's weapon -- swung, or thrown if it has the property -- and the off hand's (drawn again or
+  // not) does not swing that turn; otherwise the off hand's, as ever. The pair still R.twoWeapon's (both light, or his Symmetric Fighting pair); its damage R.offhandDamage's
+  // (no ability modifier without the style), whichever hand. Null where there is no bonus attack to make
+  Battle.bonusHand = function (u) {
+    var T = (u && u.turn) || {}, R = window.DS.R, e = u && u.src && u.src.equip; if (!e || (u.conds && u.conds.disarmed)) return null;
+    if (!R.twoWeapon(u.src).ok) return null;
+    if (T.offAttacked && !T.mainAttacked) {
+      if (!u.weapon || !e.weapon || u.sheathed || u.mainThrown || u.weapon.id === 'unarmed') return null;
+      return { hand: 'main', w: u.weapon, id: e.weapon };
+    }
+    if (!u.offhand || u.offhandSheathed || u.offhandThrown) return null;
+    return { hand: 'off', w: u.offhand, id: e.offhand };
+  };
+  Battle.handThrow = function (id) { var it = id && window.DS.R.item(id), wd = it && it.weapon; return wd && (wd.props || []).indexOf('thrown') >= 0 ? { range: wd.thrown || wd.throw || wd.range || [20, 60] } : null; };
   Battle.offThrow = function (u) { var it = u && u.src && u.src.equip && window.DS.R.item(u.src.equip.offhand), wd = it && it.weapon; return wd && (wd.props || []).indexOf('thrown') >= 0 ? { range: wd.thrown || wd.throw || wd.range || [20, 60] } : null; }; // (the item's own `thrown` range: content/items.json, the SRD's property on every thrown weapon since 11-10)
   // THROWN WEAPONS ARE PICKED UP (RULED 11-10, Griz: "pickup with auto-pack ground items at fight end (with an exception flag for metal items thrown into the ooze or jelly that
   // destroys them, rustmonster, etc - some projectiles won't be retrieval - probably probe the SRD for which we should apply that to)"; before, every throw was spent, his 10-06
