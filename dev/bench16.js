@@ -5791,7 +5791,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // yard fight, the rest out of the front door on round two, and Lymen's word said on his face with him on the field; the bribe on the speakers' own faces, Katarina staying
   // for it and told of the morning after, the big room given; Elsbeth's bundle walked from her tub when the lay has her nowhere; the kept child lifted where it shows, at
   // the shoulder; Elsbeth's cut facing into the screen from the left. Each walked as the game walks it: the show's beat (In.play), the floors followed as they are laid
-  if (get('mode', '') === 'inn1118') {
+  // (mode=wagonnotes1121 rides this block's walk: his NOTES of 11-21 on the wagon night -- its own checks only, below, `WN21`)
+  if (get('mode', '') === 'inn1118' || get('mode', '') === 'wagonnotes1121') {
+    var WN21 = get('mode', '') === 'wagonnotes1121';
     var repQ = { checks: [], errors: [], notes: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, HQ = D.house, CQ = D.counter, RQ = D.roam, InQ = D.inn, WQ = D.world, muQ = D.music, sfxQ = D.sfx;
     function okQ(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function topQ() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
@@ -5840,6 +5842,64 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     window.DS.autoPicks = true; D.music = function () { };
     try {
       D.seed = +get('seed', 1118); InQ.bedHere = false; // (the game's own way to bed: up the stair to the room -- In.sleepsHere)
+      if (WN21) {
+      // THE WAGON NIGHT'S NOTES OF 11-21 (mode=wagonnotes1121; the notes seat, on his NOTES save hero_situations_feedback-2026-11-21-0527Z and the yard fight's record)
+      var IPw = D.innprops, sl21 = [], so21 = HQ.sleepOnFloor;
+      // (a) THE MORNING AFTER THE BRIBE (his "I think I just saw a line about the kid not being here (after taking the bribe) but she's outback because wagon night isn't
+      // sacrifice night anymore"): Vivian alone on the second watch, INVESTIGATE, the gold taken -- the morning's line has the kept girl out back, as the floor has her
+      HQ.sleepOnFloor = function (B, o) { sl21.push(String(o && o.line)); return so21.apply(this, arguments); };
+      var Ba = playQ('wagon', null, pinsQ(19)), ea = useQ(Ba, 'gennet'), ra = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'TAKE THE GOLD'], { watch: { vivian: 2 }, quiet: 1200, pastMorning: true, stop: function (s) {
+        if (s.roam && RQ.def && RQ.def.key === InQ.UP && s.roam.flags.wagonOutcome === 'bribe' && !s.downA && !InQ.bedding && !InQ.watching && sl21.length) { s.downA = 1; downQ(s); }
+        return !!(sl21.length && s.roam && RQ.def && RQ.def.key === InQ.KEY && s.roam.flags.wagonOutcome === 'bribe' && !InQ.bedding); } });
+      HQ.sleepOnFloor = so21; var ma = sl21.join(' / ');
+      okQ('(a) THE MORNING AFTER THE BRIBE: "' + ma.slice(0, 200) + '" -- the outcome ' + ra.f.wagonOutcome + ', the girl kept ' + ra.f.kidAtInn, ra.f.wagonOutcome === 'bribe' && ra.f.kidAtInn === 1 && /Out back, a small girl is skipping stones/.test(ma) && !/no child anywhere/.test(ma));
+      resetQ();
+      // (b) TWO ON THE SECOND WATCH (his "second is there, highest perception at the window - wake the party is removed from the investigate popup and investigate wakes the
+      // party ... in this case (lymen brought by second watch waking) - he gets a portrait and line after Amara but player still gets bribe choice"): Barley and Vivian on the
+      // second watch, Lymen and Aurdin asleep -- Vivian (Perception 16 to Barley's 14) at the window; INVESTIGATE or KEEP WATCH; the party out together; Vivian's word, Amara's
+      // offer, Lymen's on his face with the choice under it; the gold taken. (c) on the same walk: the camera over to the one in the wagon's back and in, as the glamour breaks
+      InQ.glamCam = null; var zb0 = D.iso.zoom, zbBack = null, riderB = null;
+      var Bb = playQ('wagon', null, pinsQ(19)), eb = useQ(Bb, 'gennet'), rb = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'TAKE THE GOLD'], { watch: { vivian: 2, barley: 2 }, quiet: 1200, pastMorning: false, stop: function (s) {
+        if (InQ.glamCam && s.riders) { var rr = s.riders.filter(function (r) { return r.yard && r.arch; })[0]; if (rr) riderB = rr.sheet; } // (the last look at it while it is there)
+        return !!(s.roam && s.roam.flags.wagonOutcome === 'bribe'); } });
+      var sb = rb.seen, rawb = rb.raw.join(' / '), lyb = (rb.raw.filter(function (x) { return /Leave it in her hand/.test(x); })[0] || '');
+      okQ('(b) TWO ON THE SECOND WATCH, INVESTIGATE WAKES THE PARTY: ' + (sb.match(/PROMPT THE SECOND WATCH \[[^\]]*\] > \w+/) || ['no ask'])[0] + ' / ' + (sb.match(/[A-Z][a-z]+ slips down the stair\.[^\/]*/) || ['no card'])[0].slice(0, 120),
+        /PROMPT THE SECOND WATCH \[INVESTIGATE \| KEEP WATCH\] > INVESTIGATE/.test(sb) && !/WAKE THE PARTY/.test(sb) && /Vivian slips down the stair\. Barley shakes the others awake, and the party follows Vivian out into the yard/.test(sb));
+      okQ('(b) LYMEN WOKEN: HIS LINE AFTER AMARA\'S, THE BRIBE STILL THE PLAYER\'S: ' + lyb.slice(0, 160) + ' -- the outcome ' + rb.f.wagonOutcome,
+        /\{Vivian:pt_vivian[^}]*\} Those aren't goblins/.test(rawb) && /\{Amara:pt_amara\} "Fifty gold says/.test(rawb) && /^\{Lymen:pt_lymen[^}]*\} \[.*By Kalindel\. That gold was paid for children\. Leave it in her hand\..*\] > TAKE THE GOLD/.test(lyb) && rawb.indexOf('Fifty gold says') < rawb.indexOf('Leave it in her hand') && rb.f.wagonOutcome === 'bribe' && !/INITIATIVE/.test(sb) && !/not one more mile on this road/.test(sb));
+      var gc = InQ.glamCam || {}, bk = InQ.WAGONL.back;
+      okQ('(c) THE CAMERA ON THE ONE IN THE WAGON\'S BACK AS THE GLAMOUR BREAKS: ' + JSON.stringify(gc) + ' (the back ' + bk + '), the rider then ' + riderB,
+        !!gc.at && gc.at[0] === bk[0] && gc.at[1] === bk[1] && gc.to > gc.from && /kid1/.test(String(riderB)));
+      resetQ(); D.iso.zoom = zb0;
+      // (b2) THE SAME, REFUSED: the fight with the whole party on the field from its first round (none held back for round two), no "By Kalindel" fight word. (e) on the same
+      // walk: the inn's sign by the road faint while the fight is on (his "this inn sign needs transparency coding during the fight")
+      var fld = null, sign = null;
+      var Bc = playQ('wagon', null, pinsQ(19)), ec = useQ(Bc, 'gennet'), rc = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'REFUSE'], { watch: { vivian: 2, barley: 2 }, quiet: 1200, pastMorning: false, stop: function (s) {
+        var Bf = D.battle; if (!fld && Bf && Bf.roam && Bf.roam.mode === 'fight') {
+          fld = { field: Bf.units.filter(function (u) { return u.side === 'party' && u.src && !u.src.guest && !u.familiar; }).map(function (u) { return u.name; }), reserve: (Bf.reserve || []).map(function (u) { return u.name; }) };
+          var pr = ((D.iso.map && D.iso.map.props) || []).filter(function (p) { return p.piece === 'yard_sign'; })[0], al = [];
+          if (pr) { var mk = { globalAlpha: 1, save: function () { }, restore: function () { }, drawImage: function () { al.push(this.globalAlpha); } }; try { pr.draw(mk); } catch (eS) { al.push('threw ' + eS); } }
+          sign = { laid: !!pr, faint: !!(IPw && IPw.faint && IPw.faint('yard_sign')), drawn: al, see: IPw && IPw.SEE };
+          return true; }
+        return false; } });
+      okQ('(b2) TWO ON THE WATCH, REFUSED: the fight with ' + JSON.stringify(fld), !!fld && fld.field.length === 4 && fld.reserve.length === 0 && !/not one more mile on this road/.test(rc.seen));
+      okQ('(e) THE INN\'S SIGN FAINT IN THE YARD FIGHT: ' + JSON.stringify(sign) + ' (drawn: the alpha of each draw the bench\'s page could make)',
+        !!sign && sign.laid && sign.faint && sign.drawn.every(function (a) { return a === sign.see; }));
+      resetQ(); D.iso.zoom = zb0;
+      okQ('(e) THE SIGN FAINT BY THE FIGHT, the chimney and the wagon in the one list as before: a fight on ' + (IPw && IPw.fightOn ? IPw.fightOn() : '?') + ', the sign faint ' + (IPw && IPw.faint ? IPw.faint('yard_sign') : 'no IP.faint') + ', the fight\'s list ' + JSON.stringify(IPw && IPw.FIGHTSEE),
+        !!(IPw && IPw.faint) && !IPw.fightOn() === !IPw.faint('yard_sign') && !!IPw.FIGHTSEE.inn_hearth && !!IPw.FIGHTSEE.yard_wagon);
+      // (f) THE BARN BEFORE THE WAGON (his "it's like there's a goblin following me!" and "Kat is still here?", day 12 at dusk on the wagon night's door): no goblin in the end
+      // stall on the wagon's own day till the handover is made; after it, and the day after, as before
+      var fF = { reachedInn: 1, gennetNamed: 1, mealHad: 1, wagonCycle: 0 }, onF = [InQ.barnGoblinOn(fF, InQ.WAGON.first), InQ.barnGoblinOn(Object.assign({ kidTaken: 1 }, fF), InQ.WAGON.first), InQ.barnGoblinOn(fF, InQ.WAGON.first + 1)];
+      var Bf2 = playQ('wagonseen'), gobF = Bf2 && Bf2.units ? Bf2.units.filter(function (u) { return u.npc === 'barnGoblin'; }).length : 'no floor';
+      okQ('(f) NO GOBLIN IN THE BARN BEFORE THE WAGON: the wagon\'s day ' + onF[0] + ', after the handover ' + onF[1] + ', the day after ' + onF[2] + '; on his door (?innshow&beat=wagonseen) ' + gobF + ' in the stall', onF[0] === false && onF[1] === true && onF[2] === true && gobF === 0);
+      resetQ();
+      // (g) ELSBETH IN HER OWN FIGURE IN THE BARN'S SCENE (his "elsbeth was townswoman in goblin scene"): the beat barnunseen, E on the one in the stall, FREE IT -- she stands in
+      // the house door in elsbethhome_p1, not the townswoman stand-in
+      var elsG = null, Bg = playQ('barnunseen'), eg = useQ(Bg, 'barnGoblin'), rg = walkQ(['FREE IT'], { quiet: 900, stop: function (s) { var B0 = D.battle; if (!elsG && B0 && B0.units) { var e = B0.units.filter(function (u) { return u.name === 'Elsbeth' && u.npc !== 'elsbeth'; })[0]; if (e) elsG = { sheet: e.sheet, at: [e.x, e.y] }; } return !!elsG; } });
+      okQ('(g) ELSBETH IN HER OWN FIGURE IN THE BARN\'S SCENE: ' + JSON.stringify(elsG) + ' (hers ' + (IPw && IPw.ELSBETH) + ')', !!elsG && elsG.sheet === (IPw && IPw.ELSBETH));
+      resetQ();
+      } else {
       // 1. THE WINDOW TO THE YARD (his "zoom out instead of panning to the wagon"; at Sylvia's table, "without doodledo sound and pan to downstairs spot"): KEEP WATCH with
       // Lymen at the window -- between the window's card and the wagon's, no stair's sound and no place card for the yard; the camera drawn back to a farther step, and
       // his own zoom again by the morning
@@ -5938,6 +5998,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       resetQ();
       okQ('DORAN BEHIND HIS BAR, ANY EVENING, ON HIS FACE: ' + (sc9 ? sc9.o.id + ' ' + sc9.sheet + ' "' + [].concat((sc9.wait && sc9.wait.say) || []).join(' ').slice(0, 80) + '"' : dn9 ? 'no screen' : 'no Doran'), !!sc9 && sc9.o.id === 'doranIn' && sc9.sheet === 'pt_doran' && /fills a mug/.test([].concat((sc9.wait && sc9.wait.say) || []).join(' ')));
       resetQ();
+      } // (!WN21: inn1118's own)
     } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
     resetQ(); if (InQ) { InQ.stay = false; InQ.bedHere = null; InQ.duePlay = null; }
     D.store.get = stGQ; D.store.set = stSQ; D.music = muQ;
