@@ -1,17 +1,17 @@
 {
  "image": "art/pt_halldor.png",
- "fw": 148,
+ "fw": 184,
  "fh": 157,
- "ax": 74,
+ "ax": 90,
  "ay": 154,
  "top": 154,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 148,
+   "fw": 184,
    "fh": 157,
-   "ax": 74,
+   "ax": 90,
    "ay": 154,
    "frames": 6,
    "fps": 3,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "hushed": {
+   "y": 157,
+   "fw": 184,
+   "fh": 157,
+   "ax": 90,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "wounded": {
+   "y": 314,
+   "fw": 184,
+   "fh": 157,
+   "ax": 90,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grateful": {
+   "y": 471,
+   "fw": 184,
+   "fh": 157,
+   "ax": 90,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grim": {
+   "y": 628,
+   "fw": 184,
+   "fh": 157,
+   "ax": 90,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "amused": {
+   "y": 785,
+   "fw": 184,
+   "fh": 157,
+   "ax": 90,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-87",
  "door": "no one yet: the muster yard and the halls are not on the grid",
- "source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

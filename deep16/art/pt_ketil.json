@@ -1,17 +1,17 @@
 {
  "image": "art/pt_ketil.png",
- "fw": 164,
+ "fw": 173,
  "fh": 156,
- "ax": 83,
+ "ax": 85,
  "ay": 153,
  "top": 153,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 164,
+   "fw": 173,
    "fh": 156,
-   "ax": 83,
+   "ax": 85,
    "ay": 153,
    "frames": 6,
    "fps": 3,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 173,
+   "fh": 156,
+   "ax": 85,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "halt": {
+   "y": 312,
+   "fw": 173,
+   "fh": 156,
+   "ax": 85,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "dry": {
+   "y": 468,
+   "fw": 173,
+   "fh": 156,
+   "ax": 85,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "stern": {
+   "y": 624,
+   "fw": 173,
+   "fh": 156,
+   "ax": 85,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "proud": {
+   "y": 780,
+   "fw": 173,
+   "fh": 156,
+   "ax": 85,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-87",
  "door": "no one yet: Ketil at Solskaft's vault doors speaks on his card (SK.WORDS)",
- "source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

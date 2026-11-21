@@ -1,17 +1,17 @@
 {
  "image": "art/pt_gudrun.png",
- "fw": 139,
- "fh": 156,
- "ax": 73,
+ "fw": 208,
+ "fh": 164,
+ "ax": 135,
  "ay": 153,
  "top": 153,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 139,
-   "fh": 156,
-   "ax": 73,
+   "fw": 208,
+   "fh": 164,
+   "ax": 135,
    "ay": 153,
    "frames": 6,
    "fps": 3,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 164,
+   "fw": 208,
+   "fh": 164,
+   "ax": 135,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 328,
+   "fw": 208,
+   "fh": 164,
+   "ax": 135,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "haggling": {
+   "y": 492,
+   "fw": 208,
+   "fh": 164,
+   "ax": 135,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grave": {
+   "y": 656,
+   "fw": 208,
+   "fh": 164,
+   "ax": 135,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "pleased": {
+   "y": 820,
+   "fw": 208,
+   "fh": 164,
+   "ax": 135,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-88",
  "door": "no one yet: Second Lamp's stores are not on the grid",
- "source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

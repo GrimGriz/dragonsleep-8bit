@@ -1,6 +1,6 @@
 {
  "image": "art/pt_sectblade.png",
- "fw": 162,
+ "fw": 170,
  "fh": 155,
  "ax": 84,
  "ay": 152,
@@ -9,7 +9,7 @@
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 162,
+   "fw": 170,
    "fh": 155,
    "ax": 84,
    "ay": 152,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 155,
+   "fw": 170,
+   "fh": 155,
+   "ax": 84,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "polite": {
+   "y": 310,
+   "fw": 170,
+   "fh": 155,
+   "ax": 84,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "suspicious": {
+   "y": 465,
+   "fw": 170,
+   "fh": 155,
+   "ax": 84,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "threat": {
+   "y": 620,
+   "fw": 170,
+   "fh": 155,
+   "ax": 84,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "contempt": {
+   "y": 775,
+   "fw": 170,
+   "fh": 155,
+   "ax": 84,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-88",
  "door": "no one yet: the rest past Torvald talks on cards",
- "source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

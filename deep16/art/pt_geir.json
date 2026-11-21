@@ -1,17 +1,17 @@
 {
  "image": "art/pt_geir.png",
- "fw": 163,
- "fh": 155,
- "ax": 83,
+ "fw": 232,
+ "fh": 156,
+ "ax": 149,
  "ay": 153,
  "top": 153,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 163,
-   "fh": 155,
-   "ax": 83,
+   "fw": 232,
+   "fh": 156,
+   "ax": 149,
    "ay": 153,
    "frames": 6,
    "fps": 3,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 232,
+   "fh": 156,
+   "ax": 149,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "uneasy": {
+   "y": 312,
+   "fw": 232,
+   "fh": 156,
+   "ax": 149,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "dry": {
+   "y": 468,
+   "fw": 232,
+   "fh": 156,
+   "ax": 149,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grave": {
+   "y": 624,
+   "fw": 232,
+   "fh": 156,
+   "ax": 149,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "resolute": {
+   "y": 780,
+   "fw": 232,
+   "fh": 156,
+   "ax": 149,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-87",
  "door": "no one yet: Third Lamp is not on the grid",
- "source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

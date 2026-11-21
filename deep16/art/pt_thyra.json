@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 158,
+   "fw": 164,
+   "fh": 158,
+   "ax": 78,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "reporting": {
+   "y": 316,
+   "fw": 164,
+   "fh": 158,
+   "ax": 78,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "worried": {
+   "y": 474,
+   "fw": 164,
+   "fh": 158,
+   "ax": 78,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "stern": {
+   "y": 632,
+   "fw": 164,
+   "fh": 158,
+   "ax": 78,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "proud": {
+   "y": 790,
+   "fw": 164,
+   "fh": 158,
+   "ax": 78,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-87",
  "door": "no one yet: Second Lamp is not on the grid",
- "source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

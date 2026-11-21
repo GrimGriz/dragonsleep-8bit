@@ -366,16 +366,37 @@ PEOPLE = {
 # ART-WANTED-88-ROAD-SPEAKERS-IDLE-CHECKPOINT (our 87: no notes, the same page and cells assumed, as its pages show) -- sorted to deep16/_src/road-portraits/.
 # HEAD 1 Idle 6 each; HEADs 2 to 6 (the moods) still wanted. Torvald's (a cross on his chest; art-wanted 90 answered "Dvalgarda's sign, no crosses") and Dagny's
 # (seated at a desk with the ledger, quill and grille; answered "without furniture") not cut from it: superseded the same day, below. Worn by no one yet.
-_AW87 = 'road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages/ART-WANTED-87-%s-HEAD-01-IDLE.png'
-_AW88 = 'road-portraits/2026-11-19-AW88/ART-WANTED-88-pt_%s-HEAD-1-IDLE.png'
-for _key, _pat, _pg, _door in [
-        ('ketil', _AW87, 'KETIL', 'no one yet: Ketil at Solskaft\'s vault doors speaks on his card (SK.WORDS)'), ('ulf', _AW87, 'ULF', 'no one yet: First Lamp is not on the grid'),
-        ('thyra', _AW87, 'THYRA', 'no one yet: Second Lamp is not on the grid'), ('geir', _AW87, 'GEIR', 'no one yet: Third Lamp is not on the grid'),
-        ('halldor', _AW87, 'HALLDOR', 'no one yet: the muster yard and the halls are not on the grid'), ('brann', _AW87, 'BRANN', 'no one yet: the muster yard is not on the grid'),
-        ('gudrun', _AW88, 'gudrun', 'no one yet: Second Lamp\'s stores are not on the grid'), ('hedda', _AW88, 'hedda', 'no one yet: the halls are not on the grid'),
-        ('ragna', _AW88, 'ragna', 'no one yet: DEEP16\'s Solskaft has no stand for her'), ('sectblade', _AW88, 'sectblade', 'no one yet: the rest past Torvald talks on cards')]:
-    PEOPLE[_key] = (os.path.dirname(_pat), 'ART-WANTED-87' if _pat is _AW87 else 'ART-WANTED-88', _door,
-                    {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout': [(_pat % _pg, [3, 3], ['idle'] * 6)]})
+# THE SAME TEN WHOLE (11-21, the cutter seat cutter-1121, on Griz's "You're a cutter seat. There are dwarven portraits in Fresh."): the art desk's two CUTTER-HANDOFF
+# zips -- ART-WANTED-87-SILVERSANDS-PORTRAITS-CUTTER-HANDOFF (our 86) and ART-WANTED-88-ROAD-SPEAKERS-PORTRAITS-CUTTER-HANDOFF (our 87), sorted to
+# deep16/_src/road-portraits/2026-11-21-AW8x-CUTTER-HANDOFF/ with their MANIFEST.csv -- HEAD 1 Idle 6 and HEADs 2 to 6, one still each, the moods asked. Nine Idles
+# are byte-twins of the checkpoints' above (cut from the handoffs' copies now); Brann's is a new page (1672x941, the same face, the blink on 4 not 5). The 86
+# stills are drawn bigger than the Idle and run off the page's foot, so each row is scaled by its own bust (the house's way); the 88 stills are the art desk's
+# "registered to Idle scale" and are cut the same way. `propfree` by action: a prop beside the head left out of the head's measure -- Halldor's Grim (the
+# warhammer's head on his shoulder at the helmet's height) and Geir's Resolute (his hand on the door's post, which runs from the page's top).
+_AW87 = 'road-portraits/2026-11-21-AW87-CUTTER-HANDOFF/%s/ART-WANTED-87-%s-HEAD-%02d-%s.png'
+_AW88 = 'road-portraits/2026-11-21-AW88-CUTTER-HANDOFF/pt_%s/ART-WANTED-88-pt_%s-HEAD-%d-%s.png'
+for _key, _aw, _moods, _pf, _door in [
+        ('ketil', 87, ['attentive', 'halt', 'dry', 'stern', 'proud'], (), 'no one yet: Ketil at Solskaft\'s vault doors speaks on his card (SK.WORDS)'),
+        ('ulf', 87, ['attentive', 'weary', 'sheepish', 'grave', 'glad'], (), 'no one yet: First Lamp is not on the grid'),
+        ('thyra', 87, ['attentive', 'reporting', 'worried', 'stern', 'proud'], (), 'no one yet: Second Lamp is not on the grid'),
+        ('geir', 87, ['attentive', 'uneasy', 'dry', 'grave', 'resolute'], ('resolute',), 'no one yet: Third Lamp is not on the grid'),
+        ('halldor', 87, ['hushed', 'wounded', 'grateful', 'grim', 'amused'], ('grim',), 'no one yet: the muster yard and the halls are not on the grid'),
+        ('brann', 87, ['attentive', 'determined', 'fierce', 'moved', 'at-peace'], (), 'no one yet: the muster yard is not on the grid'),
+        ('gudrun', 88, ['attentive', 'welcoming', 'haggling', 'grave', 'pleased'], (), 'no one yet: Second Lamp\'s stores are not on the grid'),
+        ('hedda', 88, ['attentive', 'guarded', 'command', 'watchful', 'grim'], (), 'no one yet: the halls are not on the grid'),
+        ('ragna', 88, ['attentive', 'proud', 'warning', 'thinking', 'satisfied'], (), 'no one yet: DEEP16\'s Solskaft has no stand for her'),
+        ('sectblade', 88, ['attentive', 'polite', 'suspicious', 'threat', 'contempt'], (), 'no one yet: the rest past Torvald talks on cards')]:
+    if _aw == 87:
+        _pg = lambda h, m, k=_key: _AW87 % (k.title(), k.upper(), h, m.upper())
+    else:
+        _pg = lambda h, m, k=_key: _AW88 % (k, k, h, m.upper())
+    PEOPLE[_key] = (os.path.dirname(os.path.dirname(_pg(1, 'idle'))), 'ART-WANTED-%d' % _aw, _door,
+                    {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'propfree': _pf, 'layout':
+                     [(_pg(1, 'idle'), [3, 3], ['idle'] * 6)] + [(_pg(h, m), [1], [m.replace('-', '')]) for h, m in enumerate(_moods, 2)]})
+# (the blade's Contempt is drawn a shade warmer and lighter than his other stills -- its figure's mean 80,61,58 to their 74,56,55 -- and its cloak snapped browner:
+# its colours matched to his Attentive's, Marta's way. It still reads a shade warmer; `stone` left out of its snap turned the cloak a harsh grey and put the
+# browns on the reds, worse, so the rest is a dream-polish line)
+PEOPLE['sectblade'][3]['match'] = {_AW88 % ('sectblade', 'sectblade', 6, 'CONTEMPT'): _AW88 % ('sectblade', 'sectblade', 2, 'ATTENTIVE')}
 # TORVALD AND DAGNY WHOLE (the same seat, on the lanes desk's next message: Griz, "it gave me another 88 zip and said that was completed torvald"): the art desk's
 # ART-WANTED-88-TORVALD-DAGNY-PORTRAITS-AND-TOWN-CHECKPOINTS, sorted to deep16/_src/road-portraits/2026-11-20-AW88-TORVALD-DAGNY/ -- a revised Idle 6 and five
 # stills each, answering section 90: Torvald under Dvalgarda's ward-knot disc with the closed eye, no cross (HEAD 3's light at his palm; HEAD 6 the disc in his
@@ -722,12 +743,13 @@ def cut_person(name):
             aline = cut_line(meas) if ov.get('cutline') else foot   # (`cutline`: the torso's clean cut, not the drawing's foot -- a hand below it kept: General Grim's Command 5)
             bust = aline - mtop
             head = meas[mtop:mtop + int(bust * 0.22)]
-            if ov.get('propfree'):                               # (the head's own top: the figure over the torso's middle, a raised prop beside it left out of the measure)
+            pf = ov.get('propfree')                              # (True for every action, or the actions it is for: the road's speakers, 11-21)
+            if pf is True or (pf and act in pf):                 # (the head's own top: the figure over the torso's middle, a raised prop beside it left out of the measure)
                 lo = np.where(meas[(top + foot) // 2:foot])[1]
                 mid, half = np.median(lo), 0.16 * (lo.max() - lo.min())
                 win = meas.copy(); win[:, :max(0, int(mid - half))] = False; win[:, int(mid + half):] = False
                 htop = np.where(win.any(axis=1))[0].min()
-                bust = foot - htop
+                bust = aline - htop                              # (aline is foot unless `cutline`)
                 head = win[htop:htop + int(bust * 0.22)]
             hx = np.where(head)[1].mean()
             cx0, cx1 = xs.min(), xs.max() + 1

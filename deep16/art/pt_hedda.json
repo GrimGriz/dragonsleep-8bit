@@ -1,17 +1,17 @@
 {
  "image": "art/pt_hedda.png",
- "fw": 164,
+ "fw": 229,
  "fh": 156,
- "ax": 79,
+ "ax": 137,
  "ay": 153,
  "top": 153,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 164,
+   "fw": 229,
    "fh": 156,
-   "ax": 79,
+   "ax": 137,
    "ay": 153,
    "frames": 6,
    "fps": 3,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 229,
+   "fh": 156,
+   "ax": 137,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "guarded": {
+   "y": 312,
+   "fw": 229,
+   "fh": 156,
+   "ax": 137,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "command": {
+   "y": 468,
+   "fw": 229,
+   "fh": 156,
+   "ax": 137,
+   "ay": 153,
+   "frames": 1,
+   "fps": 4,
+   "ledge": [
+    false
+   ]
+  },
+  "watchful": {
+   "y": 624,
+   "fw": 229,
+   "fh": 156,
+   "ax": 137,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grim": {
+   "y": 780,
+   "fw": 229,
+   "fh": 156,
+   "ax": 137,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-88",
  "door": "no one yet: the halls are not on the grid",
- "source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

@@ -1,17 +1,17 @@
 {
  "image": "art/pt_ragna.png",
- "fw": 135,
+ "fw": 155,
  "fh": 157,
- "ax": 61,
+ "ax": 77,
  "ay": 153,
  "top": 153,
  "portrait": true,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 135,
+   "fw": 155,
    "fh": 157,
-   "ax": 61,
+   "ax": 77,
    "ay": 153,
    "frames": 6,
    "fps": 3,
@@ -23,9 +23,69 @@
     false,
     false
    ]
+  },
+  "attentive": {
+   "y": 157,
+   "fw": 155,
+   "fh": 157,
+   "ax": 77,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "proud": {
+   "y": 314,
+   "fw": 155,
+   "fh": 157,
+   "ax": 77,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "warning": {
+   "y": 471,
+   "fw": 155,
+   "fh": 157,
+   "ax": 77,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "thinking": {
+   "y": 628,
+   "fw": 155,
+   "fh": 157,
+   "ax": 77,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "satisfied": {
+   "y": 785,
+   "fw": 155,
+   "fh": 157,
+   "ax": 77,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
   }
  },
  "art": "ART-WANTED-88",
  "door": "no one yet: DEEP16's Solskaft has no stand for her",
- "source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+ "source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 }

@@ -17873,20 +17873,20 @@ false
 "source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_brann": {
-"image": "art/pt_brann.png?v=70eb646938",
-"fw": 164,
+"image": "art/pt_brann.png?v=9573f5b16d",
+"fw": 169,
 "fh": 156,
-"ax": 90,
-"ay": 153,
-"top": 153,
+"ax": 92,
+"ay": 152,
+"top": 152,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 164,
+"fw": 169,
 "fh": 156,
-"ax": 90,
-"ay": 153,
+"ax": 92,
+"ay": 152,
 "frames": 6,
 "fps": 3,
 "ledge": [
@@ -17897,11 +17897,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 156,
+"fw": 169,
+"fh": 156,
+"ax": 92,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"determined": {
+"y": 312,
+"fw": 169,
+"fh": 156,
+"ax": 92,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"fierce": {
+"y": 468,
+"fw": 169,
+"fh": 156,
+"ax": 92,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"moved": {
+"y": 624,
+"fw": 169,
+"fh": 156,
+"ax": 92,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"atpeace": {
+"y": 780,
+"fw": 169,
+"fh": 156,
+"ax": 92,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-87",
 "door": "no one yet: the muster yard is not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_brennan": {
 "image": "art/pt_brennan.png?v=32a1aed5d3",
@@ -19538,19 +19598,19 @@ true
 "source": "deep16/_src/falstaff/ART-123-FALSTAFF (the art desk's ART-123-FALSTAFF, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_geir": {
-"image": "art/pt_geir.png?v=8a030b8d68",
-"fw": 163,
-"fh": 155,
-"ax": 83,
+"image": "art/pt_geir.png?v=b6c34fcfbe",
+"fw": 232,
+"fh": 156,
+"ax": 149,
 "ay": 153,
 "top": 153,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 163,
-"fh": 155,
-"ax": 83,
+"fw": 232,
+"fh": 156,
+"ax": 149,
 "ay": 153,
 "frames": 6,
 "fps": 3,
@@ -19562,11 +19622,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 156,
+"fw": 232,
+"fh": 156,
+"ax": 149,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"uneasy": {
+"y": 312,
+"fw": 232,
+"fh": 156,
+"ax": 149,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"dry": {
+"y": 468,
+"fw": 232,
+"fh": 156,
+"ax": 149,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grave": {
+"y": 624,
+"fw": 232,
+"fh": 156,
+"ax": 149,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"resolute": {
+"y": 780,
+"fw": 232,
+"fh": 156,
+"ax": 149,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-87",
 "door": "no one yet: Third Lamp is not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_generalgrim": {
 "image": "art/pt_generalgrim.png?v=ba95af2ce5",
@@ -20303,19 +20423,19 @@ false
 "source": "deep16/_src/ART-139/source (the art desk's ART-139-GLAMOUR, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_gudrun": {
-"image": "art/pt_gudrun.png?v=7b8fcd8417",
-"fw": 139,
-"fh": 156,
-"ax": 73,
+"image": "art/pt_gudrun.png?v=04e840b046",
+"fw": 208,
+"fh": 164,
+"ax": 135,
 "ay": 153,
 "top": 153,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 139,
-"fh": 156,
-"ax": 73,
+"fw": 208,
+"fh": 164,
+"ax": 135,
 "ay": 153,
 "frames": 6,
 "fps": 3,
@@ -20327,11 +20447,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 164,
+"fw": 208,
+"fh": 164,
+"ax": 135,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 328,
+"fw": 208,
+"fh": 164,
+"ax": 135,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"haggling": {
+"y": 492,
+"fw": 208,
+"fh": 164,
+"ax": 135,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grave": {
+"y": 656,
+"fw": 208,
+"fh": 164,
+"ax": 135,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"pleased": {
+"y": 820,
+"fw": 208,
+"fh": 164,
+"ax": 135,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-88",
 "door": "no one yet: Second Lamp's stores are not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_gull": {
 "image": "art/pt_gull.png?v=7071820dad",
@@ -20430,19 +20610,19 @@ true
 "source": "deep16/_src/gull/ART-104 (the art desk's ART-104, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_halldor": {
-"image": "art/pt_halldor.png?v=919f48062f",
-"fw": 148,
+"image": "art/pt_halldor.png?v=d7c3b2e57f",
+"fw": 184,
 "fh": 157,
-"ax": 74,
+"ax": 90,
 "ay": 154,
 "top": 154,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 148,
+"fw": 184,
 "fh": 157,
-"ax": 74,
+"ax": 90,
 "ay": 154,
 "frames": 6,
 "fps": 3,
@@ -20454,11 +20634,71 @@ false,
 false,
 false
 ]
+},
+"hushed": {
+"y": 157,
+"fw": 184,
+"fh": 157,
+"ax": 90,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"wounded": {
+"y": 314,
+"fw": 184,
+"fh": 157,
+"ax": 90,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grateful": {
+"y": 471,
+"fw": 184,
+"fh": 157,
+"ax": 90,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grim": {
+"y": 628,
+"fw": 184,
+"fh": 157,
+"ax": 90,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"amused": {
+"y": 785,
+"fw": 184,
+"fh": 157,
+"ax": 90,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-87",
 "door": "no one yet: the muster yard and the halls are not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_harrow": {
 "image": "art/pt_harrow.png?v=dbcadc90d0",
@@ -20557,19 +20797,19 @@ true
 "source": "deep16/_src/harrow/ART-123-HARROW (the art desk's ART-123-HARROW, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_hedda": {
-"image": "art/pt_hedda.png?v=d437ef9750",
-"fw": 164,
+"image": "art/pt_hedda.png?v=b259b999a4",
+"fw": 229,
 "fh": 156,
-"ax": 79,
+"ax": 137,
 "ay": 153,
 "top": 153,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 164,
+"fw": 229,
 "fh": 156,
-"ax": 79,
+"ax": 137,
 "ay": 153,
 "frames": 6,
 "fps": 3,
@@ -20581,11 +20821,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 156,
+"fw": 229,
+"fh": 156,
+"ax": 137,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"guarded": {
+"y": 312,
+"fw": 229,
+"fh": 156,
+"ax": 137,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"command": {
+"y": 468,
+"fw": 229,
+"fh": 156,
+"ax": 137,
+"ay": 153,
+"frames": 1,
+"fps": 4,
+"ledge": [
+false
+]
+},
+"watchful": {
+"y": 624,
+"fw": 229,
+"fh": 156,
+"ax": 137,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grim": {
+"y": 780,
+"fw": 229,
+"fh": 156,
+"ax": 137,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-88",
 "door": "no one yet: the halls are not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_hessle": {
 "image": "art/pt_hessle.png?v=540878fd2e",
@@ -21581,19 +21881,19 @@ true
 "source": "deep16/_src/kessler/ART-83 (the art desk's ART-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_ketil": {
-"image": "art/pt_ketil.png?v=90c63e0fe5",
-"fw": 164,
+"image": "art/pt_ketil.png?v=056dd2fea1",
+"fw": 173,
 "fh": 156,
-"ax": 83,
+"ax": 85,
 "ay": 153,
 "top": 153,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 164,
+"fw": 173,
 "fh": 156,
-"ax": 83,
+"ax": 85,
 "ay": 153,
 "frames": 6,
 "fps": 3,
@@ -21605,11 +21905,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 156,
+"fw": 173,
+"fh": 156,
+"ax": 85,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"halt": {
+"y": 312,
+"fw": 173,
+"fh": 156,
+"ax": 85,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"dry": {
+"y": 468,
+"fw": 173,
+"fh": 156,
+"ax": 85,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"stern": {
+"y": 624,
+"fw": 173,
+"fh": 156,
+"ax": 85,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"proud": {
+"y": 780,
+"fw": 173,
+"fh": 156,
+"ax": 85,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-87",
 "door": "no one yet: Ketil at Solskaft's vault doors speaks on his card (SK.WORDS)",
-"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_korvin": {
 "image": "art/pt_korvin.png?v=ea44e228a2",
@@ -23722,19 +24082,19 @@ false
 "source": "deep16/_src/ART-141-PYRO/PORTRAITS/sources (the art desk's ART-141-PYRO, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_ragna": {
-"image": "art/pt_ragna.png?v=d4a373fd5c",
-"fw": 135,
+"image": "art/pt_ragna.png?v=69716f53a9",
+"fw": 155,
 "fh": 157,
-"ax": 61,
+"ax": 77,
 "ay": 153,
 "top": 153,
 "portrait": true,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 135,
+"fw": 155,
 "fh": 157,
-"ax": 61,
+"ax": 77,
 "ay": 153,
 "frames": 6,
 "fps": 3,
@@ -23746,11 +24106,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 157,
+"fw": 155,
+"fh": 157,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"proud": {
+"y": 314,
+"fw": 155,
+"fh": 157,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"warning": {
+"y": 471,
+"fw": 155,
+"fh": 157,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"thinking": {
+"y": 628,
+"fw": 155,
+"fh": 157,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"satisfied": {
+"y": 785,
+"fw": 155,
+"fh": 157,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-88",
 "door": "no one yet: DEEP16's Solskaft has no stand for her",
-"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_sabeth": {
 "image": "art/pt_sabeth.png?v=f729b20776",
@@ -23849,8 +24269,8 @@ true
 "source": "deep16/_src/sabeth/ART-123-SABETH (the art desk's ART-123-SABETH, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_sectblade": {
-"image": "art/pt_sectblade.png?v=5753709b9f",
-"fw": 162,
+"image": "art/pt_sectblade.png?v=d626f23415",
+"fw": 170,
 "fh": 155,
 "ax": 84,
 "ay": 152,
@@ -23859,7 +24279,7 @@ true
 "anims": {
 "idle": {
 "y": 0,
-"fw": 162,
+"fw": 170,
 "fh": 155,
 "ax": 84,
 "ay": 152,
@@ -23873,11 +24293,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 155,
+"fw": 170,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"polite": {
+"y": 310,
+"fw": 170,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"suspicious": {
+"y": 465,
+"fw": 170,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"threat": {
+"y": 620,
+"fw": 170,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"contempt": {
+"y": 775,
+"fw": 170,
+"fh": 155,
+"ax": 84,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-88",
 "door": "no one yet: the rest past Torvald talks on cards",
-"source": "deep16/_src/road-portraits/2026-11-19-AW88 (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW88-CUTTER-HANDOFF (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_signy": {
 "image": "art/pt_signy.png?v=fc6d68a236",
@@ -24374,7 +24854,7 @@ true
 "source": "deep16/_src/tam/ART-100 (the art desk's ART-100, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_thyra": {
-"image": "art/pt_thyra.png?v=28b3c83809",
+"image": "art/pt_thyra.png?v=7795ee454f",
 "fw": 164,
 "fh": 158,
 "ax": 78,
@@ -24398,11 +24878,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 158,
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"reporting": {
+"y": 316,
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"worried": {
+"y": 474,
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"stern": {
+"y": 632,
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"proud": {
+"y": 790,
+"fw": 164,
+"fh": 158,
+"ax": 78,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-87",
 "door": "no one yet: Second Lamp is not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_torvald": {
 "image": "art/pt_torvald.png?v=09e531fddd",
@@ -24496,8 +25036,8 @@ false
 "source": "deep16/_src/road-portraits/2026-11-20-AW88-TORVALD-DAGNY/Portraits (the art desk's ART-WANTED-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_ulf": {
-"image": "art/pt_ulf.png?v=979362ecd3",
-"fw": 162,
+"image": "art/pt_ulf.png?v=a750f3a1c7",
+"fw": 170,
 "fh": 156,
 "ax": 82,
 "ay": 152,
@@ -24506,7 +25046,7 @@ false
 "anims": {
 "idle": {
 "y": 0,
-"fw": 162,
+"fw": 170,
 "fh": 156,
 "ax": 82,
 "ay": 152,
@@ -24520,11 +25060,71 @@ false,
 false,
 false
 ]
+},
+"attentive": {
+"y": 156,
+"fw": 170,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"weary": {
+"y": 312,
+"fw": 170,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"sheepish": {
+"y": 468,
+"fw": 170,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grave": {
+"y": 624,
+"fw": 170,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"glad": {
+"y": 780,
+"fw": 170,
+"fh": 156,
+"ax": 82,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
 }
 },
 "art": "ART-WANTED-87",
 "door": "no one yet: First Lamp is not on the grid",
-"source": "deep16/_src/road-portraits/2026-11-19-AW87/ART-WANTED-87-SILVERSANDS-IDLE-CHECKPOINT/pages (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_venhale": {
 "image": "art/pt_venhale.png?v=e40547870a",
