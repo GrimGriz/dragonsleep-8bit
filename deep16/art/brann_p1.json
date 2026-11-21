@@ -1,0 +1,34 @@
+{
+ "image": "art/brann_p1.png",
+ "fw": 34,
+ "fh": 64,
+ "ax": 17,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 34,
+   "fh": 64,
+   "ax": 17,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 38,
+   "fh": 64,
+   "ax": 19,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Brann",
+ "hold": [
+  "the E walk's lead switch is hard to verify under the boot overlap, and the rear NE walk's 1 and 5 read too alike: both on the art desk's own gait-review flag, cut as drawn",
+  "the mirrors (SW W NW) carry the axe to his left shoulder (the art desk's own note: the runtime mirrors)"
+ ],
+ "source": "drawn by the art desk (ART-145-BRANN-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 88, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the muster yard and the halls are not on the grid; he fights in brann_p2"
+}

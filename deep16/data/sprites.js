@@ -2287,6 +2287,40 @@
 }
 }
 },
+"brann_p1": {
+"image": "art/brann_p1.png?v=ea2bba83f2",
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 38,
+"fh": 64,
+"ax": 19,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Brann",
+"hold": [
+"the E walk's lead switch is hard to verify under the boot overlap, and the rear NE walk's 1 and 5 read too alike: both on the art desk's own gait-review flag, cut as drawn",
+"the mirrors (SW W NW) carry the axe to his left shoulder (the art desk's own note: the runtime mirrors)"
+],
+"source": "drawn by the art desk (ART-145-BRANN-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 88, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the muster yard and the halls are not on the grid; he fights in brann_p2"
+},
 "brann_p2": {
 "image": "art/brann_p2.png?v=592699ed91",
 "fw": 52,
@@ -8603,6 +8637,40 @@
 }
 },
 "source": "drawn by the art desk (ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell), cut by tools/folk-costume-sheet.py (11-15)"
+},
+"gudrun_p1": {
+"image": "art/gudrun_p1.png?v=0b63c7edf6",
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 28,
+"fh": 64,
+"ax": 14,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Gudrun",
+"hold": [
+"the rear NE walk is on the art desk's own hold for gait review (frame 5 reverses the arms, the trailing boot repeats frame 1's lead), and SE's lead changes are subtle under the long hem: cut as drawn",
+"the plum blouse snaps brown in the game's 64, as on her portrait"
+],
+"source": "drawn by the art desk (ART-154-GUDRUN-TALLOWMARK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, her town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Second Lamp's stores are not on the grid"
 },
 "gull_p1": {
 "image": "art/gull_p1.png?v=2f96c528be",
@@ -34097,7 +34165,7 @@ true
 "Dvalgarda's sign on his chest is a pixel or two at game size",
 "the mirrors (SW W NW) carry the mace and the pack's asymmetry to the other side (the art desk's own note)"
 ],
-"source": "drawn by the art desk (ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (his ART-147 pages), 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the made road is not on the grid; his fights keep torvald_p0"
+"source": "drawn by the art desk (ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (his ART-147 pages), 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: the made road is not on the grid; his fights wear torvald_p2 (ART-147-COMBAT, 11-21)"
 },
 "torvald_p2": {
 "image": "art/torvald_p2.png?v=a370badc61",

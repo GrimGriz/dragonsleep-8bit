@@ -1,0 +1,34 @@
+{
+ "image": "art/gudrun_p1.png",
+ "fw": 28,
+ "fh": 64,
+ "ax": 14,
+ "ay": 61,
+ "top": 38,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 28,
+   "fh": 64,
+   "ax": 14,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Gudrun",
+ "hold": [
+  "the rear NE walk is on the art desk's own hold for gait review (frame 5 reverses the arms, the trailing boot repeats frame 1's lead), and SE's lead changes are subtle under the long hem: cut as drawn",
+  "the plum blouse snaps brown in the game's 64, as on her portrait"
+ ],
+ "source": "drawn by the art desk (ART-154-GUDRUN-TALLOWMARK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, her town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Second Lamp's stores are not on the grid"
+}

@@ -58,6 +58,9 @@ def map_rows(d):
         for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
             if 'source_bbox_xyxy_exclusive' in r:
                 yield r['file'], r['facing'], r['action'].lower(), int(r['frame']), tuple(int(v) for v in r['source_bbox_xyxy_exclusive'].split()), False
+            elif 'source_file' in r and 'source_width' in r:                     # (Gudrun's ART-154, 11-21: source_x, source_y, source_width, source_height by `frame`,
+                x, y, w, h = (int(r[k]) for k in ('source_x', 'source_y', 'source_width', 'source_height'))   # its "crop origins and crop sizes" -- the drawing's
+                yield r['source_file'], r['facing'], r['action'].lower(), int(r['frame']), (x, y, x + w, y + h), False   # own box, as Dagny's)
             elif 'source_file' in r:                                             # (the sect's blade's ART-148: x0 y0 x1_exclusive y1_exclusive by `frame`, the
                 yb = max(int(r['y1_exclusive']), int(float(r['source_row_baseline'])) + 4)   # drawing's own box, PAD its margin: read as a box -- tight() lost N Idle 2
                 yield r['source_file'], r['facing'], r['action'].lower(), int(r['frame']), (int(r['x0']), int(r['y0']), int(r['x1_exclusive']), yb), False   # to its hood alone,
@@ -75,6 +78,11 @@ def map_rows(d):
                 yield r['source'], r['facing'], r['action'].lower(), int(r['frame']), (x, y, x + w, y + h), False
         return
     fm = json.load(open(os.path.join(d, 'FRAME-MAP.json'), encoding='utf-8'))
+    if 'frames' in fm and 'pages' not in fm:                                     # (Brann's ART-145 town, 11-21: one list of frames, each its page under sources/,
+        for f in fm['frames']:                                                   # a crop cell and `art_bounds`, the drawing's own box on the page; its S Idle,
+            box = f.get('art_bounds') or f['crop']                               # the approved checkpoint, gives the cell alone: read as a cell, tight())
+            yield 'sources/' + f['page'], f['facing'], f['action'].lower(), int(f['frame']), tuple(int(v) for v in box), 'art_bounds' not in f
+        return
     for pg in fm['pages']:
         for f in pg['frames']:
             box = f.get('source_box') or f.get('window_xyxy')
@@ -103,12 +111,12 @@ def frame_windows(src, batch):
     return out
 
 
-def road(look, src, batch, name, art, hold, wear, avoid=('fire',)):
+def road(look, src, batch, name, art, hold, wear, avoid=('fire',), sec='91', their='his'):   # (`sec`, `their`: Brann's is art-wanted 88, Gudrun's figure hers -- 11-21)
     VS.LOOKS[look] = dict(
         src=src, windows=frame_windows(src, batch), tall=38, avoid=list(avoid), name=name,
         rows=[('idle', 4, 4), ('walk', 8, 8)], match={'walk': ('idle', 0)}, hold=hold,
-        source='drawn by the art desk (%s, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over '
-               'tools/vivian-sheet.py; SW W NW mirrored; %s' % (art, wear))
+        source='drawn by the art desk (%s, 11-19: art-wanted section %s, %s town figure in five views), cut by tools/road-town-sheet.py over '
+               'tools/vivian-sheet.py; SW W NW mirrored; %s' % (art, sec, their, wear))
 
 
 # Ulf Silversands, First Lamp (the art desk's ART-150; its notes: the garrison battleaxe at his right hip, the round red shield on his back toward the left
@@ -178,7 +186,7 @@ road('hedda_p1', 'hedda', '2026-11-19-ART-146', 'Hedda', 'ART-146-HEDDA-GREYSEAM
 road('torvald_p1', 'torvald', '2026-11-19-ART-147', 'Torvald', 'ART-147-ART-155-TORVALD-DAGNY-TOWN-CUTTER-HANDOFF (his ART-147 pages)',
      ['Dvalgarda\'s sign on his chest is a pixel or two at game size',
       'the mirrors (SW W NW) carry the mace and the pack\'s asymmetry to the other side (the art desk\'s own note)'],
-     'worn by no one yet: the made road is not on the grid; his fights keep torvald_p0')
+     'worn by no one yet: the made road is not on the grid; his fights wear torvald_p2 (ART-147-COMBAT, 11-21)')
 # The sect's blade, both of the two at the rest after Torvald (the art desk's ART-148, art-wanted 89, cut 11-20 by cutter-1120b on the lanes desk's message, his
 # "there's stuff in Fresh"; its notes: a sheathed shortsword at each hip, the far one lost behind the body in E, the brooch on the right shoulder, a cape and strap
 # seen from behind). Worn by no one yet: the made road is not on the grid; its fight sheet (sectblade_p2) is asked, not drawn; their fights keep assassin_p1.
@@ -186,9 +194,23 @@ road('sectblade_p1', 'sectblade', '2026-11-20-ART-148', 'Sect blade', 'ART-148-S
      ['the mirrors (SW W NW) carry the brooch to the other shoulder (the art desk\'s own note)',
       'the rear NE walk overlaps its boots at 1 and 5 and jumps a little at 8 to 1 (the art desk\'s own note)'],
      'worn by no one yet: the made road is not on the grid; their fights keep assassin_p1')
+# Brann Silversands, the young trooper (the art desk's ART-145 town, art-wanted 88's last block; cut 11-21 by the cutter seat cutter-1121 on Griz's "fresh isn't
+# empty, more incoming as well"; its notes: the axe rests on its butt at his right side at idle and rides his right shoulder walking, no shield). Its FRAME-MAP.json
+# lists frames with `art_bounds`, each drawing's own box. Worn by no one yet: the muster yard and the halls are not on the grid; he fights in brann_p2.
+road('brann_p1', 'brann', '2026-11-21-ART-145-TOWN', 'Brann', 'ART-145-BRANN-SILVERSANDS-TOWN-CUTTER-HANDOFF',
+     ['the E walk\'s lead switch is hard to verify under the boot overlap, and the rear NE walk\'s 1 and 5 read too alike: both on the art desk\'s own gait-review flag, cut as drawn',
+      'the mirrors (SW W NW) carry the axe to his left shoulder (the art desk\'s own note: the runtime mirrors)'],
+     'worn by no one yet: the muster yard and the halls are not on the grid; he fights in brann_p2', sec='88')
+# Gudrun Tallowmark, the cook and provisioner of the Lamp Stores at Second Lamp (the art desk's ART-154, art-wanted 91; the same seat and word; its notes: the ochre
+# kerchief, the plum blouse, the brown bib apron over a dark skirt, her hands on the apron at idle). Its FRAME-MAP.csv gives each drawing's own box as x, y, width,
+# height. Worn by no one yet: Second Lamp's stores are not on the grid.
+road('gudrun_p1', 'gudrun', '2026-11-21-ART-154', 'Gudrun', 'ART-154-GUDRUN-TALLOWMARK-TOWN-CUTTER-HANDOFF',
+     ['the rear NE walk is on the art desk\'s own hold for gait review (frame 5 reverses the arms, the trailing boot repeats frame 1\'s lead), and SE\'s lead changes are subtle under the long hem: cut as drawn',
+      'the plum blouse snaps brown in the game\'s 64, as on her portrait'],
+     'worn by no one yet: Second Lamp\'s stores are not on the grid', their='her')
 
 
 if __name__ == '__main__':
     import sys
-    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil', 'sectblade')]:
+    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil', 'sectblade', 'brann', 'gudrun')]:
         VS.cut(lk)
