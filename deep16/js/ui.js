@@ -1307,7 +1307,7 @@
       }
       // shields set (Soldiering's wall: its square held) and a click on a square to go to: asked first -- LEAVE THE WALL? (11-20, Griz: "I expect you built it so that clicking
       // (without opening the wheel which is normally a default move) stops and asks player 'leave the <wall/pike line(?)>'"; js/features.js exec 'wallmove')
-      if (!foe && !(x === u.x && y === u.y) && tool !== 'attack' && D.features && D.features.wallSet && D.features.wallSet(u) && v !== 'cut' && v !== 'rope') return UI.command(B, u, { do: 'wallmove', x: x, y: y });
+      if (!foe && !(x === u.x && y === u.y) && tool !== 'attack' && D.features && D.features.heldLine && D.features.heldLine(u) && v !== 'cut' && v !== 'rope') return UI.command(B, u, { do: 'wallmove', x: x, y: y });
       if (foe && v === 'ok') return UI.command(B, u, { do: (tool === 'attack' ? B.twin : true) && D.Battle.twinOpen(u) ? 'twinstrike' : 'attack', target: foe }); // (TWIN STRIKE the default click for its pair while it is open; ATTACK picked off the ring swings one -- 11-03 night)
       if (foe) {
         // the click on a foe in reach with the action spent is the off hand's swing, the bonus action (Griz, 10-31: "the second 'you don't have an action to attack' click should

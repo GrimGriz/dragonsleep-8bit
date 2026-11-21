@@ -281,7 +281,7 @@
     keepback: { foe: 4, nfoe: 1, mate: null }, setagainst: { foe: 6, nfoe: 1, mate: null }, // (the feat Long Guard, ours, 10-30: the foe 20 ft and 30 ft off)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
-    soldiering_wheel: { mate: null, nfoe: 1 }, soldiering_wall: { mate: null, nfoe: 2 }, soldiering_pike: { mate: null, foe: 2, nfoe: 1 }, // (the feat Soldiering, ours, 11-20: the demo builds its own mates)
+    soldiering_wheel: { mate: null, nfoe: 1 }, soldiering_wall: { mate: null, nfoe: 2 }, soldiering_pike: { mate: null, foe: 2, nfoe: 1 }, soldiering_pikewall: { mate: null, nfoe: 1 }, // (the feat Soldiering, ours, 11-20: the demo builds its own mates; the pike wall 11-21)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
     stabdebut: { mate: null }, openingnight: { mate: null }, // (Cutthroat, ours: a foe that hasn't had its turn)
     wicklore: { mate: null }, hoodedlamp: { mate: null }, pinthelight: { foe: 3, mate: null }, byherownlight: { mate: null }, // (the Lampwright, ours, 11-03: no friend beside the foe)
@@ -311,7 +311,7 @@
     holdthethread: { picks: { 4: { asi: { feat: 'holdthethread' } } } }, untempled: { picks: { 4: { asi: { feat: 'untempled' } } } }, suddendark: { picks: { 4: { asi: { feat: 'suddendark' } } } }, standin: { picks: { 4: { asi: { feat: 'standin' } } } }, // (the first batch's, at 4)
     keepback: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, setagainst: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, // (Long Guard at 4, a glaive in hand)
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
-    soldiering_wheel: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_wall: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_pike: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike' } }, // (Soldiering at 4)
+    soldiering_wheel: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_wall: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_pike: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike' } }, soldiering_pikewall: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike', shield: null } }, // (Soldiering at 4)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
     pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] },
     // (the SRD's invocations of 11-20: the Armor wants no armour worn, the Blade its pact weapon at 5)
@@ -612,6 +612,7 @@
         var pk = make('fighter:5', 'party', 'g-pike', u.x, u.y + 1, 4); pk.soldiering = true; pk.src = pk.src || {}; pk.src.equip = Object.assign({}, pk.src.equip || {}, { weapon: 'pike', shield: null }); pk.weapon = D.save.weaponOf(pk.src); B.units.push(pk); u.sheet = m.sheet = 'halldor_p2'; pk.sheet = 'trooperpike_p2'; D.grid.setup(D.grid.map, B.units); // (the drawn rows, 11-20: Halldor's `push`, the pike trooper's `pikerank`)
         D.rules.startTurn(u); B.active = u; yield* fire(B.exec(u, { do: 'setshields' })); yield 40;
         D.rules.startTurn(m); B.active = m; yield* fire(B.exec(m, { do: 'setshields' })); yield 40;
+        D.rules.startTurn(pk); B.active = pk; yield* fire(B.exec(pk, { do: 'setpikes' })); yield 40; // (THE PIKE WALL, 11-21: the pike sets behind the fighter, then braces the push and thrusts)
         D.rules.startTurn(m); D.rules.startTurn(pk); D.rules.startTurn(u); B.active = u; var d0 = D.d, k = 0; D.d = function (n) { return n === 20 ? (k++ < 2 ? 1 : 15) : d0(n); };
         try { yield* fire(B.exec(u, { do: 'wallpush' })); } finally { D.d = d0; }
         yield 60;
@@ -622,6 +623,19 @@
         t.x = u.x; t.y = u.y - 2; D.grid.setup(D.grid.map, B.units);
         [a, b].forEach(function (w) { D.rules.startTurn(w); B.active = w; D.features.setShields(B, w); });
         yield 40; yield* swing(c, t, 4, false); yield 40;
+      },
+      // THE PIKE WALL (Soldiering's, Shape A, 11-21): two trained mates set shields before the piker, the piker SETS PIKES behind the first; the foe walks up the column straight at
+      // that shield and into the square ahead of it: KEEP BACK, its save pinned to fail, held off 5 ft and its walk ended
+      soldiering_pikewall: function* (c) {
+        var u = c.hero, t = c.foes[0], a = make('fighter:5', 'party', 'g-mate', u.x, u.y - 1, 4), b = make('fighter:5', 'party', 'g-mate2', u.x + 1, u.y - 1, 4);
+        [a, b].forEach(function (w) { w.soldiering = true; w.src = w.src || {}; w.src.equip = Object.assign({}, w.src.equip || {}, { shield: 'shield' }); B.units.push(w); });
+        if (D.SHEETS.halldor_p2) a.sheet = b.sheet = 'halldor_p2'; if (D.SHEETS.trooperpike_p2) u.sheet = 'trooperpike_p2';
+        t.x = u.x; t.y = u.y - 7; D.grid.setup(D.grid.map, B.units);
+        [a, b].forEach(function (w) { D.rules.startTurn(w); B.active = w; D.features.setShields(B, w); });
+        yield 30; D.rules.startTurn(u); B.active = u; yield* fire(B.exec(u, { do: 'setpikes' })); yield 40;
+        var d0 = D.d; D.d = function (n) { return n === 20 ? 1 : d0(n); };
+        try { D.rules.startTurn(t); B.active = t; yield* fire(B.exec(t, { do: 'move', x: a.x, y: a.y - 1 })); } finally { D.d = d0; }
+        B.active = u; yield 60;
       },
       callthemark: function* (c) { yield* fire(B.exec(c.hero, { do: 'callmark' })); yield 30; if (c.mate) { D.rules.startTurn(c.mate); B.active = c.mate; yield* fire(B.exec(c.mate, { do: 'attack', target: c.foes[0] })); B.active = c.hero; } },
       holdground: function* (c) { var u = c.hero; u.reaction = 1; yield 20; D.magic.push(B, c.foes[0], u, 10); yield 50; },

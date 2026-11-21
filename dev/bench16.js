@@ -236,6 +236,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         cur.dashLines = (Bw.log || []).filter(function (s) { return /Shield \d dashes/.test(s); }).length;
         if (dbgWw === String(sd)) cur.log = (Bw.log || []).slice(0, dbgNw); // (the fight's log, one seed's: &dbg=<seed>)
         cur.waits = (Bw.log || []).filter(function (s) { return /waiting for the wall to form/.test(s); }).length;
+        // (THE PIKE WALL, 11-21: the pikes set behind the shields, keep back, brace the push)
+        cur.pikeSets = (Bw.log || []).filter(function (s) { return /sets the pike behind/.test(s); }).length;
+        cur.keeps = (Bw.log || []).filter(function (s) { return /keeps .* over the shield/.test(s); }).length;
+        cur.braces = (Bw.log || []).filter(function (s) { return /braced by/.test(s); }).length;
         repWw.fights.push(cur);
       }
     } catch (e) { repWw.errors.push(String(e && e.stack || e)); }
@@ -247,6 +251,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     okWw('the watched fight records: ' + JSON.stringify(fs[0] && fs[0].record), fs.length && /^Watched -- /.test(fs[0].record || ''));
     okWw('the pikes to the rank in round one, no Ready: the pikers\' round-one turns, in the rank / a foe at the elbow (it fights where it stands) / no rank square open behind a shield / a square it did not take ' + fs.map(function (f) { return f.rankR1 + '/' + f.elbowR1 + '/' + f.norankR1 + '/' + f.otherR1; }).join(', ') + '; "waiting" cards ' + fs.map(function (f) { return f.waits; }).join(','),
       fs.length === 6 && fs.every(function (f) { return !f.otherR1 && !f.waits; }) && fs.filter(function (f) { return f.rankR1 > 0; }).length >= 4 && fs.some(function (f) { return f.rankR1 >= 3; }));
+    okWw('the pike wall on the AI (11-21): pikes set ' + fs.map(function (f) { return f.pikeSets; }).join(',') + '; KEEP BACKs over the shield ' + fs.map(function (f) { return f.keeps; }).join(',') + '; pushes braced ' + fs.map(function (f) { return f.braces; }).join(',') + ' (of ' + fs.map(function (f) { return f.pushes; }).join(',') + ')',
+      fs.filter(function (f) { return f.pikeSets > 0; }).length >= 4 && fs.some(function (f) { return f.braces > 0; }));
     okWw('no throw from the rank: thrown or shot attacks by a piker in the rank ' + fs.map(function (f) { return f.rankThrows; }).join(','), fs.length === 6 && fs.every(function (f) { return !f.rankThrows; }));
     var preWw = document.createElement('pre'); preWw.id = 'out'; preWw.textContent = 'BENCH16 ' + JSON.stringify(repWw);
     document.body.appendChild(preWw);
@@ -18436,7 +18442,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okRw('his door: the shields on ' + sh.map(function (w) { return w.sheet; }).join(', ') + ', the pike on ' + pk.sheet + '; the pike through the set wall played ' + JSON.stringify(thr),
         sh.every(function (w) { return w.sheet === 'halldor_p2'; }) && pk.sheet === 'trooperpike_p2' && thr.indexOf('pikerank') >= 0);
       // 3. the wall's push: the shields play `push` (Halldor's), the pike behind thrusts on `pikerank`
-      Bd.round = 2; sh.forEach(function (u) { RURw.startTurn(u); }); RURw.startTurn(pk); Bd.active = sh[0]; var i3 = 0; D.d = function (n) { return n === 20 ? (i3++ < 2 ? 1 : 15) : (n === 6 ? 4 : d0Rw(n)); };
+      // (THE PIKE WALL, 11-21: only a set pike steps and thrusts with the push now -- it braces, its reaction -- so the pike sets first)
+      Bd.round = 2; sh.forEach(function (u) { RURw.startTurn(u); }); RURw.startTurn(pk); FRw.setPikes(Bd, pk); RURw.startTurn(pk); Bd.active = sh[0]; var i3 = 0; D.d = function (n) { return n === 20 ? (i3++ < 2 ? 1 : 15) : (n === 6 ? 4 : d0Rw(n)); };
       var shRows = [], pkRows = [], g3 = Bd.exec(sh[0], { do: 'wallpush' }), v3, k3 = 0, s3;
       while (k3++ < 6000) { s3 = g3.next(v3); v3 = undefined; if (sh[0].anim && shRows[shRows.length - 1] !== sh[0].anim) shRows.push(sh[0].anim); if (pk.anim && pkRows[pkRows.length - 1] !== pk.anim) pkRows.push(pk.anim); if (s3.done) break; if (s3.value && s3.value.prompt) v3 = s3.value.prompt.opts[0].value; }
       D.d = d0Rw;
@@ -18554,6 +18561,114 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preWh);
     return;
   }
+  // THE PIKE WALL (mode=pikewall1121; Soldiering's, Shape A of the leveling lane's 2026-11-20 (late) section, built 11-21 on Griz's "Go on 1-5" -- his lean: "join the pike wall
+  // (or just pike wall) like 'set shield' is under skills, where non-polearm masters get to use set and push back as moves called similar to the wall calling push (and
+  // polearm-masters in the pike wall get a bonus to theirs) - and maybe move with marches and successful pushes"): SET PIKES on the ring behind a set shield, a bonus action,
+  // the move held; joined only behind a joined shield; KEEP BACK on the square ahead of its shield (no Long Guard needed), Long Guard's +2 in the wall; SET AGAINST THE CHARGE at
+  // the shield; THE BRACE +1 a pike (Long Guard +2), at most +2, and the thrust after, hit or hold; KEEP BACK and the brace one reaction; set pikes step with MARCH and a push,
+  // an unset one stays; out with its shield, prone, its own LEAVE; a move click asks; no Dash; the AI sets and braces unasked; a spear sets but reaches nothing ahead
+  if (get('mode', '') === 'pikewall1121') {
+    var repPw = { checks: [], errors: [] }, d0Pw = D.d, FPw = D.features, RUPw = D.rules, Gq = D.grid;
+    function okPw(what, v) { repPw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPw(g, want) { var v, k = 0, st, asked = []; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { asked.push(st.value.prompt.title); var os = st.value.prompt.opts; v = (want ? os[0] : os[os.length - 1]).value; } } return asked; }
+    function pinPw(seq) { var i = 0; D.d = function (n) { return n === 20 ? seq[Math.min(i++, seq.length - 1)] : (n === 6 ? 4 : d0Pw(n)); }; }
+    function logPw(B, n0) { return (B.log || []).slice(n0).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function atPw(u) { return u.x + ',' + u.y; }
+    // f, m: shields side by side at (X, Y), (X+1, Y), facing north; p, q: pikers behind them; the goblins g1, g2 out ahead, 4 and 6 squares up
+    function mkPw(o) {
+      o = o || {};
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), f = ps[0], m = ps[1], p = ps[2], q = ps[3], gs = B.units.filter(function (w) { return w.side === 'foe'; });
+      [f, m].forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); u.conds = {}; });
+      [p, q].forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = o.untrained ? [] : o.lg && u === p ? ['soldiering', 'longguard'] : ['soldiering']; u.src.equip = Object.assign({}, u.src.equip || {}, { weapon: o.arm || 'pike', shield: null }); u.weapon = D.save.weaponOf(u.src); u.conds = {}; });
+      gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; g.size = 1; });
+      Gq.setup(B.map, []); var spot = null, W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30;
+      for (var y = 8; y < H - 3 && !spot; y++) for (var x = 1; x < W - 3 && !spot; x++) { var all = true; for (var yy = y - 7; yy <= y + 2 && all; yy++) for (var xx = x; xx <= x + 1 && all; xx++) all = Gq.canStand(f, xx, yy) && Math.abs(Gq.gzAt(f, xx, yy) - Gq.gzAt(f, x, y)) < 2; if (all) spot = [x, y]; }
+      var X = spot[0], Y = spot[1];
+      f.x = X; f.y = Y; m.x = X + 1; m.y = Y; p.x = X; p.y = Y + 1; q.x = X + 1; q.y = Y + 1; gs[0].x = X; gs[0].y = Y - 4; gs[1].x = X + 1; gs[1].y = Y - 6;
+      Gq.setup(B.map, B.units); [f, m, p, q].forEach(function (u) { RUPw.startTurn(u); });
+      if (!o.noset) [f, m].forEach(function (u) { B.active = u; runPw(B.exec(u, { do: 'setshields' })); });
+      [f, m, p, q].forEach(function (u) { RUPw.startTurn(u); }); B.active = f;
+      return { B: B, f: f, m: m, p: p, q: q, g1: gs[0], g2: gs[1], X: X, Y: Y, ok: !!spot };
+    }
+    function setP(h, u) { RUPw.startTurn(u); h.B.active = u; return runPw(h.B.exec(u, { do: 'setpikes' })); }
+    function put(h, u, x, y) { u.x = x; u.y = y; Gq.setup(h.B.map, h.B.units); }
+    function walk(h, g, x, y, want) { RUPw.startTurn(g); h.B.active = g; var n0 = (h.B.log || []).length, asked = runPw(h.B.exec(g, { do: 'move', x: x, y: y }), want); D.d = d0Pw; return { asked: asked, log: logPw(h.B, n0) }; }
+    function push(h, u, want) { h.B.active = u; var n0 = (h.B.log || []).length, asked = runPw(h.B.exec(u, { do: 'wallpush' }), want); D.d = d0Pw; return { asked: asked, log: logPw(h.B, n0) }; }
+    function cmd(h, u, id) { return h.B.commands(u).filter(function (c) { return c.id === id; })[0]; }
+    try {
+      D.seed = 1121;
+      // 1. SET PIKES on the ring beside SET SHIELDS: a trained piker behind a set shield -- the bonus action, the move held, the shield's front, joined (the shield is joined)
+      var h1 = mkPw(), c1 = cmd(h1, h1.p, 'setpikes'), cS = cmd(h1, h1.f, 'setpikes'); var a1 = setP(h1, h1.p), T1 = h1.p.turn;
+      okPw('SET PIKES (placed ' + h1.ok + ' at ' + h1.X + ',' + h1.Y + '): on the piker\'s ring ' + !!(c1 && c1.ok) + ', on a shield\'s ' + !!cS + '; then set ' + FPw.pikeSet(h1.p) + ', joined ' + FPw.pikeJoined(h1.p) + ', bonus ' + T1.bonus + ', move ' + T1.move + ', reaction ' + h1.p.reaction + ', front ' + JSON.stringify(h1.p.conds.pikes && h1.p.conds.pikes.face) + '; the ring now offers ' + !!cmd(h1, h1.p, 'leavepikes'),
+        h1.ok && c1 && c1.ok && !cS && FPw.pikeSet(h1.p) && FPw.pikeJoined(h1.p) && T1.bonus === 0 && T1.move === 0 && h1.p.reaction === 1 && JSON.stringify(h1.p.conds.pikes.face) === '[0,-1]' && !!cmd(h1, h1.p, 'leavepikes'));
+      // 2. not behind a set shield: the button is off; behind a lone set shield: set, not joined; the mate sets beside: joined; untrained: no SET PIKES
+      var h2 = mkPw({ noset: true }), c2 = cmd(h2, h2.p, 'setpikes'); h2.B.active = h2.f; runPw(h2.B.exec(h2.f, { do: 'setshields' })); setP(h2, h2.p); var s2 = FPw.pikeSet(h2.p), j2 = FPw.pikeJoined(h2.p);
+      RUPw.startTurn(h2.m); h2.B.active = h2.m; runPw(h2.B.exec(h2.m, { do: 'setshields' })); var j2b = FPw.pikeJoined(h2.p);
+      var h2u = mkPw({ untrained: true });
+      okPw('no shield set before it: the button ' + (c2 && c2.ok) + ' ("' + (c2 && c2.why) + '"); behind a lone shield: set ' + s2 + ', joined ' + j2 + '; the mate sets: joined ' + j2b + '; untrained: SET PIKES on the ring ' + !!cmd(h2u, h2u.p, 'setpikes'),
+        c2 && !c2.ok && /behind a set shield/.test(c2.why) && s2 && !j2 && j2b && !cmd(h2u, h2u.p, 'setpikes'));
+      // 3. KEEP BACK, given by the formation (no Long Guard): the goblin walks up to the square ahead of the shield -- the pike's reaction, STR DC 12 (8 + 2 + 2), failed: pushed
+      // 5 ft back and its walk ended; the pike not set, the goblin comes on
+      var h3 = mkPw(); setP(h3, h3.p); RUPw.startTurn(h3.p); pinPw([1]); var w3 = walk(h3, h3.g1, h3.X, h3.Y - 1, true);
+      var h3n = mkPw(); pinPw([1]); var w3n = walk(h3n, h3n.g1, h3n.X, h3n.Y - 1, true);
+      okPw('KEEP BACK in the pike wall: asked ' + JSON.stringify(w3.asked) + ', the goblin at ' + atPw(h3.g1) + ' (wanted ' + h3.X + ',' + (h3.Y - 2) + '), the pike\'s reaction ' + h3.p.reaction + ', "' + (w3.log.match(/keeps[^/]*/) || [''])[0].slice(0, 120) + '"; a pike not set: asked ' + JSON.stringify(w3n.asked) + ', the goblin at ' + atPw(h3n.g1),
+        w3.asked.some(function (t) { return /KEEP BACK/.test(t); }) && atPw(h3.g1) === h3.X + ',' + (h3.Y - 2) && h3.p.reaction === 0 && /HELD OFF/.test(w3.log) && /DC 12/.test(w3.log) && !w3n.asked.length && atPw(h3n.g1) === h3n.X + ',' + (h3n.Y - 1));
+      // 4. LONG GUARD in the pike wall: KEEP BACK's DC +2 (14); the same pike with its pikes not set, its own Long Guard at 12
+      var h4 = mkPw({ lg: true }); setP(h4, h4.p); RUPw.startTurn(h4.p); pinPw([1]); var w4 = walk(h4, h4.g1, h4.X, h4.Y - 1, true);
+      var h4n = mkPw({ lg: true }); pinPw([1]); var w4n = walk(h4n, h4n.g1, h4n.X, h4n.Y - 1, true);
+      okPw('Long Guard set in the pike wall: "' + (w4.log.match(/keeps[^/]*/) || [''])[0].slice(0, 130) + '"; not set: "' + (w4n.log.match(/keeps[^/]*/) || [''])[0].slice(0, 90) + '"',
+        /DC 14/.test(w4.log) && /\+2 Long Guard/.test(w4.log) && /DC 12/.test(w4n.log) && /HELD OFF/.test(w4.log));
+      // 5. SET AGAINST THE CHARGE at the shield: the goblin comes 25 ft straight at the shield (the pike's reaction already spent, so no KEEP BACK) -- marked for the pike's next hit
+      var h5 = mkPw(); put(h5, h5.g1, h5.X, h5.Y - 6); put(h5, h5.g2, h5.X + 1, h5.Y - 7); setP(h5, h5.p); RUPw.startTurn(h5.p); h5.p.reaction = 0; var w5 = walk(h5, h5.g1, h5.X, h5.Y - 1, true);
+      var sa5 = h5.g1.conds.setAgainst;
+      okPw('set against the charge: the goblin at ' + atPw(h5.g1) + ', marked by the pike ' + !!(sa5 && sa5.by === h5.p.id) + ', "' + (w5.log.match(/sets the [^/]*against the charge[^/]*/) || [''])[0].slice(0, 100) + '"', atPw(h5.g1) === h5.X + ',' + (h5.Y - 1) && sa5 && sa5.by === h5.p.id);
+      // 6. THE BRACE: both goblins before the wall HOLD (the line stays); the two set pikes brace -- DC 8 + 2 + 2, +1 the mate, +2 the braces = 15 -- and each thrusts, hit or hold
+      var h6 = mkPw(); put(h6, h6.g1, h6.X, h6.Y - 1); put(h6, h6.g2, h6.X + 1, h6.Y - 1); setP(h6, h6.p); setP(h6, h6.q); [h6.f, h6.m, h6.p, h6.q].forEach(function (u) { RUPw.startTurn(u); });
+      pinPw([20, 20, 15, 15]); var w6 = push(h6, h6.f, true), th6 = (w6.log.match(/thrusts past the wall/g) || []).length;
+      okPw('the brace, the foes holding: asked ' + JSON.stringify(w6.asked) + ', DC ' + ((w6.log.match(/STR DC (\d+)/) || [])[1]) + ', "' + (w6.log.match(/braced by[^)]*/) || [''])[0] + '", thrusts ' + th6 + ', the pikes\' reactions ' + h6.p.reaction + ' / ' + h6.q.reaction + '; the line ' + atPw(h6.f),
+        w6.asked.filter(function (t) { return /BRACE/.test(t); }).length === 2 && (w6.log.match(/STR DC (\d+)/) || [])[1] === '15' && /braced by/.test(w6.log) && th6 === 2 && h6.p.reaction === 0 && h6.q.reaction === 0 && /THE LINE HOLDS/.test(w6.log) && atPw(h6.f) === h6.X + ',' + h6.Y);
+      // 7. one plain pike: +1 (14); one Long Guard pike: +2 (15); the cap: a Long Guard and a plain pike, still +2 (15)
+      var dcOf = function (o, both) { var h = mkPw(o); put(h, h.g1, h.X, h.Y - 1); put(h, h.g2, h.X + 1, h.Y - 1); setP(h, h.p); if (both) setP(h, h.q); [h.f, h.m, h.p, h.q].forEach(function (u) { RUPw.startTurn(u); }); pinPw([20, 20, 15, 15]); var w = push(h, h.f, true); return (w.log.match(/STR DC (\d+)/) || [])[1]; };
+      var dc7a = dcOf({}), dc7b = dcOf({ lg: true }), dc7c = dcOf({ lg: true }, true);
+      okPw('the brace\'s measure: one pike DC ' + dc7a + ' (want 14), one Long Guard pike ' + dc7b + ' (15), a Long Guard and a plain pike ' + dc7c + ' (15, the cap)', dc7a === '14' && dc7b === '15' && dc7c === '15');
+      // 8. THE WRINKLE (standing): the pike that kept a foe back this round has no reaction to brace -- the push at 13, no thrust
+      var h8 = mkPw(); put(h8, h8.g1, h8.X, h8.Y - 3); put(h8, h8.g2, h8.X + 1, h8.Y - 1); setP(h8, h8.p); [h8.f, h8.m, h8.p].forEach(function (u) { RUPw.startTurn(u); });
+      pinPw([1]); walk(h8, h8.g1, h8.X, h8.Y - 1, true); var r8 = h8.p.reaction; put(h8, h8.g1, h8.X, h8.Y - 1); pinPw([20, 20]); var w8 = push(h8, h8.f, true);
+      okPw('KEEP BACK then the push, the same round: the pike\'s reaction after keeping back ' + r8 + '; the push DC ' + ((w8.log.match(/STR DC (\d+)/) || [])[1]) + ' (want 13), asked ' + JSON.stringify(w8.asked) + ', thrusts ' + (w8.log.match(/thrusts past the wall/g) || []).length,
+        r8 === 0 && (w8.log.match(/STR DC (\d+)/) || [])[1] === '13' && !w8.asked.length && !/thrusts past the wall/.test(w8.log));
+      // 9. MOVING: MARCH carries the set pike and leaves the unset one where it stands; a push that steps carries the set pike, still set
+      var h9 = mkPw(); put(h9, h9.g1, h9.X, h9.Y - 7); put(h9, h9.g2, h9.X + 1, h9.Y - 7); setP(h9, h9.p); RUPw.startTurn(h9.f); h9.B.active = h9.f; runPw(h9.B.exec(h9.f, { do: 'wallmarch' }));
+      var h9b = mkPw(); put(h9b, h9b.g1, h9b.X, h9b.Y - 1); put(h9b, h9b.g2, h9b.X + 1, h9b.Y - 1); setP(h9b, h9b.p); [h9b.f, h9b.m, h9b.p].forEach(function (u) { RUPw.startTurn(u); }); pinPw([1, 1, 15]); push(h9b, h9b.f, true);
+      okPw('MARCH: the wall ' + atPw(h9.f) + ', the set pike ' + atPw(h9.p) + ' (set ' + FPw.pikeSet(h9.p, h9.B) + '), the unset one ' + atPw(h9.q) + ' (from ' + (h9.X + 1) + ',' + (h9.Y + 1) + '); the push: the wall ' + atPw(h9b.f) + ', the set pike ' + atPw(h9b.p) + ' (set ' + FPw.pikeSet(h9b.p, h9b.B) + '), the unset ' + atPw(h9b.q),
+        atPw(h9.f) === h9.X + ',' + (h9.Y - 3) && atPw(h9.p) === h9.X + ',' + (h9.Y - 2) && FPw.pikeSet(h9.p, h9.B) && atPw(h9.q) === (h9.X + 1) + ',' + (h9.Y + 1) &&
+        atPw(h9b.f) === h9b.X + ',' + (h9b.Y - 1) && atPw(h9b.p) === h9b.X + ',' + h9b.Y && FPw.pikeSet(h9b.p, h9b.B) && atPw(h9b.q) === (h9b.X + 1) + ',' + (h9b.Y + 1));
+      // 10. OUT: the shield before it leaves the wall -- the pike out, its move back; knocked prone -- out, and still out when it stands; its own LEAVE -- the bonus action, the move back
+      var h10 = mkPw(); setP(h10, h10.p); RUPw.startTurn(h10.p); var mv10 = h10.p.turn.move; RUPw.startTurn(h10.f); h10.B.active = h10.f; runPw(h10.B.exec(h10.f, { do: 'leavewall' })); var o10 = FPw.pikeSet(h10.p), mv10b = h10.p.turn.move;
+      var h10b = mkPw(); setP(h10b, h10b.p); h10b.p.conds.prone = true; var o10b = FPw.pikeSet(h10b.p); delete h10b.p.conds.prone; RUPw.startTurn(h10b.p); var o10c = FPw.pikeSet(h10b.p);
+      var h10c = mkPw(); setP(h10c, h10c.p); RUPw.startTurn(h10c.p); h10c.B.active = h10c.p; runPw(h10c.B.exec(h10c.p, { do: 'leavepikes' }));
+      okPw('out: the shield leaves -- the pike set ' + o10 + ', its move ' + mv10 + ' -> ' + mv10b + '; prone ' + o10b + ', stood up ' + o10c + '; its own LEAVE: set ' + FPw.pikeSet(h10c.p) + ', bonus ' + h10c.p.turn.bonus + ', move ' + h10c.p.turn.move,
+        !o10 && mv10 === 0 && mv10b > 0 && !o10b && !o10c && !FPw.pikeSet(h10c.p) && h10c.p.turn.bonus === 0 && h10c.p.turn.move > 0);
+      // 11. a move click with pikes set asks LEAVE THE PIKE WALL? (yes: it leaves and walks); DASH is off the ring while set
+      var h11 = mkPw(); setP(h11, h11.p); RUPw.startTurn(h11.p); h11.B.active = h11.p; var dash11 = cmd(h11, h11.p, 'dash'), got11 = null, ans11 = h11.B.answer; h11.B.answer = function (c) { got11 = c; };
+      h11.B.tool = 'move'; D.ui.actAt(h11.B, h11.p, h11.X, h11.Y + 2); h11.B.answer = ans11; var asked11 = runPw(h11.B.exec(h11.p, got11 || { do: 'none' }), true);
+      okPw('a move click while set: ' + JSON.stringify(got11 && got11.do) + ', asked ' + JSON.stringify(asked11) + ', then at ' + atPw(h11.p) + ', set ' + FPw.pikeSet(h11.p) + '; DASH on the ring ok ' + (dash11 && dash11.ok),
+        got11 && got11.do === 'wallmove' && asked11.some(function (t) { return /LEAVE THE PIKE WALL/.test(t); }) && atPw(h11.p) === h11.X + ',' + (h11.Y + 2) && !FPw.pikeSet(h11.p) && dash11 && !dash11.ok);
+      // 12. THE AI: a piker behind a set shield sets pikes on its turn; at the push it braces unasked; at a step up it keeps back unasked
+      var h12 = mkPw(); h12.p.guest = true; h12.B.round = 2; RUPw.startTurn(h12.p); h12.B.active = h12.p; runPw(FPw.aiWall(h12.B, h12.p)); var s12 = FPw.pikeSet(h12.p);
+      put(h12, h12.g1, h12.X, h12.Y - 1); put(h12, h12.g2, h12.X + 1, h12.Y - 1); [h12.f, h12.m, h12.p].forEach(function (u) { RUPw.startTurn(u); }); pinPw([20, 20, 15]); var w12 = push(h12, h12.f, true);
+      var h12b = mkPw(); h12b.p.guest = true; setP(h12b, h12b.p); RUPw.startTurn(h12b.p); pinPw([1]); var w12b = walk(h12b, h12b.g1, h12b.X, h12b.Y - 1, false);
+      okPw('the AI\'s pike: sets on its turn ' + s12 + '; braces unasked (asked ' + JSON.stringify(w12.asked) + ', "' + (w12.log.match(/braced by[^)]*/) || [''])[0] + '"); keeps back unasked ("' + (w12b.log.match(/keeps[^/]*/) || [''])[0].slice(0, 60) + '")',
+        s12 && !w12.asked.length && /braced by/.test(w12.log) && /HELD OFF/.test(w12b.log));
+      // 13. a spear sets (a spear is in the draft), but its 5 ft reaches nothing ahead of the shield: no KEEP BACK
+      var h13 = mkPw({ arm: 'spear' }); setP(h13, h13.p); RUPw.startTurn(h13.p); pinPw([1]); var w13 = walk(h13, h13.g1, h13.X, h13.Y - 1, true);
+      okPw('a spear: set ' + FPw.pikeSet(h13.p) + '; the goblin steps up to the shield -- asked ' + JSON.stringify(w13.asked) + ', the spear\'s reaction ' + h13.p.reaction, FPw.pikeSet(h13.p) && !w13.asked.length && h13.p.reaction === 1);
+    } catch (e) { repPw.errors.push(String(e && e.stack || e)); }
+    D.d = d0Pw;
+    var prePw = document.createElement('pre'); prePw.id = 'out'; prePw.textContent = 'BENCH16 ' + JSON.stringify(repPw);
+    document.body.appendChild(prePw);
+    return;
+  }
   // THE SHIELD WALL (mode=shieldwall1120; Soldiering's, the leveling lane's 2026-11-20 sections -- Griz: "a 'shield wall' feat that cost a bonus action to 'create, join or
   // leave' and your reaction when you do, but does a +2 AC and 1d6 blunt damage shove each round"; "4 - save"; RE-CUT 11-20 on his play, "my imagination required the 'push' to
   // be a unified movement of the wall", then "Yes, build it" on the lanes desk's six): set alone gives nothing, for the bonus action alone; two set side by side are joined, +2
@@ -18668,8 +18783,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var l12c = (h12c.B.log || []).slice(n12c).join(' ').replace(/\{\/?[a-z]*\}/g, '');
       okSw('HOLD THE WALL: set ' + FSw.wallSet(h12b.f) + ', at ' + at(h12b.f) + '; the bonus action spent: set ' + FSw.wallSet(h12c.f) + ', at ' + at(h12c.f) + ', "' + l12c.slice(0, 90) + '"',
         FSw.wallSet(h12b.f) && at(h12b.f) === h12b.X + ',' + h12b.Y && FSw.wallSet(h12c.f) && at(h12c.f) === h12c.X + ',' + h12c.Y && /holds the wall/.test(l12c));
-      // 13. THE PIKES (re-cut 5): a trained piker behind the caller steps with the line and thrusts at the shoved goblin, its reaction
-      var h13 = mkSw(true, true); wallSw(h13); RUSw.startTurn(h13.p); h13.B.active = h13.f; var hp13 = h13.g1.hp + h13.g2.hp; pinSw([1, 1, 18, 18]); var l13 = pushSw(h13, h13.f, true);
+      // 13. THE PIKES (re-cut 5): a trained piker behind the caller steps with the line and thrusts at the shoved goblin, its reaction -- since THE PIKE WALL (11-21) a SET pike
+      // (SET PIKES first): it braces the push with that reaction and thrusts, and only a set one steps (mode=pikewall1121 proves the rest)
+      var h13 = mkSw(true, true); wallSw(h13); RUSw.startTurn(h13.p); h13.B.active = h13.p; runSw(h13.B.exec(h13.p, { do: 'setpikes' })); RUSw.startTurn(h13.p); h13.B.active = h13.f; var hp13 = h13.g1.hp + h13.g2.hp; pinSw([1, 1, 18, 18]); var l13 = pushSw(h13, h13.f, true);
       okSw('the pike behind: at ' + at(h13.p) + ' (from ' + h13.X + ',' + (h13.Y + 1) + '), its reaction ' + h13.p.reaction + ', "' + (l13.match(/thrusts past the wall[^/]*/) || [''])[0].slice(0, 60) + '", the goblins hurt ' + (hp13 - h13.g1.hp - h13.g2.hp),
         at(h13.p) === h13.X + ',' + h13.Y && h13.p.reaction === 0 && /thrusts past the wall/.test(l13) && hp13 - h13.g1.hp - h13.g2.hp > 8);
       // 19. THE PUSH ROW (11-20, the first drawn: Halldor's `push`): a pusher whose sheet has a `push` row plays it, facing the front, and the saves fall after its release frame;
@@ -30572,7 +30688,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // button on the stage) / error. The register is read in by a synchronous XHR when index.html does not load it yet (the seat adds the
   // script line); &only=a,b keeps to those
   if (get('mode', '') === 'featurewalk') {
-    var EXPECT_W = { soldiering_wheel: /WHEEL/, soldiering_wall: /THE LINE STEPS FORWARD[\s\S]*thrusts past the wall/, soldiering_pike: /vs AC \d+(?!\d| \+\d+ cover)/, sneakattack: /sneak 1d6/, colossusslayer: /colossus slayer/, divinesmite: /smite \d/, stunningstrike: /stunning strike/, openhandtechnique: /open hand/, uncannydodge: /uncanny dodge/,
+    var EXPECT_W = { soldiering_wheel: /WHEEL/, soldiering_wall: /THE LINE STEPS FORWARD[\s\S]*thrusts past the wall/, soldiering_pike: /vs AC \d+(?!\d| \+\d+ cover)/, soldiering_pikewall: /sets the pike behind[\s\S]*keeps[^\n]*HELD OFF/, sneakattack: /sneak 1d6/, colossusslayer: /colossus slayer/, divinesmite: /smite \d/, stunningstrike: /stunning strike/, openhandtechnique: /open hand/, uncannydodge: /uncanny dodge/,
       deflectmissiles: /deflects the missile/, evasion_monk: /evasion/, evasion_rogue: /evasion/, firstblood: /FIRST BLOOD/, answerback: /answers back/, downinthesand: /down in the sand/, rimedoubles: /breaks to rime/,
       rimestep: /Rime Step/, sculptspells: /sculpted/, potentcantrip: /potent/, elementalaffinity: /affinity/, discipleoflife: /CURE WOUNDS/, blessedhealer: /blessed healer/, destroyundead: /DESTROYED/,
       darkonesblessing: /Dark One's Blessing/, agonizingblast: /1d10\+\d/, pactoftheblade: /\(pact\)/, pactofthetome: /SACRED FLAME/, auraofprotection: /aura \+/, auraofdevotion: /proof against/,

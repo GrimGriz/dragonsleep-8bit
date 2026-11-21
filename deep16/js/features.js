@@ -1274,6 +1274,7 @@
   RU.startTurn = function (u) {
     var r = startTurnW.apply(this, arguments);
     if (u && u.conds && u.conds.wall) { if (F.wallSet(u)) { u.turn.wallMove = u.turn.move; u.turn.move = 0; } else delete u.conds.wall; }
+    if (u && u.conds && u.conds.pikes) { if (F.pikeSet(u)) { u.turn.pikeMove = u.turn.move; u.turn.move = 0; u.turn.rankHeld = true; } else delete u.conds.pikes; } // (THE PIKE WALL, 11-21: a set pike's move held as a set shield's)
     return r;
   };
   F.ahead = function (B, s, face) {
@@ -1288,7 +1289,8 @@
     return out;
   };
   F.pushers = function (B, u) { return [u].concat(F.wallOf(B, u).filter(function (w) { return w !== u && w.reaction > 0 && RU.canAct(w); })); };
-  F.pushDC = function (B, u) { var ab = u.abil || (u.src && u.src.abil) || { str: 10 }; return 8 + (u.prof || 2) + D.mod(ab.str) + Math.max(0, F.pushers(B, u).length - 1); };
+  // (the brace, THE PIKE WALL 11-21: +1 a bracing pike, a Long Guard's +2, at most +2 in all -- F.braceOf)
+  F.pushDC = function (B, u, braced) { var ab = u.abil || (u.src && u.src.abil) || { str: 10 }; return 8 + (u.prof || 2) + D.mod(ab.str) + Math.max(0, F.pushers(B, u).length - 1) + F.braceBonus(braced); };
   // ONE PUSH A ROUND for a wall (11-20, his "leans 1-4 approved"): a call marks every member with the round, and no member of a wall so marked calls again that round
   F.wallPushedNow = function (B, wall) { return wall.some(function (w) { return w.conds.wall && w.conds.wall.pushed === B.round; }); };
   F.canPush = function (B, u) { if (!(u && u.turn && u.turn.bonus > 0 && F.joined(u, B))) return false; var wall = F.wallOf(B, u); return !F.wallPushedNow(B, wall) && F.lineFoes(B, wall, u.conds.wall.face).length > 0; };
@@ -1299,10 +1301,11 @@
       return occ && wall.indexOf(occ) >= 0 ? true : G.canStand(s, x, y);
     });
   }
-  // the pikers of the rank: trained, a pike in hand, standing in the square behind a member
+  // the pikes of the rank: SET PIKES (THE PIKE WALL, 11-21 -- till then any trained one with a pike behind a member), the wall's front, standing in the square behind a member.
+  // Only these step with the line, at a push or a MARCH (his "maybe move with marches and successful pushes"; a pike not set stays where it is), and only these brace
   F.rankPikes = function (B, wall, face) {
     return B.units.filter(function (p) {
-      return p.side === wall[0].side && !p.dead && p.hp > 0 && wall.indexOf(p) < 0 && F.soldiering(p) && F.pikeThrough(p) && wall.some(function (s) { return p.x === s.x - face[0] && p.y === s.y - face[1]; });
+      return p.side === wall[0].side && wall.indexOf(p) < 0 && F.pikeSet(p, B) && p.conds.pikes.face[0] === face[0] && p.conds.pikes.face[1] === face[1] && wall.some(function (s) { return p.x === s.x - face[0] && p.y === s.y - face[1]; });
     });
   };
   function stepLine(B, wall, face) {
@@ -1314,12 +1317,25 @@
   }
   F.wallPush = function* (B, u) {
     if (!F.canPush(B, u)) return;
-    var face = u.conds.wall.face, wall = F.wallOf(B, u), pushers = F.pushers(B, u), dc = F.pushDC(B, u), foes = F.lineFoes(B, wall, face);
+    var face = u.conds.wall.face, wall = F.wallOf(B, u), pushers = F.pushers(B, u), foes = F.lineFoes(B, wall, face);
+    // THE BRACE (THE PIKE WALL, 11-21 -- his "something they do when the shield wall pushes"): each set pike behind the line with its reaction may brace over its shield's
+    // shoulder -- the reaction spent, +1 on the push's DC (a Long Guard's +2), at most +2 in all; it thrusts after, hit or hold. One reaction with KEEP BACK (the wrinkle, standing):
+    // a pike that kept a foe back this round has none to brace with. A player's pike asked; the AI's always braces
+    var braced = [], cand = F.rankPikes(B, wall, face).filter(function (p) { return p.reaction > 0 && RU.canAct(p); });
+    for (var bi = 0; bi < cand.length; bi++) {
+      var bp = cand[bi];
+      if (mine(bp)) {
+        var bgo = yield { prompt: { who: bp, title: bp.name + ': BRACE?', lines: [u.name + ' calls the push: brace your pike over the shield (your reaction) -- +' + F.braceOf(bp) + ' on the push\'s DC (at most +2 in all), and thrust after it, hit or hold.'], opts: [{ label: 'BRACE', value: 1 }, { label: 'HOLD', value: 0, no: true }] } };
+        if (!bgo) continue;
+      }
+      bp.reaction = 0; braced.push(bp);
+    }
+    var dc = F.pushDC(B, u, braced);
     u.turn.bonus = 0; pushers.forEach(function (w) { if (w !== u) w.reaction = 0; }); wall.forEach(function (w) { w.conds.wall.pushed = B.round; });
     // (the price on the card and over each head, 11-20 -- Griz at his door: "The wall push isn't costing anything for the guys who didn't call the push": it cost each
     // pushing mate its reaction, said only as a count; now named, a mate with none left named too, and "reaction spent" floated over each who paid)
     var mts = pushers.filter(function (w) { return w !== u; }), idle = wall.filter(function (w) { return w !== u && pushers.indexOf(w) < 0; });
-    B.card(['{y}' + u.name + '{/} calls the push: the wall of ' + wall.length + ' shoves as one, STR DC ' + dc + '  {g}(' + u.name + '\'s bonus action' + (mts.length ? '; the reactions of ' + mts.map(function (w) { return w.name; }).join(', ') : '') + (idle.length ? '; ' + idle.map(function (w) { return w.name; }).join(', ') + ' with no reaction left, not pushing' : '') + '){/}'], 260);
+    B.card(['{y}' + u.name + '{/} calls the push: the wall of ' + wall.length + ' shoves as one, STR DC ' + dc + '  {g}(' + u.name + '\'s bonus action' + (mts.length ? '; the reactions of ' + mts.map(function (w) { return w.name; }).join(', ') : '') + (idle.length ? '; ' + idle.map(function (w) { return w.name; }).join(', ') + ' with no reaction left, not pushing' : '') + (braced.length ? '; braced by ' + braced.map(function (w) { return w.name; }).join(', ') + ', +' + F.braceBonus(braced) + ' (their reactions)' : '') + '){/}'], 260);
     if (FX && FX.float) mts.forEach(function (w) { FX.float('reaction spent', w, D.PAL.ramps.silver ? D.PAL.ramps.silver[5] : '#ccc'); });
     D.sfx('confirm'); yield 10;
     // THE PUSH ROW (11-20: the first drawn, Halldor's `push` on halldor_p2 -- six frames, the shove on the fourth): every pusher whose sheet has one plays it toward the front
@@ -1347,19 +1363,15 @@
     B.card([stepped ? '  {y}THE LINE STEPS FORWARD{/} 5 ft, as one' : '  {n}THE LINE HOLDS ITS GROUND{/}  {g}(' + (held.length ? held.map(function (f) { return nm(B, f); }).join(', ') + ' held' : stuck.length ? stuck.map(function (f) { return nm(B, f); }).join(', ') + ' not moved' : 'no room for the line to step') + '; nobody steps){/}'], 240);
     yield stepped ? 14 : 8;
     rowers.forEach(function (w) { if (w.anim === 'push') { w.anim = 'idle'; w.animT = B.t; } }); // (the row played out: back to idle)
-    // the pikes' thrust (5): each trained piker behind a member, its reaction, at a foe that failed and is in its reach
-    var pikes = F.rankPikes(B, wall, face);
-    for (var i = 0; i < pikes.length; i++) {
-      var p = pikes[i], ts = failed.filter(function (f) { return !f.dead && f.hp > 0 && G.dist(p, f) <= G.armOf(p); });
-      if (!(p.reaction > 0) || !RU.canAct(p) || !ts.length) continue;
-      var t = ts[0];
-      if (mine(p)) {
-        var go = yield { prompt: { who: p, title: p.name + ': THRUST?', lines: ['The wall shoves ' + nm(B, t) + ': thrust the pike past it (your reaction).'], opts: [{ label: 'THRUST', value: 1 }, { label: 'HOLD', value: 0, no: true }] } };
-        if (!go) continue;
-      }
-      p.reaction = 0;
-      B.card(['  {y}' + p.name + '{/} thrusts past the wall  {g}(its reaction){/}'], 200);
-      yield* B.attack(p, t, F.pikeOf(p), { pikeRank: true });
+    // the pikes' thrust: each pike that braced, HIT OR HOLD (THE PIKE WALL, 11-21; till then a piker behind thrust with its reaction only at a foe that failed) -- the foe before
+    // its own shield first, else any foe of the push in its reach; its reaction went on the brace
+    for (var i = 0; i < braced.length; i++) {
+      var p = braced[i]; if (p.dead || p.hp <= 0 || !RU.canAct(p)) continue;
+      var arm = F.pikeArm(p) || F.pikeOf(p), rch = G.armOf(p), sh = p.conds.pikes ? F.pikeFront(B, p, p.conds.pikes.face) : null, own = sh ? F.ahead(B, sh, face).who : null;
+      var ts = foes.filter(function (f) { return !f.dead && f.hp > 0 && G.dist(p, f) <= rch; }), t = own && ts.indexOf(own) >= 0 ? own : ts[0];
+      if (!t) { B.card(['  {g}' + p.name + ' braced; nothing in the ' + (arm && arm.name ? arm.name.toLowerCase() : 'pike') + '\'s reach to thrust at.{/}'], 160); continue; }
+      B.card(['  {y}' + p.name + '{/} thrusts past the wall  {g}(braced: its reaction){/}'], 200);
+      yield* B.attack(p, t, arm, { pikeRank: true });
       yield 8;
     }
   };
@@ -1470,6 +1482,9 @@
   F.aiWall = function* (B, u) {
     if (mine(u) || !u.turn || u.dead || u.hp <= 0) return;
     if (F.pikeReady(u) && !F.bearsShield(u)) { // (a piker: to the rank)
+      // THE PIKE WALL (11-21, the draft's AI): set, it holds -- it leaves only with no foe within 60 ft, as a set shield does; KEEP BACK always and the brace whenever its
+      // wall pushes are F.keepBack's and F.wallPush's (the AI's pike is never asked); it throws nothing from the rank (rankHeld, tactics.js)
+      if (F.pikeSet(u, B)) { if (!foeWithin(B, u, 60)) { F.leavePikes(B, u); yield 8; } return; }
       if (!F.formGuard(B, u) || foeWithin(B, u, 5)) return; // (a foe at its elbow: it fights as it can)
       var set = sideWalls(B, u);
       // NO WALL YET, ROUND ONE: TO WHERE THE RANK WILL FORM (RULED 2026-11-20 "for test AI", Griz: "4 - good for test AI", on the formation seat's lean that "waits holding for
@@ -1485,6 +1500,7 @@
       var inRank = yield* walkTo(B, u, spots);
       if (inRank && B.round === 1 && !(u.turn && u.turn.rankHeld)) { B.card(['{g}' + u.name + ' takes the rank behind the shields, pike levelled.{/}'], 160); yield 6; }
       if (inRank) holdRank(u);
+      if (inRank && F.canSetPikes(B, u)) { F.setPikes(B, u); yield 8; } // (the turn it stands behind a set member: SET PIKES, the bonus action -- the draft's AI)
       return;
     }
     if (!F.wallReady(u) || !(u.turn.bonus > 0)) return;
@@ -1516,8 +1532,66 @@
   };
   TX.FIRST.unshift(function* (B, u) { yield* F.aiWall(B, u); });
   F.wallStep = function (B, s, x, y) {
-    var x0 = s.x, y0 = s.y; s.x = x; s.y = y; if (s.conds.wall) { s.conds.wall.x = x; s.conds.wall.y = y; }
+    var x0 = s.x, y0 = s.y; s.x = x; s.y = y; if (s.conds.wall) { s.conds.wall.x = x; s.conds.wall.y = y; } if (s.conds.pikes) { s.conds.pikes.x = x; s.conds.pikes.y = y; }
     s.tween = { fx: x0, fy: y0, fz: G.gzAt(s, x0, y0), t: 0, dur: B.pace ? B.pace(10, true) : 10 };
+  };
+  // THE PIKE WALL (Soldiering's, Shape A -- built 2026-11-21 on Griz's "Go on 1-5" to the lanes desk's list, whose first item was this draft, the wrinkle standing). His lean,
+  // verbatim (11-20): "currently lean is join the pike wall (or just pike wall) like 'set shield' is under skills, where non-polearm masters get to use set and push back as moves
+  // called similar to the wall calling push (and polearm-masters in the pike wall get a bonus to theirs) - and maybe move with marches and successful pushes". As drafted:
+  //   SET PIKES: a trained one with a reach weapon (a pike, a reach polearm, a spear) and no shield, in the square behind a set shield member -- a bonus action; it takes that
+  //   member's front; its move held till it leaves. LEAVE THE PIKE WALL: a bonus action; a move click asks first, as the wall's does. JOINED: set behind a joined member.
+  //   KEEP BACK, given by the formation: a foe moving into the square ahead of the shield before a joined pike -- the pike's reaction, a STR save (DC 8 + its proficiency + STR)
+  //   or pushed 5 ft back and its move ended (F.keepBack). SET AGAINST THE CHARGE, given: a foe come 20 ft or more straight at that shield and in the pike's reach -- its next hit
+  //   on it deals one more weapon die (F.chargeStep). THE BRACE (F.wallPush): +1 on the push's DC a bracing pike, at most +2, and the thrust after, hit or hold. LONG GUARD in the
+  //   pike wall: KEEP BACK's DC +2, the brace +2. MOVING: set pikes step with MARCH and a successful push; a pike not set stays. OUT: the shield's table (moved off its square,
+  //   prone, restrained, unable to act, 0 HP, its reach weapon or its training gone, its own LEAVE), and the shield before it out of the wall. KEEP BACK and the brace are the
+  //   pike's one reaction (the wrinkle, standing on the desk's reading of his "Go on 1-5"): a pike that keeps a foe back cannot brace that round.
+  // The seat's calls where the draft is silent, standing for his overrule: a shield-bearer sets shields, never pikes; a spear may set, but its 5 ft reaches nothing ahead of the
+  // shield, so it braces (the DC) and neither keeps back nor thrusts; a set pike's KEEP BACK fires only for the square ahead of its own shield (a Long Guard's own KEEP BACK
+  // still fires on any step into its reach, at +2 while joined); the brace's +2 cap counts a Long Guard's +2, so one Long Guard pike fills it
+  F.pikeArm = function (u) {
+    if (!u || (u.conds && u.conds.disarmed)) return null;
+    var ok = function (w) { return w && !w.ranged && !w.spell && (w.kind === 'pike' || /^pike$/i.test(w.name || '') || w.kind === 'spear' || (w.reach >= 10 && w.kind !== 'whip' && !/whip/i.test(w.name || ''))); };
+    if (u.weapon) return ok(u.weapon) ? u.weapon : null;
+    var ks = u.attacks ? Object.keys(u.attacks) : [];
+    for (var i = 0; i < ks.length; i++) if (ok(u.attacks[ks[i]])) return u.attacks[ks[i]];
+    return null;
+  };
+  // the set shield member in the square ahead of u along `face`, of its side and front
+  F.pikeFront = function (B, u, face) {
+    B = B || D.battle; if (!B || !face) return null;
+    var x = u.x + face[0], y = u.y + face[1];
+    return B.units.filter(function (s) { return s !== u && s.side === u.side && s.x === x && s.y === y && s.conds && s.conds.wall && F.wallSet(s) && sameFace(s, { conds: { wall: { face: face } } }); })[0] || null;
+  };
+  // the set member u stands behind (the square behind it, against its front), if any
+  F.pikeBehind = function (B, u) {
+    B = B || D.battle; if (!B) return null;
+    return B.units.filter(function (s) { return s !== u && s.side === u.side && s.conds && s.conds.wall && F.wallSet(s) && u.x === s.x - s.conds.wall.face[0] && u.y === s.y - s.conds.wall.face[1]; })[0] || null;
+  };
+  F.pikeSet = function (u, B) {
+    var p = u && u.conds && u.conds.pikes;
+    if (!p) return false;
+    var on = !u.dead && u.hp > 0 && p.x === u.x && p.y === u.y && !u.conds.prone && !u.conds.restrained && RU.canAct(u) && F.soldiering(u) && !F.bearsShield(u) && !!F.pikeArm(u) && !!F.pikeFront(B, u, p.face);
+    if (!on) { delete u.conds.pikes; if (u.turn && u.turn.pikeMove != null && !(u.turn.move > 0)) { u.turn.move = u.turn.pikeMove; delete u.turn.pikeMove; delete u.turn.rankHeld; } } // (out is out: its move given back, where held)
+    return on;
+  };
+  F.pikeJoined = function (u, B) { B = B || D.battle; if (!F.pikeSet(u, B)) return false; var s = F.pikeFront(B, u, u.conds.pikes.face); return !!(s && F.joined(s, B)); };
+  F.heldLine = function (u, B) { return F.wallSet(u) || F.pikeSet(u, B); }; // (a set shield or a set pike: its square held, no Dash, a move click asks)
+  F.braceOf = function (p) { return F.longGuard(p) ? 2 : 1; };
+  F.braceBonus = function (braced) { var n = 0; (braced || []).forEach(function (p) { n += F.braceOf(p); }); return Math.min(2, n); };
+  F.canSetPikes = function (B, u) { return !!(u && u.turn && u.turn.bonus > 0 && F.soldiering(u) && !F.bearsShield(u) && F.pikeArm(u) && !F.pikeSet(u, B) && !u.conds.prone && !u.conds.restrained && RU.canAct(u) && F.pikeBehind(B, u)); };
+  F.setPikes = function (B, u) {
+    var s = F.pikeBehind(B, u); if (!s) return;
+    u.turn.bonus = 0; u.conds.pikes = { x: u.x, y: u.y, face: s.conds.wall.face.slice() };
+    u.turn.pikeMove = u.turn.move; u.turn.move = 0; u.turn.rankHeld = true; D.sfx('confirm');
+    var j = F.joined(s, B), arm = F.pikeArm(u);
+    B.card(['{y}' + u.name + '{/} sets ' + (arm && arm.name ? 'the ' + arm.name.toLowerCase() : 'pikes') + ' behind ' + s.name + ', facing ' + (FACE_WORD[u.conds.pikes.face.join(',')] || '') + '  {g}(the bonus action; ' + (j ? 'KEEP BACK on the square ahead of the shield, set against the charge, the brace on the push' : 'nothing till ' + s.name + ' is joined in a wall') + '; its square held till it leaves){/}'], 220);
+  };
+  F.leavePikes = function (B, u, free) {
+    if (!u.conds.pikes) return;
+    delete u.conds.pikes;
+    if (!free && u.turn) { u.turn.bonus = 0; if (u.turn.pikeMove != null) { u.turn.move = u.turn.pikeMove; delete u.turn.pikeMove; delete u.turn.rankHeld; } }
+    if (B && B.card && !free) B.card(['{g}' + u.name + ' leaves the pike wall (the bonus action).{/}'], 180);
   };
   F.markTargets = function (B, u) { return hostileNear(B, u, 60).filter(function (w) { return !w.dead && w.hp > 0 && !w.object && !(w.conds.calledMark && w.conds.calledMark.by === u.id); }); };
   F.callMark = function (B, u, t) {
@@ -1563,18 +1637,28 @@
   // THE SPEAR TOO (RULED 2026-11-19, Griz: "wouldn't pushback applied to the spear keep the foe out of the 8 squares around then, keeping them 5 ft away versus 10 for longer
   // polearms? If so, we'll include spears in the feat"): a spear in hand uses both halves at its own 5 ft -- KEEP BACK on the step to adjacent, the mover left 10 ft off
   F.reachInHand = function (u) { return !!(u && u.weapon && !u.weapon.ranged && (u.weapon.reach >= 10 || u.weapon.kind === 'spear')); };
+  // THE PIKE WALL gives it (11-21, Shape A): a joined pike keeps back a foe stepping into the square ahead of its own shield, Long Guard or not; a Long Guard pike joined, +2 on the DC
+  function pikeWatch(B, w, mover, from) {
+    if (!F.pikeJoined(w, B)) return false;
+    var fc = w.conds.pikes.face, s = F.pikeFront(B, w, fc), ax = s.x + fc[0], ay = s.y + fc[1];
+    var on = function (ft) { return ft.some(function (p) { return p[0] === ax && p[1] === ay; }); };
+    return on(G.foot(mover)) && !on(G.foot(mover, from.x, from.y)) && G.dist(w, mover) <= G.armOf(w);
+  }
   F.keepBack = function* (B, mover, from) {
-    var ws = B.units.filter(function (w) { return w !== mover && G.hostile(w, mover) && F.longGuard(w) && F.reachInHand(w) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !mover.object && D.magic.sees(B, w, mover); });
+    var ws = B.units.filter(function (w) { return w !== mover && G.hostile(w, mover) && ((F.longGuard(w) && F.reachInHand(w)) || F.pikeJoined(w, B)) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !mover.object && D.magic.sees(B, w, mover); });
     for (var i = 0; i < ws.length; i++) {
-      var w = ws[i], r = G.armOf(w), dc = 8 + (w.prof || 2) + D.mod((w.abil || w.src.abil).str);
-      if (mover.dead || mover.hp <= 0 || !(G.dist(w, mover) <= r && G.dist(w, mover, null, null, from.x, from.y) > r)) continue; // (this step brought it into the reach)
+      var w = ws[i], r = G.armOf(w), lg = F.longGuard(w) && F.reachInHand(w), pw = F.pikeJoined(w, B), arm = (lg ? w.weapon : F.pikeArm(w)) || w.weapon || { name: 'pike' }, ab = w.abil || (w.src && w.src.abil) || { str: 10 };
+      var dc = 8 + (w.prof || 2) + D.mod(ab.str) + (lg && pw ? 2 : 0); // (Long Guard in the pike wall: +2 -- his "polearm-masters in the pike wall get a bonus to theirs")
+      if (mover.dead || mover.hp <= 0) continue;
+      var came = lg && G.dist(w, mover) <= r && G.dist(w, mover, null, null, from.x, from.y) > r; // (this step brought it into the reach)
+      if (!came && !(pw && pikeWatch(B, w, mover, from))) continue;
       if (mine(w)) {
-        var go = yield { prompt: { who: w, title: w.name + ': KEEP BACK?', lines: [Nm(B, mover) + ' comes within the ' + w.weapon.name.toLowerCase() + '\'s reach: STR DC ' + dc + ', or pushed 5 ft back and its move ended (your reaction).'], opts: [{ label: 'KEEP IT BACK', value: 1 }, { label: 'LET IT COME', value: 0, no: true }] } };
+        var go = yield { prompt: { who: w, title: w.name + ': KEEP BACK?', lines: [Nm(B, mover) + (pw && !came ? ' steps up to the shield before you' : ' comes within the ' + arm.name.toLowerCase() + '\'s reach') + ': STR DC ' + dc + ', or pushed 5 ft back and its move ended (your reaction' + (pw ? '; it is the brace\'s too' : '') + ').'], opts: [{ label: 'KEEP IT BACK', value: 1 }, { label: 'LET IT COME', value: 0, no: true }] } };
         if (!go) continue;
       }
       w.reaction = 0; var sv = RU.save(mover, 'str', dc); D.sfx(sv.ok ? 'miss' : 'hit');
       if (D.spr && D.spr.anim(w.sheet, 'keepback')) { w.facing = B.faceTo(w, mover); w.anim = 'keepback'; w.animT = B.t; yield D.spr.duration(w.sheet, 'keepback') || 30; if (w.anim === 'keepback') w.anim = 'idle'; } // (the point out, where the sheet has it: guard_p2's, ART-WANTED-86, 11-19 -- his "stabbing empty space to keep the foe out of that space")
-      B.card(['{y}' + Nm(B, w) + '{/} keeps ' + nm(B, mover) + ' back with the ' + w.weapon.name.toLowerCase() + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}PRESSES IN{/}' : '{o}HELD OFF{/}')], 240);
+      B.card(['{y}' + Nm(B, w) + '{/} keeps ' + nm(B, mover) + ' back with the ' + arm.name.toLowerCase() + (pw ? ' over the shield' : '') + '  STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}PRESSES IN{/}' : '{o}HELD OFF{/}') + (pw ? '  {g}(the pike wall: its reaction)' + (lg ? ' +2 Long Guard' : '') + '{/}' : '')], 240);
       if (sv.ok) continue;
       D.magic.push(B, w, mover, 1);
       return true; // (held off: its move ends there, pushed or not)
@@ -1585,14 +1669,19 @@
   // more straight at it and within its reach, the mark; out of its reach again this turn, gone
   F.chargeStep = function (B, mover, from) {
     var T = mover.turn; if (!T) return;
+    // (THE PIKE WALL gives it, 11-21: for a joined pike the charge is measured at the shield before it -- "came 20 ft or more straight at the shield" -- and the mark wants the foe
+    // in the pike's reach)
     B.units.forEach(function (w) {
-      if (w === mover || !G.hostile(w, mover) || !F.longGuard(w) || !F.reachInHand(w) || !G.standing(w)) return;
-      var c = (T.charge = T.charge || {})[w.id], d0 = G.dist(w, mover, null, null, from.x, from.y), d1 = G.dist(w, mover);
+      if (w === mover || !G.hostile(w, mover) || !G.standing(w)) return;
+      var lg = F.longGuard(w) && F.reachInHand(w), pw = !lg && F.pikeJoined(w, B);
+      if (!lg && !pw) return;
+      var at = lg ? w : F.pikeFront(B, w, w.conds.pikes.face), arm = (lg ? w.weapon : F.pikeArm(w)) || { name: 'pike' };
+      var c = (T.charge = T.charge || {})[w.id], d0 = G.dist(at, mover, null, null, from.x, from.y), d1 = G.dist(at, mover), dw = G.dist(w, mover);
       if (!c) c = T.charge[w.id] = { d0: d0, straight: true };
       if (d1 >= d0) c.straight = false;
       var sa = mover.conds.setAgainst;
-      if (c.straight && c.d0 - d1 >= 20 && d1 <= G.armOf(w)) { if (!(sa && sa.by === w.id)) { mover.conds.setAgainst = { by: w.id, till: { who: w.id, at: 'end', n: w === B.active ? 2 : 1 } }; B.card(['{y}' + Nm(B, w) + '{/} sets the ' + w.weapon.name.toLowerCase() + ' against the charge.  {g}(the next hit on ' + nm(B, mover) + ': one more weapon die){/}'], 200); } }
-      else if (sa && sa.by === w.id && d1 > G.armOf(w)) delete mover.conds.setAgainst;
+      if (c.straight && c.d0 - d1 >= 20 && dw <= G.armOf(w)) { if (!(sa && sa.by === w.id)) { mover.conds.setAgainst = { by: w.id, till: { who: w.id, at: 'end', n: w === B.active ? 2 : 1 } }; B.card(['{y}' + Nm(B, w) + '{/} sets the ' + arm.name.toLowerCase() + ' against the charge' + (pw ? ' over ' + at.name + '\'s shield' : '') + '.  {g}(the next hit on ' + nm(B, mover) + ': one more weapon die){/}'], 200); } }
+      else if (sa && sa.by === w.id && dw > G.armOf(w)) delete mover.conds.setAgainst;
     });
   };
   // ------------------------------------------------------------------ the feat Fortune's Due (ours, 10-30 -- js/rules.js R.FEATS.fortunesdue; the leveling lane §8 C, the role of the
@@ -1796,6 +1885,12 @@
         out.push({ id: 'leavewall', label: 'LEAVE THE WALL', cost: 'B', icon: 'shield', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'a bonus action: your move back' });
       }
     }
+    if (F.soldiering(u) && !F.bearsShield(u) && F.pikeArm(u)) { // (Soldiering's pike wall, beside SET SHIELDS: 11-21, his "join the pike wall ... like 'set shield' is under skills")
+      if (!F.pikeSet(u, B)) out.push({ id: 'setpikes', label: 'SET PIKES', cost: 'B', icon: 'attack', skill: true, ok: F.canSetPikes(B, u),
+        why: !(T.bonus > 0) ? 'the bonus action is spent' : !F.pikeBehind(B, u) ? 'stand in the square behind a set shield' : 'not now',
+        note: 'a bonus action, behind a set shield: its front; joined, KEEP BACK on the square ahead of that shield and SET AGAINST THE CHARGE (your reaction), the brace on the wall\'s push; you step with its march and push' + (F.longGuard(u) ? '; Long Guard +2 on both' : '') + '; your square held till you leave' });
+      else out.push({ id: 'leavepikes', label: 'LEAVE THE PIKE WALL', cost: 'B', icon: 'attack', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'a bonus action: your move back' + (F.pikeJoined(u, B) ? '' : ' (the shield before you is not joined: no pike wall yet)') });
+    }
     if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
     if (F.hasFeat(u, 'suddendark')) { var sdC = F.darkTargets(B, u); out.push({ id: 'suddendark', label: 'SUDDEN DARK', cost: 'B', icon: 'lantern', skill: true, ok: T.bonus > 0 && sdC.length > 0, // (the feat Sudden Dark, ours: 10-30)
@@ -1900,12 +1995,15 @@
       case 'leavewall': if (F.wallSet(u) && u.turn.bonus > 0) { F.leaveWall(B, u); yield 8; } return;
       case 'walladvance': case 'wallmarch': yield* F.wallMarch(B, u); return;
       case 'wallpush': yield* F.wallPush(B, u); return;
-      case 'wallmove': { // (a move click with shields set: asked -- LEAVE THE WALL? Yes leaves at LEAVE's cost and walks there; no holds. Griz, 11-20; ui.js actAt)
-        if (!F.wallSet(u)) return;
-        if (!(u.turn.bonus > 0)) { D.sfx('error'); B.card(['{o}' + u.name + ' holds the wall: leaving it takes a bonus action, and the bonus action is spent.{/}'], 180); return; }
-        var lv = yield { prompt: { who: u, title: u.name + ': LEAVE THE WALL?', lines: ['Shields are set: your square is held.', 'Leave the wall (your bonus action) and go there?'], opts: [{ label: 'LEAVE AND GO', value: 1 }, { label: 'HOLD THE WALL', value: 0, no: true }] } };
+      case 'setpikes': if (F.canSetPikes(B, u)) { F.setPikes(B, u); yield 10; } return; // (THE PIKE WALL, 11-21)
+      case 'leavepikes': if (F.pikeSet(u, B) && u.turn.bonus > 0) { F.leavePikes(B, u); yield 8; } return;
+      case 'wallmove': { // (a move click with shields set: asked -- LEAVE THE WALL? Yes leaves at LEAVE's cost and walks there; no holds. Griz, 11-20; ui.js actAt. Pikes set: the same, 11-21)
+        var pkW = !F.wallSet(u) && F.pikeSet(u, B), wWord = pkW ? 'THE PIKE WALL' : 'THE WALL';
+        if (!F.wallSet(u) && !pkW) return;
+        if (!(u.turn.bonus > 0)) { D.sfx('error'); B.card(['{o}' + u.name + ' holds ' + wWord.toLowerCase() + ': leaving it takes a bonus action, and the bonus action is spent.{/}'], 180); return; }
+        var lv = yield { prompt: { who: u, title: u.name + ': LEAVE ' + wWord + '?', lines: [(pkW ? 'Pikes are set' : 'Shields are set') + ': your square is held.', 'Leave ' + wWord.toLowerCase() + ' (your bonus action) and go there?'], opts: [{ label: 'LEAVE AND GO', value: 1 }, { label: 'HOLD ' + wWord, value: 0, no: true }] } };
         if (!lv) return;
-        F.leaveWall(B, u); yield 6;
+        if (pkW) F.leavePikes(B, u); else F.leaveWall(B, u); yield 6;
         var rmW = G.reach(u, u.turn.move), spot = rmW[c.x + ',' + c.y];
         yield* B.exec(u, { do: spot && spot.stand ? 'move' : 'dashmove', x: c.x, y: c.y });
         return;
