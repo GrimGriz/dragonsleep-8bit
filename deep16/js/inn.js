@@ -1657,10 +1657,14 @@
     // bed wore before: his "the combat goblin is what I see in the back of your wagon in the pane though", 11-21)
     var L = In.WAGONL, seen = !!(f.glamourSeen || f.glamourBroken), gl = (D.FOES.glamourgoblin && D.FOES.glamourgoblin.sheet) || 'goblinchild_p1';
     // (the one in the arch IS the one handed over: lifted down at the greeting, never drawn back -- his "refusing bribe combat - child handed off appears back in wagon", 11-21)
-    Y.riders = (f.kidTaken ? [] : [{ x: L.back[0], y: L.back[1], sheet: seen ? 'kid1_p0' : gl, after: 'kid1_p0', facing: 1, gz: In.BEDZ, foot: [1, 1], arch: true, anim: 'idle', animT: 0 }]).concat(noTeam ? [] : L.team.map(function (q) {
+    // (A SECOND ONE IN THE ARCH AFTER THE HANDOFF, 11-21, his ruling: "there's only room for one kid at the arch, but after the handoff the other one (LPC?) should be there. We
+    // had two before... That's usually the one when the glamour breaks (perception check with insight ++) and part of zoom note?" -- once the first is lifted down (f.kidTaken)
+    // the arch holds the second: a goblin to the eye in the glamour's own look, kid2_p0 when it breaks, the bed's second child of before the re-lay -- In.archSecond)
+    Y.riders = [f.kidTaken ? In.archSecond(L, seen, gl) : { x: L.back[0], y: L.back[1], sheet: seen ? 'kid1_p0' : gl, after: 'kid1_p0', facing: 1, gz: In.BEDZ, foot: [1, 1], arch: true, anim: 'idle', animT: 0 }].concat(noTeam ? [] : L.team.map(function (q) {
       return { x: q[0], y: q[1], sheet: 'horsegrey_p1', facing: 5, gz: 0, foot: [1, 2], team: true, blocks: true, anim: 'idle', animT: 0 }; }));
     B.riders = (B.riders || []).filter(function (r) { return !r.yard; }).concat(Y.riders.map(function (r) { r.yard = true; return r; })); In.teamBlock(B);
   };
+  In.archSecond = function (L, seen, gl) { return { x: L.back[0], y: L.back[1], sheet: seen ? 'kid2_p0' : gl, after: 'kid2_p0', facing: 1, gz: In.BEDZ, foot: [1, 1], arch: true, second: true, anim: 'idle', animT: 0 }; }; // (the arch's second child, after the handoff)
   In.yardCast = function (B, f) {
     var L = In.WAGONL, Y = {}; In.bedRiders(B, Y, f, false);
     Y.amara = In.unit(B, { id: 'amaraYard', kind: 'amara', at: L.down.slice(), name: 'Amara', face: [1, 0], foe: true });
@@ -1888,6 +1892,7 @@
     // her to discussion with Gennet around 14, 22"; then the inn lady takes it in, and Amara goes back to the box's side)
     yield* In.walk(B, Y.amara, WL.behind, [-1, 0]);
     B.riders = (B.riders || []).filter(function (r) { return !r.arch; }); Y.riders = (Y.riders || []).filter(function (r) { return !r.arch; }); B.cache = null; // (out of the arch: the same one, 11-21)
+    var r2 = In.archSecond(WL, !!(f.glamourSeen || f.glamourBroken), (D.FOES.glamourgoblin && D.FOES.glamourgoblin.sheet) || 'goblinchild_p1'); r2.yard = true; B.riders.push(r2); Y.riders.push(r2); // (and the second in its place: his ruling, In.archSecond)
     Y.kid = In.unit(B, { id: 'wagonKid', kind: 'glamourgoblin', at: WL.tail.slice(), name: 'A goblin, chained', face: [1, 0] }); yield 12; // (lifted down out of the back, behind the arch)
     yield* In.walkAll(B, [[Y.amara, WL.meet.amara, [1, 0]], [Y.kid, WL.meet.kid, [1, 0]]]); yield 10;
     yield* In.card(B, [L('wagon.handover')], 360);

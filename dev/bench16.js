@@ -5870,7 +5870,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         /\{Vivian:pt_vivian[^}]*\} Those aren't goblins/.test(rawb) && /\{Amara:pt_amara\} "Fifty gold says/.test(rawb) && /^\{Lymen:pt_lymen[^}]*\} \[.*By Kalindel\. That gold was paid for children\. Leave it in her hand\..*\] > TAKE THE GOLD/.test(lyb) && rawb.indexOf('Fifty gold says') < rawb.indexOf('Leave it in her hand') && rb.f.wagonOutcome === 'bribe' && !/INITIATIVE/.test(sb) && !/not one more mile on this road/.test(sb));
       var gc = InQ.glamCam || {}, bk = InQ.WAGONL.back;
       okQ('(c) THE CAMERA ON THE ONE IN THE WAGON\'S BACK AS THE GLAMOUR BREAKS: ' + JSON.stringify(gc) + ' (the back ' + bk + '), the rider then ' + riderB,
-        !!gc.at && gc.at[0] === bk[0] && gc.at[1] === bk[1] && gc.to > gc.from && /kid1/.test(String(riderB)));
+        !!gc.at && gc.at[0] === bk[0] && gc.at[1] === bk[1] && gc.to > gc.from && /kid2_p0/.test(String(riderB))); // (the arch's second child since his 11-21 ruling: the one the glamour breaks on)
       resetQ(); D.iso.zoom = zb0;
       // (b2) THE SAME, REFUSED: the fight with the whole party on the field from its first round (none held back for round two), no "By Kalindel" fight word. (e) on the same
       // walk: the inn's sign by the road faint while the fight is on (his "this inn sign needs transparency coding during the fight")
@@ -5989,7 +5989,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // re-laid with ONE drawn in its back, inside the arch -- js/inn.js In.bedRiders, r.arch): Vivian on the second watch, INVESTIGATE, the gold refused. Before the
       // handover one in the arch; as Amara lifts it down at the tail the arch is empty and that one walks in with the inn lady; at the yard fight's start and after it
       // the arch stays empty -- no rider in the back, no figure on the back's square
-      var archQ = function (B) { return (B.riders || []).filter(function (r) { return r.yard && r.arch; }).map(function (r) { return r.x + ',' + r.y + ' ' + r.sheet; }); };
+      var archQ = function (B) { return (B.riders || []).filter(function (r) { return r.yard && r.arch; }).map(function (r) { return r.x + ',' + r.y + ' ' + r.sheet + (r.second ? ' second' : ''); }); };
       var kidQ = function (B) { var bk = InQ.WAGONL.back; return B.units.filter(function (u) { return u.scripted === 'wagonKid' || ((u.kind === 'glamourgoblin' || u.kind === InQ.keptKind()) && Math.abs(u.x - bk[0]) + Math.abs(u.y - bk[1]) <= 3); }).map(function (u) { return (u.scripted || u.kind) + '@' + u.x + ',' + u.y; }); };
       var pre4d = null, lift4d = null, fight4d = null, after4d = null, how4d = null;
       var B4d = playQ('wagon', null, pinsQ(19)), e4d = useQ(B4d, 'gennet'), r4d = walkQ([/^LONG REST: \d+ HOURS/, 'INVESTIGATE', 'REFUSE'], { watch: { vivian: 2 }, quiet: 1200, pastMorning: false, stop: function (s) {
@@ -6001,7 +6001,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         return false; } });
       if (!pre4d) pre4d = { arch: [] };
       okQ('THE ONE HANDED OVER NOT BACK IN THE WAGON (the gold refused, Vivian alone): before the handover the arch ' + JSON.stringify(pre4d.arch) + '; lifted down ' + JSON.stringify(lift4d) + '; at the fight ' + JSON.stringify(fight4d) + '; after it (' + how4d + ') ' + JSON.stringify(after4d) + ' -- ' + r4d.seen.slice(Math.max(0, r4d.seen.indexOf('Keep your')), Math.max(0, r4d.seen.indexOf('Keep your')) + 120),
-        /REFUSE/.test(r4d.raw.join(' ')) && pre4d.arch.length === 1 && !!lift4d && lift4d.arch.length === 0 && lift4d.kid.length === 1 && !!fight4d && fight4d.laid === 1 && fight4d.faint === true && fight4d.arch.length === 0 && fight4d.kid.length === 0 && !!after4d && after4d.arch.length === 0 && after4d.kid.length === 0);
+        /REFUSE/.test(r4d.raw.join(' ')) && pre4d.arch.length === 1 && !/second/.test(pre4d.arch[0]) && !!lift4d && lift4d.arch.length === 1 && / second$/.test(lift4d.arch[0]) && lift4d.kid.length === 1 && !!fight4d && fight4d.laid === 1 && fight4d.faint === true && fight4d.arch.length === 1 && / kid2_p0 second$/.test(fight4d.arch[0]) && fight4d.kid.length === 0 && !!after4d && after4d.arch.length <= 1 && after4d.arch.every(function (a) { return / second$/.test(a); }) && after4d.kid.length === 0);
+      // (his ruling on the empty arch, 11-21: "there's only room for one kid at the arch, but after the handoff the other one (LPC?) should be there" -- the arch's second
+      // child from the lift-down on, a different rider from the one handed over, the one the glamour breaks on: kid2_p0 by the fight, the pins high)
       resetQ();
       // 5. THE BRIBE ON THE SPEAKERS' OWN FACES, AND KATARINA STAYS (his "says barley speaking, shows amara"; "Kat wouldn't go if children were revealed, have her run up and deliver
       // her message to Amara ... whichever of the waterby's likes them the most will tell them she went south - book in the nightstand, party gets big room"): Vivian at the
