@@ -63,7 +63,7 @@ def main():
         pg = br.new_page(viewport={'width': 1280, 'height': 800})
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:300]))
         pg.goto('http://127.0.0.1:%d/snoot-mode/?watch&seed=%d' % (port, seed))
-        pg.wait_for_function('window.SN && SN.UI && SN.UI.state && SN.UI.state() && SN.Headless && SN.Show', timeout=30000)
+        pg.wait_for_function('window.SN && SN.UI && SN.UI.state && SN.UI.state() && SN.Headless && SN.Show', timeout=120000)  # (120 s since 11-21: 30 s ran out under the full gate's load with seats building, RED in the gate and GREEN alone the same minute)
         pg.evaluate(HOOK)
         day0 = pg.evaluate('SN.UI.state().day'); t0 = time.time()
         while time.time() - t0 < limit:
