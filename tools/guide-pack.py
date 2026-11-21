@@ -182,6 +182,57 @@ already out past the mate in front, the pose he stands in behind the wall.""",
                  "The hold again."]),
 ]
 
+# SOLDIERING ON THE HUMAN BUILD (11-21, the pose seat pose-1121). Griz, 11-20: "we'll need soldiering posings for non-dwarfs"; 11-21, to the
+# lanes desk, "Go on 1-5". HELD: which human troops get the feat is his to say, so these wait in the art desk folder and go with no ask.
+_HUMAN = "the Line Guard's fight figure (`guard_p2`), the human trooper the art desk drew"
+_HELD = 'HELD (2026-11-21): posed ahead of the ask. Which human troops are given the Soldiering feat is not yet said; this guide goes to the art desk with the ask that names it, and not before.'
+G += [
+    dict(move='shield-wall-push-human', date='2026-11-21', held=_HELD, title="SHIELD WALL: shields set, and THE PUSH (human) -- the Soldiering feat's row", replaces=None,
+         sets=[('shield-wall-push-human', 'SHIELD-WALL-PUSH-HUMAN', 'shieldpush', 'shieldpush-alone-%s', 'shieldpush-alone-all', 'shieldpush', _HUMAN)],
+         weapon="The TEAL disc is the round SHIELD, its boss darker: it is strapped on the LEFT forearm (the mannequin carries it a little ahead of the fist so its face can be seen: draw it on the forearm, its face square to the enemy on every frame). It is a man's shield, about 0.6 m across, covering him from the shoulder to the hip. The brown bar with the MAGENTA block is the weapon in the RIGHT fist, a warhammer here: draw the character's own. It never strikes in this row: it is carried cocked at the right shoulder throughout.",
+         hit='THE SHOVE',
+         words='Griz, 11-20: "we\'ll need soldiering posings for non-dwarfs". The dwarf\'s row is GUIDE-2026-11-20-shield-wall-push; his rulings on it hold here: ONE strip for every shield-bearer, whatever the weapon.',
+         changed="""NEW: the dwarf's shield-wall push (GUIDE-2026-11-20-shield-wall-push) on a man. The beats are the dwarf's. Two things differ, both
+for a man's proportions: his shield is bigger (the dwarf's 0.43 m disc on a man reads as a buckler), and on frame 4 his shield arm is
+punched out a little LOWER -- a dwarf's arm out level lands the shield on a grown man's chest, a man's would land it at the foe's face.
+FRAME 1 is also the stance a soldier stands in while shields are set: the row can be held on it.""",
+         frames=["SHIELDS SET -- the knees bent, the left side and the shield forward, the rim up at the chin; the weapon cocked at the right shoulder. The wall's standing pose.",
+                 "THE COIL -- sunk on both legs, the weight back, the shield drawn in tight to the left shoulder.",
+                 "THE DRIVE -- off the rear leg, the rear heel up, the left foot leaving the floor, the shoulder going in behind the shield.",
+                 "THE SHOVE -- the left foot down ahead; the shield punched out at the height of the foe's chest with the whole body behind it, the head down behind the rim. The enemy is thrown back a pace.",
+                 "THE STEP -- upright again over the forward foot, into the square the shove cleared, the shield coming back to the set. (The game moves him one square here; draw him in place.)",
+                 "SHIELDS SET again."]),
+    dict(move='pike-rank-human', date='2026-11-21', held=_HELD, title="PIKE RANK: the thrust through the wall, the feet planted (human) -- the Soldiering feat's row", replaces=None,
+         sets=[('pike-rank-human', 'PIKE-RANK-HUMAN', 'pikerank', 'pikerank-alone-%s', 'pikerank-alone-all', 'pikerank', _HUMAN)],
+         weapon="The long thin brown bar is the PIKE's shaft, MAGENTA at its head: 2.7 m. His RIGHT fist holds the BUTT on every frame; his LEFT hand is ahead on the shaft, and the shaft SLIDES through it.",
+         hit='THE THRUST',
+         words='Griz, 11-20: "we\'ll need soldiering posings for non-dwarfs"; and of the pike, "hip". The dwarf\'s row is GUIDE-2026-11-20-pike-rank; it keeps its own strip beside the thrust (his ruling).',
+         changed="""NEW: the dwarf's pike rank (GUIDE-2026-11-20-pike-rank) on a man: the pike thrust with NEITHER FOOT LEAVING ITS PLACE (a mate stands
+in the square ahead). One thing differs, for a man's longer arm: on the hold, the coil and the return the butt sits further back behind
+his hip, so the rear arm is LONG behind him (at the dwarf's places a man's elbow folded up behind him). The left hand is where the
+dwarf's is; the thrust (frame 4) is the dwarf's.""",
+         frames=["THE HOLD -- side-on in a long planted stance, the left foot ahead; the pike levelled along the hip and out past the mate in front; the butt in the right fist behind the hip, the rear arm long.",
+                 "DRAWN BACK through the left hand -- the rear arm long behind him, the weight on the rear leg. The feet do not move.",
+                 "THE COIL -- the knees sinking, the weight coming to the middle.",
+                 "THE THRUST -- the right hand driven forward along the hip to the left hand, the shaft run out through it; the hips turn and the body leans in behind it; the rear heel lifts, but neither foot leaves its place.",
+                 "Drawn back through the left hand.",
+                 "The hold again."]),
+    dict(move='pike-thrust-human', date='2026-11-21', held=_HELD, title='PIKE THRUST, two hands, along the hip (human)', replaces=None,
+         sets=[('pike-thrust-human', 'PIKE-THRUST-HUMAN', 'pike', 'pike-alone-%s', 'pike-alone-all', 'pike', _HUMAN)],
+         weapon="The long thin brown bar is the PIKE's shaft, MAGENTA at its head: 2.7 m. His RIGHT fist holds the BUTT on every frame; his LEFT hand is ahead on the shaft, and the shaft SLIDES through it on the thrust.",
+         hit='THE THRUST',
+         words='Griz, 11-20: "we\'ll need soldiering posings for non-dwarfs"; and, asked whether the pike lifts to the shoulder or stays along the hip: "hip". The dwarf\'s row is GUIDE-2026-11-20b-pike-thrust.',
+         changed="""NEW: the dwarf's pike thrust (GUIDE-2026-11-20b-pike-thrust) on a man, the pike along the hip on every frame. One thing differs, for a
+man's longer arm: on the guard, the step and the return the butt sits further back behind his hip, so the rear arm is LONG behind him (at
+the dwarf's places a man's elbow folded up behind him). The left hand is where the dwarf's is; the thrust (frame 4) is the dwarf's.""",
+         frames=["THE GUARD -- side-on, the left side and the left foot forward; the pike level at the hip, the butt in the right fist behind the right hip, the rear arm long; the left hand ahead on the shaft; the weight back.",
+                 "DRAWN BACK along the hip -- the rear arm long behind him, the butt well back, the weight on the rear leg. The pike does not rise.",
+                 "THE STEP -- the weight going forward, the left foot off the floor; the pike still drawn back at the hip.",
+                 "THE THRUST -- the foot down; the right hand driven forward along the hip till it meets the left, the shaft run out through the left hand to its farthest reach; both arms driving, the point level at the height of his hip.",
+                 "Drawn back -- the shaft pulled back through the left hand; the foot coming back.",
+                 "The guard at the hip again."]),
+]
+
 
 def main():
     made = []
@@ -203,13 +254,15 @@ def main():
                          % (folder, who, m['hero_rows'], pre.lower()))
         T = ['# SPECIAL MOVE GUIDE -- %s, %s' % (g['title'], date), '',
              'From the engine team (DRAGONSLEEP, the second game; the pose seat, for the lanes desk). Not an ask by itself: a pose guide that travels beside the ask that names it.',
-             ('**It REPLACES %s.** Use this one from here on.' % g['replaces']) if g['replaces'] else '**A new guide.**', '',
+             ('**It REPLACES %s.** Use this one from here on.' % g['replaces']) if g['replaces'] else '**A new guide.**', ''] + \
+            (['**' + g['held'] + '**', ''] if g.get('held') else []) + [
              g['words'], '',
              'What it is: a plain jointed mannequin posed in Blender doing the move, rendered with the game\'s own camera in the five drawn views (S, SE, E, NE, N), one scale across all five. You draw the character over it -- "skin these figures with this character". One strip a view (`...-<view>.png`) and all five on one page (`...-ALL-VIEWS.png`).', '',
              'SIZE -- crown to sole:'] + sizes + ['Draw it large; the cutter brings it down. The same scale in every frame, every view and every row. Keep the CHARACTER\'s own build from the character\'s own pages, and the mannequin\'s height, joints and timing.', '',
              READ % (g['weapon'], g['hit']), '', LAW, '', g['changed'], '', 'Frame by frame:'] + \
             (['%d. %s' % (i + 1, f) for i, f in enumerate(g['frames'])] if len(g['frames']) == 6 else ['- ' + f for f in g['frames']]) + ['',
-             'This is the pose seat\'s reading of the move against the period plates. Griz had been sent the strips and had not yet answered when it was packaged; if a corrected set follows, it replaces this one under a new name.', '']
+             ('This is the pose seat\'s reading of the move against the period plates, on a man\'s proportions. Griz had not seen the strips when it was packaged; if a corrected set follows, it replaces this one under a new name.' if g.get('held') else
+              'This is the pose seat\'s reading of the move against the period plates. Griz had been sent the strips and had not yet answered when it was packaged; if a corrected set follows, it replaces this one under a new name.'), '']
         open(os.path.join(d, name + '.md'), 'w', encoding='utf-8', newline='\n').write('\n'.join(T))
         z = os.path.join(OUT, name + '.zip')
         with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED) as zf:

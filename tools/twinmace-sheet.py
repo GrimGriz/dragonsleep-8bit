@@ -38,7 +38,7 @@ GARR = {'axe': ('axeshield', 'axecut', 'BATTLEAXE CUT, ROUND SHIELD', 'THE CUT')
         'hammer': ('hammershield', 'hammer', 'WARHAMMER BLOW, ROUND SHIELD', 'THE BLOW'), 'twinshort': ('twinshort', 'stab', 'SHORTSWORD THRUST, A BLADE IN EACH HAND', 'THE STAB'),
         'bar': ('barknife', 'swing', 'ONE-HANDED BAR SWING, KNIFE IN THE LEFT HAND', 'THE BLOW'), 'knife': ('knifestab', 'stab', 'LEFT-HAND KNIFE STAB, BAR IN THE RIGHT', 'THE STAB'),
         'pike': ('pike', 'thrust', 'PIKE THRUST, TWO HANDS', 'THE THRUST'),
-        # Soldiering's rows (11-20): `shieldpush dwarf`, `pikerank dwarf`
+        # Soldiering's rows (11-20): `shieldpush dwarf`, `pikerank dwarf`; and on the human build (11-21): `shieldpush`, `pikerank`, `pike` (laid as the greataxe: with the target, and alone)
         'shieldpush': ('shieldpush', 'push', 'SHIELD WALL - SET SHIELDS AND THE PUSH', 'THE SHOVE'), 'pikerank': ('pikerank', 'thrust', 'PIKE RANK - THE THRUST THROUGH THE WALL, FEET PLANTED', 'THE THRUST')}
 for _k in GARR:
     if _k in sys.argv[1:]:
@@ -97,7 +97,7 @@ def main():
         b = strip('render', meta['rows'][ROW], f, n, rel, 4, 'MANNEQUIN - %s - %s - the striker alone' % (MOVE, NAMES[f]))
         b.convert('RGB').save(os.path.join(OUT, NAME + '-alone-%s.png' % f), optimize=True)
         small.append(strip('model', meta['model'][ROW], f, n, rel, 2, NAMES[f]))
-        if NAME in ('slashshield', 'greataxe', 'spearthrow', 'spearpush', 'barknife', 'knifestab', 'slash1h'):      # (11-13: a page of the striker alone as well -- what goes to the art desk carries no target)
+        if NAME in ('slashshield', 'greataxe', 'spearthrow', 'spearpush', 'barknife', 'knifestab', 'slash1h', 'shieldpush', 'pikerank', 'pike'):      # (11-21: Soldiering's three on the human build too)      # (11-13: a page of the striker alone as well -- what goes to the art desk carries no target)
             withT.append(strip('render', meta['rows'][ROW], f, n, rel, 2, NAMES[f]))
     W = max(s.width for s in small); H = sum(s.height for s in small)
     pg = Image.new('RGB', (W, H), NAVY); y = 0

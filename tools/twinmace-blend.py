@@ -114,6 +114,12 @@ add please"; the feat's rule is the leveling lane's READY section of 11-20), the
                         with the weapon laid back over the shoulder), 5 the step into the cleared square, 6 shields set again.
     ... -- build kit=pikerank build=dwarf          THRUST 6: the pike rank's strike through the wall from the square behind a shield-bearer -- the pike
                         thrust above with the FEET PLANTED (a mate stands in the square ahead: nobody steps), the pike along the hip.
+SOLDIERING ON THE HUMAN BUILD (11-21, Griz 11-20: "we'll need soldiering posings for non-dwarfs"; 11-21 "Go on 1-5"), sized to guard_p2:
+    ... -- build kit=shieldpush | kit=pikerank | kit=pike      (no build=: the human) the same rows on a man, with what a man's proportions
+                        changed: the shield 0.58 m across (the dwarf's 0.43 read as a buckler on him) and the shove's arm 18 degrees lower
+                        (level, it put the shield at a man's face); the two pike rows' butt further back on the guard, the coil and the
+                        return, so his longer rear arm lies long behind the hip (at the dwarf's places it folded). The dwarf's numbers are untouched.
+    Then `python tools/twinmace-sheet.py shieldpush|pikerank|pike` and `python tools/guide-pack.py <dir> shield-wall-push-human pike-rank-human pike-thrust-human`.
 """
 import bpy, bmesh, sys, os, math, json, importlib.util
 import numpy as np
@@ -158,6 +164,8 @@ elif KIT in ('spearthrow', 'spearpush') and 'hero' not in MQ.OPT:
     MQ.HERO = 'guard_p2'               # (the Line Guard's: the spear users' own figure)
 elif KIT in ('bar', 'knife') and 'hero' not in MQ.OPT:
     MQ.HERO = 'crewboss_p1'            # (Hask's: as tall as the crew boss the art desk drew, his sheet's format reference)
+elif KIT in ('shieldpush', 'pikerank', 'pike') and 'hero' not in MQ.OPT:
+    MQ.HERO = 'guard_p2'               # (11-21, Soldiering on the human build: the Line Guard's figure, the spear users' -- the human trooper the art desk drew; the Dominion Soldier's `dominion_p1` is a big-helmed figure 72 rows tall, not a man's proportions)
 # a dwarf on the same bones: the legs much shorter, the trunk a little shorter and a good deal wider and deeper, the limbs thick, the head big
 LEGK, TRUNK, XK, YK, RK, HEADK, HK = (0.56, 0.90, 1.24, 1.18, 1.30, 1.14, 0.74) if DWARF else (1, 1, 1, 1, 1, 1, 1)
 
@@ -212,8 +220,9 @@ SHIELD_R = 0.215
 LYSHIELD_R = 0.30        # Lymen's: 0.60 m across (about 24 in), a third of his height, as on lymen_p0
 if KIT in ('axe+shield', 'handaxe', 'hammer+shield', 'shieldpush'):
     _w, _g = (Vector(v) for v in GRIPS['L']); _e = Vector(pm((0.21, 0.02, 1.14))); _c = _e + (_g - _e) * 0.62
-    PIECES += [('egg', 'hand.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, SHIELD_R, SHIELD_R))),      # (on the HAND bone since 11-13, where it sat: rigid with the forearm until a frame aims the left hand, and then the shield turns with it -- his "give that freedom of movement to the other shields we have in the poser")
-               ('egg', 'hand.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062, 0.062)))]
+    _sr = 0.29 if KIT == 'shieldpush' and not DWARF else SHIELD_R      # (11-21, the human build's wall: the dwarf's disc scaled to a man -- 0.43 m covers a dwarf from the shoulder to the hip, a man's wants about 0.58, Lymen's size; on him the dwarf's read as a buckler)
+    PIECES += [('egg', 'hand.L', 'shield', ((_c.x + 0.085, _c.y, _c.z), (0.026, _sr, _sr))),      # (on the HAND bone since 11-13, where it sat: rigid with the forearm until a frame aims the left hand, and then the shield turns with it -- his "give that freedom of movement to the other shields we have in the poser")
+               ('egg', 'hand.L', 'boss', ((_c.x + 0.108, _c.y, _c.z), (0.030, 0.062 * _sr / SHIELD_R, 0.062 * _sr / SHIELD_R)))]
 elif SWSH:                     # Lymen's round shield (11-13): the same disc, bigger -- his sheet's covers him from the shoulder to the hip.
     # It rides the left HAND bone, not the forearm (the garrison's way): the hand is aimed where the shield FACES and rolled so the shield
     # lies back along the forearm (rows_slash, `face`), which is the forearm's own roll -- so the arm can reach out and the face still be
@@ -678,11 +687,12 @@ def rows_garrison(R):
         ]
     elif KIT == 'shieldpush':          # SOLDIERING'S PUSH (11-20): the wall's shove. The shield arm is (up, fo, az, faz) as the axe cut's; the hammer is carried cocked at the right shoulder throughout (the member keeps its own attack: the weapon stays in hand and out of the way)
         HB = (-48, 62, -10)            # the hammer arm: the fist by the right shoulder, the head up and back
+        SHOVE = (-10, 6, 10, -55) if DWARF else (-28, 8, 10, -55)      # (11-21, the HUMAN build: the dwarf's arm punched out level lands the shield on a grown man's chest; a man's level arm put it at the foe's face, so his upper arm goes 18 degrees lower)
         F = [
             P(-0.09, lean=6, yaw=-28, hyaw=24, R_=HB, L_=(-50, 14, 18, -64)),                                                         # 1 SHIELDS SET: the knees bent, the left side and the shield forward, the rim up at the chin; the hammer cocked at the right shoulder
             P(-0.14, shift=0.03, lean=10, yaw=-34, hyaw=30, R_=HB, L_=(-70, 20, 10, -70)),                                            # 2 THE COIL: sunk on both legs, the weight back, the shield drawn in tight to the left shoulder
             P(-0.12, shift=-0.05, lean=16, yaw=-30, hyaw=26, heel=10, R_=(-52, 58, -10), L_=(-45, 10, 20, -60), step=(0.06, 0.04, -8)),  # 3 THE DRIVE: off the rear leg, the heel up, the left foot leaving the floor, the shoulder going in behind the shield
-            P(-0.11, shift=-0.12, lean=22, yaw=-22, twist=-4, head=6, hyaw=18, heel=16, R_=(-56, 50, -8), L_=(-10, 6, 10, -55), step=(0.14, 0, 0)),   # 4 THE SHOVE: the foot down, the shield punched out to the arm's length with the whole body behind it, the head down behind the rim
+            P(-0.11, shift=-0.12, lean=22, yaw=-22, twist=-4, head=6, hyaw=18, heel=16, R_=(-56, 50, -8), L_=SHOVE, step=(0.14, 0, 0)),   # 4 THE SHOVE: the foot down, the shield punched out to the arm's length with the whole body behind it, the head down behind the rim
             P(-0.09, shift=-0.12, lean=10, yaw=-26, hyaw=22, heel=6, R_=HB, L_=(-40, 12, 18, -62), step=(0.14, 0, 0)),                   # 5 THE STEP into the square the shove cleared: upright again over the forward foot, the shield coming back to the set
             P(-0.09, shift=-0.04, lean=6, yaw=-28, hyaw=24, R_=HB, L_=(-50, 14, 18, -64), step=(0.04, 0, 0)),                           # 6 SHIELDS SET again
         ]
@@ -860,6 +870,9 @@ def rows_greataxe(R):
             P((-0.22, 0.26, 1.00), (0.06, -0.997, 0.02), -0.09, shift=-0.01, lean=6, yaw=-44, hyaw=40, eR=OUT_, sp=0.50, **ST),                     # 5 drawn back through the left hand
             P((-0.22, 0.20, 1.00), (0.06, -0.998, 0.02), -0.08, lean=4, yaw=-50, hyaw=46, eR=OUT_, sp=0.50, **ST),                                  # 6 the hold again
         ]
+    if KIT in ('pike', 'pikerank') and not DWARF:      # (11-21, the HUMAN build of the two pike rows: a man's arm is longer, and at the dwarf's butt positions his rear arm folded, the elbow up behind him, where de Gheyn's rear arm is long behind the hip. So the butt goes further back on the guard, the coil and the return -- metres, a frame from 0 -- and the left hand stays where it was: `sp` grows by as much)
+        for i, bk in ((0, 0.12), (2, 0.06), (4, 0.12), (5, 0.12)):
+            fr = F[i]['_fr']; F[i]['_fr'] = (fr[0], fr[1] + bk, fr[2]); F[i]['_sp'] += bk
     IDLE = [dict(F[0])]
     SP = SPUSH if KIT == 'spearpush' else -SPACE          # (the left fist from the right, along the haft toward its head)
 
