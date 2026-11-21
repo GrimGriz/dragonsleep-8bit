@@ -4792,7 +4792,8 @@
   };
   Battle.prototype.layOnHands = function* (u, tgt, cure) {
     var T = u.turn;
-    if (tgt !== u && G.dist(u, tgt) > 5) { this.card(['{o}Lay on Hands is touch: ' + tgt.name + ' is ' + G.dist(u, tgt) + ' ft away.{/}']); return; }
+    var byL = tgt.inClaws && this.units.filter(function (c) { return c.id === tgt.inClaws.by; })[0], dL = byL ? G.dist(u, byL) : G.dist(u, tgt); // (one held in a claw: touched within the holder's reach -- js/ui.js heldIn, 11-21)
+    if (tgt !== u && dL > 5) { this.card(['{o}Lay on Hands is touch: ' + tgt.name + ' is ' + dL + ' ft away.{/}']); return; }
     var pool = u.feats.lay, full = tgt.hp >= tgt.maxhp;
     // (at full hit points the HEAL would mend nothing: not offered, and with no poison to cure the touch is turned away before the action is spent -- 11-06, his fight of 17:42:29Z
     // R3, "Lymen lays on hands: +0 to Aurdin" at 12/12, Aurdin asleep in his own Sleep. Healing wakes no sleeper by the SRD; a shake does: the card points at HELP)

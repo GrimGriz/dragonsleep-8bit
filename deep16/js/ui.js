@@ -704,6 +704,13 @@
   // for a foe, the picker should prefer over allies head at least" -- the darkmantle behind Vivian's head was hers to click, not the darkmantle's)
   // a square's creature, or the Keeper's Ice Wall there as something to strike (js/keeper.js K.wallAt): the four places a click or a key aims a blow
   function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) || D.keeper.swirlAt(D.battle, x, y) : null); }
+  // ONE OF OURS IN ITS CLAWS (11-21, the reader of his 11-20 record, find 1, his "i remember that, good catch": Lymen's Lay on Hands at the downed Aurdin, held in the lake thing's
+  // claw, refused three times -- the click took the creature, and a held one holds no square of its own, G.occupant): on the holder's square, a touch or a spell or an item for
+  // one of ours finds the one it holds. heldIn: the first of u's side in w's claws, standing or down; heldNear: the touch's reach, measured to the holder's body, since the held
+  // one is drawn at its side and stands on its corner
+  function heldIn(B, u, w) { if (!w || !G.hostile(u, w) || !D.Battle.clawHeld) return null; return D.Battle.clawHeld(B, w).filter(function (h) { return h.side === u.side && !h.dead; })[0] || null; }
+  function heldNear(B, u, h) { var by = h && h.inClaws && B.units.filter(function (c) { return c.id === h.inClaws.by; })[0]; return !!by && G.dist(u, by) <= 5; }
+  UI.heldIn = heldIn;
   // THE FIGURE THE MOUSE IS ON IS THE CLICK'S TARGET (11-03, Griz, his Pocket DM fights: "see stirge targetting difficulties" and "The 5-foot flight above 4 foes targeting (manticore)"): occ is
   // G.occupant's answer, the creature standing on the square first, and a flier aloft over it, a rider on its head or shoulder, a big body's other squares are all "that square's" creature
   // only when nobody stands under them -- so a click on the stirge, the second stirge, the manticore hovering over the party went to whoever stood beneath. B.hoverUnit is the figure the
@@ -712,7 +719,7 @@
   function hoveredAt(B, x, y) { var hu = B.hoverUnit; return hu && !hu.object && G.present(hu) && hu.x === x && hu.y === y ? hu : null; }
   function liveFoe(u, t) { return t && G.hostile(u, t) && !t.dead && (t.hp > 0 || !!t.regenDown) ? t : null; }
   // an item aimed: the figure the mouse is on if the item takes it -- or, a flask, if it is a foe (the refusal then says why of it: out of reach, no line) -- else the square's creature
-  function itemOn(B, u, hv, w) { var it = window.DS.DATA.items[B.itemId]; return hv && (B.itemTargetOK(u, B.itemId, hv) || (it && it.use.effect === 'damage' && G.hostile(u, hv))) ? hv : w; }
+  function itemOn(B, u, hv, w) { var it = window.DS.DATA.items[B.itemId]; if (hv && (B.itemTargetOK(u, B.itemId, hv) || (it && it.use.effect === 'damage' && G.hostile(u, hv)))) return hv; var hd = w && !B.itemTargetOK(u, B.itemId, w) ? heldIn(B, u, w) : null; return hd && B.itemTargetOK(u, B.itemId, hd) ? hd : w; } // (hd: one of ours in a claw on that square, a potion for them -- heldIn, 11-21)
   UI.hoveredAt = hoveredAt; // (dev/bench16.js mode=aloftclicks1103)
   // the hero's turn, the mouse on the grid: the figure under it, else a rope's rung, else the tile. MOVE takes the tile (10-21, his 10-19 note: "when move is active, mouse hover
   // should ignore enemy hotboxes other than tiles (investigate 'fly' movement handling also)", and on the seat's lean "allies yes, the menu no", his "accept leans"): another's
@@ -1035,7 +1042,7 @@
   UI.aimWords = function (g, n) {
     var see = g.see ? ' you can see' : '', foe = g.side === 'foe', rg = ' within ' + g.range + ' ft', o = g.see && g.obj ? ' or object' : '';
     switch (g.shape) {
-      case 'attack': return 'a foe in sight' + rg;
+      case 'attack': return 'a foe' + see + rg + (g.see ? '' : ' (one unseen: at disadvantage)'); // (11-21, the reader of his 11-20 record: "FIRE BOLT: a foe in sight" on a target listed unseen -- a spell attack asks no sight in the SRD ("a creature or object within range"); unseen is disadvantage)
       case 'rays': return n + ' rays: click a foe' + see + ' for each (the same foe again is fine)';
       case 'darts': return n + ' darts: click a foe' + see + ' for each (the same foe again is fine)';
       case 'splash': return 'a foe' + see + rg + ' (one beside it is caught too)';
@@ -1111,6 +1118,7 @@
     if (tool === 'grapple') return foe && D.Battle.grabbable(u, foe) ? 'ok' : 'no'; // (a hero's grapple: a foe beside, no more than one size larger -- 10-15)
     if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.range(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
+    if (tool === 'lay') { var hdL = heldIn(B, u, w); if (hdL) return heldNear(B, u, hdL) ? 'ok' : 'no'; } // (one of ours in a claw on that square: heldIn, 11-21)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
     if (tool === 'item') { if (B.itemId === 'oil' && !w && !hv && D.oil) return D.oil.squareOK(B, u, x, y) ? 'ok' : 'no'; return B.itemTargetOK(u, B.itemId, itemOn(B, u, hv, w)) ? 'ok' : 'no'; } // (the flask at the ground: js/oil.js, 10-05) (itemOn: the figure the mouse is on, if it is one for the item)
     if (tool === 'torch') return UI.throwSq(u, x, y) ? 'ok' : 'no';
@@ -1136,6 +1144,7 @@
     var M = D.magic, w = occ(x, y), hu = hoveredAt(B, x, y), ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
     if (ok(hu)) return hu; // (the figure the mouse is on -- a rider, a flier aloft over the one standing there, a big body -- when the spell takes it, hoveredAt, 11-03)
     if (ok(w)) return w;
+    var hd = heldIn(B, u, w); if (ok(hd)) return hd; // (one of ours in a claw on that square: Cure Wounds at the held one -- heldIn, 11-21)
     var r = D.Battle.riderOn(u, w, B.units); if (ok(r)) return r;
     // a roper's tendril on the one there -- a friend's, or the one on the caster -- for a spell attack whose SRD 5.1 words take an object (`obj`: Fire Bolt, "a creature or
     // object"): the tendril is a thing, AC 20 and 10 HP (battle.js strikeTendril). 10-06, the grid's rules §2.4: "Fire Bolt at an object (the tendril, AC 20, 10 HP)"
@@ -1330,6 +1339,7 @@
     if (tool === 'grapple') { if (v === 'ok') return UI.command(B, u, { do: 'grapple', target: foe }); return B.card(['{o}Grapple: a foe beside you, no more than one size larger.{/}'], 120); }
     if (tool === 'offhand') { if (v === 'ok') return UI.command(B, u, { do: 'offhand', target: foe }); return B.card(['{o}Off hand: a foe in your reach' + (D.Battle.offThrow(u) ? ', or one to throw it at' : '') + '.{/}'], 120); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}' + D.Battle.helpWhyNot(u, w, foe) + '{/}'], 120); } // (the why: down, not asleep; too far; awake and free -- 11-06)
+    if (tool === 'lay' && heldIn(B, u, w)) w = heldIn(B, u, w); // (one of ours in a claw on that square: heldIn, 11-21)
     if (tool === 'lay') { if (v === 'ok') { var lnN = D.Battle.layNothing(w); if (lnN) { D.sfx('error'); return B.card([lnN], 160); } return UI.command(B, u, { do: 'lay', target: w }); } return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); } // (at full hit points: turned away before the action is spent, 11-06)
     // (askSelf: a click on your own square with an item aimed is asked first -- 10-05 night, his play: the Bat-Wing Pie refused on Aurdin, down, and the next click, on Lymen's own square, ate it
     // and the action with it; battle.js exec 'item')

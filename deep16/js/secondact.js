@@ -644,7 +644,7 @@
     var Rm = R(), R0 = B.roam, f = R0.flags, st = D.counter.state(B);
     f.pathStand = 1;
     var Y = Y0 || A.cast(B, f, A.PATH.half);
-    if (A.elsbethState(f) === 'earned') { Y.elsbeth = In.unit(B, { id: 'elsbethPath', kind: 'commonerwoman', at: [In.DOORS.lake[0] + 1, In.DOORS.lake[1] + 1], name: 'Elsbeth', face: [1, 0], lantern: true }); Y.elsbeth.bystander = true; f.elsbethLantern = 1; }
+    if (A.elsbethState(f) === 'earned') { Y.elsbeth = In.unit(B, { id: 'elsbethPath', kind: 'commonerwoman', at: [In.DOORS.lake[0] + 1, In.DOORS.lake[1] + 1], name: 'Elsbeth', face: [1, 0], lantern: true }); Y.elsbeth.bystander = true; f.elsbethLantern = 1; var esP = D.innprops && D.innprops.ELSBETH; if (esP && D.SHEETS && D.SHEETS[esP]) Y.elsbeth.sheet = esP; } // (her own figure, as at the stone: 11-21, his note on eyes-secondact-pathearned-1118, "there's a townswoman figure")
     yield* Rm.walkTo(B, A.PATH.head);
     yield* B.camTo({ gx: A.PATH.half[0], gy: A.PATH.half[1], gz: 0 }, D.iso.zoom, 24);
     if (Y.elsbeth) yield* In.card(B, [A.LINES.elsbethLantern], 300);
@@ -876,8 +876,8 @@
     // the ring's round (Winters' ring, the Ring of Water Walking since 11-16): it must turn on the wearer (data/fights.js chuul.ring) -- this turn the brute's, at the wearer, her in its claws all the while; the take goes on after it
     if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u)) { yield* AIx.brute(B, u); return; }
     if (!tk.said) { tk.said = true; B.card(['{r}' + u.name + '{/} turns toward {y}' + g.name + '{/}' + (tk.hero ? ', on the stone: the offering laid out for it.' : ': the nearest offering.')]); yield 20; }
-    if (A.holdShow) B.units.forEach(function (w) { if (w.side === 'party') w.reaction = 0; }); // (the show's held hands: no opportunity attack as it passes)
     var pin = u.attacks.pincer, held = function () { return !!(g.inClaws && g.inClaws.by === u.id); };
+    if (A.holdShow && !held()) B.units.forEach(function (w) { if (w.side === 'party') w.reaction = 0; }); // (the show's held hands: no opportunity attack as it comes up -- only till she is in its claws, 11-21)
     if (!held()) {
       var rch = G.reachOf(u, pin.reach);
       if (G.dist(u, g) > rch && T.move > 0) { var rm = G.reach(u, T.move), e = AIx.approach(u, g, rm, rch), pth = e && G.path(rm, e.x, e.y); if (pth && pth.length) yield* takeStep(B, u, pth); }
@@ -936,13 +936,21 @@
       if (A.holdShow && c && c.take) {
         Y.frog.conds.asleep = { by: 'show' };
         var heroT0 = B.hasOwnProperty('heroTurn') ? B.heroTurn : null;
-        B.heroTurn = function* (u) { if (on()) { u.reaction = 0; self.card(['{c}THE SHOW{/}: ' + u.name + ' holds -- the hands held while it takes her.'], 160); yield 40; return; } return yield* D.Battle.prototype.heroTurn.apply(this, arguments); };
+        // (THE HANDS LET GO ONCE SHE IS IN ITS CLAWS, 11-21, his note on eyes-lake-take-1112h: "couldn't wound it, actions held as it accepted her as offering" -- the card says
+        // "wound it, or the lake has its offering" and the show had held every turn to the deep: the hands are held only while it comes up and grabs her, then they are his)
+        B.heroTurn = function* (u) { if (on() && !holds()) { u.reaction = 0; self.card(['{c}THE SHOW{/}: ' + u.name + ' holds -- the hands held while it takes her.'], 160); yield 40; return; } return yield* D.Battle.prototype.heroTurn.apply(this, arguments); };
         c.take.unhold = function () { if (heroT0) B.heroTurn = heroT0; else delete B.heroTurn; };
       }
+      // SHE GOES DOWN, AND THE PARTY MAY REACH HER (RULED 11-20, Griz on his record's find that it cut her down in its claws: "she'd flip sides after it damages her - and it's not
+      // against the text, we do need to let the party heal her before the fight ends to avoid the 'Gennett died' outcomes when she falls in combat"): a blow that drops her in
+      // this fight -- its pincer with her held, or the party's own fire -- puts her down on our side (fated: down at 0, never dead in the fight, js/battle.js hurt), to be healed
+      // like a hero; she is dead (`gennetDead`, the first ending's) only if the fight ends with her still at 0 (below, after the engage)
+      if (gn) gn.fated = true;
       B.hurt = function (u, n) {
         if (u === c && n > 0 && on()) A.turned(self, Y, self.active !== c ? self.active : null); // (a blow that lands from anything -- a spell's save, a fire, a flask)
+        if (u === gn && n > 0 && n >= gn.hp && gn.side !== 'party') { gn.side = 'party'; gn.ally = true; gn.bystander = false; delete gn.offering; A.trail('Gennet falls before it has her: down on the party\'s side, to be reached'); } // (the offering's side holds no "down": she falls as ours)
         var r = hurt0.apply(this, arguments);
-        if (u === gn && u.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight' + (gn.heldOffering ? ', in its claw' : ' (not by it)')); } // (the party's own -- a Fireball catches her -- or, disturbed with her in its claw, its own pincer: killed, the first ending's; it fights on)
+        if (u === gn && u.hp <= 0 && !gn.fated && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; A.trail('Gennet killed in the lake fight' + (gn.heldOffering ? ', in its claw' : ' (not by it)')); } // (the party's own -- a Fireball catches her -- or, disturbed with her in its claw, its own pincer: killed, the first ending's; it fights on)
         return r;
       };
       // ONLY KILLING IT MAKES IT DROP HER (RULED 11-12, ruling 61, Griz: "only killing for drop, hit is the technicality that if they don't injure it after it grabs gennet it'll just
@@ -972,6 +980,8 @@
     B.hurt = hurt0; if (!ownAtk) delete B.attack; else B.attack = atk0; if (!ownExec) delete B.exec; else B.exec = exec0; if (RUx.save !== save0) RUx.save = save0;
     if (c) { if (c.take && c.take.unhold) c.take.unhold(); delete c.take; if (c.script === 'lakeTake') c.script = null; }
     if (prey) { delete prey.offering; if (!Y.preyTaken) { delete prey.inClaws; if (prey.conds.restrained && c && prey.conds.restrained.by === c.id) delete prey.conds.restrained; } }
+    if (gn && gn.fated && gn.hp <= 0 && !R0.flags.gennetTaken && !R0.flags.gennetDead) { R0.flags.gennetDead = 1; gn.dead = true; A.trail('Gennet down at the fight\'s end and nobody reached her: dead' + (gn.heldOffering ? ', in its claw' : '')); } // (the heal not made in time: the first ending's, as a fall was before 11-21)
+    if (gn) { delete gn.fated; delete gn.ko; }
     if (gn && !R0.flags.gennetTaken && !R0.flags.gennetDead) { Object.assign(gn, gKeep); delete gn.offering; delete gn.ally; delete gn.heldOffering; delete gn.conds.paralyzed; delete gn.conds.poisoned; delete gn.inClaws; delete gn.goneDown; if (gn.conds.restrained && c && gn.conds.restrained.by === c.id) delete gn.conds.restrained; } // (she lives: back on the path as she sat)
     else if (gn) { In.gone(B, gn); Y.gennet = null; }
     B.taunt = null; if (ring) { if (ring.saves && con0 != null) ring.saves.con = con0; delete ring.ring; }
@@ -1070,7 +1080,7 @@
     { id: 'risenoring', beat: 'rise', label: 'BEAT 4: the rise at the shore without the ring -- it fights (11-05)', note: 'The child taken, the party at the flat stone, no ring worn: the water off the point heaves, it comes halfway up -- "Cheated of the stone, it does not go down. It comes up onto the point at whatever stands there -- and you are not ready for it." -- and the fight with its frog, the chuul as the SRD has it, no ring\'s rounds. Get clear of the water and it ends.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 } },
     { id: 'offerinside', beat: 'offer', label: 'THE NEAREST OFFERING: the child taken inside, the inn lady left on the path (11-05)', note: 'Gennet yielded and sitting on the path with her lantern, the child\'s hand in yours. TAKE HER INSIDE: up to the lake door -- the water off the point heaves behind you. GO BACK FOR HER: down to the stone, and it turns toward the one on the path, not you; shield her (stand between, kill it first) or it takes her and goes down with her -- then Doran lets you rooms and nobody cooks. LET THE LAKE HAVE HER: it comes up onto the path and takes her, the lantern into the water -- "You\'ll want the road."', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
     { id: 'offerwater', beat: 'offer', label: 'THE NEAREST OFFERING: STAY AT THE WATER, the inn lady its first target (11-05)', note: 'The same, STAY AT THE WATER: the party by the flat stone, the water heaves, and it goes for Gennet first -- "It does not turn toward you. It turns toward the one on the path: the nearest offering." The ring\'s rounds still turn it on the wearer (this beat: no ring).', flags: { wagonOutcome: 'inn', gennetYield: 1 }, water: true },
-    { id: 'take', beat: 'offer', hold: true, label: 'THE TAKE: STAY AT THE WATER, the four\'s hands held -- it comes up, takes her in its claws and goes down (11-06)', note: 'Gennet yielded on the path, the child taken. Answer STAY AT THE WATER: the party by the flat stone, the water heaves, and it comes for her. THE SHOW holds the four\'s hands while it takes her (its frog left asleep): it comes up over the rocks, its pincer closes on her (the d20 pinned) -- the lunge, out to her and back to its own square, and she is in its claws, lifted at its side -- then back into the deep with her at half speed, and it goes down: "It has her." The two fade out where they went; nothing is drawn dying. The other way is the beat before, STAY AT THE WATER with your hands: strike at it on the way (an opportunity attack counts) and it lets her fall from the claw and fights you.', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
+    { id: 'take', beat: 'offer', hold: true, label: 'THE TAKE: STAY AT THE WATER, the four\'s hands held till it has her -- then wound it, or it goes down with her (11-06, 11-21)', note: 'Gennet yielded on the path, the child taken. Answer STAY AT THE WATER: the party by the flat stone, the water heaves, and it comes for her. THE SHOW holds the four\'s hands while it comes for her (its frog left asleep): it comes up over the rocks, its pincer closes on her (the d20 pinned) -- the lunge, out to her and back to its own square, and she is in its claws, lifted at its side. From there the hands are yours (11-21): wound it and it stays and fights with her in its claw; leave it and it goes back into the deep with her at half speed and down: "It has her." The two fade out where they went; nothing is drawn dying. The other way is the beat before, STAY AT THE WATER with your hands: strike at it on the way (an opportunity attack counts) and it lets her fall from the claw and fights you.', flags: { wagonOutcome: 'inn', gennetYield: 1 } },
     { id: 'poison', beat: 'poison', label: 'THE POISON DINNER: one asleep at the table, the fight inside, Doran\'s confession (11-05)', note: 'Day 15 at six, the wagon stopped on the road three days ago, so the Waterbys kept no child: supper is the draught. The tells are each hero\'s own (Medicine 13 tastes it, Insight 15 sees the inn lady not eat). The dice pinned: the first to eat fails the CON save (DC 13) and goes down at the table, the rest make it -- the fight in the common room to submission (the first yield ends it), then Doran: "There\'s a thing in the lake ..." -- his bucket over the sleepers, and he leads you out back to the stone: the rise, the fight at the shore.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 19, 19, 19] },
     { id: 'poisonall', beat: 'poison', label: 'THE POISON DINNER: all asleep -- the drag, and awake on the stone (11-05)', note: 'The same supper, every save failed: the table tilts away. The drag, ten minutes, a save every two (the dice pinned: the first makes three of five, +3). On the stone as the water heaves, each saves again with its bonus: the first wakes, the rest sleep on -- shake them awake (HELP) while it comes up out of the deep; three rounds with nobody up and it takes one.', flags: { wagonOutcome: 'road', dueOff: 'none' }, dice: [2, 2, 2, 2, 19, 19, 19, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 12, 2, 2, 2] },
     { id: 'risenone', beat: 'rise', label: 'BEAT 4: the rise with nobody at the shore', note: 'The child taken and the party back at the path\'s head: the water heaves, nothing stands on the stone, it goes down. The god seen: Elsbeth\'s third tier is yours for nothing after.', flags: { wagonOutcome: 'inn', offeringSaved: 1, dueStopped: 1, gennetYield: 1 }, far: true },
@@ -1081,7 +1091,7 @@
   ];
   A.play = function (bt) {
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.silver = Math.max(rec.silver || 0, 60);
-    rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled, hold: !!bt.hold } }, bt.flags || {});
+    rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: bt.beat === 'fork' ? null : { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled, hold: !!bt.hold } }, bt.flags || {});
     if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; delete rec.flags.doranAway; rec.flags.secondAct = null; } // (doranAway too, 11-05: six on day 12 is before the wagon, and with Doran gone and no ring Elsbeth only sends the party to Winters -- js/inn.js M.SCENES.elsbeth; his "all i'm getting from elsbeth is 'go see winters'")
     if (bt.beat === 'poison') { ['dueTonight', 'kidTaken', 'kidAtInn', 'glamourBroken', 'glamourSeen'].forEach(function (k) { delete rec.flags[k]; }); }
     if (bt.beat === 'boat') { ['wagonIn', 'dueTonight', 'kidTaken', 'kidAtInn', 'doranAway', 'wagonStopped'].forEach(function (k) { delete rec.flags[k]; }); } // (a day with no wagon: the rowboat's own)
@@ -1089,6 +1099,13 @@
     H.begin(rec, 0); var S = W.state && W.state(); if (S) S.t = bt.beat === 'wand' ? W.tAt(In.WAGON.first) + 18 : W.tAt(In.dueDay(0)) + (bt.beat === 'boat' ? 14 + 24 : bt.beat === 'poison' ? 18 : 23); // (the due's own night: day 15 since 11-05, three on from the first WAGON DAY -- js/inn.js In.DUE; the wand at six on day 12; the rowboat the afternoon after the first due, missed -- js/inn.js In.boatOn, 11-18)
     In.pinned = bt.dice ? bt.dice.slice() : null;
     var at = bt.beat === 'wand' ? [32, 21] : bt.beat === 'poison' ? [24, 17] : bt.beat === 'boat' ? [A.BOAT[0], A.BOAT[1] - 1] : bt.beat === 'offer' ? A.PATH.head.slice() : bt.beat === 'rise' && bt.far ? A.PATH.head : bt.beat === 'rise' ? [A.STONE[0] - 2, A.STONE[1]] : bt.beat === 'path' ? [In.DOORS.lake[0] + 1, In.DOORS.lake[1]] : [In.WAGONAT[0] + 6, In.WAGONAT[1]];
+    // THE SIGNS FROM THE BIG ROOM (11-21, his note on eyes-secondact-signs-1118: "this door put me in front of the inn"): the due's night is played from the big room upstairs since
+    // 11-12 (A.dueNight, A.dueRoom), and this beat had kept the old staging on the yard -- it opens there now, as the game does: the party asleep in the big room, the singing up
+    // through the boards wakes them (the dice pinned), the window, then the lake's signs and the fork from it (A.dueLake)
+    if (bt.beat === 'fork') {
+      In.duePlay = { stage: 'room', d: In.dueDay(0), off: 'kept' }; // (no f.secondAct for this beat: the flags above)
+      var nu = D.roam.make('?roam=' + In.UP + '&at=' + In.ROOM.big.at.join(','), { save: H.living(H.cur), opts: { at8: In.ROOM.big.at.slice() }, house: true }); D.push(nu); return;
+    }
     var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' || bt.beat === 'poison' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
     D.push(nb);
   };
