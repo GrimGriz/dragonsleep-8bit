@@ -347,6 +347,7 @@
       var du = floor0.apply(this, arguments);
       du.under = In.under(In.UPROWS, function () { return true; }, function () { return true; });
       du.roofs = Object.assign({}, du.roofs, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); du.hud = 'the Halfway Inn';
+      du.exitsOnly = true; du.fightDoors = []; // (THE INN'S FIGHTS LEAVE BY ITS EXITS, 11-21: upstairs no square is off the grounds -- its stair goes down into the house, so a fight here lights no way out: js/roam.js R.setExits)
       du.hello = ['{y}THE HALFWAY INN{/}, upstairs.', In.LINES.upstairs, /* (a player's words, the hour added by js/roam.js R.script: 11-16, the words-and-boxes seat) */ '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
       return du;
     }
@@ -357,6 +358,13 @@
     def.under = In.under(In.ROWS, In.inHouse, function (x, y) { return !!In.inside && In.inHouse(x, y) === In.inside; }); // (the boards under the things inside, and under the walls of the house the party is in: In.under)
     def.noPoolEdge = true; /* (no dark rim where the shallows meet the deep, 11-13: his "get rid of the brown line between the shallow and deep" -- js/iso.js) */ def.inside = In.inside || null; def.sub =In.inside === 'inn' ? 'the common room and the rooms' : In.inside === 'barn' ? 'the barn' : 'the yard and the shore'; def.hud = 'the Halfway Inn'; def.where = function () { return def.sub; }; // (the HUD's place line by the lay, not the floor's one sub)
     def.doors = (def.doors || []).filter(function (q2) { return def.rows[q2[1]][q2[0]] !== '~'; }); // (the lake waded since 11-05: its rim is water, not a way to THE WORLD -- an `edges` floor takes every open rim square)
+    // THE INN'S FIGHTS LEAVE BY ITS EXITS (11-21, Griz: "For inn fights, including the lake - the party should have to leave the inn by it's exits to run away from the fight,
+    // since ending the fight in the yard probably throws the story all out of whack"; then "make sure the - 'story fight exit' for the inn requires exiting the inn back to the
+    // world map"): a fight on this floor -- the yard's, the barn's, the path's, the lake's -- lights only the rim squares that go out onto THE WORLD (def.doors, the edge's
+    // RETURN), none when none is in reach; leaving by one takes the party off the grounds to the world map (js/roam.js R.setExits, R.after; js/mines.js R.fightOutGo).
+    // The poisoned supper keeps its own two doors (js/secondact.js, RULED 11-12: Doran stops the one who left at the door). From inside a house -- the inn, its wing, the
+    // barn -- none lights (11-21, Griz: "no escape from the inside fights is fine (should just be the dinner?)"), and the fight's card says so (js/roam.js R.engage)
+    def.exitsOnly = true; def.fightDoorsFor = function (u) { return u && In.inHouse(u.x, u.y) ? [] : def.doors; };
     def.roofs = Object.assign({}, def.roofs, In.ROOFS, { v: { h: In.STUB, roof: 'leather', wall: 'stone' } }); // (the house two stories from the yard, the wing and the barn their own; the walls cut low while the party is in)
     def.people.forEach(function (p) { if (In.KINDS[p.id]) p.kind = In.KINDS[p.id]; if ((p.id === 'wagonGoblin' && flags.glamourSeen) || (p.id === 'barnGoblin' && flags.glamourBroken)) p.kind = In.keptKind(); }); // (the chained one a child once the glamour is seen through)
     def.skyLights = (def.skyLights || []).concat(['front', 'lake', 'barn'].map(function (k) { var q2 = In.STEP[k]; return { x: q2[0], y: q2[1], door: k === 'barn' ? 'barn' : 'inn' }; }), In.inside === 'inn' ? [[26, 18], [31, 18], [24, 15], [23, 21], [33, 26]].map(function (q2) { return { x: q2[0], y: q2[1], door: 'hearth' }; }) : []); // (a lamp over each door; inside, the fires and the lamps on the tables -- the night's pools, js/mines.js M.paintSky)
@@ -1311,6 +1319,8 @@
     // sleepers on the investigate of char 1)" -- the seat's drafts, his to re-word: invented.json halfway-watch-two-1121; {name} the one at the window, {wakers} the rest of the watch)
     investWake: '{name} slips down the stair. {wakers} {shakes} the others awake, and the party follows {name} out into the yard.',
     lymenOffer: '"By Kalindel. That gold was paid for children. Leave it in her hand."',
+    // (THE PARTY RAN FROM THE YARD, 11-21: off the grounds onto the road in the dark -- the seat's draft, his to re-word: invented.json halfway-yard-ran-1121)
+    ranYard: 'Off the inn\'s grounds and out into the dark. Behind you, the wagon\'s lamps swing out onto the road north, and are gone.',
     investBack: '{name} goes back up the stair to the window.',
     fledHorses: 'They have the team loose and are away north up the road on the greys, into the dark toward Web Gulch.',
     fledFoot: 'They are away north up the road on foot, into the dark toward Web Gulch.',
@@ -1992,6 +2002,7 @@
       var lyW = C.lymenWord; C.lymenWord = null;
       var out = yield* In.yardFight(B, Y, { solo: a === 0 && !C.wakers && party.length > 1 ? watcher : null, word: lyW ? function* () { yield* In.heroSay(B, lyW, L('wagon.lymen'), 'the yard, by the wagon'); } : null });
       if (out === 'lost') return;
+      if (out === 'escaped') { yield* In.yardRan(B, C, Y); return 'ran'; }
       In.leadBack(B); // (the whole house up now: the lead in front again)
       f.glamourBroken = 1; f.wagonStopped = 'c' + In.cycle(d); // (this wagon runs no road north: its mark on THE WORLD stops -- js/wagon.js)
       yield* In.breakGlamour(B, st, f, Y);
@@ -2081,7 +2092,21 @@
     In.lastFight.amaraUp = !!(Y.amara && Y.amara.hp > 0 && (!Y.amara.dead || Y.amara.fled)); // (11-06: a dead Amara rides in no chase -- js/chase.js Ch.place)
     Object.keys(keep).forEach(function (k) { if (keep[k] === undefined) delete F[k]; else F[k] = keep[k]; });
     In.lastFight.willemUp = !!(Y.willem && Y.willem.hp > 0 && (!Y.willem.dead || Y.willem.fled)); // (still up -- away, or standing: he runs with her, and his false pair waits at the fork -- js/chase.js; one away off the floor is `dead` to the grid and `fled`)
-    return o === 'won' ? 'won' : /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : 'fled';
+    return o === 'won' ? 'won' : /^(lost|lose|dead|ko)$/.test(String(o)) ? 'lost' : o === 'escaped' ? 'escaped' : 'fled'; // ('escaped': the party left the fight -- off the grounds since 11-21, R0.fightOut)
+  };
+  // THE PARTY RAN FROM THE YARD (11-21, his "the party should have to leave the inn by it's exits to run away from the fight, since ending the fight in the yard probably
+  // throws the story all out of whack"): LEAVE THE FIGHT from the grounds' edge takes the party out onto THE WORLD (js/roam.js R.after keeps where, R0.fightOut; the floor's
+  // walk takes them out after this). The night as it stands when they go: the glamour seen (the children named in the fight), the pair still up -- they load and go on up
+  // the road north with the seven, the wagon not stopped (its mark on THE WORLD goes on); the one handed over is the inn lady's, kept for the due three nights on (as the
+  // bribe's); the traveler inside since the first blade (In.wagonRest), and with the children revealed she does not ride with them: south at first light (f.katSouth, 11-18).
+  // Nobody sleeps here tonight: no morning on this floor. Back in at the inn later, the floor is laid as any day's -- the wagon gone, the girl out back
+  In.yardRan = function* (B, C, Y) {
+    var f = B.roam.flags, d = C.d;
+    f.wagonOutcome = 'ran'; f.glamourBroken = 1; f.kidTaken = 1; f.kidAtInn = 1; f.katGone = 1; f.katSouth = 1; delete f.katYard; delete f.wagonIn; delete f.invest;
+    In.setOffering(f, In.cycle(d), 'kept');
+    In.yardClear(B, Y); In.leadBack(B); In.upViewOff(B); In.zoomBack(B);
+    In.trail('the yard fight left off the grounds: the party out onto the world map, the pair away north with the wagon, the one handed over kept for the due');
+    yield* In.card(B, [In.WN.ranYard], 360);
   };
   // the yard's own aftermath, the pair down or gone (and after the chase's walk back, In.chaseBack): Willem's book if he fell, the strongbox under the bench, the order, the seven in the bed real, the renown, Doran's drive
   // THE REWARD LIKE A FIGHT'S VICTORY (11-12 0043Z, Griz on THE YARD'S END: "wagon reward should be like 'victory' at fight end"): what the wagon gives -- his book

@@ -1431,6 +1431,12 @@
     D.sfx('popup'); t.anim = 'idle'; t.animT = B.t;
     var a = yield { prompt: { who: t, title: def.name.toUpperCase(), lines: R.wrap([M.LINES.edge]), opts: [{ label: 'RETURN', value: 0 }, { label: 'STAY', value: 1 }] } };
     if (a !== 0) { M.stepBack(B); return; }
+    yield* M.edgeGo(B, sq);
+  };
+  // RETURN, said or not: out onto THE WORLD past that side of the site (the edge's ask answered, or a fight left off an `exitsOnly` floor's grounds -- R.fightOutGo, 11-21)
+  M.edgeGo = function* (B, sq) {
+    var R = D.roam, def = R.def, W = D.world, H = D.house, sd = M.sideOf(def, sq);
+    M.lastEdgeGo = { key: def.key, at: sq.slice(), side: sd }; // (for the benches: where the party went out)
     var R0 = B.roam, hr = def.clock || R0.hour != null ? M.hourNow(R.q, B) : null; // (a test door's hour walked on any floor carried out, as a clocked floor's)
     if (W && W.active && W.inDoor && W.scene && D.scenes.indexOf(W.scene) >= 0) { if (R.house() && H && H.playing) H.fromFloor(B); M.carryClock(R0, hr); W.leaveTown(sd); return; } // (the floor's party, pack and purse back into the save first)
     var wm = W && W.index && W.index() && W.map('world'), site = wm && (wm.sites || []).filter(function (s) { return s.id === def.door; })[0]; // (W.index: THE WORLD's map read in, as its scene does on entering)
@@ -1439,6 +1445,9 @@
     ws.enter = function () { en.apply(this, arguments); M.carryClock(R0, hr); var s2 = (W.M().sites || []).filter(function (s) { return s.id === def.door; })[0] || site; W.inDoor = { site: s2, gate: sd }; W.leaveTown(sd); }; // (out past that side once THE WORLD is in, the floor's clock on it)
     M.off(B); D.push(ws);
   };
+  // OUT OF A FIGHT OFF THE GROUNDS (11-21, Griz: "make sure the - 'story fight exit' for the inn requires exiting the inn back to the world map"): js/roam.js R.after keeps
+  // where the one who left the fight went out (R0.fightOut), the fight's own caller says its story, and the floor's walk calls this -- the edge's RETURN, no ask
+  D.roam.fightOutGo = function* (B, fo) { var def = D.roam.def; if (!def || !def.edges) return; B.roam.token.x = fo.at[0]; B.roam.token.y = fo.at[1]; yield* M.edgeGo(B, fo.at); };
   // ---------------------------------------------------------------- ON THE DIAMONDS, shown (deep16/?isoshow -- the eyes rows' door, 10-29, the iso-roams seat): a NEW GAME's four (js/house.js
   // H.fresh) staged on the floor by the beat, as the Wet's show stages its own on the same page (js/roam.js WetShow); &beat=<id> opens one; X back to the title
   M.ISO_BEATS = [

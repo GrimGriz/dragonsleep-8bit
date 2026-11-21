@@ -282,10 +282,11 @@
     try { D.music('boss'); } catch (e) { }
     // (the ways out of this fight are the house's two doors, so a hero who LEAVES THE FIGHT is at a door when Doran reaches them -- 11-12; js/roam.js R.setExits is the floor's rule)
     var set0 = Rm.setExits; Rm.setExits = function (B2, u) { set0.apply(this, arguments); if (B2 === B) B2.exits = [In.DOORS.front.slice(), In.DOORS.lake.slice()]; };
+    B.ownExits = true; // (its own two doors, not the inn's way off the grounds: the fight's card keeps its old words -- js/roam.js R.engage, 11-21)
     // (DORAN'S BUCKET, 11-13, the poison-dinner walk's finding `bucket`: the fight's end kept only the lasting conditions, so every sleeper was up before he spoke and his
     // bucket was never thrown. For this fight the draught's sleep lasts past its end -- js/roam.js R.LASTING -- and his bucket is what wakes whoever still sleeps)
     var last0 = Rm.LASTING; Rm.LASTING = last0.concat(['asleep']);
-    try { yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper'); } finally { Rm.setExits = set0; Rm.LASTING = last0; }
+    try { yield* Rm.engage(B, { foes: [Y.gennet, Y.doran], why: 'supper', zone: null, onSpill: function (B2) { A.seatFight(B2); if (A.spy) A.spy(B2); } }, false, 'supper'); } finally { Rm.setExits = set0; Rm.LASTING = last0; B.ownExits = false; }
     var o = R0.lastOutcome;
     if (/^(lost|lose|dead|ko)$/.test(String(o)) || A.wiped(B)) return;
     try { D.music((D.roam.def && D.roam.def.music) || 'inn'); A.musicBack = (A.musicBack || 0) + 1; } catch (eM) { } // (11-13, his "Combat music that starts at dinner should turn off at yield (and start back up when party token breaks to fight monster)": the house's own again; the thing's fight starts its own, A.lakeFight)

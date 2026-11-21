@@ -386,6 +386,7 @@
     while (true) {
       var t = R0.token;
       if (R0.mode === 'over') { yield 1; continue; }
+      if (R0.fightOut && R.fightOutGo) { var fo = R0.fightOut; R0.fightOut = null; yield* R.fightOutGo(B, fo); continue; } // (out of a fight off an `exitsOnly` floor's grounds: to the world map -- R.after, 11-21)
       // a group on its way in (RULED 10-13, Griz: "1 yes" -- the approach before the fight): it walks at its own speed while the token walks or stands, and
       // the fight starts where they meet; one that got away from a fight comes after the party, or loses it (R.tickGroups)
       if (R0.groups.length) {
@@ -1632,7 +1633,7 @@
     if (grp && grp.onSpill) grp.onSpill(B); // (a set fight's own seating after the spill: the cradle's milker -- R.cradle)
     if (grp && grp.afterSpill) yield* grp.afterSpill(B); // (a set fight's word said with the party out on the field, before initiative: Lymen's "By Kalindel" in the inn's yard -- js/inn.js In.yardFight, 11-18)
     B.exits = [];
-    B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', '{g}A way out: the stairs, or a square a full move clear of every one of them (the pale squares on your turn). One of you out takes the party with them.{/}'], 420);
+    B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', G.map.def.exitsOnly && !B.ownExits ? ((G.map.def.fightDoorsFor ? G.map.def.fightDoorsFor(t) : G.map.def.fightDoors || G.map.def.doors || []).length ? R.EXITSONLY_LINE : R.EXITSNONE_LINE) : '{g}A way out: the stairs, or a square a full move clear of every one of them (the pale squares on your turn). One of you out takes the party with them.{/}'], 420);
     yield 50;
     R0.members.forEach(function (u) { if (u.wings) u.flies = true; }); // (the ring's wings, spread for the fight)
     // the play record (js/record.js): in the house a fight on the floor's own squares is kept with the others, as a field's is (10-31, Griz: "fights on at least the
@@ -1648,6 +1649,8 @@
   // the ways out for one of ours as its turn comes (RULED 10-13, the box cut: "no box"): the floor's own doors, and the squares a full move clear of every foe in
   // the fight -- farther by walking than its reach and its move -- that this one could reach this turn (its move and a dash). A way out is LEAVE THE FIGHT's
   // (battle.js exits): its opportunity attacks, and "your allies refuse" while one of the four lies down or bound (battle.js heldBack)
+  R.EXITSONLY_LINE = '{g}A way out: only off the grounds, back to the world map -- the edge of the map, when one of you can reach it this turn (the pale squares). One of you out takes the party with them.{/}'; // (an `exitsOnly` floor's words: the inn's, 11-21 -- the seat's draft)
+  R.EXITSNONE_LINE = '{g}No way out: a fight inside the house is fought to its end.{/}'; // (11-21, Griz: "no escape from the inside fights is fine" -- the seat's draft)
   R.setExits = function (B, u) {
     var foes = B.units.filter(function (f) { return f.side === 'foe' && !f.dead && f.hp > 0 && !f.roamAside && !f.left; });
     var walk = function (from, probe, maxD, solidFoes) {
@@ -1670,7 +1673,12 @@
     });
     // (RULED 10-13, Griz: "edge toward the actual exits for out-of-range exits"): the floor's own exits when this one can reach them this turn; else the clear squares
     // nearest them by walking -- the edge of the clear ground on the way to the stairs. A floor with no way to its exits keeps every clear square
-    var doors = G.map.def.doors || [], dd0 = {}, dq = [];
+    // (A FLOOR'S EXITS ONLY, 11-21, Griz on the inn: "For inn fights, including the lake - the party should have to leave the inn by it's exits to run away from the fight,
+    // since ending the fight in the yard probably throws the story all out of whack", and "make sure the - 'story fight exit' for the inn requires exiting the inn back to the
+    // world map": a floor with `exitsOnly` lights only its fight doors -- `fightDoors`, else its doors -- that this one can reach this turn; no clear square; none when none is)
+    var xo = !!G.map.def.exitsOnly;
+    var doors = (xo && (G.map.def.fightDoorsFor ? G.map.def.fightDoorsFor(u) : G.map.def.fightDoors)) || G.map.def.doors || [], dd0 = {}, dq = []; // (fightDoorsFor(u): by where this one stands -- the inn's, none from inside a house)
+    if (xo) { B.exits = doors.filter(function (q) { return mine[q[0] + ',' + q[1]] != null; }).map(function (q) { return q.slice(); }); return; }
     doors.forEach(function (q) { dd0[q[0] + ',' + q[1]] = 0; dq.push(q); });
     while (dq.length) { var c0 = dq.shift(), v0 = dd0[c0[0] + ',' + c0[1]]; for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) { var kx = (c0[0] + xx) + ',' + (c0[1] + yy), s0 = G.map.at(c0[0] + xx, c0[1] + yy); if ((!xx && !yy) || dd0[kx] != null || !s0 || !s0.walk) continue; dd0[kx] = v0 + 1; dq.push([c0[0] + xx, c0[1] + yy]); } }
     var inReach = doors.filter(function (q) { return mine[q[0] + ',' + q[1]] != null; }), ex;
@@ -1863,6 +1871,7 @@
       // one square past where the one who got out left: of the squares beside it, the one farthest by walking from the foes still up
       var fdist = function (x, y) { var best = Infinity; still.forEach(function (f) { var p = D.Battle.route(f, [x, y], false); best = Math.min(best, p ? p.length : 99); }); return best; };
       // (and not a trigger square, where one beside it is not: away is away -- 10-14, his play: "did a party escape with viv, then snapped back into fight coz ly was on trigger square")
+      var outAt = [outBy.x, outBy.y]; // (where the one who left stood, before the lead is put a square past it -- the lead may be that one: 11-21, the inn's exits' bench, where the stair's test below read the moved square)
       var meet = [outBy.x, outBy.y], md = (still.length ? fdist(outBy.x, outBy.y) : 0) - (R.trapAt(B, outBy.x, outBy.y) ? 1000 : 0);
       for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
         var nx = outBy.x + dx, ny = outBy.y + dy, s = G.map.at(nx, ny); if ((!dx && !dy) || !s || !s.walk || G.occupant(nx, ny)) continue;
@@ -1872,12 +1881,16 @@
       lead.x = meet[0]; lead.y = meet[1]; lead.tween = null;
       // out by the floor's own stairs: off this floor -- the 8-bit takes the party on, and down again its groups are gone ("they'll have to exit and come back to make
       // the random encounter vanish"); the test keeps the party here, on the stair, with the floor's groups cleared
-      var byStair = (G.map.def.doors || []).some(function (d) { return d[0] === outBy.x && d[1] === outBy.y; });
+      var byStair = (G.map.def.doors || []).some(function (d) { return d[0] === outAt[0] && d[1] === outAt[1]; });
       if (byStair) {
-        lead.x = outBy.x; lead.y = outBy.y;
+        lead.x = outAt[0]; lead.y = outAt[1];
         B.units = B.units.filter(function (u) { return still.indexOf(u) < 0; }); R.dropGroups(B);
-        if (R.emb) { yield* R.leaveFloor(B, 'out', [outBy.x, outBy.y]); return; }
-        B.card(['{y}Away{/}: ' + outBy.name + ' takes the stair, and the party with them.', '{g}Off the floor: the 8-bit would take you on, and back down its groups are gone. (The test keeps you here, the floor cleared.){/}'], 360);
+        // (an `exitsOnly` floor, 11-21 -- the inn's: off the grounds is off the floor, back to the world map. The fight's caller says its own story first -- before 11-21 the
+        // house's R.leaveFloor took the party out here, ahead of it, and the night's state was never set -- then the floor's walk takes the party out by the side it left
+        // (R.script, R.fightOutGo: js/mines.js, the edge's RETURN without its ask))
+        if (!G.map.def.exitsOnly && R.emb) { yield* R.leaveFloor(B, 'out', outAt.slice()); return; }
+        if (G.map.def.exitsOnly) { R0.fightOut = { at: outAt.slice(), by: outBy.name }; B.card(['{y}Away{/}: ' + outBy.name + ' gets off the grounds, and the party with them.'], 300); still = []; }
+        else B.card(['{y}Away{/}: ' + outBy.name + ' takes the stair, and the party with them.', '{g}Off the floor: the 8-bit would take you on, and back down its groups are gone. (The test keeps you here, the floor cleared.){/}'], 360);
         R.packCard(B);
         still = [];
       } else if (still.length) {
