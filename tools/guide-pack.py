@@ -185,7 +185,7 @@ already out past the mate in front, the pose he stands in behind the wall.""",
 # SOLDIERING ON THE HUMAN BUILD (11-21, the pose seat pose-1121). Griz, 11-20: "we'll need soldiering posings for non-dwarfs"; 11-21, to the
 # lanes desk, "Go on 1-5". HELD: which human troops get the feat is his to say, so these wait in the art desk folder and go with no ask.
 _HUMAN = "the Line Guard's fight figure (`guard_p2`), the human trooper the art desk drew"
-_HELD = 'HELD (2026-11-21): posed ahead of the ask. Which human troops are given the Soldiering feat is not yet said; this guide goes to the art desk with the ask that names it, and not before.'
+_HELD = 'For the troops Griz named on 2026-11-21 ("Dominion still needs it, and the Silverton fighters from the stable that isn\'t Bloodtusk\'s"): it travels with the asks that name it (ASK-2026-11-21-line-guard-soldiering, ASK-2026-11-21-dominion-troops).'      # (posed HELD till his word; released on "you can outbox any ask you want", 11-21)
 G += [
     dict(move='shield-wall-push-human', date='2026-11-21', held=_HELD, title="SHIELD WALL: shields set, and THE PUSH (human) -- the Soldiering feat's row", replaces=None,
          sets=[('shield-wall-push-human', 'SHIELD-WALL-PUSH-HUMAN', 'shieldpush', 'shieldpush-alone-%s', 'shieldpush-alone-all', 'shieldpush', _HUMAN)],
