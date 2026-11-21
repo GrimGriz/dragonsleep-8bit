@@ -52,6 +52,10 @@
     // (a blow's flying row is that blow seen: the wyvern's airsting is its sting, played aloft -- js/battle.js, 11-15. Not wanted on its own; the parade flies it, js/parade.js ALOFT)
     var gr = /^air./.test(row) && D.spr.anim(u.sheet, row.slice(3)) ? row.slice(3) : null;
     if (gr) { t[gr] = (t[gr] || 0) + 1; u.showSeen[gr] = (u.showSeen[gr] || 0) + 1; }
+    // the count over its head as the row plays (11-21, the shows-notes seat: the show plays every row twice on purpose -- two of the creature, and the director's
+    // own blow where one has shown fewer than two -- and on screen that read as a row playing twice by mistake; Griz at the doors: "rows look good but play
+    // multiple times"). A loop (idle, walk) and the Still from the start are not counted aloud
+    if (!LOOPS[row] && D.fx && D.fx.float && D.PAL) D.fx.float(row + ' ' + t[row] + (t[row] <= 2 ? ' of 2' : ''), u, D.PAL.ramps.bone[3]);
   }
   // every set of u.anim bumps a count; the step after reads what it was left at
   function watch(u) {
@@ -112,8 +116,8 @@
   // (nor a shapechanger's shift on a kind that does not shift: the werewolf's `shift` is the priest's, data/foes.js werewolfpriest -- the road's hybrid never
   // plays it; nor the werewolf's `towolf`, which no fight plays yet -- the wolf form is not on the grid; the row gallery, ?gallery&shelf=creatures&rows=werewolf,
   // plays both: 11-14, the hyena-stirge seat; nor the Shove's `shove` and the Long Guard feat's `keepback`, which a show's blows never bring about -- the Line
-  // Guard's guard_p2, ART-WANTED-86, 11-19, the cutter-guard seat: the gallery, ?rows=guard_p2, plays both; nor Soldiering's `pikerank` and `push`, which play only through and in a set shield wall -- the pike trooper's and Halldor's and Hedda's sheets, 11-20: the gallery's wall, ?gallery&shelf=features&feature=soldiering_wall, plays both)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && r !== 'pikerank' && r !== 'push' && !(r === 'shift' && !shf) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
+  // Guard's guard_p2, ART-WANTED-86, 11-19, the cutter-guard seat: the gallery, ?rows=guard_p2, plays both; nor Soldiering's `pikerank` and `push`, which play only through and in a set shield wall -- the pike trooper's and Halldor's and Hedda's sheets, 11-20: the gallery's wall, ?gallery&shelf=features&feature=soldiering_wall, plays both; nor a `sit` row on one that never yields -- a fight plays it only on a yielder at half, js/battle.js, and Talmok's show door ended every run "sit 0" in red, 11-21, the shows-notes seat)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && r !== 'pikerank' && r !== 'push' && !(r === 'shift' && !shf) && !(r === 'sit' && !(kind && D.FOES[kind] && D.FOES[kind].yields)) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
@@ -466,7 +470,7 @@
     if (stone && stone !== 'slate') { mapId = 'testground_' + stone; D.MAPS[mapId] = Object.assign({}, D.MAPS.testground, { stone: stone === 'brown' ? undefined : stone }); }
     var foes = []; kinds.forEach(function (k) { for (var i = 0; i < n; i++) foes.push(k); });
     var F = { id: 'show', level: L, map: mapId, name: 'The Test Ground', sub: 'the show: ' + kinds.join(', ') + (stone ? ' (' + stone + ')' : ''),
-      intro: 'Bright by the lamp, dim past it, dark at the far end. Four watch by their own eyes. Every row, twice.',
+      intro: 'Bright by the lamp, dim past it, dark at the far end. Four watch by their own eyes. Every row, twice: ' + (n > 1 ? n + ' of it on the floor, and ' : '') + 'each row\'s count over its head as it plays (a blow plays its row once).',
       from: 'js/show.js (10-02)', won: 'THE SHOW IS OVER.', lost: 'THE SHOW WENT WRONG.', foes: [], wave: null, noFlee: true };
     var B = new D.Battle(Object.assign({ npc: { foes: foes, party: ['wizard:' + L, 'wizard:' + L, 'fighter:' + L + ':dwarf', 'rogue:' + L + ':human'] }, watch: true,
       familiars: [{ kind: 'bat', by: 'p0-wizard' }, { kind: 'snake', by: 'p1-wizard' }], fightDef: F }, o || {}));

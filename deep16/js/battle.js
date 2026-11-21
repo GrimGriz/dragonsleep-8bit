@@ -2708,6 +2708,10 @@
         if (D.ripple) D.ripple(att, { region: 'body' });
       }
     }
+    // (the row this blow plays, marked so js/ui.js plays it ONCE and goes back to idle -- 11-21, the shows-notes seat: a blow's row missing from ui.js's list of once-rows
+    // looped for as long as the blow held it, so one swing drew twice or three times; Griz at the show doors: "looks like he's taking two swings, is that two attacks or one
+    // attack animation issue?" -- Talmok's greataxe, the scout's and the crossbowman's shoot, the trooper's throw, the werewolf's claws)
+    if (!posing) att.blowRow = att.anim;
     // (a blow from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in; and since 10-08 a melee row's too,
     // the Harbinger's pounce landing on its frame 6. A melee row with no release still strikes 10 ticks in)
     var rel = !atk.spell && D.spr.anim(att.sheet, D.spr.inHand(att, att.anim)), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;

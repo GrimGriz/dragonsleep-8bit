@@ -1527,6 +1527,67 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preS);
     return;
   }
+  // THE SHOW DOORS' ROWS (mode=showrows1121; 11-21, the shows-notes seat -- Griz at five show doors: "looks like he's taking two swings, is that two attacks or one attack
+  // animation issue?", "bow looks like 3 shots", "rows look good but play multiple times"): a blow's row whose name js/ui.js's list of once-rows lacked LOOPED for as long as
+  // the blow held it (Talmok's greataxe ~42 frames on a 36-frame row: a second swing begun). Each door's fight run through the real draw (D.ui.drawBattle), frame by frame while
+  // a creature on show holds a blow's row: the frame the draw picks for it never wraps back to the first -- one blow, one play. And the show's own repeats are said on screen:
+  // the count over the head as a row plays (show.js see: "greataxe 1 of 2")
+  if (get('mode', '') === 'showrows1121') {
+    var repW = { checks: [], errors: [] };
+    function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var cvW = document.createElement('canvas'); cvW.width = 320; cvW.height = 240; var cxW = cvW.getContext('2d');
+      ['talmokroad', 'werewolfpriest', 'roadpatrol', 'trooperxbow', 'trooper'].forEach(function (kind) {
+        D.seed = seed0 * 7919;
+        var BW = D.show.fight('?show=' + kind + '&lvl=3', { bench: true }); D.battle = BW; BW.enter();
+        var drawn = null, sd0 = D.spr.draw;
+        D.spr.draw = function (ctx, sheet, anim, facing, t, x, y, o) { if (drawn && drawn.sheet === sheet && drawn.want === anim) drawn.got = { t: t, once: !!(o && o.once), frame: o && o.frame }; return sd0.apply(this, arguments); };
+        var blows = {}, wraps = 0, worst = '', floats = {}, fl0 = D.fx.float;
+        D.fx.float = function (text, u) { if (u && u.show) floats[String(text).replace(/ \d+( of 2)?$/, '')] = 1; return fl0.apply(this, arguments); };
+        // the row each blow set, read off the attack itself (not off battle.js's own mark, so the old files are judged by the same test): the first row the blow sets
+        var at0 = D.Battle.prototype.attack;
+        D.Battle.prototype.attack = function* (att, tgt, atk, o) {
+          var g = at0.apply(this, arguments), a0 = att && att.anim, t0 = att && att.animT, set = false, vv, st;
+          while (true) { st = g.next(vv); if (!set && att && att.show && (att.anim !== a0 || att.animT !== t0) && att.anim !== 'idle') { set = true; att.benchBlow = att.anim; att.benchBlowT = att.animT; } if (st.done) return st.value; vv = yield st.value; }
+        };
+        var heldBy = function () { return BW.units.filter(function (u) { return u.show && u.hp > 0 && !u.dead && u.benchBlow && u.anim === u.benchBlow && u.animT === u.benchBlowT && D.spr.anim(u.sheet, u.anim); })[0]; };
+        var track = null; // { u, row, animT, last frame, plays }
+        function frameW() {
+          var u = heldBy();
+          if (!u) { track = null; return; }
+          if (!track || track.u !== u || track.animT !== u.animT || track.row !== u.anim) {
+            if (track && track.plays > 1) { wraps++; worst = worst || (track.row + ' x' + track.plays); }
+            track = { u: u, row: u.anim, animT: u.animT, last: -1, plays: 0 }; blows[u.anim] = (blows[u.anim] || 0) + 1;
+          }
+          drawn = { sheet: u.sheet, want: u.anim, got: null };
+          try { D.ui.drawBattle(cxW, BW); } catch (eW) { }
+          var g = drawn.got; drawn = null; if (!g) return; // (drawn as something else -- back to idle once played: the row is over)
+          var a = D.spr.anim(u.sheet, track.row), n = Math.floor(g.t * (a.fps || 8) / 60), f = g.frame != null ? g.frame : g.once ? Math.min(a.frames - 1, n) : n % a.frames;
+          if (f === 0 && track.last !== 0) track.plays++;
+          track.last = f;
+        }
+        var v, k = 0, r, y;
+        while (BW.co && k++ < 400000) {
+          r = BW.co.next(v); v = undefined; if (r.done) break; y = r.value;
+          if (typeof y === 'number') { for (var s = 0; s < Math.max(1, y); s++) { BW.t += 1; if (heldBy()) frameW(); } continue; }
+          if (!y || y.fx || y.entry || y.scene) continue;
+          if (y.prompt) { v = y.prompt.opts[0].value; continue; }
+          if (y.turn) { v = { do: 'end' }; continue; }
+        }
+        if (track && track.plays > 1) { wraps++; worst = worst || (track.row + ' x' + track.plays); }
+        D.spr.draw = sd0; D.fx.float = fl0; D.Battle.prototype.attack = at0;
+        var names = Object.keys(blows);
+        okW(kind + ': its blows drawn (' + names.map(function (b) { return b + ' ' + blows[b]; }).join(', ') + ')', names.length > 0);
+        okW(kind + ': every blow plays its row once' + (wraps ? ' -- ' + wraps + ' played again, the first ' + worst : ''), wraps === 0);
+        okW(kind + ': each blow row\'s count said over its head (' + names.filter(function (b) { return floats[b]; }).join(', ') + ')', names.every(function (b) { return floats[b]; }));
+        okW(kind + ': the show ends won', BW.result === 'won');
+      });
+    } catch (eW2) { repW.errors.push(String(eW2 && eW2.stack || eW2).slice(0, 900)); }
+    if (errs.length) repW.errors = repW.errors.concat(errs);
+    var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
+    document.body.appendChild(preW);
+    return;
+  }
   // Aurdin's joke (mode=joke1002; RULED 10-02, the easter egg -- deep16/js/grimoire.js M.jokeReady): only in a fight the 8-bit game opened, a gnoll standing (a
   // glory-seeker counts), Ink for Katarina done, the spell in his book and among the day's -- then his own square takes Hideous Laughter, and each condition
   // missing takes it away. Cast so: his fit is over at once (prone still), the hyenas laugh to the end of their next turn, the gnolls two full rounds, no save; the
