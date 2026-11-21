@@ -18561,6 +18561,62 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preWh);
     return;
   }
+  // THE FLOOR PICK-UP FROM THE SQUARE STOOD ON (mode=pickup1121; the grid's rules lane, 2026-11-21 -- Griz's card note on Drill's daggers, his ear file of 11-21 0112Z: "watch fight
+  // review, party 'equip' menu showed dagger equipped (round after 2 throws), standing on dagger squares on the floor, bonus attack offhand wasn't in wheel"; then "re: Drill's
+  // Daggers - how does the floor pickup work as coded?"; the desk's "Build pick-up from the square you stand on, and the equip menu's empty off hand?", his "either send that to a
+  // seat or start a new seat for it when we archive one of the others"): a hero who STARTS its turn on its own thrown weapon takes it up with the turn's free object interaction
+  // (before the off hand's draw from the carried -- the reserve untouched); PICK UP on the ring for the square stood on -- free while the interaction is unspent, the action after
+  // it (SRD 5.1: a second object interaction is the action); EQUIP's OFFHAND row empty while the dagger is thrown, and the play record's equip the same
+  if (get('mode', '') === 'pickup1121') {
+    var repPu = { checks: [], errors: [] }, d0Pu = D.d, RUpu = D.rules, GGpu = D.grid, BTpu = D.Battle;
+    function okPu(what, v) { repPu.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPu(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkPu(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function logPu(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }).join(' | '); }
+    function openPu(w, h) { var m = GGpu.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    var DRILLp = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger'; // (his card: the play records lane's 2026-11-11 section, throw1111)
+    // Drill 25 ft from a bugbear, everyone else gone; his off hand's dagger thrown and MISSED (it lies one square past the bugbear); then Drill stood on that square
+    function thrownPu() {
+      var Bx = mkPu('?npc=bugbear&lvl=3&vs=' + DRILLp), d = Bx.units.filter(function (w) { return w.side === 'party'; })[0], f = Bx.units.filter(function (w) { return w.side === 'foe'; })[0], o = openPu(8, 2);
+      Bx.units.forEach(function (w) { if (w !== d && w !== f) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } });
+      d.x = o[0]; d.y = o[1]; f.x = o[0] + 5; f.y = o[1]; f.hp = f.maxhp = 300; GGpu.setup(GGpu.map, Bx.units.filter(function (w) { return !w.dead; })); Bx.cache = null;
+      RUpu.startTurn(d); Bx.active = d; d.turn.freeObj = true; // (no draw this turn: the off hand stays empty)
+      D.d = function (n) { return n === 20 ? 1 : Math.ceil(n / 2); }; runPu(Bx.exec(d, { do: 'throw', target: f, src: 'off' })); D.d = d0Pu;
+      var g = (Bx.ground || [])[0]; if (g) { d.x = g.x; d.y = g.y; GGpu.setup(GGpu.map, Bx.units.filter(function (w) { return !w.dead; })); }
+      return { B: Bx, d: d, f: f, g: g, alt0: d.alt ? BTpu.thrownLeft(d, d.alt) : 0 };
+    }
+    function ringPu(Bx, u) { return (Bx.commands(u) || []).filter(function (c) { return c.id === 'pickup'; })[0]; }
+    try {
+      D.seed = 1121;
+      // 1. the turn begins on the dagger: taken up with that turn's free interaction, back in the off hand; the carried dagger not drawn
+      var h1 = thrownPu(), th1 = !!h1.d.offhandThrown, n1 = (h1.B.logEntries || []).length; RUpu.startTurn(h1.d); h1.B.active = h1.d; h1.B.reloadAtStart(h1.d);
+      var l1 = logPu(h1.B, n1);
+      okPu('the turn begins on his thrown dagger (it lay at ' + (h1.g ? h1.g.x + ',' + h1.g.y : 'nowhere') + ', the off hand empty ' + th1 + '): the off hand empty now ' + !!h1.d.offhandThrown + ', on the floor ' + (h1.B.ground || []).length + ', the free interaction spent ' + h1.d.turn.freeObj + ', the carried dagger ' + (h1.d.alt ? BTpu.thrownLeft(h1.d, h1.d.alt) : 'GONE') + ' of ' + h1.alt0 + ', "' + l1.slice(0, 120) + '"',
+        !!h1.g && th1 && !h1.d.offhandThrown && !(h1.B.ground || []).length && h1.d.turn.freeObj === true && !!h1.d.alt && BTpu.thrownLeft(h1.d, h1.d.alt) === h1.alt0 && /takes up/.test(l1));
+      // 2. two on the square: the turn's start takes one; PICK UP on the ring for the other at the action's cost (the free interaction gone), and taken
+      var h2 = thrownPu(); h2.B.ground.push(Object.assign({}, h2.g)); RUpu.startTurn(h2.d); h2.B.active = h2.d; h2.B.reloadAtStart(h2.d);
+      var c2 = ringPu(h2.B, h2.d), left2 = (h2.B.ground || []).length; runPu(h2.B.exec(h2.d, { do: 'pickup' }));
+      okPu('two on the square: after the turn\'s start ' + left2 + ' lies there; PICK UP on the ring ' + !!(c2 && c2.ok) + ' at ' + (c2 && c2.cost) + ' ("' + (c2 && c2.label) + '"); taken: on the floor ' + (h2.B.ground || []).length + ', the action ' + h2.d.turn.action,
+        left2 === 1 && c2 && c2.ok && c2.cost === 'A' && (h2.B.ground || []).length === 0 && h2.d.turn.action === 0);
+      // 3. PICK UP free: a friend's handaxe at his feet (not taken at the turn's start -- the seat's call), the interaction unspent: PICK UP free, the action kept; nothing underfoot, no PICK UP
+      var h3 = thrownPu(); delete h3.d.offhandThrown; h3.B.ground = [{ id: 'handaxe', name: 'Handaxe', x: h3.d.x, y: h3.d.y, by: 'nobody', how: 'pack', atk: null }]; RUpu.startTurn(h3.d); h3.B.active = h3.d; h3.B.reloadAtStart(h3.d);
+      var under3 = (h3.B.ground || []).length, c3 = ringPu(h3.B, h3.d); runPu(h3.B.exec(h3.d, { do: 'pickup' }));
+      var c3b = ringPu(h3.B, h3.d);
+      okPu('another\'s handaxe underfoot: left at the turn\'s start ' + (under3 === 1) + '; PICK UP ' + (c3 && c3.cost) + ' ok ' + !!(c3 && c3.ok) + '; taken: on the floor ' + (h3.B.ground || []).length + ', the action ' + h3.d.turn.action + ', the free interaction ' + h3.d.turn.freeObj + '; then PICK UP on the ring ' + !!c3b,
+        under3 === 1 && c3 && c3.ok && c3.cost === 'F' && !(h3.B.ground || []).length && h3.d.turn.action === 1 && h3.d.turn.freeObj === true && !c3b);
+      // 4. EQUIP shows the off hand empty while its dagger is thrown; the play record's equip the same
+      var h4 = thrownPu(); var req4 = h4.B.req; h4.B.req = Object.assign({}, req4 || {}, { turn: h4.d }); D.ui.openMenu(h4.B); h4.B.req = req4; var m4 = h4.B.menu && h4.B.menu.m, row4 = null; // (the menu reads the hero whose turn it is from B.req.turn)
+      if (m4) { m4.root.go('equip'); var ep4 = m4.pages[m4.pages.length - 1]; row4 = ((ep4.list && ep4.list.items) || []).filter(function (r) { return r.value === 'offhand'; })[0]; }
+      h4.B.menu = null;
+      var rec4 = D.rec && D.rec.partyEquip ? D.rec.partyEquip(h4.d) : null;
+      okPu('EQUIP after the throw: the OFFHAND row "' + (row4 && row4.right) + '" (want empty, the dagger named thrown); the record\'s equip ' + JSON.stringify(rec4),
+        row4 && /^—/.test(row4.right) && /thrown/i.test(row4.right) && rec4 && !rec4.offhand && rec4.offhandThrown === 'dagger');
+    } catch (e) { repPu.errors.push(String(e && e.stack || e)); }
+    D.d = d0Pu; D.battle && (D.battle.menu = null);
+    var prePu = document.createElement('pre'); prePu.id = 'out'; prePu.textContent = 'BENCH16 ' + JSON.stringify(repPu);
+    document.body.appendChild(prePu);
+    return;
+  }
   // THE PIKE WALL (mode=pikewall1121; Soldiering's, Shape A of the leveling lane's 2026-11-20 (late) section, built 11-21 on Griz's "Go on 1-5" -- his lean: "join the pike wall
   // (or just pike wall) like 'set shield' is under skills, where non-polearm masters get to use set and push back as moves called similar to the wall calling push (and
   // polearm-masters in the pike wall get a bonus to theirs) - and maybe move with marches and successful pushes"): SET PIKES on the ring behind a set shield, a bonus action,

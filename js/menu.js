@@ -855,6 +855,8 @@
     var fo = this.fo = fight && host.fightEquip ? host.fightEquip() : null, away = host.wielding ? host.wielding(h) : ''; // (the grid: its own choices, each with what it costs or why not)
     var rows = SLOTS.map(function (s) {
       var off = fo ? !fo.some(function (o) { return optSlot(o) === s[0]; }) : (fight && (acted || (s[0] !== 'weapon' && s[0] !== 'offhand')));
+      var thr = s[0] === 'offhand' && host.offThrown ? host.offThrown(h) : ''; // (the grid: the off hand's weapon thrown, the hand empty till it is taken up or drawn again -- 11-21)
+      if (thr) return { label: s[1], right: fit('— (' + thr + ' thrown)', 128), value: 'offhand', disabled: off, rightColor: C.dim };
       if (s[0] === 'offhand') { var oh = offhandThing(h, host), ok0 = oh && oh.kind !== 'light' ? bondMark(h, oh.id) : null; return { label: s[1], right: oh ? fit((ok0 ? ok0 + ' ' : '') + oh.name + (oh.kind === 'light' ? ' (lit)' : ''), 128) : '—', value: 'offhand', disabled: off, rightColor: oh && oh.kind !== 'light' && bondColor(h, oh.id) === C.dim ? C.dim : null }; }
       var id = h.equip[s[0]], it = item(id), mk = it ? bondMark(h, id) : null;
       return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name + (s[0] === 'weapon' && away ? ' (' + away + ')' : '') + (it.wand && R().charges ? ' ' + R().charges(h, id) + '/' + it.wand.charges : ''), 128) : '—', value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };

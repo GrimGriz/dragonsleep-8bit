@@ -1368,6 +1368,10 @@
       out.push({ id: 'throwtorch', label: 'THROW TORCH', cost: 'A', icon: 'torch', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', tool: 'torch', note: 'to a square within 20 ft: it burns there -- at a foe, an improvised throw: 1 fire on a hit' });
       out.push({ id: 'dousetorch', label: 'DOUSE TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
     } else if (floorLight) out.push({ id: 'pickuptorch', label: 'TAKE UP ' + Lt.tag(floorLight), cost: 'F', icon: floorLight.kind === 'lantern' ? 'lantern' : 'torch', ok: !T.freeObj && Lt.handForLight(u), why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
+    // PICK UP a thrown weapon from the square stood on (11-21, Battle.prototype.pickUpThrown): free with the turn's interaction, the action after it
+    var gHere = !u.guest && Battle.isHero(u) ? this.groundHere(u) : [];
+    if (gHere.length) { var gBy = this.units.filter(function (w) { return w.id === gHere[0].by; })[0], gFree = !T.freeObj;
+      out.push({ id: 'pickup', label: 'PICK UP ' + (gBy && gBy !== u ? gBy.name.toUpperCase() + '\'S ' : '') + gHere[0].name.toUpperCase() + (gHere.length > 1 ? ' (' + gHere.length + ' HERE)' : ''), cost: gFree ? 'F' : 'A', icon: 'attack', ok: gFree || (T.action > 0 && !T.attacksLeft), why: 'the hand on an object and the action are both spent', note: 'from the square you stand on' + (gFree ? ' (free: the hand on an object)' : ' (a second object this turn: the action)') + (gBy && gBy !== u ? '; it goes back to ' + gBy.name : '') }); }
     // the weapon put away and drawn again (10-05, Griz: "Add 'put away'? ... Go ahead and build what you were planning on"; SRD 5.1, the free interaction with an object: "draw or sheathe a
     // sword"): put away, the hand is empty -- a torch taken up or lit, the lit flask (js/oil.js) -- and its blows are an unarmed strike till it is drawn; drawn, a hand to hold it
     if (!u.guest && u.src && u.src.equip) {
@@ -1996,6 +2000,7 @@
         D.sfx('confirm'); this.card(['{y}' + u.name + '{/} draws the ' + u.weapon.name + '.'], 180); return;
       }
       case 'dousetorch': T.freeObj = true; D.light.douseTorch(this, u); return;
+      case 'pickup': if (this.pickUpThrown(u)) yield 10; return; // (a thrown weapon off the square stood on, 11-21)
       case 'pickuptorch': { // from the ring at its feet; or, as the rope's grapple, a click on its square from beside it -- take it up, or only step there, asked -- and the self-click on it asked (10-05, Griz: "torch pick up works like grapple hook")
         var lxP = c.x != null ? c.x : u.x, lyP = c.y != null ? c.y : u.y, tP = D.light.torchAt(this, lxP, lyP); if (!tP) return;
         var tkP = D.light.canTake(this, u, tP); if (!tkP.ok) { this.card(['{o}' + nameOf(u) + ' cannot take the ' + D.light.word(tP) + ' up: ' + tkP.why + '.{/}'], 160); return; }
@@ -4146,7 +4151,28 @@
     this.card(['{y}' + Battle.nm(u, true) + '{/} draws another ' + u.offhand.name.toLowerCase() + ' into the off hand.  {g}(the free draw' + (atStart ? ' of this turn' : '') + '){/}'], 180);
     return true;
   };
-  Battle.prototype.reloadAtStart = function (u) { if (u && u.offhandThrown) this.reloadOff(u, true); };
+  // THE FLOOR UNDERFOOT (2026-11-21 -- Griz's card note on Drill's daggers: "standing on dagger squares on the floor, bonus attack offhand wasn't in wheel"; then "how does the floor
+  // pickup work as coded?", and on the desk's "Build pick-up from the square you stand on, and the equip menu's empty off hand?", "either send that to a seat ..."): a hero who
+  // STARTS its turn on its own thrown weapon takes it up with that turn's free object interaction, before the off hand's draw from the carried (so the reserve is kept). The
+  // seat's call, standing for his overrule: only its own at the turn's start -- another's waits for PICK UP, so a turn's free hand is not spent on a friend's axe unasked
+  Battle.prototype.groundUnder = function (u, atStart) {
+    if (!this.ground || !this.ground.length || !Battle.isHero(u) || !u.turn || u.turn.freeObj || u.dead || u.hp <= 0 || !RU.canAct(u)) return false;
+    var here = this.ground.filter(function (g) { return g.x === u.x && g.y === u.y && (!atStart || g.by === u.id); }); if (!here.length) return false;
+    var g = here.filter(function (x) { return x.by === u.id && x.how === 'off' && u.offhandThrown; })[0] || here.filter(function (x) { return x.by === u.id; })[0] || here[0];
+    var by = this.units.filter(function (w) { return w.id === g.by; })[0], whose = by && by !== u ? by.name + '\'s ' : 'the ';
+    u.turn.freeObj = true; this.ground.splice(this.ground.indexOf(g), 1); this.groundBack(g); D.sfx('confirm');
+    this.card(['{y}' + Battle.nm(u, true) + '{/} takes up ' + whose + g.name.toLowerCase() + ' from underfoot.  {g}(free: the hand on an object' + (atStart ? ' of this turn' : '') + (g.how === 'off' && by === u ? '; back in the off hand' : g.how === 'pack' ? '; back in the pack' : '') + '){/}'], 200);
+    return true;
+  };
+  Battle.prototype.reloadAtStart = function (u) { if (!u) return; this.groundUnder(u, true); if (u.offhandThrown) this.reloadOff(u, true); };
+  // PICK UP (the ring, 11-21): one thrown weapon from the square stood on -- the turn's free interaction while it is unspent, else the action (SRD 5.1, srd/08-combat.md: "If you
+  // want to interact with a second object, you need to use your action"; the seat's call, standing for his overrule)
+  Battle.prototype.groundHere = function (u) { return (this.ground || []).filter(function (g) { return g.x === u.x && g.y === u.y; }); };
+  Battle.prototype.pickUpThrown = function (u) {
+    var T = u.turn, here = this.groundHere(u); if (!here.length || !T) return false;
+    if (T.freeObj) { if (!(T.action > 0) || T.attacksLeft) return false; Battle.payAction(T); T.freeObj = false; var ok = this.groundUnder(u); T.freeObj = true; return ok; }
+    return this.groundUnder(u);
+  };
   // one of a counted thrown weapon taken (a throw, or the off hand's draw): its own first, then the pack's stack; with none left, gone from the choices
   Battle.prototype.takeCarried = function (u, atk) {
     if (atk.stack && !(atk.count - ((u.thrown || {})[atk.name] || 0) > 0)) atk.stack.n = Math.max(0, (atk.stack.n || 0) - 1); // (its own thrown first, then the pack's: gone from the pack -- 11-10)

@@ -39,7 +39,8 @@
   // (11-10, his record of 11-09 read: PARTY wrote `slots: u.slotsMax`, the maxima, so a fight entered with slots spent read whole, and no gear at all -- a record could not show what a
   // ladder carried between its fights. Now `slots` is what it came in with (rec.slots0, as hp0), `slotsMax` beside it, `equip` what it wears, and the fight's pack rides the record)
   function startSlots(u) { var s0 = D.battle && D.battle.rec && D.battle.rec.slots0; return s0 && s0[u.id] ? s0[u.id].slice() : u.slots && u.slots.slice(); }
-  function worn(u) { var e = u.src && u.src.equip, o = {}; if (!e) return undefined; Object.keys(e).forEach(function (k) { if (e[k]) o[k] = e[k]; }); return o; }
+  function worn(u) { var e = u.src && u.src.equip, o = {}; if (!e) return undefined; Object.keys(e).forEach(function (k) { if (e[k]) o[k] = e[k]; }); if (u.offhandThrown && o.offhand) { o.offhandThrown = o.offhand; delete o.offhand; } return o; } // (the off hand's weapon thrown and not yet back: the hand empty, its weapon named apart -- 11-21, his "party 'equip' menu showed dagger equipped (round after 2 throws)")
+  REC.partyEquip = worn;
   function packOf(B) { return (B.inv || []).filter(function (s) { return s && s.n > 0; }).map(function (s) { return { id: s.id, n: s.n }; }); }
   // ours in the party blocks: the heroes and the guests, a familiar -- not a summoned beast (11-10: Conjure Animals' eight wolves stood in PARTY END as party)
   // (11-16, the bug seat, his record's lead "town0 barnGoblin in the inn fight's PARTY": a floor's own people stand on its fights as allies, side 'party', with no hero's sheet

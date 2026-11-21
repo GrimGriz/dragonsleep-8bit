@@ -321,7 +321,7 @@
     // melee attacks and the hold) and OFF HAND (the torch's and the lantern's hand: DROP, THROW, DOUSE, PICK UP, the hood; DRAW the weapon or the off-hand one), each folded as
     // SCUTTLE is (foldUnder) only where two or more are there -- one alone stays among the actions, not a click deeper
     var NEST = [{ set: { grapple: 1, shove: 1, pin: 1, letgo: 1 }, un: { id: 'wrestle', label: 'WRESTLE', icon: 'shove', note: 'grapple, shove, pin, let go: the special melee attacks and the hold' } },
-      { set: { droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, drawweapon: 1, drawoffhand: 1 }, un: { id: 'offhandset', label: 'OFF HAND', icon: 'torch', note: 'the light in the hand and the weapons to draw' } }];
+      { set: { droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, pickup: 1, hooddown: 1, hoodup: 1, drawweapon: 1, drawoffhand: 1 }, un: { id: 'offhandset', label: 'OFF HAND', icon: 'torch', note: 'the light in the hand and the weapons to draw' } }];
     NEST.forEach(function (nn) { if (ac.filter(function (x) { return nn.set[x.id] && !x.under; }).length >= 2) ac = ac.map(function (x) { return nn.set[x.id] && !x.under ? Object.assign({}, x, { under: nn.un }) : x; }); });
     ac = foldUnder(ac);
     sk = foldUnder(sk);
@@ -1455,6 +1455,7 @@
       // the light in a hero's hand on the grid (u.torch, js/light.js): EQUIP's LIGHT row
       light: function (h) { var u = unitOf(h), L = D.light; if (!u || !u.torch) return null; var id = u.torch.item || L.kindOf(u.torch), it = window.DS.DATA.items[id]; return { id: id, name: it ? it.name : L.word(u.torch), hooded: L.kindOf(u.torch) === 'lantern' }; }, // (u.torch: { lit, kind, item, hood }, item set only for the lamp)
       wielding: function (h) { var u = unitOf(h); return u && u.sheathed ? 'away' : ''; }, // (a weapon PUT AWAY: EQUIP says so)
+      offThrown: function (h) { var u = unitOf(h); return u && u.offhandThrown && u.offhand ? u.offhand.name : ''; }, // (the off hand's weapon thrown: EQUIP's OFFHAND empty, 11-21 -- his "party 'equip' menu showed dagger equipped (round after 2 throws)")
       journal: houseFloor ? function () { return D.counter.journal(B); } : null, // (the house's JOURNAL on its floor: Winters' Errands -- js/counter.js C.journal, 10-21)
       // EQUIP's choices in the fight: battle.js gearOptions (a weapon from the pack, the shield on or off: the action), and the free hand's -- the weapon PUT AWAY or
       // DRAWN (10-07, his find: "cannot stow from menu"; the ring's PUT AWAY, exec 'putaway'), and the LIGHT: the one in hand set down, thrown, put out or hooded, or one
