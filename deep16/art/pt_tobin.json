@@ -1,0 +1,91 @@
+{
+ "image": "art/pt_tobin.png",
+ "fw": 143,
+ "fh": 182,
+ "ax": 70,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 143,
+   "fh": 182,
+   "ax": 70,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 182,
+   "fw": 143,
+   "fh": 182,
+   "ax": 70,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "restless": {
+   "y": 364,
+   "fw": 143,
+   "fh": 182,
+   "ax": 70,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "stunned": {
+   "y": 546,
+   "fw": 143,
+   "fh": 182,
+   "ax": 70,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "resolved": {
+   "y": 728,
+   "fw": 143,
+   "fh": 182,
+   "ax": 70,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "grateful": {
+   "y": 910,
+   "fw": 143,
+   "fh": 182,
+   "ax": 70,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  }
+ },
+ "art": "ART-157",
+ "door": "no one yet: the tariff's crate at Marko's (the story build lane J.4, deep.tobin) is not built",
+ "source": "deep16/_src/tobin/2026-11-21-ART-157/SOURCES/pt_tobin (the art desk's ART-157, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

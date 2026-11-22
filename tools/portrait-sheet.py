@@ -408,6 +408,13 @@ for _key, _moods, _door in [('torvald', ['attentive', 'healing', 'evasive', 'afr
                             ('dagny', ['attentive', 'counting', 'remembering', 'firm', 'warm'], 'no one yet: the threshold is not on the grid')]:
     PEOPLE[_key] = (os.path.dirname(_TD), 'ART-WANTED-88', _door, {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'layout':
                     [(_TD % (_key, 1, 'IDLE-REV'), [3, 3], ['idle'] * 6)] + [(_TD % (_key, h, m.upper()), [1], [m]) for h, m in enumerate(_moods, 2)]})
+# TOBIN THORNE, Marko's son, nineteen, who wants out (11-21, the cutter seat cutter-1121, on Griz's "fresh isn't empty, more incoming as well"; art-wanted 92):
+# the art desk's ART-157-TOBIN-THORNE-CUTTER-HANDOFF, sorted to deep16/_src/tobin/2026-11-21-ART-157/ -- its untouched 1672x941 pages under SOURCES/pt_tobin/
+# (not its PORTRAITS-1440x810 review pages): Idle 6 (the sack on his left shoulder, the lids lowering on 4, closed on 5) and five stills: attentive, restless,
+# stunned (the sack down), resolved, grateful (both hands on the open crate's lid). Waist-up with no counter, Asdis's way. Worn by no one yet: the tariff's crate is the story build's
+_TB = 'tobin/2026-11-21-ART-157/SOURCES/pt_tobin/ART-157-TOBIN-HEAD-%02d-%s.png'
+PEOPLE['tobin'] = (os.path.dirname(_TB), 'ART-157', 'no one yet: the tariff\'s crate at Marko\'s (the story build lane J.4, deep.tobin) is not built', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'bustas': {'grateful': 'resolved'}, 'layout':
+                   [(_TB % (1, 'IDLE'), [3, 3], ['idle'] * 6)] + [(_TB % (h, m.upper()), [1], [m]) for h, m in enumerate(['attentive', 'restless', 'stunned', 'resolved', 'grateful'], 2)]})
 
 
 def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):
@@ -763,6 +770,12 @@ def cut_person(name):
             if act not in raw:
                 raw[act] = []; order.append(act)
             raw[act].append((rgba, hx - cx0, aline - top, bust, foot < y1))
+    # `bustas`: {action: another action}, a still whose torso's cut is not its own -- Tobin's grateful, 11-21: his hands on a crate's lid below the waist, so
+    # the cut line fell at the crate's foot and the crate counted as bust (the face drawn smaller, set higher): it takes the other's head-to-waist span in
+    # source px, its waist that far below its own head -- the two pages drawn at one size (his resolved, the same pose without the crate)
+    for act, ref in (ov.get('bustas') or {}).items():
+        bref = float(np.median([f[3] for f in raw[ref]]))
+        raw[act] = [(rgba, ax, ay - b + bref, bref, ledge) for rgba, ax, ay, b, ledge in raw[act]]
     # each page by its own bust (the stills are drawn bigger): the page's median to BUST
     small = {}
     for act, fr in raw.items():

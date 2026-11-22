@@ -8968,8 +8968,8 @@
 "source": "deep16/_src/harrow/ART-123-HARROW/ART-123-HARROW_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-HARROW, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "council:harrow"
 },
-"hask_p1": {
-"image": "art/hask_p1.png?v=2cf6539d7c",
+"hask_p0": {
+"image": "art/hask_p0.png?v=2cf6539d7c",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -9004,6 +9004,41 @@
 "fps": 12
 }
 }
+},
+"hask_p1": {
+"image": "art/hask_p1.png?v=b1afcc36f3",
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 46,
+"fh": 64,
+"ax": 23,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Hask",
+"hold": [
+"S and N walks alternate their contacts at 1 and 5 with less distinct passing poses; the lamp's swing and the ankles to be judged at game speed (the art desk's own notes)",
+"the rear NE walk's frames 4 and 8 share a silhouette; E and SE carry a lighter boot repair on the near leg (the art desk's own notes)",
+"the mirrors (SW W NW) carry the pry-bar, the knife and the lamp to the other side"
+],
+"source": "drawn by the art desk (ART-156-HASK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: his streets and the wheelwright's door are not built; his fights wear hask_p0, the KayKit render"
 },
 "hedda_p0": {
 "image": "art/hedda_p0.png?v=f5e81ac4f5",
@@ -25012,6 +25047,97 @@ false
 "door": "no one yet: Second Lamp is not on the grid",
 "source": "deep16/_src/road-portraits/2026-11-21-AW87-CUTTER-HANDOFF (the art desk's ART-WANTED-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_tobin": {
+"image": "art/pt_tobin.png?v=5c1862bdc5",
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 182,
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"restless": {
+"y": 364,
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"stunned": {
+"y": 546,
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"resolved": {
+"y": 728,
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"grateful": {
+"y": 910,
+"fw": 143,
+"fh": 182,
+"ax": 70,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-157",
+"door": "no one yet: the tariff's crate at Marko's (the story build lane J.4, deep.tobin) is not built",
+"source": "deep16/_src/tobin/2026-11-21-ART-157/SOURCES/pt_tobin (the art desk's ART-157, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_torvald": {
 "image": "art/pt_torvald.png?v=09e531fddd",
 "fw": 213,
@@ -33871,6 +33997,40 @@ true
 "North Idle's shield may read browner than North Walk's (the art desk's own note)"
 ],
 "source": "drawn by the art desk (ART-151-THYRA-SILVERSANDS-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 91, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Second Lamp is not on the grid"
+},
+"tobin_p1": {
+"image": "art/tobin_p1.png?v=7777a3224a",
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 36,
+"fh": 64,
+"ax": 18,
+"ay": 61,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 512,
+"fw": 34,
+"fh": 64,
+"ax": 17,
+"ay": 61,
+"frames": 8,
+"fps": 8
+}
+},
+"name": "Tobin",
+"hold": [
+"the rear NE walk's rear steps overlap at game size, 1 against 5 and the passing poses (the art desk's own note)",
+"the mirrors (SW W NW) carry the sack to the other shoulder (the art desk's own note)"
+],
+"source": "drawn by the art desk (ART-157-TOBIN-THORNE-CUTTER-HANDOFF (his town pages), 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Fountain Street has no Tobin"
 },
 "toptiles_p1": {
 "image": "art/toptiles_p1.png?v=50c99d61ce",

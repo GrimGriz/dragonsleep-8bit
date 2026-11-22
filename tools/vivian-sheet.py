@@ -87,9 +87,9 @@ def windows(look):
     return out
 
 
-def figure(a, trim=False, box=None):
+def figure(a, trim=False, box=None, tol=None):
     bg = np.median(np.concatenate([a[:, :4].reshape(-1, 3), a[:, -4:].reshape(-1, 3), a[:4].reshape(-1, 3), a[-4:].reshape(-1, 3)]), axis=0)
-    near = np.linalg.norm(a - bg, axis=2) < BG_TOL
+    near = np.linalg.norm(a - bg, axis=2) < (tol or BG_TOL)   # (`tol`, a look's `bgtol`: Tobin's trousers, 11-21, drawn within 30 of the navy -- at 20 his legs stay)
     lab, n = ndimage.label(near)
     edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
     sizes = ndimage.sum(near, lab, range(1, n + 1))
@@ -131,7 +131,7 @@ def cut(look):
             pages[(batch, fn)] = np.asarray(Image.open(os.path.join(src, batch, fn)).convert('RGB')).astype(np.float32)
         a = pages[(batch, fn)][y0:y1, x0:x1]
         nb = (w[6][0] - x0, w[6][1] - y0, w[6][2] - x0, w[6][3] - y0) if len(w) > 6 and w[6] else None   # (a window's 7th: the drawing's own box on the page, katarina_p2)
-        m = figure(a, L.get('trim', False), nb); ys, xs = np.where(m)
+        m = figure(a, L.get('trim', False), nb, L.get('bgtol')); ys, xs = np.where(m)
         sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
         if len(w) > 7 and w[7] is not None:   # (a window's 8th: the ground line's y on the page -- brann_p2's jumping chop, 11-20: a frame off the floor stands above it, not on its lowest pixel)
             gnd[(FACE[view], row, i)] = w[7] - y0 - sl[0].start
@@ -173,7 +173,13 @@ def cut(look):
         v = [c[0] for c, p in pageof.items() if p == pg][0]
         scale[pg] = [scale[p] for c, p in pageof.items() if p[0] == pg[0] and c[0] == v and scale.get(p)][0]
     cells = {}
+    RS = None
+    if L.get('reskin'):   # (`reskin`: an orc's or half-orc's drawn skin turned to the palette's orc ramp before the snap -- tools/portrait-sheet.py reskin(), the
+        _rs = importlib.util.spec_from_file_location('portrait_sheet', os.path.join(ROOT, 'tools', 'portrait-sheet.py'))   # Silverton orcs' town figures' way
+        RS = importlib.util.module_from_spec(_rs); _rs.loader.exec_module(RS)   # in tools/keeper-town-sheet.py; Hask's, 11-21)
     for c, (rgb, m) in crops.items():
+        if RS is not None:
+            rgb = RS.reskin(np.clip(rgb, 0, 255).astype(np.uint8), m, **L['reskin']).astype(np.float32)
         o = to1x(rgb, m, scale[pageof[c]], L.get('avoid'))
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
         if (c[1], c[2]) in L.get('ground', GROUND):   # (`ground`: a look's own lying frames -- katarina_p2's fall and prone)

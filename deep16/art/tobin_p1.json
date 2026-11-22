@@ -1,0 +1,34 @@
+{
+ "image": "art/tobin_p1.png",
+ "fw": 36,
+ "fh": 64,
+ "ax": 18,
+ "ay": 61,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 512,
+   "fw": 34,
+   "fh": 64,
+   "ax": 17,
+   "ay": 61,
+   "frames": 8,
+   "fps": 8
+  }
+ },
+ "name": "Tobin",
+ "hold": [
+  "the rear NE walk's rear steps overlap at game size, 1 against 5 and the passing poses (the art desk's own note)",
+  "the mirrors (SW W NW) carry the sack to the other shoulder (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-157-TOBIN-THORNE-CUTTER-HANDOFF (his town pages), 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: Fountain Street has no Tobin"
+}

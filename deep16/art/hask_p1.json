@@ -1,37 +1,35 @@
 {
  "image": "art/hask_p1.png",
- "fw": 96,
- "fh": 96,
- "ax": 48,
- "ay": 84,
- "top": 61,
+ "fw": 36,
+ "fh": 64,
+ "ax": 18,
+ "ay": 61,
+ "top": 49,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
-   "frames": 8,
-   "fps": 6
+   "fw": 36,
+   "fh": 64,
+   "ax": 18,
+   "ay": 61,
+   "frames": 4,
+   "fps": 4
   },
   "walk": {
-   "y": 768,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
+   "y": 512,
+   "fw": 46,
+   "fh": 64,
+   "ax": 23,
+   "ay": 61,
    "frames": 8,
-   "fps": 10
-  },
-  "attack": {
-   "y": 1536,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
-   "frames": 8,
-   "fps": 12
+   "fps": 8
   }
- }
+ },
+ "name": "Hask",
+ "hold": [
+  "S and N walks alternate their contacts at 1 and 5 with less distinct passing poses; the lamp's swing and the ankles to be judged at game speed (the art desk's own notes)",
+  "the rear NE walk's frames 4 and 8 share a silhouette; E and SE carry a lighter boot repair on the near leg (the art desk's own notes)",
+  "the mirrors (SW W NW) carry the pry-bar, the knife and the lamp to the other side"
+ ],
+ "source": "drawn by the art desk (ART-156-HASK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: his streets and the wheelwright's door are not built; his fights wear hask_p0, the KayKit render"
 }

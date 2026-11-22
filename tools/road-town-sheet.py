@@ -65,6 +65,9 @@ def map_rows(d):
                 yb = max(int(r['y1_exclusive']), int(float(r['source_row_baseline'])) + 4)   # drawing's own box, PAD its margin: read as a box -- tight() lost N Idle 2
                 yield r['source_file'], r['facing'], r['action'].lower(), int(r['frame']), (int(r['x0']), int(r['y0']), int(r['x1_exclusive']), yb), False   # to its hood alone,
                 # the dark cloak keying into ~45 pieces; its bottom at least the row's baseline, as S Walk 7's box stopped 20 px short of its boot; the numbers stand ~40 below)
+            elif 'original' in r and 'x1_exclusive' in r:                        # (Hask's ART-156, 11-21: x0 y0 x1_exclusive y1_exclusive on `original` under originals/,
+                yb = max(int(r['y1_exclusive']), int(float(r['source_band_sole_line'])))   # the drawing's own box; its bottom at least the band's sole line, the blade's way)
+                yield 'originals/' + r['original'], r['facing'], r['action'].lower(), int(r['frame']), (int(r['x0']), int(r['y0']), int(r['x1_exclusive']), yb), False
             elif 'x1_exclusive' in r:                                            # (Hedda's ART-146: crop boxes, read as cells, by PLAYBACK frame -- its South Walk
                 yield r['source'], r['facing'], r['action'].lower(), int(r['playback_frame']), tuple(int(r[k]) for k in ('x0', 'y0', 'x1_exclusive', 'y1_exclusive')), True   # plays printed 1 6 3 8 5 2 7 4)
             elif 'left' in r:                                                    # (Ragna's ART-153: "source crop bounds", left top right bottom -- read as cells)
@@ -111,9 +114,44 @@ def frame_windows(src, batch):
     return out
 
 
-def road(look, src, batch, name, art, hold, wear, avoid=('fire',), sec='91', their='his'):   # (`sec`, `their`: Brann's is art-wanted 88, Gudrun's figure hers -- 11-21)
-    VS.LOOKS[look] = dict(
-        src=src, windows=frame_windows(src, batch), tall=38, avoid=list(avoid), name=name,
+def found_windows(src, batch, sub, bands):
+    """[(batch, view, row, frame index, file, window, box)] for a delivery whose frame map gives no coordinates, only each frame's order on its page
+    (Tobin's ART-157, 11-21: "left-to-right 1" to "8"): each page's drawings found as tools/portrait-sheet.py finds them -- the navy keyed, the printed
+    numbers dropped, a drawing its biggest piece and those beside it -- read in `bands` top to bottom, left to right; `bands[(view, row)]` a page's
+    band counts where it is not one band (his NE Walk, two of four). The box found is the drawing's own"""
+    import csv
+    d = os.path.join(VS.pix.SRC, src, batch)
+    if not os.path.isdir(d):
+        return []
+    _ps = importlib.util.spec_from_file_location('portrait_sheet', os.path.join(ROOT, 'tools', 'portrait-sheet.py'))
+    PS = importlib.util.module_from_spec(_ps); _ps.loader.exec_module(PS)
+    pages = {}
+    for r in csv.DictReader(open(os.path.join(d, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
+        if r['target'] != src + '_p1':
+            continue
+        view, row = r['facing'], r['action'].lower()
+        pages.setdefault((view, row), set()).add(int(r['engine_index']))
+    out = []
+    for (view, row), idx in pages.items():
+        n = {'idle': 4, 'walk': 8}[row]
+        assert sorted(idx) == list(range(n)), (src, view, row, sorted(idx))
+        fs = [f for f in os.listdir(os.path.join(d, sub)) if '-%s-%s.' % (view, row.upper()) in f]
+        assert len(fs) == 1, (view, row, fs)
+        fn = sub + '/' + fs[0]
+        a = np.asarray(Image.open(os.path.join(d, fn)).convert('RGB')).astype(np.int32)
+        H, W = a.shape[:2]
+        for i, (piece, box) in enumerate(PS.drawings(a, bands.get((view, row), [n]))):
+            x0, y0, x1, y1 = box
+            out.append((batch, view, row, i, fn, (max(0, x0 - PAD), max(0, y0 - PAD), min(W, x1 + PAD), min(H, y1 + PAD)), (x0, y0, x1, y1)))
+    assert set(v for v, _ in pages) == set(VS.FACE), (src, sorted(pages))
+    return out
+
+
+def road(look, src, batch, name, art, hold, wear, avoid=('fire',), sec='91', their='his', tall=38, windows=None, bgtol=None, reskin=None):   # (`sec`, `their`: Brann's is
+    # art-wanted 88, Gudrun's figure hers -- 11-21; `tall`: a human's 49, folkman_p1's height, where a dwarf stands 38; `windows`: found on the page, not read
+    # from a map; `bgtol`: the matte's tolerance where a dark cloth is drawn near the navy, tools/vivian-sheet.py figure())
+    VS.LOOKS[look] = dict(bgtol=bgtol, reskin=reskin,
+        src=src, windows=windows if windows is not None else frame_windows(src, batch), tall=tall, avoid=list(avoid), name=name,
         rows=[('idle', 4, 4), ('walk', 8, 8)], match={'walk': ('idle', 0)}, hold=hold,
         source='drawn by the art desk (%s, 11-19: art-wanted section %s, %s town figure in five views), cut by tools/road-town-sheet.py over '
                'tools/vivian-sheet.py; SW W NW mirrored; %s' % (art, sec, their, wear))
@@ -210,7 +248,30 @@ road('gudrun_p1', 'gudrun', '2026-11-21-ART-154', 'Gudrun', 'ART-154-GUDRUN-TALL
      'worn by no one yet: Second Lamp\'s stores are not on the grid', their='her')
 
 
+# THE SIDE MISSIONS' TWO, art-wanted 92 (11-21, the same seat and word): not the road's, but town figures of the same shape, Idle 4 and Walk 8 in five views --
+# so cut here, at a human's height, folkman_p1's 49 (51 with the outline: the art desk registered both on folkman_p1, its 72 x 64 cell).
+# Hask, the half-orc boss of Silverton's night crew (the art desk's ART-156; its notes: the pry-bar on his right shoulder, the sheathed knife at his right belt,
+# the unlit lamp at his left hip). His fights keep the KayKit render, renamed hask_p0 (deep16/data/foes.js hask, banditcaptain) till his drawn fight sheet,
+# hask_p2, comes. Worn by no one yet: his streets and the wheelwright's door are not built.
+road('hask_p1', 'hask', '2026-11-21-ART-156', 'Hask', 'ART-156-HASK-TOWN-CUTTER-HANDOFF',
+     ['S and N walks alternate their contacts at 1 and 5 with less distinct passing poses; the lamp\'s swing and the ankles to be judged at game speed (the art desk\'s own notes)',
+      'the rear NE walk\'s frames 4 and 8 share a silhouette; E and SE carry a lighter boot repair on the near leg (the art desk\'s own notes)',
+      'the mirrors (SW W NW) carry the pry-bar, the knife and the lamp to the other side'],
+     'worn by no one yet: his streets and the wheelwright\'s door are not built; his fights wear hask_p0, the KayKit render', sec='92', tall=49,
+     reskin={'hue': 78, 'sat': 0.36})   # (his olive half-orc skin, drawn at hue 25 to 45, snapped to stone and to the skin and gold ramps -- not one pixel on the
+     # orc greens, a man's face; leaving skin and gold out of the snap sent it to stone and leather. The Silverton orcs' reskin, Papa Urtusk's values: his vest
+     # and trousers, at 5 to 18 and ~345, stand outside its 28 to 52)
+# Tobin Thorne, Marko's son, nineteen, who wants out (the art desk's ART-157; its notes: a sack on his left shoulder, the near right hand free in E and rear NE).
+# Its FRAME-MAP.csv gives no coordinates, only each frame's order on its page: found by found_windows(); his NE Walk two bands of four, the rest one band.
+# Worn by no one yet: Marko's shop floor is the counter's, and Fountain Street has no Tobin.
+road('tobin_p1', 'tobin', '2026-11-21-ART-157', 'Tobin', 'ART-157-TOBIN-THORNE-CUTTER-HANDOFF (his town pages)',
+     ['the rear NE walk\'s rear steps overlap at game size, 1 against 5 and the passing poses (the art desk\'s own note)',
+      'the mirrors (SW W NW) carry the sack to the other shoulder (the art desk\'s own note)'],
+     'worn by no one yet: Fountain Street has no Tobin', sec='92', tall=49, bgtol=20,   # (his dark trousers within 30 of the navy: at the house's 30 his legs keyed out)
+     windows=found_windows('tobin', '2026-11-21-ART-157', 'SOURCES/tobin_p1', {('NE', 'walk'): [4, 4]}))
+
+
 if __name__ == '__main__':
     import sys
-    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil', 'sectblade', 'brann', 'gudrun')]:
+    for lk in [a for a in sys.argv[1:] if a in VS.LOOKS] or [k for k in VS.LOOKS if VS.LOOKS[k].get('windows') and k.endswith('_p1') and VS.LOOKS[k].get('src') in ('ulf', 'thyra', 'geir', 'dagny', 'ragna', 'halldor', 'hedda', 'torvald', 'ketil', 'sectblade', 'brann', 'gudrun', 'hask', 'tobin')]:
         VS.cut(lk)

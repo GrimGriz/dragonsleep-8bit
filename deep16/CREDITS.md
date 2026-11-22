@@ -25,7 +25,7 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
   Frog (`chuul_p1`), Monkroose (`bugbearchief_p1` till 10-28), Orc (`hobgoblin_p1` till 10-07), Orc_Skull (`hobsergeant_p1` till 10-07), Tribal
   (`gnoll_p1`, `gloryseeker_p1`); Blob GreenSpikyBlob (`otyugh_p1`; `xorn_p1` till 10-01d); Flying Ghost (`cloaker_p1`), Glub
   (`darkmantle_p1`), Squidle (`grick_p1` till 10-02). KayKit Adventurers again for the people: Knight (`guard_p1`, `veteran_p1`),
-  Barbarian (`hask_p1`, `crewman_p1`, `brawler_p1`, `duergar_p1`), Rogue (`wheelwright_p1`), Rogue_Hooded (`assassin_p1`,
+  Barbarian (`hask_p0`, `hask_p1` till 11-21, `crewman_p1`, `brawler_p1`, `duergar_p1`), Rogue (`wheelwright_p1`), Rogue_Hooded (`assassin_p1`,
   `amara_p1`), Mage (`spellweaver_p1`, `willem_p1`); the OpenGameArt spider at three squares (`broodmother_p1`).
 
 ## Pipeline 1b — a printable model, rigged and posed (`*_p1` with a `toon` look), CC BY — attribution required
