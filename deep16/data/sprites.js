@@ -20899,6 +20899,97 @@ true
 "door": "council:harrow",
 "source": "deep16/_src/harrow/ART-123-HARROW (the art desk's ART-123-HARROW, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_hask": {
+"image": "art/pt_hask.png?v=c2f2d9e6c2",
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"sneer": {
+"y": 312,
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"menace": {
+"y": 468,
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"dismissive": {
+"y": 624,
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"laugh": {
+"y": 780,
+"fw": 200,
+"fh": 156,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-156",
+"door": "no one yet: the night crew's scenes (deep.crewCatch to deep.crewDown) and the wheelwright's door are not built",
+"source": "deep16/_src/hask/2026-11-21-ART-156-PORTRAITS/portrait/originals (the art desk's ART-156, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_hedda": {
 "image": "art/pt_hedda.png?v=b259b999a4",
 "fw": 229,

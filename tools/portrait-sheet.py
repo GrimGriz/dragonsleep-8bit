@@ -415,6 +415,15 @@ for _key, _moods, _door in [('torvald', ['attentive', 'healing', 'evasive', 'afr
 _TB = 'tobin/2026-11-21-ART-157/SOURCES/pt_tobin/ART-157-TOBIN-HEAD-%02d-%s.png'
 PEOPLE['tobin'] = (os.path.dirname(_TB), 'ART-157', 'no one yet: the tariff\'s crate at Marko\'s (the story build lane J.4, deep.tobin) is not built', {'edge': True, 'noledge': True, 'cutline': True, 'avoid': ['fire'], 'bustas': {'grateful': 'resolved'}, 'layout':
                    [(_TB % (1, 'IDLE'), [3, 3], ['idle'] * 6)] + [(_TB % (h, m.upper()), [1], [m]) for h, m in enumerate(['attentive', 'restless', 'stunned', 'resolved', 'grateful'], 2)]})
+# HASK, the half-orc boss of Silverton's night crew (11-21, the cutter seat cutter-1121, on Griz's "Cut it here"; art-wanted 92, his "lets make him half-orc"): the art
+# desk's ART-156-HASK-PORTRAITS-AND-TOWN-CHECKPOINT, sorted to deep16/_src/hask/2026-11-21-ART-156-PORTRAITS/ -- its untouched 1672x941 originals: Idle 6 (the
+# pry-bar on his shoulder) and five stills: attentive, sneer, menace (the bar across his body in both hands), dismissive, laugh. Waist-up with no counter (Asdis's
+# way); the knife and the lamp hang at his hips below the cut, kept. Its town checkpoint's South Idle is a byte-twin of the page hask_p1 was cut from: nothing to re-cut.
+# His skin, drawn at hue 33 to 51, snapped grey, khaki and yellow with a few green flecks (2,743 orc pixels on the sheet): Papa Urtusk's reskin and his `avoid`, as on
+# his town figure -- the vest and belt, at 7 to 19, stand outside its band
+_HK = 'hask/2026-11-21-ART-156-PORTRAITS/portrait/originals/ART-156-PT-HASK-HEAD-%d-%s.png'
+PEOPLE['hask'] = (os.path.dirname(_HK), 'ART-156', 'no one yet: the night crew\'s scenes (deep.crewCatch to deep.crewDown) and the wheelwright\'s door are not built', {'edge': True, 'noledge': True, 'cutline': True, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['fire', 'skin', 'red'], 'layout':
+                  [(_HK % (1, 'IDLE'), [3, 3], ['idle'] * 6)] + [(_HK % (h, m.upper()), [1], [m]) for h, m in enumerate(['attentive', 'sneer', 'menace', 'dismissive', 'laugh'], 2)]})
 
 
 def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):
