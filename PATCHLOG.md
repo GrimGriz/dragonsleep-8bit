@@ -4,6 +4,10 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-22
 - 2026-11-22 · `4ad7997f` · the Warrens and the Galleries on the tiles · An art ask to the outbox: the cave rock's rim on its north, east and west sides, one sheet for the Warrens and the Galleries (art-wanted 96) · *"cave tiles - see if we need one for the guano caves as well and outbox the art request please"*
+- 2026-11-22 · `b793d464` · the Warrens and the Galleries on the tiles · ruled · Old Wynn's "The Furnace is up the mountain, in the Doors" stands, the Doors read as the wizard schools whole · *"Wynn - Doors as the wizard schools total, is fine"*
+- 2026-11-22 · `b793d464` · Silverton's hours and words · ruled · The watch pay ("ten a fortnight to anyone who keeps a watch") stands as a job for others · *"job only NPCs can take is fine (androit and hessle)"*
+- 2026-11-22 · `b793d464` · Silverton's hours and words · ruled · The Gambler's "the council sits here" stands, here read as the Hex · *"'council sits here' is close enough if 'here' is read as in the hex"*
+- 2026-11-22 · `b793d464` · the world map · ruled · The Coldridge rumour stands, the route an upcoming build · *"coldridge stands on upcoming builds"*
 
 ## 2026-11-21
 - 2026-11-21 · `06d81b8a` · the story build · ruled · The Bandit Captain stays on the KayKit render `hask_p0`, not Hask's drawn fight figure · *"Keep him on hask_p0"*
