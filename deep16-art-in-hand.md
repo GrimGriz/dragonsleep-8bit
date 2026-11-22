@@ -7,6 +7,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 # DEEP16 art in hand
 
 ## BUILT FROM THE LIST (newest first)
+- 2026-11-21 · Hask's town figure, and Tobin Thorne's talking portrait and town figure, art-wanted section 92 (the art desk's ART-156-HASK-TOWN-CUTTER-HANDOFF and ART-157-TOBIN-THORNE-CUTTER-HANDOFF) · `deep16/_src/hask/2026-11-21-ART-156/` and `deep16/_src/tobin/2026-11-21-ART-157/` (the zips beside them) · cut into `hask_p1` and `tobin_p1` (Idle 4 and Walk 8, a man's height; Hask's skin reskinned to the orc greens, Tobin's trousers at a tighter matte) by `tools/road-town-sheet.py`, and `pt_tobin` (Idle 6 and five moods) by `tools/portrait-sheet.py`; Hask's KayKit fight render renamed `hask_p0`; worn by no one yet; `00d9ebe9` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Hask's portrait and fight sheet still wanted; those blocks stay on `deep16-art-wanted.md`.
 - 2026-11-21 · Gudrun Tallowmark's town figure, art-wanted section 91's last block (the art desk's ART-154-GUDRUN-TALLOWMARK-TOWN-CUTTER-HANDOFF) · `deep16/_src/gudrun/2026-11-21-ART-154/` (the zip beside it) · cut into `gudrun_p1` (Idle 4 and Walk 8; SW, W, NW mirrored) by `tools/road-town-sheet.py`; worn by no one yet; `a40fc0fe` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Section 91 whole; moved here.
 - 2026-11-21 · Brann Silversands's town figure, art-wanted section 88's last block (the art desk's ART-145-BRANN-SILVERSANDS-TOWN-CUTTER-HANDOFF) · `deep16/_src/brann/2026-11-21-ART-145-TOWN/` (the zip beside it) · cut into `brann_p1` (Idle 4 and Walk 8, the axe on its butt at idle and on his shoulder walking; SW, W, NW mirrored) by `tools/road-town-sheet.py`; worn by no one yet; `a40fc0fe` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Section 88 whole; moved here.
 - 2026-11-21 · Torvald Greyseam fighting, art-wanted section 89's last block (the art desk's ART-147-COMBAT-TORVALD-GREYSEAM-CUTTER-HANDOFF) · `deep16/_src/torvald/2026-11-21-ART-147-COMBAT/` (the zip beside it) · cut into `torvald_p2` (all eight facings; attack and cast `release` 3; `sit` its Sit Down's frame 4 held, the yield Battle.sitYielded shows; `sitdown` in hand) by `tools/silversands-fight-sheet.py` at the art desk's registered page scales; worn by his foe block and his named NPC, `torvald_p0` retires; `fb31e250` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Section 89 whole; moved here.
@@ -4787,4 +4788,64 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: the muster yard, the walk to Third Lamp as the party's guest, the raid, his father's axe (the story build lane's E and the muster as built). Cut as: `pt_brann`. His age and office the wiki's (*"young, second season"*); his kit the first game's guest sheet (`heroes.json` brann: battleaxe, splint, no shield). He fights beside the party: a fight figure follows the portrait (his answer 2).
+
+## 92. The side missions' two without a face: Hask and Tobin Thorne -- its blocks below came back one by one; each one's line on the section's header in `deep16-art-wanted.md`
+
+### Hask -- the town figure, in all five views (after the portrait is approved) -- **IN HAND 2026-11-21** (the art desk's ART-156-HASK-TOWN-CUTTER-HANDOFF, sorted to `deep16/_src/hask/2026-11-21-ART-156/`, the zip beside it: cut into `hask_p1` in all eight facings by `tools/road-town-sheet.py` (a man's height, his skin reskinned to the orc greens; the KayKit render renamed `hask_p0` for his fights), by the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*; `00d9ebe9`; worn by no one yet)
+ATTACH `folkman_p1-town-figure-the-format-reference.png` (a human town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`; and your own approved portrait pages of Hask (above).
+```text
+Attached: a walking town figure you drew of a human of the same game, for the format, the camera and the size; a size reference. With your own approved portrait pages of HASK: draw that same half-orc man, the same face and clothes, head to foot -- a half-orc stands about a grown human's height, heavier built.
+
+HASK, walking: the night crew's boss, the pry-bar on one shoulder, the knife at the belt, the work lamp hung at the hip. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing, the pry-bar on the shoulder, a small breath); Walk (8: a heavy, unhurried walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Silverton's streets and the wheelwright's scene at the door. Cut as: `hask_p1` redrawn in all eight facings, SW, W and NW mirrored; the KayKit render retires.
+
+### Tobin Thorne, Marko's son -- a talking portrait -- **IN HAND 2026-11-21** (the art desk's ART-157-TOBIN-THORNE-CUTTER-HANDOFF, sorted to `deep16/_src/tobin/2026-11-21-ART-157/`, the zip beside it: cut into `pt_tobin` (Idle 6 and five moods) by `tools/portrait-sheet.py`, by the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*; `00d9ebe9`; worn by no one yet)
+ATTACH `pt_marko-portrait-sheet.png` (the portrait you drew of his father, Marko Thorne the provisioner: the FAMILY's look and colouring -- his son, not the same face), `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only).
+```text
+Attached: the portrait you drew of a provisioner of the same town, Marko Thorne -- this young man's father: draw his son, the same family's look and colouring, NOT the same face; two portrait pages from the same game, for the format only.
+
+TOBIN THORNE -- a YOUNG MAN of nineteen, the son of the town's provisioner, who works the shop and wants out of the town. His grandfather's caravan went out on the mountain road and never came back, and the family has always believed it lost. Working clothes of a shop's back room, sleeves rolled, a sack on his shoulder. He says: "Mical told us. The caravan wasn't lost." -- "Then I'll stay. Somebody should keep the shop that was waiting for it."
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with a sack on one shoulder; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): listening, head a little to one side.
+HEAD 3 -- RESTLESS (1): eyes going past the viewer to the door: he wants out.
+HEAD 4 -- STUNNED (1): the sack set down, eyes wide: "The caravan wasn't lost."
+HEAD 5 -- RESOLVED (1): a slow nod, jaw set: "Then I'll stay."
+HEAD 6 -- GRATEFUL (1): a real smile, both hands on an opened crate's lid.
+
+All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at his eye level, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Marko's shop on Fountain Street, the tariff's crate (the story build lane J.4; `deep.tobin`). Cut as: `pt_tobin`. His age and wish the wiki's (`silverton-people.md`: "son Tobin, 19, wants out", CANON 08-02); the caravan `fountain-street.md`; his line the first game's. His town figure follows (his *"2 yes"*, 11-19).
+
+### Tobin Thorne -- the town figure, in all five views (after the portrait is approved) -- **IN HAND 2026-11-21** (the art desk's ART-157-TOBIN-THORNE-CUTTER-HANDOFF (its town pages), the zip beside it: cut into `tobin_p1` in all eight facings by `tools/road-town-sheet.py` (a man's height), by the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*; `00d9ebe9`; worn by no one yet)
+ATTACH `folkman_p1-town-figure-the-format-reference.png` (a human town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`; and your own approved portrait pages of Tobin (above).
+```text
+Attached: a walking town figure you drew of a man of the same town, for the format, the camera and the size; a size reference. With your own approved portrait pages of TOBIN THORNE: draw that same young man, the same face, hair and clothes, head to foot.
+
+TOBIN THORNE, walking: the provisioner's son of nineteen in the working clothes of the shop's back room, sleeves rolled, a sack on one shoulder. Exactly the size of the attached town figure.
+
+HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing with the sack on his shoulder, a small breath); Walk (8: a quick, restless walk toward the viewer; animate in place, not travelling across the sheet).
+HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
+HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
+
+All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: Marko's shop on Fountain Street and the street before it. Cut as: `tobin_p1` in all eight facings, SW, W and NW mirrored.
 

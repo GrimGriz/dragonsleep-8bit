@@ -449,7 +449,7 @@ Every page: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp d
 ```
 Where: `guard_p2` and `guardwoman_p1` (the Skylights' spearmen stand on `guard_p2` for now), and any human with a spear in hand. Cut as: `tools/folk-costume-sheet.py`, new rows `throw` (6, `release` 3) and `keepback` (6, `release` 3) in all eight facings. The engine plays neither yet: the wiring is a seat's job when the pages come back.
 
-## 92. The side missions' two without a face: Hask (a talking portrait, then a town figure and a fight sheet) and Tobin Thorne (a talking portrait and a town figure) (added 11-19, the seat road-art-1119, on his word) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it -- SENT 2026-11-19 (`deep16/_src/art-desk/sent/ASK-2026-11-19-hask-portrait-and-town-figure.zip` and `ASK-2026-11-19-tobin-portrait.zip`, before his answers below); the two follow-ups on those answers IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19b-hask-half-orc/` (Hask is a half-orc man: his two blocks again) and `ASK-2026-11-19b-tobin-town-figure/` (his town figure), each with its `.zip`; HASK'S FIGHT SHEET IN THE OUTBOX 2026-11-20, waiting to go, as `ASK-2026-11-20-hask-combat` and its `.zip` (the combat-asks seat; its block below names what changed); held till then for the combat seat, on his word to the lanes desk 2026-11-19: *"have the art ask assemble just the portrait and world as zips in the outbox. Another seat will handle the combat asks when we finish mucking about with blender."*, after *"gathered by you, and you finish Brann's move (hold all art combat requests) - with a seat to go through the other fighting blender strips we've sent versus what we learn from your research"*
+## 92. The side missions' two without a face: Hask (a talking portrait, then a town figure and a fight sheet) and Tobin Thorne (a talking portrait and a town figure) (added 11-19, the seat road-art-1119, on his word) -- one ask per character, each to take the next free ART number from ART-144, assigned by Griz as he opens it -- SENT 2026-11-19 (`deep16/_src/art-desk/sent/ASK-2026-11-19-hask-portrait-and-town-figure.zip` and `ASK-2026-11-19-tobin-portrait.zip`, before his answers below); the two follow-ups on those answers IN THE OUTBOX 2026-11-19, waiting to go: `deep16/_src/outbox/ASK-2026-11-19b-hask-half-orc/` (Hask is a half-orc man: his two blocks again) and `ASK-2026-11-19b-tobin-town-figure/` (his town figure), each with its `.zip`; HASK'S FIGHT SHEET IN THE OUTBOX 2026-11-20, waiting to go, as `ASK-2026-11-20-hask-combat` and its `.zip` (the combat-asks seat; its block below names what changed); held till then for the combat seat, on his word to the lanes desk 2026-11-19: *"have the art ask assemble just the portrait and world as zips in the outbox. Another seat will handle the combat asks when we finish mucking about with blender."*, after *"gathered by you, and you finish Brann's move (hold all art combat requests) - with a seat to go through the other fighting blender strips we've sent versus what we learn from your research"* -- **HASK'S TOWN FIGURE AND TOBIN WHOLE IN HAND 2026-11-21** (the art desk's ART-156 and ART-157: `hask_p1`, `pt_tobin`, `tobin_p1`, by the cutter seat cutter-1121, `00d9ebe9`; those three blocks moved to `deep16-art-in-hand.md`) -- Hask's portrait and fight-sheet blocks below STILL WANTED (his ART-156 handoff names its portrait sources in a separate ART-156-HASK-PORTRAITS-AND-TOWN-CHECKPOINT zip, not in Fresh)
 
 His words, 2026-11-19, in the seat's window: *"is the hask figure code drawn, if so include world/combat in his ask, after portrait identity"* and *"6. yes+ as above"* (Hask and Tobin each get a portrait ask). Checked: Hask's figure `hask_p1` is a KayKit model rendered and graded by code (`aec769e1`, 09-27), never drawn by the art desk -- so his ask carries the portrait first, then his town figure and fight sheet drawn from it. Tobin has no art at all. Neither has a face in the realm wiki; each is asked from age, office, kit and the first game's lines, as the road's speakers were (his answer 1 of 11-19). Then, on the seat's questions, verbatim: *"2 yes"* (Tobin gets a town figure too) and *"3 lets make him half-orc"* -- Hask is a half-orc man (`invented.json` night-crew); then *"yes, attach lymen's portrait"* -- Lymen's portrait attached for the half-orc look.
 
@@ -473,25 +473,6 @@ Draw every page with the image generator, never with code: no Pillow, no script-
 ```
 Where: the drained stair behind the fountains, the burial's top tier (the night crews' scene, `deep.crewCatch` to `deep.crewDown`), and the wheelwright's scene at the door. Cut as: `pt_hask`. Kit and lines the first game's (`first/content/monsters.json` hask: a pry-bar and a knife; `deep.haskSees`, `deep.haskBack`; the wiki `the-warrens.md`: "Hask, a captain with a pry-bar"). That he is a half-orc is Griz's word, 11-19 (*"lets make him half-orc"*).
 
-### Hask -- the town figure, in all five views (after the portrait is approved)
-ATTACH `folkman_p1-town-figure-the-format-reference.png` (a human town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`; and your own approved portrait pages of Hask (above).
-```text
-Attached: a walking town figure you drew of a human of the same game, for the format, the camera and the size; a size reference. With your own approved portrait pages of HASK: draw that same half-orc man, the same face and clothes, head to foot -- a half-orc stands about a grown human's height, heavier built.
-
-HASK, walking: the night crew's boss, the pry-bar on one shoulder, the knife at the belt, the work lamp hung at the hip. Exactly the size of the attached town figure.
-
-HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing, the pry-bar on the shoulder, a small breath); Walk (8: a heavy, unhurried walk toward the viewer; animate in place, not travelling across the sheet).
-HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
-
-All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
-Send previews for Griz's OK first; full sheets only after it.
-Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
-```
-Where: Silverton's streets and the wheelwright's scene at the door. Cut as: `hask_p1` redrawn in all eight facings, SW, W and NW mirrored; the KayKit render retires.
-
 ### Hask, fighting with pry-bar and knife -- in all five views (after the portrait is approved) -- IN THE OUTBOX 2026-11-20, waiting to go: `deep16/_src/outbox/ASK-2026-11-20-hask-combat/` and its `.zip`, no ART number (his to give as he opens it) (the combat-asks seat; held till then on his word to the lanes desk 2026-11-19, *"have the art ask assemble just the portrait and world as zips in the outbox. Another seat will handle the combat asks when we finish mucking about with blender."*). The ask re-points Attack to `GUIDE-2026-11-20-bar-and-knife`'s bar swing and Attack 2 to its knife stab (both human, the crew boss's 50 rows), not the human one-handed slash named below; the Parry row stays described, no strip (his *"6 - lean"*). No portrait of his was drawn yet: the ask is still drawn from his approved portrait pages. No shield, so no Soldiering row. The ask's own paste block supersedes this one, kept here as it was held
 ATTACH `crewboss_p1-fight-sheet-the-format-reference.png` (the crew boss's fight sheet you drew -- a different person of the same trade: the format, the camera and THE SIZE), `REF-2026-10-21-town-figure-size.png`, `PALETTE-2026-10-28-deep16-64-colours.png`, the guide `ONE-HANDED-SLASH-HUMAN-<view>.png` and `-ALL-VIEWS.png` (a human one-handed blow: the pry-bar); and your own approved portrait pages of Hask.
 ```text
@@ -512,45 +493,6 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: the night crews' fight on the burial's top tier (`first/content/monsters.json` hask: Bandit Captain -- the pry-bar twice and the knife a turn, a Parry reaction). Cut as: a fight sheet `hask_p2`, `attack` (the bar), `attack2` (the knife), `parry`; SW, W and NW mirrored from SE, E and NE.
-
-### Tobin Thorne, Marko's son -- a talking portrait
-ATTACH `pt_marko-portrait-sheet.png` (the portrait you drew of his father, Marko Thorne the provisioner: the FAMILY's look and colouring -- his son, not the same face), `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only).
-```text
-Attached: the portrait you drew of a provisioner of the same town, Marko Thorne -- this young man's father: draw his son, the same family's look and colouring, NOT the same face; two portrait pages from the same game, for the format only.
-
-TOBIN THORNE -- a YOUNG MAN of nineteen, the son of the town's provisioner, who works the shop and wants out of the town. His grandfather's caravan went out on the mountain road and never came back, and the family has always believed it lost. Working clothes of a shop's back room, sleeves rolled, a sack on his shoulder. He says: "Mical told us. The caravan wasn't lost." -- "Then I'll stay. Somebody should keep the shop that was waiting for it."
-
-HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with a sack on one shoulder; loops cleanly.
-HEAD 2 -- ATTENTIVE (1): listening, head a little to one side.
-HEAD 3 -- RESTLESS (1): eyes going past the viewer to the door: he wants out.
-HEAD 4 -- STUNNED (1): the sack set down, eyes wide: "The caravan wasn't lost."
-HEAD 5 -- RESOLVED (1): a slow nod, jaw set: "Then I'll stay."
-HEAD 6 -- GRATEFUL (1): a real smile, both hands on an opened crate's lid.
-
-All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at his eye level, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
-Send previews for Griz's OK first; full sheets only after it.
-Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
-```
-Where: Marko's shop on Fountain Street, the tariff's crate (the story build lane J.4; `deep.tobin`). Cut as: `pt_tobin`. His age and wish the wiki's (`silverton-people.md`: "son Tobin, 19, wants out", CANON 08-02); the caravan `fountain-street.md`; his line the first game's. His town figure follows (his *"2 yes"*, 11-19).
-
-### Tobin Thorne -- the town figure, in all five views (after the portrait is approved)
-ATTACH `folkman_p1-town-figure-the-format-reference.png` (a human town figure you drew: the format, the camera and the size), `REF-2026-10-21-town-figure-size.png`; and your own approved portrait pages of Tobin (above).
-```text
-Attached: a walking town figure you drew of a man of the same town, for the format, the camera and the size; a size reference. With your own approved portrait pages of TOBIN THORNE: draw that same young man, the same face, hair and clothes, head to foot.
-
-TOBIN THORNE, walking: the provisioner's son of nineteen in the working clothes of the shop's back room, sleeves rolled, a sack on one shoulder. Exactly the size of the attached town figure.
-
-HEAD 1 -- from the front, facing the viewer (south). Rows: Idle (4: standing with the sack on his shoulder, a small breath); Walk (8: a quick, restless walk toward the viewer; animate in place, not travelling across the sheet).
-HEAD 2 -- from the bottom-right, every frame facing toward the bottom-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 3 -- from the right side in profile, facing right. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 4 -- from the top-right, seen from behind, every frame facing toward the top-right corner of the image. Rows: Idle (4) and Walk (8), as HEAD 1.
-HEAD 5 -- straight from behind, facing away from the viewer. Rows: Idle (4) and Walk (8), as HEAD 1.
-
-All five: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, exactly the size of the attached town figure (a grown human stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. The same scale in every row, feet on one baseline. No scenery.
-Send previews for Griz's OK first; full sheets only after it.
-Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
-```
-Where: Marko's shop on Fountain Street and the street before it. Cut as: `tobin_p1` in all eight facings, SW, W and NW mirrored.
 
 ## 94. Soldiering for Dunmore's stable: the Line Guard's Push row, and a Line Guard pike variant's fight sheet, in all five views (added 11-21, the pose seat pose-1121, on his word to the lanes desk) -- the ART number his to give as he opens it -- IN THE OUTBOX 2026-11-21, waiting to go: `deep16/_src/outbox/ASK-2026-11-21-line-guard-soldiering/` and its `.zip` -- sent 2026-11-21 (`deep16/_src/art-desk/sent/ASK-2026-11-21-line-guard-soldiering/` and its `.zip`; Griz, in the cutter seat cutter-1121's window: *"outbox sent"*)
 
