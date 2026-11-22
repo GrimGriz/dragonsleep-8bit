@@ -6,6 +6,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 - 2026-11-22 · `4ad7997f` · the Warrens and the Galleries on the tiles · An art ask to the outbox: the cave rock's rim on its north, east and west sides, one sheet for the Warrens and the Galleries (art-wanted 96) · *"cave tiles - see if we need one for the guano caves as well and outbox the art request please"*
 
 ## 2026-11-21
+- 2026-11-21 · `06d81b8a` · the story build · ruled · The Bandit Captain stays on the KayKit render `hask_p0`, not Hask's drawn fight figure · *"Keep him on hask_p0"*
 - 2026-11-21 · `06d81b8a` · the story build · Hask's drawn fight figure in the Burial: the pry-bar swung, the knife its own stab in his left hand, his Parry now posed; his town figure's trousers recut whole; art-wanted 92 all in hand
 - 2026-11-21 · `0f41a58e` · the story build · Hask's talking portrait, Idle 6 and five moods, his skin turned to the orc greens · *"Cut it here"*
 - 2026-11-21 · `00d9ebe9` · the story build · Hask's drawn town figure, green-skinned, and Tobin Thorne's talking portrait and town figure; Hask's fights keep the KayKit render as hask_p0 · *"fresh isn't empty, more incoming as well"*
