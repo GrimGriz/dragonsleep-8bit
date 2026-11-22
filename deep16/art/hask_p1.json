@@ -31,5 +31,5 @@
   "the rear NE walk's frames 4 and 8 share a silhouette; E and SE carry a lighter boot repair on the near leg (the art desk's own notes)",
   "the mirrors (SW W NW) carry the pry-bar, the knife and the lamp to the other side"
  ],
- "source": "drawn by the art desk (ART-156-HASK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: his streets and the wheelwright's door are not built; his fights wear hask_p0, the KayKit render"
+ "source": "drawn by the art desk (ART-156-HASK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: his streets and the wheelwright's door are not built; his fights wear hask_p2 (ART-156-COMBAT, tools/silversands-fight-sheet.py)"
 }

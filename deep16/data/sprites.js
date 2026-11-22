@@ -9006,7 +9006,7 @@
 }
 },
 "hask_p1": {
-"image": "art/hask_p1.png?v=b1afcc36f3",
+"image": "art/hask_p1.png?v=365f83c21f",
 "fw": 36,
 "fh": 64,
 "ax": 18,
@@ -9038,7 +9038,100 @@
 "the rear NE walk's frames 4 and 8 share a silhouette; E and SE carry a lighter boot repair on the near leg (the art desk's own notes)",
 "the mirrors (SW W NW) carry the pry-bar, the knife and the lamp to the other side"
 ],
-"source": "drawn by the art desk (ART-156-HASK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: his streets and the wheelwright's door are not built; his fights wear hask_p0, the KayKit render"
+"source": "drawn by the art desk (ART-156-HASK-TOWN-CUTTER-HANDOFF, 11-19: art-wanted section 92, his town figure in five views), cut by tools/road-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by no one yet: his streets and the wheelwright's door are not built; his fights wear hask_p2 (ART-156-COMBAT, tools/silversands-fight-sheet.py)"
+},
+"hask_p2": {
+"image": "art/hask_p2.png?v=de5f64ddc9",
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 640,
+"fw": 48,
+"fh": 80,
+"ax": 24,
+"ay": 74,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1280,
+"fw": 70,
+"fh": 80,
+"ax": 35,
+"ay": 74,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"knife": {
+"y": 1920,
+"fw": 66,
+"fh": 80,
+"ax": 33,
+"ay": 74,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"parry": {
+"y": 2560,
+"fw": 56,
+"fh": 80,
+"ax": 28,
+"ay": 74,
+"frames": 4,
+"fps": 8
+},
+"flinch": {
+"y": 3200,
+"fw": 52,
+"fh": 80,
+"ax": 26,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3840,
+"fw": 72,
+"fh": 80,
+"ax": 36,
+"ay": 74,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 4480,
+"fw": 72,
+"fh": 80,
+"ax": 36,
+"ay": 74,
+"frames": 1,
+"fps": 1
+}
+},
+"name": "Hask",
+"hold": [
+"knife: the art desk's Attack 2, the LEFT-hand stab, cut as `knife` so the knife blow of his multiattack plays it (js/battle.js, the blow's own row by its weapon's name)",
+"parry: played on his Parry reaction (js/battle.js, a sheet's `parry` row)",
+"knife, rear NE: the knife can vanish behind the torso in the wind-up, frame 3 most (the art desk's own note)",
+"attack: SE's lateral shift through frames 4 and 5; N's follow-through crosses the body over the bar arm (the art desk's own notes)",
+"prone: the last Fall cel held"
+],
+"source": "drawn by the art desk (ART-156-COMBAT, 11-21: art-wanted section 92, Hask with the pry-bar in his right hand and the knife in his left in five views), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by foes.js hask"
 },
 "hedda_p0": {
 "image": "art/hedda_p0.png?v=f5e81ac4f5",

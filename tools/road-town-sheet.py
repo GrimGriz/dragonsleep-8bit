@@ -251,16 +251,17 @@ road('gudrun_p1', 'gudrun', '2026-11-21-ART-154', 'Gudrun', 'ART-154-GUDRUN-TALL
 # THE SIDE MISSIONS' TWO, art-wanted 92 (11-21, the same seat and word): not the road's, but town figures of the same shape, Idle 4 and Walk 8 in five views --
 # so cut here, at a human's height, folkman_p1's 49 (51 with the outline: the art desk registered both on folkman_p1, its 72 x 64 cell).
 # Hask, the half-orc boss of Silverton's night crew (the art desk's ART-156; its notes: the pry-bar on his right shoulder, the sheathed knife at his right belt,
-# the unlit lamp at his left hip). His fights keep the KayKit render, renamed hask_p0 (deep16/data/foes.js hask, banditcaptain) till his drawn fight sheet,
-# hask_p2, comes. Worn by no one yet: his streets and the wheelwright's door are not built.
+# the unlit lamp at his left hip). His fights wore the KayKit render, renamed hask_p0, till his drawn fight sheet, hask_p2, came the same night (deep16/data/foes.js
+# hask). Worn by no one yet: his streets and the wheelwright's door are not built.
 road('hask_p1', 'hask', '2026-11-21-ART-156', 'Hask', 'ART-156-HASK-TOWN-CUTTER-HANDOFF',
      ['S and N walks alternate their contacts at 1 and 5 with less distinct passing poses; the lamp\'s swing and the ankles to be judged at game speed (the art desk\'s own notes)',
       'the rear NE walk\'s frames 4 and 8 share a silhouette; E and SE carry a lighter boot repair on the near leg (the art desk\'s own notes)',
       'the mirrors (SW W NW) carry the pry-bar, the knife and the lamp to the other side'],
-     'worn by no one yet: his streets and the wheelwright\'s door are not built; his fights wear hask_p0, the KayKit render', sec='92', tall=49,
-     reskin={'hue': 78, 'sat': 0.36})   # (his olive half-orc skin, drawn at hue 25 to 45, snapped to stone and to the skin and gold ramps -- not one pixel on the
+     'worn by no one yet: his streets and the wheelwright\'s door are not built; his fights wear hask_p2 (ART-156-COMBAT, tools/silversands-fight-sheet.py)', sec='92', tall=49,
+     reskin={'hue': 78, 'sat': 0.36}, bgtol=20)   # (his olive half-orc skin, drawn at hue 25 to 45, snapped to stone and to the skin and gold ramps -- not one pixel on the
      # orc greens, a man's face; leaving skin and gold out of the snap sent it to stone and leather. The Silverton orcs' reskin, Papa Urtusk's values: his vest
-     # and trousers, at 5 to 18 and ~345, stand outside its 28 to 52)
+     # and trousers, at 5 to 18 and ~345, stand outside its 28 to 52. `bgtol` 20, 11-21, the cutter seat cutter-hask2 cutting his fight sheet: his dark trousers
+     # drawn near the navy keyed out at the house's 30 -- holes in the S and E walks' legs, 639 enclosed over the sheet, 114 at 20, Tobin's tolerance)
 # Tobin Thorne, Marko's son, nineteen, who wants out (the art desk's ART-157; its notes: a sack on his left shoulder, the near right hand free in E and rear NE).
 # Its FRAME-MAP.csv gives no coordinates, only each frame's order on its page: found by found_windows(); his NE Walk two bands of four, the rest one band.
 # Worn by no one yet: Marko's shop floor is the counter's, and Fountain Street has no Tobin.

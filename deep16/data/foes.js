@@ -399,10 +399,11 @@
     multi: 1, packTactics: true, src: 'SRD 5.1 Hyena (CR 0, Pack Tactics); content/monsters.json hyena'
   },
   // the night crew in the Burial (deep.js, The One Law): Hask, his crew, and the wheelwright, who bolts when Hask falls
-  // (his fights keep the KayKit render of 09-27, renamed hask_p0 on 11-21 by the cutter seat cutter-1121: hask_p1 is now his drawn town figure, ART-156, as
-  // art-wanted 92 asked; his drawn fight sheet is hask_p2 when it comes)
+  // (his drawn fight sheet since 11-21, hask_p2: the art desk's ART-156-COMBAT, the pry-bar in his right hand and the knife in his left, cut by the cutter seat
+  // cutter-hask2 -- both bar blows play `attack`, the knife its own `knife` row, his Parry the `parry` row; the KayKit render of 09-27, hask_p0 since 11-21,
+  // leaves his fights; hask_p1 is his drawn town figure, ART-156)
   hask: {
-    named: true, name: 'Hask', type: 'humanoid', sheet: 'hask_p0', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
+    named: true, name: 'Hask', type: 'humanoid', sheet: 'hask_p2', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
     saves: { str: 4, dex: 5, con: 2, int: 2, wis: 2, cha: 2 }, // (SRD 5.1 Bandit Captain: Str +4, Dex +5, Wis +2 -- 10-06, the WIS +2 was dropped)
     attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },

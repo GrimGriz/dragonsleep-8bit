@@ -2830,6 +2830,9 @@
     // wielding a melee weapon." -- a reaction, taken when the +2 turns the blow: a natural 20 is not turned, AC does not make it a miss; 10-02)
     if (hit && nat !== 20 && melee && tgt.parry && tgt.reaction > 0 && RU.canAct(tgt) && !tgt.conds.disarmed && total < ac + tgt.parry && D.magic.seeWhy(this, tgt, att).ok && G.los(tgt, att).clear) {
       tgt.reaction = 0; FX.ring(tgt, 'silver', 26); D.sfx('bump');
+      // (the sheet's `parry` row, where it has one, as TURN IT ASIDE plays it below -- Hask's hask_p2, 11-21: the art desk's Parry, the bar brought up across
+      // the body; till then the reaction turned the blow with no pose. Skell's bandit_p1 and the Bandit Captain's hask_p0 have none)
+      if (D.spr.anim(tgt.sheet, 'parry')) { tgt.facing = D.spr.facingFor(att.x - tgt.x, att.y - tgt.y); tgt.anim = 'parry'; tgt.animT = this.t; }
       ac += tgt.parry; hit = false; crit = false;
       line += '  {c}PARRY +' + tgt.parry + '{/}';
     }

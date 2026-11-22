@@ -243,7 +243,32 @@ VS.LOOKS['torvald_p2'] = dict(BOXED, src=TV_SRC, windows=_tw, name='Torvald', pa
     source='drawn by the art desk (ART-147-COMBAT, 11-21: art-wanted section 89, Torvald Greyseam with mace and Dvalgarda\'s disc in five views, the Attack over '
            'the mannequin\'s one-handed guide), cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored')
 
-LOOKS_HERE = ('halldor_p2', 'brann_p2', 'hedda_p2', 'sectblade_p2', 'trooperpike_p2', 'torvald_p2')
+# HASK (11-21, the cutter seat cutter-hask2, on the lanes session's brief: the art desk's ART-156-COMBAT-HASK-CUTTER-HANDOFF, landed in Fresh after cutter-1121's
+# close, sorted to deep16/_src/hask/2026-11-21-ART-156-COMBAT/; art-wanted 92's last block): the night crew's half-orc boss, the iron pry-bar in his right hand,
+# the knife in his left. Its FRAME-MAP.csv gives each drawing's own box (x0 y0 x1_exclusive y1_exclusive on `source` under originals/), each band's sole line
+# (`source_sole_line`) and each page's one scale (`source_pixels_per_preview_pixel`, the art desk's registration at ~50 px crown to sole: its inverse is
+# `pagescale`, so the bar raised over his head keeps the Idle's size); Prone is Fall 6's own cell (`reuse` hurt:6). Not a man's town page: the idle to his town
+# figure's 49 (hask_p1). The art desk's `attack2` (the knife, a low stab with the LEFT hand) is cut as `knife`: js/battle.js plays a blow's own row by its
+# weapon's name (Hask's multi is bar, bar, knife), and a sheet's `attack2` plays on any second blow with no row of its name -- his second bar swing would have
+# stabbed and the knife swung the bar. His olive skin snaps to no orc pixel: the Silverton orcs' reskin, as his town figure's (tools/road-town-sheet.py hask_p1).
+HK_SRC, HK_BATCH = 'hask', '2026-11-21-ART-156-COMBAT'
+N.update({'knife': 6, 'parry': 4})
+_hkw, _hkps = csv_windows(HK_SRC, HK_BATCH, 'action', ground_col='source_sole_line', scale_col='source_pixels_per_preview_pixel',
+                          rename={'attack2': 'knife'}, hold_prone=True, sub='originals/')
+VS.LOOKS['hask_p2'] = dict(BOXED, src=HK_SRC, windows=_hkw, name='Hask', pagescale={k: 1.0 / v for k, v in _hkps.items()}, tall=49,
+    reskin={'hue': 78, 'sat': 0.36}, bgtol=20,   # (his dark trousers drawn near the navy: at the house's 30 they keyed out, N Walk's boots floating under
+    # his knees and holes in S Walk's legs -- 2946 enclosed holes over the sheet, 1204 at 20, Tobin's tolerance)
+    rows=[('idle', 4, 4), ('walk', 9, 8), ('attack', 12, 8), ('knife', 12, 6), ('parry', 8, 4), ('flinch', 12, 4), ('hurt', 8, 6), ('prone', 1, 1)],
+    release={'attack': 3, 'knife': 3},
+    hold=['knife: the art desk\'s Attack 2, the LEFT-hand stab, cut as `knife` so the knife blow of his multiattack plays it (js/battle.js, the blow\'s own row by its weapon\'s name)',
+          'parry: played on his Parry reaction (js/battle.js, a sheet\'s `parry` row)',
+          'knife, rear NE: the knife can vanish behind the torso in the wind-up, frame 3 most (the art desk\'s own note)',
+          'attack: SE\'s lateral shift through frames 4 and 5; N\'s follow-through crosses the body over the bar arm (the art desk\'s own notes)',
+          'prone: the last Fall cel held'],
+    source='drawn by the art desk (ART-156-COMBAT, 11-21: art-wanted section 92, Hask with the pry-bar in his right hand and the knife in his left in five views), '
+           'cut by tools/silversands-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by foes.js hask')
+
+LOOKS_HERE = ('halldor_p2', 'brann_p2', 'hedda_p2', 'sectblade_p2', 'trooperpike_p2', 'torvald_p2', 'hask_p2')
 
 if __name__ == '__main__':
     for lk in [a for a in sys.argv[1:] if a in LOOKS_HERE] or list(LOOKS_HERE):
