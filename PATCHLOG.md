@@ -2,6 +2,9 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. **The gate warns, never RED, on a new line past 400 characters** (RULED 2026-11-17, Griz: *"warning"*; `dev/check.py`, the lines in a tree that `origin/main` doesn't have): trim the what, never his words. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-11-22
+- 2026-11-22 · `4ad7997f` · the Warrens and the Galleries on the tiles · An art ask to the outbox: the cave rock's rim on its north, east and west sides, one sheet for the Warrens and the Galleries (art-wanted 96) · *"cave tiles - see if we need one for the guano caves as well and outbox the art request please"*
+
 ## 2026-11-21
 - 2026-11-21 · `06d81b8a` · the story build · Hask's drawn fight figure in the Burial: the pry-bar swung, the knife its own stab in his left hand, his Parry now posed; his town figure's trousers recut whole; art-wanted 92 all in hand
 - 2026-11-21 · `0f41a58e` · the story build · Hask's talking portrait, Idle 6 and five moods, his skin turned to the orc greens · *"Cut it here"*
