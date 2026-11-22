@@ -7,6 +7,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 # DEEP16 art in hand
 
 ## BUILT FROM THE LIST (newest first)
+- 2026-11-21 · Hask's talking portrait, art-wanted section 92 (the art desk's ART-156-HASK-PORTRAITS-AND-TOWN-CHECKPOINT) · `deep16/_src/hask/2026-11-21-ART-156-PORTRAITS/` (the zip beside it) · cut into `pt_hask` (Idle 6 and five moods; his skin reskinned to the orc greens, Papa Urtusk's way) by `tools/portrait-sheet.py`; its town checkpoint a byte-twin of `hask_p1`'s page; worn by no one yet; `0f41a58e` (the cutter seat cutter-1121, on his *"Cut it here"*).
 - 2026-11-21 · Hask's town figure, and Tobin Thorne's talking portrait and town figure, art-wanted section 92 (the art desk's ART-156-HASK-TOWN-CUTTER-HANDOFF and ART-157-TOBIN-THORNE-CUTTER-HANDOFF) · `deep16/_src/hask/2026-11-21-ART-156/` and `deep16/_src/tobin/2026-11-21-ART-157/` (the zips beside them) · cut into `hask_p1` and `tobin_p1` (Idle 4 and Walk 8, a man's height; Hask's skin reskinned to the orc greens, Tobin's trousers at a tighter matte) by `tools/road-town-sheet.py`, and `pt_tobin` (Idle 6 and five moods) by `tools/portrait-sheet.py`; Hask's KayKit fight render renamed `hask_p0`; worn by no one yet; `00d9ebe9` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Hask's portrait and fight sheet still wanted; those blocks stay on `deep16-art-wanted.md`.
 - 2026-11-21 · Gudrun Tallowmark's town figure, art-wanted section 91's last block (the art desk's ART-154-GUDRUN-TALLOWMARK-TOWN-CUTTER-HANDOFF) · `deep16/_src/gudrun/2026-11-21-ART-154/` (the zip beside it) · cut into `gudrun_p1` (Idle 4 and Walk 8; SW, W, NW mirrored) by `tools/road-town-sheet.py`; worn by no one yet; `a40fc0fe` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Section 91 whole; moved here.
 - 2026-11-21 · Brann Silversands's town figure, art-wanted section 88's last block (the art desk's ART-145-BRANN-SILVERSANDS-TOWN-CUTTER-HANDOFF) · `deep16/_src/brann/2026-11-21-ART-145-TOWN/` (the zip beside it) · cut into `brann_p1` (Idle 4 and Walk 8, the axe on its butt at idle and on his shoulder walking; SW, W, NW mirrored) by `tools/road-town-sheet.py`; worn by no one yet; `a40fc0fe` (the cutter seat cutter-1121, on his *"fresh isn't empty, more incoming as well"*). Section 88 whole; moved here.
@@ -4848,4 +4849,24 @@ Send previews for Griz's OK first; full sheets only after it.
 Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
 ```
 Where: Marko's shop on Fountain Street and the street before it. Cut as: `tobin_p1` in all eight facings, SW, W and NW mirrored.
+
+### Hask, the night crew's boss -- a talking portrait -- **IN HAND 2026-11-21** (the art desk's ART-156-HASK-PORTRAITS-AND-TOWN-CHECKPOINT, sorted to `deep16/_src/hask/2026-11-21-ART-156-PORTRAITS/`, the zip beside it: cut into `pt_hask` (Idle 6 and attentive, sneer, menace, dismissive, laugh; his skin reskinned to the orc greens) by `tools/portrait-sheet.py`, by the cutter seat cutter-1121, on his *"Cut it here"*; `0f41a58e`; worn by no one yet)
+ATTACH `pt_lymen-portrait-sheet.png` (the portrait you drew of Lymen, a half-orc of the same game: what a half-orc looks like here -- NOT Hask's face), `ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face).
+```text
+Attached: the portrait you drew of Lymen, a half-orc of the same game, for what a half-orc looks like here -- the build, the skin, the jaw and the tusks -- NOT this half-orc's face; two portrait pages from the same game, for the format only.
+
+HASK -- a HALF-ORC MAN, the boss of a night crew of a silver-mining town: grave-robbers who drained a flooded stair and broke into a sealed dwarven tomb to strip the dead. A hard, capable captain of thieves, the big one of the crew. A heavy iron pry-bar, a long knife at the belt, a work lamp, dark rough working clothes. Contemptuous and sure of himself. He says: "Well. Somebody's name got made. This is none of yours. Nobody down here is going to miss it." -- "You again. You were paid. Go and spend it."
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop, standing with the pry-bar resting on one shoulder; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): head tilted, sizing the viewer up.
+HEAD 3 -- SNEER (1): a curled lip: "This is none of yours."
+HEAD 4 -- MENACE (1): the pry-bar hefted in both hands, leaning in.
+HEAD 5 -- DISMISSIVE (1): a flick of the hand: "You were paid. Go and spend it."
+HEAD 6 -- LAUGH (1): head back, a hard laugh.
+
+All six: 16-bit pixel-art cut-scene portrait animation, comparable to the attached portrait pages. Waist-up, NO counter: he stands in the open, cut off at the waist by the bottom of the frame, a stable three-quarter front camera at his eye level, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the six-frame action in two bands of three with clear gutters. A title and frame numbers kept well clear of the drawings. No scenery, no UI or border.
+Send previews for Griz's OK first; full sheets only after it.
+Draw every page with the image generator, never with code: no Pillow, no script-drawn pages.
+```
+Where: the drained stair behind the fountains, the burial's top tier (the night crews' scene, `deep.crewCatch` to `deep.crewDown`), and the wheelwright's scene at the door. Cut as: `pt_hask`. Kit and lines the first game's (`first/content/monsters.json` hask: a pry-bar and a knife; `deep.haskSees`, `deep.haskBack`; the wiki `the-warrens.md`: "Hask, a captain with a pry-bar"). That he is a half-orc is Griz's word, 11-19 (*"lets make him half-orc"*).
 
