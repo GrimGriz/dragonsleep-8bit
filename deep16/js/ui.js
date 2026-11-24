@@ -290,6 +290,21 @@
   // PUT AWAY off both rings (10-15, the menus lane §2.4, Griz: "Remove put-it-away from the menu ring. If they have the action and the bonus to light the torch and click on it,
   // pop-up confirmation PUT AWAY WEAPON?"): a torch that wants the weapon's hand asks for it (battle.js itemList putAway, exec 'item'); EQUIP's (put it away) keeps it in the M menu
   function offRing(x) { return x.id !== 'putaway'; }
+  // MOVE's reason when it cannot (11-24, the grid seat; the 11-22 desk's find 6, his record of the lake fight, "MOVE: not now." while Barley was held in the claw; and his 4-ogre
+  // door of 11-24, the same two words with a set shield and no feet): held fast (restrained, grappled: the speed 0), the line's square held, or no feet left this turn
+  function moveWhy(B, u) {
+    if (u.conds.restrained) return 'held fast: restrained, the speed is 0' + (u.inClaws ? ' (in its claws: BREAK FREE)' : '');
+    if (u.conds.grappled) return 'held fast: grappled, the speed is 0 (BREAK FREE)';
+    if (D.features && D.features.heldLine && D.features.heldLine(u, B)) return 'the line holds the square: LEAVE it first (a bonus action)';
+    return 'no feet left this turn';
+  }
+  function moveItem(B, u) { var ok = u.turn.move > 0 && !u.conds.restrained; return { id: 'move', label: 'MOVE', cost: 'M', ok: ok, why: ok ? '' : moveWhy(B, u), tool: 'move', icon: 'move' }; }
+  UI.moveWhy = moveWhy;
+  // THE WAND IN ATTACK'S PLACE (RULED 2026-11-24, Griz: "Like a main hand weapon, with it's function showing on the front wheel when equipped in place of 'attack'"; his note of
+  // 11-23, "no way to use the wand?": this ring drew no `wand` -- it fell to `top` under a key never drawn -- and RING2 put it among the ACTIONS): the Wand of Web in the main hand
+  // (js/magicitems.js MI.inHand -- the command is only made then) stands where the swing does on both rings; the ATTACK, a fist with the wand in hand, goes among the ACTIONS as the
+  // quick cantrip's weapon does, and a wizard's Fire Bolt moves beside the wand
+  function wandUp(c) { return c.filter(function (x) { return x.id === 'wand'; })[0] || null; }
   UI.cmds = function (B, u) {
     if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
     if (UI.styleOf(u, B) === 'ring2') return cmds2(B, u); // (the ring by cost: a Mascot game's default, or anyone's under RING2 -- below)
@@ -300,12 +315,13 @@
     // it can), and pull twin-strike from the wheel once the bonus action is gone" -- the click and the pull were built 11-05 and 11-12; the one-weapon swing is up front again, after it)
     var tw = c.some(function (x) { return x.id === 'twinstrike'; });
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
-    var pl = [];
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (PLAYS[x.id]) { pl.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    var pl = [], wd = wandUp(c);
+    c.forEach(function (x) { if (wd && x === wd) return; if (CHANNEL[x.id]) { cd.push(x); return; } if (PLAYS[x.id]) { pl.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || ((q || wd) && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
+    if (wd) { if (q && !q2) top.beside = q; top.attack = wd; } // (the wand in the main hand: its Web in ATTACK's place -- wandUp)
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
-    var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
+    var out = [moveItem(B, u)];
     ['twinstrike', 'attack', 'throwpick', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (throwpick: THROW <it> beside ATTACK once one is thrown in the fight -- the throw, 11-11) (offhand: two-weapon fighting's swing beside the Attack, 10-15)
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
@@ -339,8 +355,10 @@
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
-    var tw = c.some(function (x) { return x.id === 'twinstrike'; }), pl = []; // (TWIN STRIKE up front, ATTACK among the actions -- as UI.cmds, 11-05)
+    var tw = c.some(function (x) { return x.id === 'twinstrike'; }), pl = [], wd = wandUp(c); // (TWIN STRIKE up front, ATTACK among the actions -- as UI.cmds, 11-05)
     c.forEach(function (x) {
+      if (wd && x === wd) return; // (the wand in the main hand: up front in ATTACK's place, 11-24 -- wandUp)
+      if (wd && x.id === 'attack') { A.push(x); return; }
       if (CHANNEL[x.id]) { cd.push(x); return; }
       if (PLAYS[x.id]) { pl.push(x); return; }
       if (x.id === 'spells') return; // (SPELLS by the cost first: one on each ring, below)
@@ -352,6 +370,7 @@
     });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
+    if (wd) { if (q && !q2) top.beside = q; top.attack = wd; } // (11-24)
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3;
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; A.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     var skillsFirst = function (a, b) { return (b.skill ? 1 : 0) - (a.skill ? 1 : 0); }; // (the skills lead each ring, the plain actions and the free odds and ends after -- PUT AWAY was the front of the blue ring, 10-08)
@@ -362,7 +381,7 @@
     var spl = c.some(function (x) { return x.id === 'spells'; }) ? D.magic.list(B, u) : [], spA = spl.filter(function (e) { return !(e.g && e.g.time === 'B'); }), spB = spl.filter(function (e) { return e.g && e.g.time === 'B'; });
     if (spA.length) A.unshift({ id: 'spells', label: 'SPELLS', cost: 'A', time: 'A', ok: spA.some(function (e) { return e.ok; }), why: 'nothing to cast with the action now', sub: 'spells', icon: 'spell', note: 'the spells that take the action, by level' });
     if (spB.length) Bn.unshift({ id: 'bspells', label: 'SPELLS', cost: 'B', time: 'B', ok: spB.some(function (e) { return e.ok; }), why: 'nothing to cast with the bonus action now', sub: 'spells', icon: 'spell', note: 'the spells that take the bonus action, by level' });
-    var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
+    var out = [moveItem(B, u)];
     ['twinstrike', 'attack', 'throwpick', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
@@ -708,7 +727,18 @@
   // claw, refused three times -- the click took the creature, and a held one holds no square of its own, G.occupant): on the holder's square, a touch or a spell or an item for
   // one of ours finds the one it holds. heldIn: the first of u's side in w's claws, standing or down; heldNear: the touch's reach, measured to the holder's body, since the held
   // one is drawn at its side and stands on its corner
-  function heldIn(B, u, w) { if (!w || !G.hostile(u, w) || !D.Battle.clawHeld) return null; return D.Battle.clawHeld(B, w).filter(function (h) { return h.side === u.side && !h.dead; })[0] || null; }
+  // WHICH OF THEM (11-24, the desk's B1 on his 11-23 lake fight with Gennet -- "gennet shows in party / healing targeting viv"; the lean RULED by his "leans otherwise approved": the
+  // first of ours in the claws took every heal on its square, so with Vivian and Gennet both held Lay on Hands and Cure Wounds went to Vivian): the figure the mouse is on, if it
+  // is one of them; else the one down, if one is; else the first, with B.heldAmbig set for UI.command to ask WHICH ONE? (battle.js exec 'whichheld')
+  function heldAll(B, u, w) { if (!w || !G.hostile(u, w) || !D.Battle.clawHeld) return []; return D.Battle.clawHeld(B, w).filter(function (h) { return h.side === u.side && !h.dead; }); }
+  function heldIn(B, u, w) {
+    var hs = heldAll(B, u, w); B.heldAmbig = null;
+    if (hs.length <= 1) return hs[0] || null;
+    if (B.hoverUnit && hs.indexOf(B.hoverUnit) >= 0) return B.hoverUnit;
+    var dn = hs.filter(function (h) { return h.hp <= 0; }); if (dn.length === 1) return dn[0];
+    B.heldAmbig = { t: B.t, list: hs.slice() };
+    return dn[0] || hs[0];
+  }
   function heldNear(B, u, h) { var by = h && h.inClaws && B.units.filter(function (c) { return c.id === h.inClaws.by; })[0]; return !!by && G.dist(u, by) <= 5; }
   UI.heldIn = heldIn;
   // THE FIGURE THE MOUSE IS ON IS THE CLICK'S TARGET (11-03, Griz, his Pocket DM fights: "see stirge targetting difficulties" and "The 5-foot flight above 4 foes targeting (manticore)"): occ is
@@ -1067,7 +1097,7 @@
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
     B.spell = { id: e.id, slot: e.slot, g: g, sp: e.sp, n: n, name: e.name };
     B.picks = [];
-    if (g.shape === 'self') return UI.command(B, u, { do: 'cast', id: e.id, slot: e.slot, target: u });
+    if (g.shape === 'self' || g.noAim) return UI.command(B, u, { do: 'cast', id: e.id, slot: e.slot, target: u }); // (noAim: the Flaming Sphere rolled -- its own gold squares after the bonus action, js/grimoire.js; 11-24)
     B.tool = 'spell';
     if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) { B.picks = [u]; B.spell.auto = u; } // Bless takes the caster by default; click him again to leave him out
     var how = UI.aimWords(g, n);
@@ -1075,6 +1105,8 @@
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
   UI.command = function (B, u, cmd, lead) {
+    var ha = B.heldAmbig; B.heldAmbig = null; // (two of ours in one holder's claws and the click not on either figure: WHICH ONE? first -- heldIn, 11-24)
+    if (ha && ha.t === B.t && cmd && cmd.target && ha.list.indexOf(cmd.target) >= 0) cmd = { do: 'whichheld', among: ha.list.map(function (h) { return h.id; }), cmd: cmd };
     B.clearCards();
     if (lead) B.card(lead, 200); // (a card the click owes the player, before the swing's own lines: the click that became the off hand, 10-31)
     if (/^(dash|cdash|disengage|cdisengage)$/.test(cmd.do)) B.nextTool = 'move';

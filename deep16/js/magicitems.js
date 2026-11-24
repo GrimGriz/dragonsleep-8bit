@@ -29,6 +29,13 @@
     var bond = R().bonded(u.src, id), why = !bond ? (it.attune === 'caster' && !R().casts(u.src) ? 'it wants a spellcaster' : 'not yet bonded: a rest while it is held') : !n ? 'no charges left till dawn' : '';
     return { id: id, it: it, n: n, max: max, ok: bond && n > 0, why: why };
   };
+  // THE WAND IN THE MAIN HAND (RULED 11-24, Griz: "Like a main hand weapon, with it's function showing on the front wheel when equipped in place of 'attack'"; his note of 11-23
+  // on the road, "no way to use the wand? Wouldn't the wand go in a weapon hand?" -- the classic ring drew no WAND at all, js/ui.js): the main hand holds a weapon or the wand.
+  // EQUIP puts it there as it puts a weapon (js/menu.js, the WEAPON row: the other to the pack) and keeps it on its own place, equip.wand, with no weapon beside it -- so the bond
+  // and the charges read as they did. In a fight it is in hand while the main hand holds no weapon: none on the sheet, or the weapon PUT AWAY (u.sheathed) -- a sheet saved with
+  // both (the WAND place of 11-15 and a weapon) has the weapon in hand and the wand at the belt till the weapon is put away, or a swap in the fight takes one up (the weapon in
+  // hand, the wand back at the belt). In hand, WAND OF WEB stands on the ring's front in ATTACK's place on both rings, the ATTACK (a fist) among the ACTIONS (js/ui.js)
+  MI.inHand = function (u) { var e = u && u.src && u.src.equip; return !!(e && e.wand && (!e.weapon || u.sheathed)); };
   MI.setCharges = function (u, id, n) { var it = item(id); if (!it || !it.wand) return; u.feats = u.feats || {}; var k = R().chargeKey(id); if (n >= it.wand.charges) delete u.feats[k]; else u.feats[k] = Math.max(0, n); };
 
   // ------------------------------------------------------------------ the Rope of Climbing at the fight's end
@@ -50,7 +57,7 @@
   var cmds0 = Battle.prototype.commands;
   Battle.prototype.commands = function (u) {
     var out = cmds0.apply(this, arguments);
-    var w = u && !u.familiar && !u.beast && !u.object ? MI.wandOf(u) : null;
+    var w = u && !u.familiar && !u.beast && !u.object && MI.inHand(u) ? MI.wandOf(u) : null; // (only in the main hand: 11-24)
     if (w) {
       var T = u.turn || {}, W = w.it.wand, g = D.magic.geo(W.spell), sp = D.magic.data(W.spell) || { name: W.spell };
       var can = T.action > 0 && !T.attacksLeft && RU.canAct(u);
@@ -70,7 +77,7 @@
   // action was (a counterspell still spends it, as it spends a slot); the last one spent, the d20 (MI.d20, the dice the show pins)
   MI.d20 = function () { return D.d(20); };
   function* wandCast(B, u, c) {
-    var w = MI.wandOf(u), T = u.turn; if (!w || !w.ok || !T || !(T.action > 0) || T.attacksLeft || !c.target || !RU.canAct(u)) return;
+    var w = MI.wandOf(u), T = u.turn; if (!w || !w.ok || !MI.inHand(u) || !T || !(T.action > 0) || T.attacksLeft || !c.target || !RU.canAct(u)) return;
     var W = w.it.wand, a0 = T.action;
     B.itemCast = { by: u.id, spell: W.spell, dc: W.dc, item: w.id, name: w.it.name.toUpperCase() };
     try { yield* B.exec(u, { do: 'cast', id: W.spell, slot: W.slot || 1, target: c.target }); } finally { B.itemCast = null; }

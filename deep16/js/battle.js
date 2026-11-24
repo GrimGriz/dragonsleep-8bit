@@ -140,7 +140,7 @@
     // chosen is thrown from the pack's own stack, its kit's own first when it is the same weapon (u.alt.count, Battle.thrownLeft), at the item's own range (content/items.json
     // `thrown`, the SRD's property); none in the pack and none of its own, none to throw. Not lent: it is the pack's
     if (!this.o.embed) { var inv1 = this.inv; party.forEach(function (u) { var a = u.alt, it = a && u.src && u.src.altPack && window.DS.DATA.items[a.id], wd = it && it.weapon; if (!wd || u.side !== 'party') return; var rng = wd.thrown || ((wd.props || []).indexOf('thrown') >= 0 ? wd.range : null) || (D.npc.THROWN || {})[a.id]; if (!rng) return; a.ranged = true; a.thrown = true; a.range = rng.slice(); if (wd.versatile && a.dice === wd.versatile) a.dice = wd.dmg; if (u.src.altOwn !== a.id) a.count = 0; else if (a.count == null) a.count = 1; var stk = inv1.filter(function (s) { return s.id === a.id; })[0]; if (stk) a.stack = stk; }); }
-    this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
+    this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; delete u.ready; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units); // (delete u.ready: no Ready rides in from the last fight -- 11-24, the 11-22 desk's find 4, his "ettercap fight - pre-initiative lymen still ready")
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
     this.torchBarrel = m.def && m.def.torchBarrel ? m.def.torchBarrel.slice() : null; // (the Edifice's barrel of torches behind the houses south of the street: a lit torch for anyone beside it with a hand for one, free, endless -- 10-05 night, Griz; exec 'barreltorch')
     this.ropeBucket = m.def && m.def.ropeBucket ? m.def.ropeBucket.slice() : null; // (Fountain Street's bucket: a Rope & Grapple for anyone beside it, free, one a turn, endless -- 10-04 night, Griz; exec 'bucketrope')
@@ -633,6 +633,9 @@
     this.cards.push({ lines: ls, t0: this.t, life: this.pace(life || 300), id: id }); // (the message's time: D.PACE, whoever's turn -- Battle.prototype.pace)
     if (this.cards.length > 3) this.cards.shift();
   };
+  // a long card cut to the lines the screen holds, every line kept in the log (11-24, the grid seat: his Ice Storm of 11-23 on five gnolls and two hyenas -- the card held its
+  // head and six saves, and the seventh, the second hyena's, was in neither the card nor the play record, while "The Hyena falls" was twice)
+  Battle.prototype.cardCut = function (lines, n, life) { var ls = [].concat(lines); this.card(ls.slice(0, n), life); if (ls.length > n) this.logOnly(ls.slice(n)); };
   Battle.prototype.clearCards = function () { this.cards = []; };
   // lines for the log (and the play record's transcript) with no card on the screen: what the VICTORY panel says (finish, js/roam.js R.after; 11-05)
   Battle.prototype.logOnly = function (lines) {
@@ -1921,6 +1924,16 @@
         else yield* this.attack(u, c.target, u.weapon);
         if (debutT && !T.debutDone) yield* this.stabDebut(u, debutT);
         if (u.conds.hidden) delete u.conds.hidden;
+        // THE OFF HAND AFTER EXTRA ATTACK (11-24, the desk's B9, RULED by his "leans otherwise approved"; his Festival bout of 11-23 at 5th: two clicks were the Attack's two
+        // swings, the turn ended with the bonus action unspent -- at 4th the second click had been the off hand): the Attack's last swing taken with the off hand's open, said
+        if (!byAI(u) && !T.attacksLeft && (u.attacks || 1) > 1 && !u.dead && u.hp > 0) { var ohN = this.commands(u).filter(function (x) { return x.id === 'offhand'; })[0]; if (ohN && ohN.ok) this.card(['{g}' + ohN.label + ': the bonus action is still open -- a click on a foe in reach swings it.{/}'], 240); }
+        return;
+      }
+      case 'whichheld': { // (WHICH ONE? -- two of ours in one holder's claws, the click on neither figure: js/ui.js heldIn, 11-24; nothing spent on NOT NOW)
+        var amH = this.units.filter(function (w) { return c.among.indexOf(w.id) >= 0 && !w.dead && !w.left; });
+        var pickH = amH.length === 1 ? amH[0].id : yield { prompt: { who: u, ring: true, title: u.name + ': WHICH ONE?', lines: ['Two of yours in its claws: which one takes it?'], opts: amH.map(function (h) { return { label: h.name.toUpperCase() + (h.hp <= 0 ? ' (DOWN)' : ' (' + h.hp + '/' + h.maxhp + ' HP)'), value: h.id, fig: h.sheet, note: h.name + (h.hp <= 0 ? ' is down' : ', ' + h.hp + ' of ' + h.maxhp + ' hit points') }; }).concat([{ label: 'NOT NOW', value: 0, no: true }]) } };
+        var tH = pickH && this.units.filter(function (w) { return w.id === pickH; })[0];
+        if (tH) yield* this.exec(u, Object.assign({}, c.cmd, { target: tH }));
         return;
       }
       case 'cast': {
@@ -2672,7 +2685,11 @@
     this.spendThrow(att, atk, tgt); // (out of the hand, hit or miss)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     if (att.side === 'foe') (this.logTail = this.logTail || {})[cid] = Battle.atkTail(att, tgt, atk, melee); // (the log's: where each stood, 11-05)
-    this.turnTo(att, faceTo(att, tgt));
+    // (one in a claw: its holder striking it keeps its facing -- the held one is in the claw already, and kept on the holder's own corner square the turn swung the claw, and the
+    // held one with it, round to that corner; anyone else turns to the claw it is drawn at, Battle.clawSquare. 11-24, his lake fight: the second Pincer at Barley turned the chuul
+    // to its own corner and brought him round beside Lymen, "that shielding (lymen) is sus (grappled, positioning)")
+    var faceAt = tgt.inClaws ? (tgt.inClaws.by === att.id ? null : Battle.clawSquare(this, tgt)) : tgt;
+    if (faceAt) this.turnTo(att, faceTo(att, faceAt));
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
     // (o.ride: a blow riding the one before it in one move -- the Grey Road's Sweep the Ring and Covering Volley, 10-08: the row plays once, its second and third blows land on it)
     var posing = !!o.ride || (atk.spell && (att.anim === 'attack' || att.anim === 'cast') && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, att.anim) || 18));
@@ -2745,9 +2762,16 @@
     // your reaction to impose disadvantage on the attack roll. You must be wielding a shield." -- 10-06, the Pocket DM's maker picks it)
     if (!atk.save && e.net >= 0) {
       // (or a Mascot Tank's BODYGUARD, 6th, the same without the shield: js/mpmon.js `bodyguard`, 10-06 night)
-      var prot = this.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && ((w.style === 'protection' && w.src && w.src.equip && w.src.equip.shield) || w.bodyguard) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5 && M16().sees(self, w, att); })[0];
+      // NOT WHILE A READY IS HELD (RULED 11-24, Griz, on his 11-23 gnolls fight, where SHIELD THEM spent the reaction Lymen's readied Longsword waited on and two gnolls then
+      // walked up to him unanswered: "should we not let it fire when readied instead? Check which position locations allow the protection, leave the coverage SRD"): one who holds a
+      // Ready is not asked -- the reaction is the Ready's. WHERE THEY STAND (the same word): the SRD's coverage as it was (the target within 5 ft of the protector, the attacker seen,
+      // no facing; the diagonal a square, as every reach on the grid), but one in a claw is measured from the claw it is drawn in (Battle.clawSquare), not the holder's corner square
+      // it is kept on -- his 11-23 lake fight: the chuul's first Pincer took Barley from 15 ft off into its own corner square, 5 ft from Lymen, and the second Pincer asked Lymen to
+      // shield him ("that shielding (lymen) is sus (grappled, positioning)"). A protector held in a claw shields from his claw too (grappled, restrained: a reaction is still his)
+      var protD = function (w) { var a = Battle.clawSquare(self, w), b = Battle.clawSquare(self, tgt); return G.dist(w, tgt, a.x, a.y, b.x, b.y); };
+      var prot = this.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && ((w.style === 'protection' && w.src && w.src.equip && w.src.equip.shield) || w.bodyguard) && w.reaction > 0 && !w.ready && G.standing(w) && RU.canAct(w) && protD(w) <= 5 && M16().sees(self, w, att); })[0];
       if (prot) {
-        var pz = byAI(prot) ? true : yield { prompt: { who: prot, title: prot.name + ': ' + (prot.bodyguard ? 'BODYGUARD?' : 'PROTECTION?'), lines: [nameOf(att) + ' attacks ' + nameOf(tgt) + '. ' + (prot.bodyguard ? 'Step in the way' : 'The shield in the way') + ': the roll at disadvantage? (the reaction)'], opts: [{ label: prot.bodyguard ? 'STEP IN' : 'SHIELD THEM', value: true }, { label: 'NOT NOW', value: false }] } };
+        var pz = byAI(prot) ? true : yield { prompt: { who: prot, title: prot.name + ': ' + (prot.bodyguard ? 'BODYGUARD?' : 'PROTECTION?'), lines: [nameOf(att) + ' attacks ' + nameOf(tgt) + (atk.name ? ' (' + atk.name + ')' : '') + '. ' + (prot.bodyguard ? 'Step in the way' : 'The shield in the way') + ': the roll at disadvantage? (the reaction)'], opts: [{ label: prot.bodyguard ? 'STEP IN' : 'SHIELD THEM', value: true }, { label: 'NOT NOW', value: false }] } }; // (the blow named: his lake fight's ask came up with the first Pincer's card still on screen and read as shielding a blow already landed)
         if (pz) { prot.reaction = 0; D.sfx('bump'); FX.ring(tgt, 'silver', 18); e.dis.push('protection'); if (prot.bodyguard && D.spr.anim(prot.sheet, 'guard')) { prot.anim = 'guard'; prot.animT = this.t; } e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
       }
     }
@@ -3317,7 +3341,7 @@
       if (!fresh.length && !mover) continue;
       var foe = mover || (about && fresh.indexOf(about) >= 0 ? about : fresh[0]);
       var sprung = yield* this.readySpring(w, rd, { foe: foe, why: Battle.nm(foe, true) + (mover ? ' moves.' : ' comes ' + (sight ? 'into sight' : 'within reach') + '.') });
-      if (!sprung && w.ready && mover) w.ready.heldFor = mvKey;
+      if (!sprung && w.ready && mvKey && foe === about) w.ready.heldFor = mvKey; // (HOLD on "comes into sight" holds for the rest of that walk too -- 11-24, the desk's B5, his 11-23 hyenas: a readied Burning Hands asked "comes into sight" and then "moves" for one hyena's one walk)
       if (about && (about.dead || about.hp <= 0)) return;
     }
   };
@@ -4042,29 +4066,33 @@
     } else if (Battle.floorAt(u.x, u.y)) sq = [u.x, u.y];
     if (!sq) { this.card(['{g}The ' + lc + ' is lost' + (t && G.map.at(t.x, t.y) && G.map.at(t.x, t.y).deep ? ' in the deep water' : '') + '.{/}'], 200); return; }
     (this.ground = this.ground || []).push({ id: f.id, name: nmF, x: sq[0], y: sq[1], by: u.id, how: f.how, atk: f.atk, alt: f.alt });
-    this.logOnly(['R' + this.round + ' ' + (u.name || u.id) + '\'s ' + lc + ' lies at ' + sq[0] + ',' + sq[1] + (f.hit ? ' (a hit: at its feet)' : ' (a miss)')]);
+    this.logOnly([(u.name || u.id) + '\'s ' + lc + ' lies at ' + sq[0] + ',' + sq[1] + (f.hit ? ' (a hit: at its feet)' : ' (a miss)')]);
   };
   // the one thrown back where it came from: the pack's stack, the class kit's count, the off hand -- the thrower's again, whoever took it up
   Battle.prototype.groundBack = function (g) {
-    var by = this.units.filter(function (w) { return w.id === g.by; })[0];
-    if (g.how === 'pack') { var st = (g.atk && g.atk.stack) || (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (st) { st.n = (st.n || 0) + 1; if ((this.inv || []).indexOf(st) < 0) (this.inv = this.inv || []).push(st); } else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
+    var by = this.units.filter(function (w) { return w.id === g.by; })[0], went = 'kit'; // (went: where it went -- 'pack', 'off', 'main', 'alt', 'kit' (the class kit's count); the cards say it, 11-24)
+    if (g.how === 'pack') { went = 'pack'; var st = (g.atk && g.atk.stack) || (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (st) { st.n = (st.n || 0) + 1; if ((this.inv || []).indexOf(st) < 0) (this.inv = this.inv || []).push(st); } else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
     else if (g.how === 'off' || g.how === 'main') { // (a hand's: back in the hand it left -- or, that hand filled again since (the off hand's draw, 11-11), with what is carried)
-      if (by && g.how === 'off' && by.offhandThrown) delete by.offhandThrown;
-      else if (by && g.how === 'main' && by.mainThrown) { by.weapon = by.mainThrown; delete by.mainThrown; }
-      else if (by && (by.alt || g.alt) && (by.alt || g.alt).id === g.id && by.thrown && by.thrown[(by.alt || g.alt).name] > 0) { var aH = by.alt || g.alt; by.thrown[aH.name]--; by.alt = aH; } // (the ALT it was drawn from, back)
-      else { var stH = (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (stH) stH.n = (stH.n || 0) + 1; else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
+      if (by && g.how === 'off' && by.offhandThrown) { delete by.offhandThrown; went = 'off'; }
+      else if (by && g.how === 'main' && by.mainThrown) { by.weapon = by.mainThrown; delete by.mainThrown; went = 'main'; }
+      else if (by && (by.alt || g.alt) && (by.alt || g.alt).id === g.id && by.thrown && by.thrown[(by.alt || g.alt).name] > 0) { var aH = by.alt || g.alt; by.thrown[aH.name]--; by.alt = aH; went = 'alt'; } // (the ALT it was drawn from, back)
+      else { went = 'pack'; var stH = (this.inv || []).filter(function (s) { return s.id === g.id; })[0]; if (stH) stH.n = (stH.n || 0) + 1; else (this.inv = this.inv || []).push({ id: g.id, n: 1 }); }
     }
     else if (by && by.thrown && g.atk && by.thrown[g.atk.name]) by.thrown[g.atk.name]--;
     if (by && g.how !== 'off' && g.how !== 'main' && !by.alt && g.alt) by.alt = g.alt; // (thrown to the last, its ALT put away: spendThrow -- back in hand)
+    return went;
   };
+  Battle.WENT = { pack: '; into the pack', off: '; back in the off hand', main: '; back in hand', alt: '; carried again', kit: '' }; // (groundBack's answer, said on the card: his 4-ogre door's "takes up the dagger on the way" was the second dagger into the pack, read as a free second dagger -- 11-24)
   // walking onto it: taken up with the turn's free object interaction (moveAlong, each square)
   Battle.prototype.groundStep = function (u) {
     if (!this.ground || !this.ground.length || !Battle.isHero(u) || this.active !== u || !u.turn || u.dead || u.hp <= 0) return;
-    var here = this.ground.filter(function (g) { return g.x === u.x && g.y === u.y; }); if (!here.length) return;
-    var g = here[0], by = this.units.filter(function (w) { return w.id === g.by; })[0], whose = by && by !== u ? by.name + '\'s ' : 'the ';
+    // ONLY ITS OWN (11-24, the desk's B4, RULED by his "leans otherwise approved"; his 4-ogre door of 11-24: Shield 3, sword and shield in hand, walked over Pike 4's handaxe and took it
+    // up on the way, its free hand on an object spent unasked): the walk takes up the walker's own thrown weapon, as the turn's start does (groundUnder) -- a friend's waits for PICK UP
+    var here = this.ground.filter(function (g) { return g.x === u.x && g.y === u.y && g.by === u.id; }); if (!here.length) return;
+    var g = here[0], whose = 'the ';
     if (u.turn.freeObj) { if (!u.turn.groundSaid) { u.turn.groundSaid = true; this.card(['{g}' + u.name + ' passes over ' + whose + g.name.toLowerCase() + ': the hand on an object is spent this turn.{/}'], 180); } return; }
-    u.turn.freeObj = true; this.ground.splice(this.ground.indexOf(g), 1); this.groundBack(g); D.sfx('confirm');
-    this.card(['{y}' + u.name + '{/} takes up ' + whose + g.name.toLowerCase() + ' on the way.  {g}(free: the hand on an object' + (g.how === 'pack' ? '; back in the pack' : '') + '){/}'], 200);
+    u.turn.freeObj = true; this.ground.splice(this.ground.indexOf(g), 1); var wentS = this.groundBack(g); D.sfx('confirm');
+    this.card(['{y}' + u.name + '{/} takes up ' + whose + g.name.toLowerCase() + ' on the way.  {g}(free: the hand on an object' + (Battle.WENT[wentS] || '') + '){/}'], 200);
   };
   // the fight's end: on a held field what still lies there comes back (won, the foe yielded or fled); lost or run from, it stays
   Battle.prototype.gatherThrown = function (o) {
@@ -4189,8 +4217,8 @@
     var here = this.ground.filter(function (g) { return g.x === u.x && g.y === u.y && (!atStart || g.by === u.id); }); if (!here.length) return false;
     var g = here.filter(function (x) { return x.by === u.id && x.how === 'off' && u.offhandThrown; })[0] || here.filter(function (x) { return x.by === u.id; })[0] || here[0];
     var by = this.units.filter(function (w) { return w.id === g.by; })[0], whose = by && by !== u ? by.name + '\'s ' : 'the ';
-    u.turn.freeObj = true; this.ground.splice(this.ground.indexOf(g), 1); this.groundBack(g); D.sfx('confirm');
-    this.card(['{y}' + Battle.nm(u, true) + '{/} takes up ' + whose + g.name.toLowerCase() + ' from underfoot.  {g}(free: the hand on an object' + (atStart ? ' of this turn' : '') + (g.how === 'off' && by === u ? '; back in the off hand' : g.how === 'pack' ? '; back in the pack' : '') + '){/}'], 200);
+    u.turn.freeObj = true; this.ground.splice(this.ground.indexOf(g), 1); var wentU = this.groundBack(g); D.sfx('confirm');
+    this.card(['{y}' + Battle.nm(u, true) + '{/} takes up ' + whose + g.name.toLowerCase() + ' from underfoot.  {g}(free: the hand on an object' + (atStart ? ' of this turn' : '') + (Battle.WENT[wentU] || '') + '){/}'], 200);
     return true;
   };
   Battle.prototype.reloadAtStart = function (u) { if (!u) return; this.groundUnder(u, true); if (u.offhandThrown) this.reloadOff(u, true); };
@@ -4242,7 +4270,7 @@
     // turn's free object interaction, EQUIP's ALT row took NONE, and EQUIP here still charged the action for every change): a weapon taken up in a hand that holds none is one
     // interaction with an object -- "draw or sheathe a sword", SRD 5.1 -- so it is the turn's free one (T.freeObj, the same one PUT AWAY, the throw's draw and a torch spend);
     // with that spent it is the action, as a second interaction is. A swap (one stowed, one drawn) and a shield stay the action. o.free marks it for swapGear and the menu
-    var emptyHand = !h.equip.weapon || !!u.sheathed, freeNow = !T.freeObj, FREEW = '; free: the turn\'s one draw';
+    var emptyHand = (!h.equip.weapon || !!u.sheathed) && !(D.magicItems && D.magicItems.inHand(u)), freeNow = !T.freeObj, FREEW = '; free: the turn\'s one draw'; // (the Wand of Web in the main hand is not an empty hand: a weapon for it is a swap, the action -- 11-24)
     this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || it.kind !== 'weapon' || s.n <= 0 || !R.canEquip(h, it)) return;
@@ -4291,6 +4319,7 @@
     function take(id) { var s = packOf(B, id); if (s) s.n--; }
     if (!u.equip0) { u.equip0 = JSON.parse(JSON.stringify(h.equip || {})); u.alt0 = h.altPack ? undefined : (h.alt || null); } // (as it stood before the first swap: the Pocket DM keeps what the fight changed, js/pocket.js PK.fightKept -- 11-10; alt0: its own second weapon)
     var freeDraw = !!o.free && !u.turn.freeObj; // (a draw into an empty hand: the turn's one free object interaction -- gearOptions, 11-14)
+    var wandWas = o.kind === 'weapon' && !!(D.magicItems && D.magicItems.inHand(u)); // (the wand in the main hand: back at the belt as the weapon comes up -- 11-24)
     if (freeDraw) u.turn.freeObj = true; else Battle.payAction(u.turn);
     D.sfx('confirm');
     if (o.kind === 'weapon' && o.own) { var held = h.equip.weapon || null; h.equip.weapon = h.alt; h.alt = held; u.alt = Battle.altUnit(h); delete u.conds.ablaze; } // (the carried one in hand, the one in hand carried: 11-10)
@@ -4305,7 +4334,7 @@
     if (R.armored(h) && (u.conds.mageArmor || (h.conds && h.conds.mageArmor))) { delete u.conds.mageArmor; if (h.conds) delete h.conds.mageArmor; }
     var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
     u.baseAC = ac; u.armored = R.armored(h);
-    var did = { weapon: (freeDraw ? 'takes up the ' : 'stows one weapon and takes up the ') + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield', offhandoff: 'stows the off hand\'s weapon', offhandon: 'takes up the ' + (u.offhand ? u.offhand.name : 'weapon') + ' in the off hand' }[o.kind];
+    var did = { weapon: (freeDraw ? 'takes up the ' : wandWas ? 'puts the wand at the belt and takes up the ' : 'stows one weapon and takes up the ') + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield', offhandoff: 'stows the off hand\'s weapon', offhandon: 'takes up the ' + (u.offhand ? u.offhand.name : 'weapon') + ' in the off hand' }[o.kind];
     this.card(['{y}' + u.name + '{/} ' + did + (freeDraw ? (o.kind === 'offhandoff' ? ' (free: the turn\'s one object interaction).  AC ' : ' (free: the turn\'s one draw).  AC ') : ' (the action).  AC ') + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
   };
 
@@ -4380,6 +4409,14 @@
   // claw, one each side; a held one carried and the claw's side square taken at the set-down -- the nearest free square to the claw's point
   var CLAW8 = [[1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]], LUNGE = 26; // (a facing's step, js/sprites.js STEP turned round; the lunge's frames, out in two fifths, back in three)
   Battle.clawHeld = function (B, u) { return ((B && B.units) || []).filter(function (w) { return w.inClaws && w.inClaws.by === u.id && !w.left; }); };
+  // the square one in a claw is drawn on (js/ui.js clawPos: the holder's centre and the claw's point, Battle.clawPoint) -- it is kept on the holder's corner square (clawIn), which
+  // can be the far side of the holder from the claw; anyone else, its own square. Where Protection measures from (11-24, his "check which position locations allow the protection")
+  Battle.clawSquare = function (B, w) {
+    var c = w && w.inClaws, h = c && ((B && B.units) || []).filter(function (x) { return x.id === c.by; })[0];
+    if (!h || h.left || w.x !== h.x || w.y !== h.y) return { x: w.x, y: w.y };
+    var s = h.size || 1, ws = w.size || 1, cp = Battle.clawPoint(h, c.side);
+    return { x: Math.round(h.x + (s - 1) / 2 + cp.x - (ws - 1) / 2), y: Math.round(h.y + (s - 1) / 2 + cp.y - (ws - 1) / 2) };
+  };
   Battle.clawsOn = function (att, atk, tgt) { return !!(atk && atk.grapple && atk.grapple.claws && tgt && !tgt.object && !tgt.left && !tgt.inClaws && Battle.sizeCat(tgt) <= Battle.SIZE.M && Battle.clawHeld(D.battle, att).length < 2); };
   // the claw's point, from the holder's centre in squares: out in front of it by its facing, one claw to each side (side 1 or -1)
   Battle.clawPoint = function (h, side) {

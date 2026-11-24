@@ -823,21 +823,30 @@
   // OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
   // slot"): SHIELD's place holds the one thing the other hand holds -- a shield, a weapon, or the light (js/rules.js R.offhandOf); the LIGHT row that stood under the
   // places is in it now. A two-handed weapon empties it; a shield on or off in a fight is the action (SRD 5.1: "Shield 1 action 1 action")
-  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['offhand', 'OFFHAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['wand', 'WAND'], ['eyes', 'EYES']]; // (WAND: the Wand of Web's place, 11-15 -- js/rules.js R.PLACES)
+  // THE WAND IN THE MAIN HAND (RULED 2026-11-24, Griz: "Like a main hand weapon, with it's function showing on the front wheel when equipped in place of 'attack'"; his note
+  // of 11-23 on the road: "no way to use the wand? Wouldn't the wand go in a weapon hand?"): the WAND row of 11-15 is gone -- the WEAPON row holds a weapon or a wand, and
+  // the one put there sends the other to the pack. It is kept on the wand's own place (equip.wand, js/rules.js R.PLACES) with no weapon beside it, so its bond and its charges
+  // read as they did. A sheet that has both (one saved between 11-15 and now) carries the wand at the belt and shows it on a WAND (CARRIED) row (wandCarried, below)
+  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['offhand', 'OFFHAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK'], ['eyes', 'EYES']];
+  function isWand(it) { return !!(it && it.kind === 'worn' && it.place === 'wand'); }
+  function wandHeld(h) { return h.equip && h.equip.wand && !h.equip.weapon ? h.equip.wand : null; } // (the wand in the main hand: the hand holds no weapon)
+  function wandCarried(h) { return h.equip && h.equip.wand && h.equip.weapon ? h.equip.wand : null; } // (a weapon in hand and the wand at the belt: an older sheet's two)
+  function wandWords(h, id) { var it = item(id); return it && it.wand ? (R().charges ? R().charges(h, id) + '/' + it.wand.charges + ' ' : '') + 'WEB on the ring' : ''; }
+  MN.wandHeld = wandHeld;
   function offSlot(sl) { return sl === 'shield' || sl === 'torch' ? 'offhand' : sl; } // (a shield's place, and the light's, is the OFFHAND)
   function offhandThing(h, host) { var o = R().offhandOf(h); if (!o) return null; if (o.kind === 'light') { var lt = host && host.light ? host.light(h) : null; return { kind: 'light', id: lt ? lt.id : 'torch', name: lt ? lt.name : 'Torch', hooded: !!(lt && lt.hooded) }; } var it = item(o.id); return it ? { kind: o.kind, id: o.id, name: it.name } : null; }
   MN.offhandThing = offhandThing;
   function mainTwo(h) { var w = item(h.equip.weapon); return !!(w && w.weapon && (w.weapon.props || []).indexOf('two-handed') >= 0); }
   function offWord(h, id) { return R().offhandWord ? R().offhandWord(h, id) : 'off hand'; } // (what a weapon there does: its off-hand swing, or held -- R.offhandWord)
-  function fitsSlot(it, slot) { if (slot === 'offhand') return !!it && (it.kind === 'shield' || R().offhandWeapon(it)); if (!it) return false; if (slot === 'ring' || slot === 'ring2') return it.kind === 'ring'; if (slot === 'feet' || slot === 'neck' || slot === 'wand' || slot === 'eyes') return it.kind === 'worn' && it.place === slot; return it.kind === slot; }
+  function fitsSlot(it, slot) { if (slot === 'offhand') return !!it && (it.kind === 'shield' || R().offhandWeapon(it)); if (!it) return false; if (slot === 'ring' || slot === 'ring2') return it.kind === 'ring'; if (slot === 'feet' || slot === 'neck' || slot === 'wand' || slot === 'eyes') return it.kind === 'worn' && it.place === slot; if (slot === 'weapon' && isWand(it)) return true; return it.kind === slot; } // (a wand goes in the WEAPON row: the main hand, 11-24)
   // the bond's mark beside a worn thing: a gold diamond bonded, a dim one waiting for a rest (the font has no hollow diamond)
   function bondMark(h, id) { var b = R().bondState ? R().bondState(h, id) : ''; return b === 'bonded' ? '◆' : b === 'unbonded' ? '◆' : null; }
   function bondColor(h, id) { var b = R().bondState ? R().bondState(h, id) : ''; return b === 'unbonded' ? C.dim : b === 'bonded' ? C.gold : null; }
   function dmgText(h) { var d = R().damageExpr(h); return (d.dice === '0' ? '' : d.dice) + (d.mod ? sgn(d.mod) : ''); }
   function compare(h, slot, id) {
-    var R0 = R(), save = h.equip[slot], out;
+    var R0 = R(), save = h.equip[slot], out, it = item(id);
+    if (slot === 'weapon' && isWand(it)) return it.attune && R0.bondState && R0.bondState(h, id) === 'unbonded' ? 'a rest to bond' : wandWords(h, id); // (the wand in the main hand: what it does, not a swing -- 11-24)
     if (slot === 'weapon') { h.equip.weapon = id; out = sgn(R0.attackBonus(h)) + ' ' + dmgText(h); h.equip.weapon = save; return out; }
-    var it = item(id);
     if (it && it.attune && R0.bondState && (!h.attuned || h.attuned.indexOf(id) < 0) && h.attuned) return 'a rest to bond';
     var before = R0.ac(h); h.equip[slot] = id; var after = R0.ac(h); h.equip[slot] = save;
     if (slot === 'armor' || slot === 'shield' || after !== before) return 'AC ' + after + (after > before ? ' ▲' : after < before ? ' ▼' : '');
@@ -858,9 +867,11 @@
       var thr = s[0] === 'offhand' && host.offThrown ? host.offThrown(h) : ''; // (the grid: the off hand's weapon thrown, the hand empty till it is taken up or drawn again -- 11-21)
       if (thr) return { label: s[1], right: fit('— (' + thr + ' thrown)', 128), value: 'offhand', disabled: off, rightColor: C.dim };
       if (s[0] === 'offhand') { var oh = offhandThing(h, host), ok0 = oh && oh.kind !== 'light' ? bondMark(h, oh.id) : null; return { label: s[1], right: oh ? fit((ok0 ? ok0 + ' ' : '') + oh.name + (oh.kind === 'light' ? ' (lit)' : ''), 128) : '—', value: 'offhand', disabled: off, rightColor: oh && oh.kind !== 'light' && bondColor(h, oh.id) === C.dim ? C.dim : null }; }
-      var id = h.equip[s[0]], it = item(id), mk = it ? bondMark(h, id) : null;
+      var id = s[0] === 'weapon' && wandHeld(h) ? wandHeld(h) : h.equip[s[0]], it = item(id), mk = it ? bondMark(h, id) : null; // (the WEAPON row: the wand when it is the main hand's, 11-24)
       return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name + (s[0] === 'weapon' && away ? ' (' + away + ')' : '') + (it.wand && R().charges ? ' ' + R().charges(h, id) + '/' + it.wand.charges : ''), 128) : '—', value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
     });
+    // (an older sheet's wand beside a weapon: at the belt, on a row of its own till it goes in the hand or the pack -- 11-24)
+    var wc = wandCarried(h), wcIt = wc && item(wc); if (wcIt) rows.splice(1, 0, { label: 'WAND', right: fit((bondMark(h, wc) ? bondMark(h, wc) + ' ' : '') + wcIt.name + (wcIt.wand && R().charges ? ' ' + R().charges(h, wc) + '/' + wcIt.wand.charges : '') + ' (carried)', 128), value: 'wand', disabled: fight, rightColor: bondColor(h, wc) === C.dim ? C.dim : null });
     // (the LIGHT row of 10-07 -- his "torches cannot be equipped" -- is the OFFHAND's since 10-15: the one in hand there, the pack's lights its choices, as ITEMS lights them)
     rows.push(altRow(h, host, fight)); // (ALT, last: 11-10)
     this.list.set(rows);
@@ -922,9 +933,10 @@
       var it = item(s.id); if (!fitsSlot(it, slot) || !R0.canEquip(h, it)) return;
       if ((slot === 'ring' || slot === 'ring2') && h.equip[slot === 'ring' ? 'ring2' : 'ring'] === s.id && s.n < 1) return;
       var two = !!(it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0);
-      rows.push({ label: fit(it.name, 120), right: two && lit ? 'both hands' : compare(h, slot, s.id), value: s.id, disabled: two && lit });
+      rows.push({ label: fit(it.name, 120), right: two && lit ? 'both hands' : compare(h, slot, s.id), value: s.id, disabled: two && lit, note: slot === 'weapon' && isWand(it) ? 'In the main hand, as a weapon is: its Web on the ring\'s front in ATTACK\'s place. The weapon goes to the pack.' : '' });
     });
-    if (h.equip[slot]) rows.unshift({ label: '(remove)', value: '__none' });
+    if (slot === 'weapon' && wandCarried(h)) { var wci = item(wandCarried(h)); rows.unshift({ label: fit(wci.name + ' (carried)', 120), right: compare(h, 'weapon', wandCarried(h)), value: '__wandhand', note: 'From the belt into the main hand: its Web on the ring\'s front. The weapon goes to the pack.' }); } // (11-24)
+    if (h.equip[slot] || (slot === 'weapon' && wandHeld(h))) rows.unshift({ label: '(remove)', value: '__none' });
     this.list.set(rows);
   };
   CandPage.prototype.update = function (k) {
@@ -974,6 +986,17 @@
   // shield); a shield on or off in a fight is the action (SRD 5.1 -- the host's fight.spendAction)
   MN.swap = function (m, h, slot, pick) {
     var host = m.host, R0 = R(), hadShield = h.equip.shield || null;
+    // THE MAIN HAND HOLDS A WEAPON OR THE WAND (11-24, his "Like a main hand weapon"): the wand from the belt into the hand, or one from the pack -- the weapon goes to the pack, a
+    // wand there before it too; a weapon or (remove) with the wand in the hand -- the wand goes to the pack. Kept on equip.wand, so the bond and the charges stay its own
+    if (slot === 'weapon' && pick === '__wandhand') { if (h.equip.weapon) host.give(h.equip.weapon, 1); h.equip.weapon = null; sfx('confirm'); m.say(h.name + ' takes the ' + item(h.equip.wand).name + ' in hand: its Web on the ring\'s front.'); return true; }
+    if (slot === 'weapon' && pick && isWand(item(pick))) {
+      if (h.equip.weapon) host.give(h.equip.weapon, 1); h.equip.weapon = null;
+      if (h.equip.wand) host.give(h.equip.wand, 1);
+      host.take(pick, 1); h.equip.wand = pick; sfx('confirm');
+      m.say(R0.bondState && R0.bondState(h, pick) === 'unbonded' ? h.name + ' takes up the ' + item(pick).name + '. It wants a bond: it works after the next rest' + (R0.casts && !R0.casts(h) ? ', and only for a spellcaster.' : '.') : h.name + ' takes up the ' + item(pick).name + ': its Web on the ring\'s front.');
+      return true;
+    }
+    if (slot === 'weapon' && wandHeld(h)) { host.give(h.equip.wand, 1); h.equip.wand = null; } // (a weapon in the hand, or (remove): the wand to the pack)
     if (slot === 'offhand' && !pick && h.equip.shield) slot = 'shield'; // ((remove) on the OFFHAND: whichever it holds)
     if (slot === 'offhand' && pick && mainTwo(h)) { m.say(item(h.equip.weapon).name + ' needs both hands. Nothing in the off hand with it.'); return false; }
     if (slot === 'shield' && pick && h.equip.offhand) { host.give(h.equip.offhand, 1); h.equip.offhand = null; }
@@ -1078,8 +1101,10 @@
       });
     }
     if (pg.k === 'gear') {
-      var w = R0.weaponOf(h), dx = R0.damageExpr(h, w);
-      out.push({ t: 'WEAPON  ' + w.name, c: C.white, r: sgn(R0.attackBonus(h, w)) + ' ' + (dx.dice === '0' ? '' : dx.dice) + sgn(dx.mod) });
+      var w = R0.weaponOf(h), dx = R0.damageExpr(h, w), wh = wandHeld(h), whIt = wh && item(wh), wcS = wandCarried(h), wcSIt = wcS && item(wcS);
+      if (whIt) out.push({ t: 'WEAPON  ' + fit((bondMark(h, wh) ? bondMark(h, wh) + ' ' : '') + whIt.name, 170), c: bondColor(h, wh) === C.dim ? C.dim : C.white, r: wandWords(h, wh).replace(' on the ring', '') }); // (the wand in the main hand, 11-24)
+      else out.push({ t: 'WEAPON  ' + w.name, c: C.white, r: sgn(R0.attackBonus(h, w)) + ' ' + (dx.dice === '0' ? '' : dx.dice) + sgn(dx.mod) });
+      if (wcSIt) out.push({ t: 'WAND  ' + fit(wcSIt.name + ' (carried)', 170), c: bondColor(h, wcS) === C.dim ? C.dim : C.pale, r: wcSIt.wand && R0.charges ? R0.charges(h, wcS) + '/' + wcSIt.wand.charges : '' });
       SLOTS.slice(1).forEach(function (s) { if (s[0] === 'offhand') { var oh = offhandThing(h, hostS); out.push({ t: s[1] + '  ' + (oh ? fit(oh.name + (oh.kind === 'light' ? ' (lit)' : ''), 170) : '—'), c: oh ? C.pale : C.dim }); return; } var it = item(h.equip[s[0]]), mk = it ? bondMark(h, h.equip[s[0]]) : null; out.push({ t: s[1] + '  ' + (it ? fit((mk ? mk + ' ' : '') + it.name, 170) : '—'), c: it ? (bondColor(h, h.equip[s[0]]) === C.dim ? C.dim : C.pale) : C.dim, r: it && bondColor(h, h.equip[s[0]]) === C.dim ? 'at a rest' : it && it.wand && R0.charges ? R0.charges(h, h.equip[s[0]]) + '/' + it.wand.charges : null }); }); // (a wand's charges: the Wand of Web, 11-15)
       out.push({ t: '', c: C.dim });
       add('BONDS ' + (h.attuned || []).length + '/' + (R0.ATTUNE_MAX || 3) + ((h.attuned || []).length ? ': ' + h.attuned.map(function (id) { return (item(id) || { name: id }).name; }).join(', ') : ''), C.magic);

@@ -573,10 +573,10 @@
     } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around') {
       yield* area(B, u, id, sp, g, slot, t && t.x != null ? t.x : u.x, t && t.y != null ? t.y : u.y, head, t && t.z);
     } else if (g.shape === 'single') {
-      if (id === 'holdmonster' && t.type === 'undead') { B.card([head + ' on the ' + B.shortName(t) + ': {g}the dead are not held{/}  (SRD 5.1: "no effect on undead")']); FX.ring(t, 'violet', 20); } // (10-06)
+      if (id === 'holdmonster' && t.type === 'undead') { B.card([head + ' on ' + (t.side === 'foe' ? D.Battle.nm(t) : t.name) + ': {g}the dead are not held{/}  (SRD 5.1: "no effect on undead")']); FX.ring(t, 'violet', 20); } // (10-06)
       else if (id === 'holdmonster' || id === 'holdperson') {
         var sv2 = RU.save(t, 'wis', dc, false, 'paralyzed');
-        B.card([head + ' on the ' + B.shortName(t) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
+        B.card([head + ' on ' + (t.side === 'foe' ? D.Battle.nm(t) : t.name) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
         FX.ring(t, 'violet', 40);
         if (!sv2.ok && RU.immuneTo(t, 'paralyzed')) B.card(['  ' + t.name + ': {g}cannot be held{/}']);
         else if (!sv2.ok) { t.conds.paralyzed = { dc: dc, save: 'wis', by: u.id }; M.concentrate(B, u, id, sp.name, function () { delete t.conds.paralyzed; }, [t]); }
@@ -727,7 +727,7 @@
         if (by && by.conc && (by.conc.id === 'darkness' || by.conc.id === 'aura')) M.endConc(B, by, 'Daylight');
         else B.darks = (B.darks || []).filter(function (x) { return x !== dk; });
       });
-      B.card(lines.slice(0, 7), 420);
+      B.cardCut(lines, 7, 420);
       yield* M.brighten(B, u, 'daylight', null, { x: cx, y: cy, bright: 60 }); // (bright light: what hates light hates it, and under the roost it is the roof)
       yield { fx: 1 };
       yield 30;
@@ -810,7 +810,7 @@
       });
       globeLines.forEach(function (l) { lines.push(l); });
       if (!caught.length && !globeLines.length) lines.push('  {g}no one in it.{/}');
-      B.card(lines.slice(0, 7), 420);
+      B.cardCut(lines, 7, 420);
       yield { fx: 1 };
       hits.forEach(function (h) { B.hurtAll(h[0], [[h[1], sp.el], [h[3] || 0, sp.el2]], MAGIC); }); // (each kind its own hurt, as Flame Strike's: grimoire.js -- one concentration save on the sum, B.hurtAll)
       // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
@@ -823,7 +823,7 @@
       return;
     }
     if (id === 'sleep' || id === 'web' || id === 'sleetstorm') globeLines.forEach(function (l) { lines.push(l); }); // (the others lay a place -- fog, gas, lights -- and the globe does not keep that out)
-    B.card(lines.slice(0, 7), 420);
+    B.cardCut(lines, 7, 420);
     yield { fx: 1 };
     yield 30;
   }

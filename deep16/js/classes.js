@@ -243,7 +243,7 @@
     // (Mirror's Gaze for Hex, Minor Illusion for Friends; the asking is Command, RULED 09-28); Agonizing Blast; Fiendish Vigor (False
     // Life at will: she walks in with it); the Mirror's eye. Charm Person and Suggestion wait on charm (LATER). Her known spells are
     // the SRD's six at the 5th (TRIMMED 09-28g, Griz: "Trim"): Command in, Gaseous Form (OUT in the game already) off her list
-    amara: { name: 'Amara', cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
+    amara: { name: 'Amara', named: true, cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' }, look: 'amara_p2', // (her own fight figure, as her bestiary record wears it -- the roster's card and its fights wore the warlock's stock figure till 11-10; no attack row: a blow plays her idle)
       known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion', 'counterspell'], // (Counterspell on the ladders: 10-02, Griz, "give it to all of them on the ladders")
       invocations: ['agonizing', 'fiendishvigor'], pact: 'tome' }, // (Pact of the Tome, SRD 5.1 -- RULED 10-17, Griz: "go on those opens, good with your leans": the scholar of the glass, the patrol ladies the Blade)
@@ -533,6 +533,9 @@
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
       h.equip[slot] = id;
       if (slot === 'weapon' && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0) h.equip.shield = null; // (both hands)
+      // (a wand in the main hand, as a weapon is -- RULED 11-24, Griz: "Like a main hand weapon": the weapon it held carried as the second, if none is, for a swap in the fight;
+      // js/magicitems.js MI.inHand)
+      if (slot === 'wand' && h.equip.weapon) { if (!h.alt) { h.alt = h.equip.weapon; h.altPack = false; } h.equip.weapon = null; }
     });
     if (h.attuned) R.attune(h);
     return h;

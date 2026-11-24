@@ -186,7 +186,7 @@
       stage([wizard, fighter], [lane || FOOT, [(lane || FOOT)[0] + 2, (lane || FOOT)[1]]]);
       var hf = JSON.parse(JSON.stringify(fighter.src)); hf.equip.wand = 'wandofweb'; hf.attuned = []; var said = Rr.attune(hf);
       var hw = JSON.parse(JSON.stringify(wizard.src)); hw.attuned = []; var saidW = Rr.attune(hw);
-      fighter.src.equip.wand = 'wandofweb'; var cF = B.commands(fighter).filter(function (c) { return c.id === 'wand'; })[0];
+      var fW0 = fighter.src.equip.weapon; fighter.src.equip.wand = 'wandofweb'; fighter.src.equip.weapon = null; var cF = B.commands(fighter).filter(function (c) { return c.id === 'wand'; })[0]; fighter.src.equip.weapon = fW0; // (in his main hand: 11-24, the wand is held as a weapon is)
       say(['It takes a bond, and only a spellcaster\'s. Held by ' + fighter.name + ' at a rest: "' + said.join(' ') + '" Held by ' + wizard.name + ': "' + saidW.join(' ') + '"']); yield W(140);
       var ok = /wants a spellcaster/.test(said.join(' ')) && hf.attuned.indexOf('wandofweb') < 0 && hw.attuned.indexOf('wandofweb') >= 0 && !!cF && !cF.ok && /spellcaster/.test(cF.why || '') && !Rr.bonded(hf, 'wandofweb');
       return [ok, fighter.name + ': "' + said.join(' ') + '", the ring\'s button grey (' + (cF && cF.why) + '); ' + wizard.name + ': "' + saidW.join(' ') + '"'];

@@ -1643,8 +1643,13 @@
       D.rec.start(B, { fight: 'roam', name: R.def.name + ': ' + Object.keys(nmR).map(function (k) { return k + (nmR[k] > 1 ? ' x' + nmR[k] : ''); }).join(', '), level: ((R0.members[0] || {}).src || {}).lvl, simple: false });
     }
     var o = yield* R.fight(B, foes, lurk);
-    if (B.rec && D.rec) { try { D.rec.finish(B, o || 'ended'); } catch (eR) { /* (the record must never stop the way back) */ } B.rec = null; }
-    yield* R.after(B, o, grp, foes);
+    // THE RECORD AFTER THE PAY (11-24, the 11-22 desk's item 3, his "good" to "roam fights across the board (wet/gulch)?": all 42 roam wins since 11-08 kept no Victory or XP
+    // line -- the record closed here, before R.after paid): open through the gather's pay and closed as its VICTORY panel goes up (the pay's lines then in its log), or, with
+    // nothing paid, when the gather is done; the walk after it still not kept. R.after is stepped here, its yields and answers passed through as yield* would
+    var recO = o || 'ended', closeRec = function () { if (B.rec && D.rec) { try { D.rec.finish(B, recO); } catch (eR) { /* (the record must never stop the way back) */ } B.rec = null; } };
+    var aftG = R.after(B, o, grp, foes), aftS, aftV;
+    while (!(aftS = aftG.next(aftV)).done) { if (aftS.value && aftS.value.victory) closeRec(); aftV = yield aftS.value; }
+    closeRec();
   };
   // the ways out for one of ours as its turn comes (RULED 10-13, the box cut: "no box"): the floor's own doors, and the squares a full move clear of every foe in
   // the fight -- farther by walking than its reach and its move -- that this one could reach this turn (its move and a dash). A way out is LEAVE THE FIGHT's
@@ -1859,7 +1864,7 @@
     R0.members.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'the fight is over'); });
     var kept = B.reserve && B.reserve.length ? B.reserve.slice() : []; B.reserve = []; // (a reserve the fight ended before it came out: still in the token, gathered where the token stands -- 11-18)
     kept.forEach(function (u) { var t0 = R0.token; if (t0) { u.x = t0.x; u.y = t0.y; } u.tween = null; });
-    R0.members.forEach(function (u) { if (u.left) { u.left = false; u.dead = false; } u.conds = R.lasting(u.conds); u.turn = null; if (B.units.indexOf(u) < 0) B.units.push(u); });
+    R0.members.forEach(function (u) { if (u.left) { u.left = false; u.dead = false; } u.conds = R.lasting(u.conds); u.turn = null; delete u.ready; if (B.units.indexOf(u) < 0) B.units.push(u); }); // (delete u.ready: a Ready held when the fight ends goes with it -- 11-24, the 11-22 desk's find 4, his "ettercap fight - pre-initiative lymen still ready")
     R0.members.forEach(function (u) { u.wings = R.ringWings(u) || !!u.flies; u.flies = false; u.fz = 0; if (u.tween) u.tween.fz = 0; }); // (down out of the air as the fight ends: the floor is walked)
     G.setup(G.map, B.units); B.cache = null;
     var up = R.standing(R0), lead = up[0];

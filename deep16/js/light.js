@@ -286,7 +286,8 @@
   L.handsUsed = function (u) {
     var w = u.weapon, props = (w && w.props) || [], two = props.indexOf('two-handed') >= 0, sh = !!(u.src && u.src.equip && u.src.equip.shield);
     var off = !!(u.offhand && !u.offhandSheathed && !u.offhandThrown); // (a weapon in the OFFHAND -- js/rules.js R.offhandOf, 10-15; put away for a light it is no hand)
-    return { weapon: w && w.id && w.id !== 'unarmed' ? (two && !u.torch ? 2 : 1) : 0, shield: sh ? 1 : 0, torch: u.torch ? 1 : 0, off: off ? 1 : 0, two: two, sh: sh, carried: two && !!u.torch };
+    var wand = !(w && w.id && w.id !== 'unarmed') && !!(D.magicItems && D.magicItems.inHand && D.magicItems.inHand(u)); // (the Wand of Web in the main hand: a hand, as a weapon is -- js/magicitems.js MI.inHand, 11-24)
+    return { weapon: w && w.id && w.id !== 'unarmed' ? (two && !u.torch ? 2 : 1) : wand ? 1 : 0, shield: sh ? 1 : 0, torch: u.torch ? 1 : 0, off: off ? 1 : 0, two: two, sh: sh, carried: two && !!u.torch, wand: wand };
   };
   L.handsFree = function (u) { var h = L.handsUsed(u); return Math.max(0, 2 - h.weapon - h.shield - h.torch - h.off); };
   // a hand for a light: one free -- or both on a two-handed weapon and no shield, which then carries it in one (10-05)
@@ -296,7 +297,7 @@
   L.lightWhy = function (u) { var h = L.handsUsed(u); return h.sh ? 'the shield is on the off hand (SHIELD OFF first: the action)' : h.off ? 'the ' + u.offhand.name.toLowerCase() + ' is in the off hand' : h.torch ? 'a ' + L.kindName(u.torch) + ' in hand already' : L.handsWhy(u); };
   L.handsWhy = function (u) {
     var h = L.handsUsed(u), bits = [];
-    if (h.two && !h.carried) bits.push('both hands on the ' + u.weapon.name.toLowerCase()); else if (h.weapon) bits.push('the ' + u.weapon.name.toLowerCase() + (h.carried ? ', carried' : ''));
+    if (h.two && !h.carried) bits.push('both hands on the ' + u.weapon.name.toLowerCase()); else if (h.wand) bits.push('the wand'); else if (h.weapon) bits.push('the ' + u.weapon.name.toLowerCase() + (h.carried ? ', carried' : ''));
     if (h.sh) bits.push('the shield');
     if (h.off) bits.push('the ' + u.offhand.name.toLowerCase() + ' in the off hand');
     if (h.torch) bits.push('a ' + L.kindName(u.torch) + ' already');

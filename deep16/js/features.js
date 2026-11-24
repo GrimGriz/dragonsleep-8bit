@@ -369,7 +369,7 @@
       lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}stands{/}' : destroy ? '{y}DESTROYED{/}' : '{o}turned{/}'));
       if (destroy) gone.push(w); else if (!sv.ok) F.setTurned(w, u);
     });
-    B.card(lines.slice(0, 8), 420); yield { fx: 1 };
+    B.cardCut(lines, 8, 420); yield { fx: 1 };
     gone.forEach(function (w) { B.hurt(w, w.hp + (w.temp || 0), 'radiant'); });
     yield 24;
   };
@@ -1024,7 +1024,7 @@
     u.turn.action = 0; u.feats.channel--; D.sfx('crit'); FX.ring(u, 'silver', 50);
     var lines = ['{y}' + Nm(B, u) + '{/} plants his feet: HOLD THE DOOR  STR DC ' + u.spellDC + '  {g}(Channel Divinity){/}'];
     close.forEach(function (w) { var sv = RU.save(w, 'str', u.spellDC); lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}holds its ground{/}' : '{o}shoved back{/}')); if (!sv.ok) M.push(B, u, w, 2); });
-    B.card(lines.slice(0, 8), 360); yield 24;
+    B.cardCut(lines, 8, 360); yield 24;
   };
   // WAKEFUL (6): magic cannot put him, or one of his within 10 ft, to sleep (magic.js Sleep asks)
   M.wakeful = function (B, w) { return B.units.some(function (k) { return sub(k, 'the Vigil', 6) && k.side === w.side && G.standing(k) && G.dist(k, w) <= 10; }); };
@@ -1315,17 +1315,31 @@
     if (G.setup && B.map) G.setup(B.map, B.units);
     return pikes;
   }
+  // the braced pike's thrust: the foe before its own shield, else a foe of the push, else -- the 11-24 oddity, his 4-ogre door -- any foe in its reach it can see (one at
+  // the wall's corner), so a brace paid for a thrust never ends on nothing with a foe in reach
+  function pikeTarget(B, p, foes, face) {
+    var rch = G.armOf(p), sh = p.conds.pikes ? F.pikeFront(B, p, p.conds.pikes.face) : null, own = sh ? F.ahead(B, sh, face).who : null;
+    var live = function (f) { return f && !f.dead && f.hp > 0 && !f.object && G.dist(p, f) <= rch; };
+    var ts = foes.filter(live); if (own && ts.indexOf(own) >= 0) return own; if (ts.length) return ts[0];
+    return B.units.filter(function (f) { return G.hostile(p, f) && live(f) && D.magic.sees(B, p, f); }).sort(function (a, b) { return G.dist(p, a) - G.dist(p, b); })[0] || null;
+  }
+  F.pikeTarget = pikeTarget;
   F.wallPush = function* (B, u) {
     if (!F.canPush(B, u)) return;
     var face = u.conds.wall.face, wall = F.wallOf(B, u), pushers = F.pushers(B, u), foes = F.lineFoes(B, wall, face);
     // THE BRACE (THE PIKE WALL, 11-21 -- his "something they do when the shield wall pushes"): each set pike behind the line with its reaction may brace over its shield's
     // shoulder -- the reaction spent, +1 on the push's DC (a Long Guard's +2), at most +2 in all; it thrusts after, hit or hold. One reaction with KEEP BACK (the wrinkle, standing):
     // a pike that kept a foe back this round has none to brace with. A player's pike asked; the AI's always braces
+    // A BRACE THAT GIVES NOTHING IS NOT ASKED (11-24, the grid seat on his 4-ogre door of 11-24 08:42Z -- his "counting on your analysis to find any oddities": in R3 four pikes
+    // braced, the first two filled the +2, and the third and fourth paid their reactions for no DC; the fourth's thrust then found the push's two ogres dead and "nothing in
+    // the pike's reach", with a third ogre 5 ft from it): past the +2 a brace adds only its thrust, so a pike with no foe in its reach is not asked and keeps its reaction (KEEP
+    // BACK's too); one that is asked is told when the DC is full. The AI's the same
     var braced = [], cand = F.rankPikes(B, wall, face).filter(function (p) { return p.reaction > 0 && RU.canAct(p); });
     for (var bi = 0; bi < cand.length; bi++) {
-      var bp = cand[bi];
+      var bp = cand[bi], addsDC = F.braceBonus(braced.concat([bp])) > F.braceBonus(braced), canThrust = !!pikeTarget(B, bp, foes, face);
+      if (!addsDC && !canThrust) continue;
       if (mine(bp)) {
-        var bgo = yield { prompt: { who: bp, title: bp.name + ': BRACE?', lines: [u.name + ' calls the push: brace your pike over the shield (your reaction) -- +' + F.braceOf(bp) + ' on the push\'s DC (at most +2 in all), and thrust after it, hit or hold.'], opts: [{ label: 'BRACE', value: 1 }, { label: 'HOLD', value: 0, no: true }] } };
+        var bgo = yield { prompt: { who: bp, title: bp.name + ': BRACE?', lines: [addsDC ? u.name + ' calls the push: brace your pike over the shield (your reaction) -- +' + (F.braceBonus(braced.concat([bp])) - F.braceBonus(braced)) + ' on the push\'s DC (at most +2 in all), and thrust after it, hit or hold.' : u.name + ' calls the push: the pikes have braced it to +2 already -- brace only to thrust after it, hit or hold (your reaction).'], opts: [{ label: 'BRACE', value: 1 }, { label: 'HOLD', value: 0, no: true }] } };
         if (!bgo) continue;
       }
       bp.reaction = 0; braced.push(bp);
@@ -1367,8 +1381,7 @@
     // its own shield first, else any foe of the push in its reach; its reaction went on the brace
     for (var i = 0; i < braced.length; i++) {
       var p = braced[i]; if (p.dead || p.hp <= 0 || !RU.canAct(p)) continue;
-      var arm = F.pikeArm(p) || F.pikeOf(p), rch = G.armOf(p), sh = p.conds.pikes ? F.pikeFront(B, p, p.conds.pikes.face) : null, own = sh ? F.ahead(B, sh, face).who : null;
-      var ts = foes.filter(function (f) { return !f.dead && f.hp > 0 && G.dist(p, f) <= rch; }), t = own && ts.indexOf(own) >= 0 ? own : ts[0];
+      var arm = F.pikeArm(p) || F.pikeOf(p), t = pikeTarget(B, p, foes, face);
       if (!t) { B.card(['  {g}' + p.name + ' braced; nothing in the ' + (arm && arm.name ? arm.name.toLowerCase() : 'pike') + '\'s reach to thrust at.{/}'], 160); continue; }
       B.card(['  {y}' + p.name + '{/} thrusts past the wall  {g}(braced: its reaction){/}'], 200);
       yield* B.attack(p, t, arm, { pikeRank: true });

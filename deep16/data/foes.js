@@ -1291,7 +1291,7 @@
     name: 'Giant Frog', type: 'beast', sheet: 'giantfrog_p1', cr: '1/4', ac: 11, hp: 18, speed: 30, size: 1, reach: 5, darkvision: 30,
     abil: { str: 12, dex: 13, con: 11, int: 2, wis: 10, cha: 3 }, init: 1, perception: 12, stealth: 3,
     saves: { str: 1, dex: 1, con: 0, int: -4, wis: 0, cha: -4 },
-    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, grapple: { dc: 11, max: 1 } } },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, grapple: { dc: 11, max: 1, oneHeld: true } } }, // (oneHeld: SRD 5.1 'Until this grapple ends, the target is restrained, and the frog can't bite another target' -- js/monsterrules.js heldOf; 11-24, the 11-22 desk's find 5, his road fight of 11-22: the frog that held Lymen bit Vivian twice)
     multi: 1, swims: true, src: 'SRD 5.1 Giant Frog (CR 1/4): the bite grips (escape DC 11); content/monsters.json giantfrog (the Glowseep); Swallow takes a Small or smaller one only: none of the four (09-28)'
   },
   snake: {

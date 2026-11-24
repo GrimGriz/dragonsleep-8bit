@@ -354,7 +354,7 @@
   // "If the target is a Large or smaller creature, it is grappled (escape DC 13). Until this grapple ends, the ankheg can bite only the grappled creature
   // and has advantage on attack rolls to do so." (data/foes.js ankheg: grapple.bitesHeld); "Armor Class 14 (natural armor), 11 while prone" (proneAC)
   function heldOf(u) {
-    var bites = Object.keys(u.attacks || {}).some(function (k) { var a = u.attacks[k]; return a.grapple && a.grapple.bitesHeld; });
+    var bites = Object.keys(u.attacks || {}).some(function (k) { var a = u.attacks[k]; return a.grapple && (a.grapple.bitesHeld || a.grapple.oneHeld); }); // (oneHeld: the giant frog's "can't bite another target", without the ankheg's advantage -- 11-24)
     return bites ? (u.holding || []).filter(function (w) { return up(w) && w.conds.restrained && w.conds.restrained.by === u.id; }) : [];
   }
   MR.heldOf = heldOf;
@@ -387,7 +387,7 @@
   // its turn, holding one: the bite at that one, with advantage, and no more (it does not walk off with it)
   function* holdTurn(B, u) {
     var held = heldOf(u); if (!held.length || !RU.canAct(u) || !u.turn || !u.turn.action) return false;
-    var k = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].grapple && u.attacks[k].grapple.bitesHeld; })[0];
+    var k = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].grapple && (u.attacks[k].grapple.bitesHeld || u.attacks[k].grapple.oneHeld); })[0];
     u.turn.action = 0; u.facing = B.faceTo(u, held[0]);
     yield* B.attack(u, held[0], u.attacks[k]);
     return true;

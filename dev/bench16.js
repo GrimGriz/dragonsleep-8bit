@@ -18881,6 +18881,184 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePu);
     return;
   }
+  // THE GRID SEAT OF 11-24 (mode=grid1124; the grid's rules lane, its 2026-11-22 ~19:30Z and 2026-11-24 ~20:45Z sections, his words there): PROTECTION not asked while a Ready is
+  // held, and measured from the claw a held one is drawn at; the Wand of Web in the main hand, in ATTACK's place on both rings, an older sheet's both-held, EQUIP's WEAPON row;
+  // the pike wall's brace past its +2 and the thrust at a foe in reach; MOVE's reason; the Flaming Sphere rolled click by click (round a wall, over a rail, across a pit, the
+  // ram); a heal on a claw's square (the hovered, the downed, WHICH ONE?); the walk-over takes only its own; one ask a walk for a readied spell; "Hold Person on Amara"; one
+  // "R1" on a thrown weapon's line; the off hand at 5th after Extra Attack; the held frog bites only what it holds
+  if (get('mode', '') === 'grid1124') {
+    var repG = { checks: [], errors: [] }, d0G = D.d, RUg = D.rules, Gg = D.grid, BTg = D.Battle, Mg = D.magic, UIg = D.ui, MIg = D.magicItems, Fg = D.features;
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    // run a generator; prompts answered by pick(p, n) (else the first option), an aim (a readied spell's) by aim(n) (else held: null)
+    function runG(g, pick, aim) { var v, k = 0, st, asked = []; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return asked; var sv = st.value; if (sv && sv.prompt) { asked.push(sv.prompt.title); v = pick ? pick(sv.prompt, asked.length) : sv.prompt.opts[0].value; } else if (sv && sv.aim) { asked.push('AIM ' + sv.aim.rd.name); v = aim ? aim(asked.length) : null; } } return asked; }
+    function mkG(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    function logG(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }).join(' | '); }
+    function nG(Bx) { return (Bx.logEntries || []).length; }
+    function onlyG(Bx, keep) { Bx.units.forEach(function (w) { if (keep.indexOf(w) < 0) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } }); }
+    function putG(Bx, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; }); Gg.setup(Gg.map, Bx.units.filter(function (w) { return !w.dead; })); Bx.cache = null; }
+    function openG(w, h) { var m = Gg.map; for (var y = 3; y + h < m.h - 2; y++) for (var x = 3; x + w < m.w - 2; x++) { var good = true, z = m.gz(x, y); for (var j = -1; j <= h && good; j++) for (var i = -1; i <= w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function cls(Bx, c, n) { return Bx.units.filter(function (w) { return w.side === 'party' && w.cls === c; })[n || 0]; }
+    function foesG(Bx) { return Bx.units.filter(function (w) { return w.side === 'foe'; }); }
+    function pinG(v) { D.d = function (n) { return n === 20 ? v : Math.ceil(n / 2); }; }
+    try {
+      D.seed = 1124;
+      // 1. PROTECTION (RULED 11-24, his "should we not let it fire when readied instead? Check which position locations allow the protection, leave the coverage SRD")
+      var B1 = mkG('?npc=goblin&lvl=3&vs=fighter:3:human,rogue:3:human'), f1 = cls(B1, 'fighter'), r1 = cls(B1, 'rogue'), g1 = foesG(B1)[0], o1 = openG(5, 3);
+      onlyG(B1, [f1, r1, g1]); putG(B1, [[f1, o1[0], o1[1] + 1], [r1, o1[0] + 1, o1[1] + 1], [g1, o1[0] + 2, o1[1] + 1]]);
+      f1.style = 'protection'; f1.src.equip.shield = 'shield'; RUg.startTurn(g1); B1.active = g1;
+      var aG = g1.attacks[Object.keys(g1.attacks)[0]]; pinG(10);
+      f1.reaction = 1; var n1 = nG(B1), a1 = runG(B1.attack(g1, r1, aG)), l1 = logG(B1, n1);
+      f1.reaction = 1; f1.ready = { what: 'weapon', name: 'Longsword', trigger: 'near', wp: f1.weapon };
+      var n1b = nG(B1), a1b = runG(B1.attack(g1, r1, aG)), l1b = logG(B1, n1b); delete f1.ready; D.d = d0G;
+      okG('PROTECTION: no Ready -- the roll at disadvantage (' + /protection/.test(l1) + '), the ask naming the blow (' + a1.join('; ') + '); a Ready held -- no disadvantage (' + !/protection/.test(l1b) + '), not asked (' + a1b.join('; ') + '), the reaction kept for it (' + f1.reaction + ')',
+        /protection/.test(l1) && !/protection/.test(l1b) && f1.reaction === 1 && !a1b.some(function (t) { return /PROTECTION/.test(t); }));
+      // 1b. the claw: a held one measured from the claw it is drawn at (the far side of the chuul from Lymen's corner), not the chuul's corner square it is kept on
+      var B1c = mkG('?npc=chuul&lvl=3&vs=fighter:3:human,rogue:3:human'), fc = cls(B1c, 'fighter'), rc = cls(B1c, 'rogue'), ch = foesG(B1c)[0], oc = openG(7, 4), cx = oc[0] + 2, cy = oc[1] + 1;
+      onlyG(B1c, [fc, rc, ch]); putG(B1c, [[ch, cx, cy], [fc, cx - 1, cy], [rc, cx + 2, cy]]); ch.facing = 7; // (east: CLAW8[7] = [1, 0])
+      rc.inClaws = { by: ch.id, side: 1, from: [cx + 2, cy] }; rc.x = cx; rc.y = cy; rc.conds.grappled = { by: ch.id, dc: 14 }; ch.clawing = true; ch.holding = [rc];
+      var sq1 = BTg.clawSquare(B1c, rc); fc.style = 'protection'; fc.src.equip.shield = 'shield'; fc.reaction = 1; RUg.startTurn(ch); B1c.active = ch; pinG(10);
+      var pin1 = ch.attacks.pincer, n1c = nG(B1c); runG(B1c.attack(ch, rc, pin1)); var l1c = logG(B1c, n1c);
+      fc.x = sq1.x + 1; fc.y = sq1.y; fc.reaction = 1; Gg.setup(Gg.map, B1c.units.filter(function (w) { return !w.dead; })); var n1d = nG(B1c); runG(B1c.attack(ch, rc, pin1)); var l1d = logG(B1c, n1d); D.d = d0G;
+      okG('PROTECTION and the claw: the chuul at ' + cx + ',' + cy + ' facing east (after its pincer at the one it holds: ' + ch.facing + ', kept) holds the rogue on its corner square; drawn at the claw ' + sq1.x + ',' + sq1.y + ' (want ' + (cx + 2) + '); a shield-bearer at the chuul\'s west corner, 5 ft from the corner and 15 from the claw: no protection (' + !/protection/.test(l1c) + '); beside the claw: protection (' + /protection/.test(l1d) + ')',
+        sq1.x === cx + 2 && ch.facing === 7 && !/protection/.test(l1c) && /protection/.test(l1d));
+      // 2. THE WAND OF WEB in the main hand (RULED 11-24, his "Like a main hand weapon, with it's function showing on the front wheel when equipped in place of 'attack'")
+      var B2 = mkG('?npc=goblin&lvl=5&vs=wizard:5:human+wandofweb,fighter:5:human'), wz = cls(B2, 'wizard'), g2 = foesG(B2)[0], o2 = openG(6, 3);
+      onlyG(B2, [wz, g2]); putG(B2, [[wz, o2[0], o2[1] + 1], [g2, o2[0] + 4, o2[1] + 1]]); RUg.startTurn(wz); B2.active = wz; B2.req = { turn: wz };
+      var inH = MIg.inHand(wz), r2a = UIg.cmds2(B2, wz), st0 = UIg.style ? UIg.style(B2) : null;
+      var um0 = UIg.urlMenu; UIg.urlMenu = 'ring'; var r2c = UIg.cmds(B2, wz); UIg.urlMenu = um0;
+      var fr = function (ring) { return ring.map(function (x) { return x.id; }); }, inAct = function (ring) { var a = ring.filter(function (x) { return x.id === 'actions'; })[0]; return !!(a && a.items && a.items.some(function (x) { return x.id === 'attack' || (x.items || []).some(function (y) { return y.id === 'attack'; }); })); };
+      okG('the wand: the card word puts it in the main hand (weapon ' + wz.src.equip.weapon + ', carried ' + (wz.src.alt || '-') + ', in hand ' + inH + '); RING2\'s front ' + fr(r2a).slice(0, 4).join(',') + ' (the wand second, in ATTACK\'s place; ATTACK among the ACTIONS ' + inAct(r2a) + '); the ring\'s front ' + fr(r2c).slice(0, 4).join(','),
+        inH && !wz.src.equip.weapon && fr(r2a)[1] === 'wand' && fr(r2c)[1] === 'wand' && fr(r2c).indexOf('attack') < 0 && fr(r2a).indexOf('attack') < 0 && inAct(r2a));
+      // 2b. an older sheet's both: the staff in hand, the wand at the belt -- no wand on the ring till the staff is put away; a weapon for the wand in hand is the action, not the free draw
+      wz.src.equip.weapon = 'quarterstaff'; wz.weapon = D.save.weaponOf(wz.src); RUg.startTurn(wz);
+      var r2d = fr(UIg.cmds2(B2, wz)), handsB = D.light.handsFree(wz); B2.putAway(wz); var r2e = fr(UIg.cmds2(B2, wz)), handsP = D.light.handsFree(wz), inH2 = MIg.inHand(wz);
+      RUg.startTurn(wz); delete wz.sheathed; wz.src.equip.weapon = null; wz.weapon = D.save.weaponOf(wz.src); B2.inv = (B2.inv || []).concat([{ id: 'dagger', n: 1 }]);
+      var gw = B2.gearOptions(wz).filter(function (o) { return o.kind === 'weapon' && o.id === 'dagger'; })[0];
+      okG('the wand at the belt beside a staff: on the ring ' + (r2d.indexOf('wand') >= 0) + '; the staff PUT AWAY: the wand in hand ' + inH2 + ', on the ring ' + (r2e.indexOf('wand') >= 0) + ', hands free ' + handsB + ' -> ' + handsP + ' (the wand a hand); a dagger for the wand in hand: free ' + !!(gw && gw.free) + ' (want the action)',
+        r2d.indexOf('wand') < 0 && inH2 && r2e.indexOf('wand') >= 0 && handsP === 1 && gw && !gw.free);
+      // 2c. EQUIP: the WEAPON row holds the wand; picked from the pack it sends the weapon to the pack; a weapon picked sends the wand to the pack; an older sheet's WAND (CARRIED) row
+      var MN = window.DS.MENU, packM = [{ id: 'wandofweb', n: 1 }, { id: 'quarterstaff', n: 0 }], hostM = { fight: null, pack: function () { return packM; }, give: function (id, n) { var s = packM.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n; else packM.push({ id: id, n: n }); }, take: function (id, n) { var s = packM.filter(function (x) { return x.id === id; })[0]; if (s) s.n -= n; } }, mM = { host: hostM, say: function () {} };
+      var hM = window.DS.R.makeHero('aurdin', 5); hM.equip.weapon = 'quarterstaff'; hM.equip.wand = null;
+      var okA = MN.swap(mM, hM, 'weapon', 'wandofweb'), eqA = JSON.stringify({ w: hM.equip.weapon, wand: hM.equip.wand }), staffA = packM.filter(function (x) { return x.id === 'quarterstaff'; })[0].n;
+      var okB = MN.swap(mM, hM, 'weapon', 'quarterstaff'), eqB = JSON.stringify({ w: hM.equip.weapon, wand: hM.equip.wand }), wandB = packM.filter(function (x) { return x.id === 'wandofweb'; })[0].n;
+      okG('EQUIP: the wand into the WEAPON row ' + okA + ' ' + eqA + ', the staff to the pack (' + staffA + '); the staff back ' + okB + ' ' + eqB + ', the wand to the pack (' + wandB + ')',
+        okA && eqA === '{"w":null,"wand":"wandofweb"}' && staffA === 1 && okB && eqB === '{"w":"quarterstaff","wand":null}' && wandB === 1 && MN.wandHeld({ equip: { wand: 'wandofweb', weapon: null } }) === 'wandofweb' && !MN.wandHeld({ equip: { wand: 'wandofweb', weapon: 'quarterstaff' } }));
+      // 3. MOVE's reason (11-22's find 6 and his 4-ogre door): held fast, the line's square, no feet
+      r1.conds.restrained = { by: g1.id, dc: 11 }; RUg.startTurn(r1); B1.active = r1; var mv3 = UIg.cmds(B1, r1).filter(function (x) { return x.id === 'move'; })[0]; delete r1.conds.restrained;
+      RUg.startTurn(r1); r1.turn.move = 0; var mv3b = UIg.cmds(B1, r1).filter(function (x) { return x.id === 'move'; })[0];
+      okG('MOVE refused, restrained: "' + (mv3 && mv3.why) + '"; no feet: "' + (mv3b && mv3b.why) + '"', mv3 && !mv3.ok && /held fast/.test(mv3.why) && mv3b && !mv3b.ok && /no feet/.test(mv3b.why));
+      // 4. THE FLAMING SPHERE like a hero's MOVE (RULED 11-22, his "move-turn ... (lose that [patrol points])"; SRD 5.1: "over barriers up to 5 feet tall and jump it across pits up to 10 feet wide")
+      var B4 = mkG('?npc=goblin,goblin&lvl=5&vs=wizard:5:human'), w4 = cls(B4, 'wizard'), gs4 = foesG(B4), o4 = openG(10, 5), X = o4[0], Y = o4[1], m4 = Gg.map, st4 = m4.def.step || 1;
+      onlyG(B4, [w4, gs4[0], gs4[1]]); putG(B4, [[w4, X, Y + 2], [gs4[0], X + 7, Y + 2], [gs4[1], X + 9, Y + 4]]); gs4.forEach(function (g) { g.hp = g.maxhp = 200; });
+      RUg.startTurn(w4); B4.active = w4; runG(Mg.cast(B4, w4, 'flamingsphere', 2, { x: X + 1, y: Y + 2 })); var z4 = (B4.zones || []).filter(function (z) { return z.id === 'flamingsphere'; })[0];
+      var keep4 = [], setSq = function (x, y, o) { var s = m4.at(x, y); keep4.push([s, JSON.parse(JSON.stringify(s))]); Object.keys(o).forEach(function (k) { s[k] = o[k]; }); };
+      // a wall across x = X+3 (y Y..Y+3, open below at Y+4); a rail at X+2,Y+1; a pit of two squares at X+4,Y and X+5,Y (the rows round it walled)
+      for (var yy = Y; yy <= Y + 3; yy++) setSq(X + 3, yy, { open: false, walk: false });
+      setSq(X + 2, Y + 1, { ch: 'f', pillar: true, stands: 'the rail', block: 'f', walk: false });
+      var keepW = []; for (var xw = X + 4; xw <= X + 6; xw++) { setSq(xw, Y - 1, { open: false, walk: false }); setSq(xw, Y + 1, { open: false, walk: false }); }
+      var reachSph;
+      if (z4) {
+        z4.x = X + 1; z4.y = Y + 2; Gg.setup(m4, B4.units.filter(function (w) { return !w.dead; }));
+        var r4 = Mg.sphereReach(B4, z4, 30), at = function (x, y) { return r4[x + ',' + y]; };
+        var around = at(X + 4, Y + 2), rail = at(X + 2, Y + 1), past = at(X + 2, Y);
+        // the pit: from X+3,Y-? -- set it from a sphere standing at X+... on the top row: move the sphere to X+3? the wall is there; use a second reach from (X+4 -1)? the pit's near lip is X+3,Y (walled): lift the wall there
+        keep4.filter(function (k) { return k[0].x === X + 3 && k[0].y === Y; }).forEach(function (k) { k[0].open = true; k[0].walk = true; });
+        setSq(X + 4, Y, { gz: m4.gz(X + 3, Y) - 4 * st4 }); setSq(X + 5, Y, { gz: m4.gz(X + 3, Y) - 4 * st4 });
+        var zP = { x: X + 3, y: Y, by: w4.id, id: 'flamingsphere' }, rP = Mg.sphereReach(B4, zP, 30), land = rP[(X + 6) + ',' + Y], land1 = rP[(X + 7) + ',' + Y];
+        reachSph = { around: around && around.cost, rail: rail && { end: rail.end, cost: rail.cost }, past: past && past.cost, land: land && { cost: land.cost, jump: !!land.jump } };
+        okG('the sphere\'s ground from ' + (X + 1) + ',' + (Y + 2) + ' with 30 ft: round the wall to its far side ' + JSON.stringify(reachSph.around) + ' ft (straight it is 15); over the rail, not stopped on it ' + JSON.stringify(reachSph.rail) + ', the square past it ' + reachSph.past + '; across the 10-ft pit, a jump ' + JSON.stringify(reachSph.land),
+          around && around.cost > 15 && around.cost <= 30 && rail && !rail.end && past && past.cost === 10 && land && land.jump && land.cost === 15 && !!land1);
+        keep4.reverse().forEach(function (k) { var s = k[0]; Object.keys(s).forEach(function (kk) { if (!(kk in k[1])) delete s[kk]; }); Object.keys(k[1]).forEach(function (kk) { s[kk] = k[1][kk]; }); });
+        if (m4.tallK != null) m4.tallK = null;
+        Gg.setup(m4, B4.units.filter(function (w) { return !w.dead; }));
+        // the clicks: a square 10 ft on, then the goblin's square (a ram, and it stops); the bonus action spent once
+        RUg.startTurn(w4); B4.active = w4; var b0 = w4.turn.bonus, n4 = nG(B4), picks4 = [];
+        var asked4 = runG(Mg.cast(B4, w4, 'flamingsphere', 2, w4), function (p, k) { picks4.push(p.opts.length); var want = k === 1 ? [X + 3, Y + 2] : [gs4[0].x, gs4[0].y], o = p.opts.filter(function (q) { return q.value && q.value.x === want[0] && q.value.y === want[1]; })[0]; return o ? o.value : 0; });
+        var l4 = logG(B4, n4), adj = Math.max(Math.abs(z4.x - gs4[0].x), Math.abs(z4.y - gs4[0].y)) === 1;
+        okG('rolled by clicks: asked ' + asked4.length + ' (' + asked4.join('; ') + '), gold squares ' + picks4.join('/') + '; it stands ' + z4.x + ',' + z4.y + ' beside the goblin ' + adj + '; rammed (' + /rammed/.test(l4) + '), the bonus action ' + b0 + ' -> ' + w4.turn.bonus,
+          asked4.length === 2 && /30 FT LEFT/.test(asked4[0]) && /20 FT LEFT/.test(asked4[1]) && adj && /rammed/.test(l4) && w4.turn.bonus === 0);
+      } else okG('the sphere: cast (none made)', false);
+      // 5. B1: a heal on the claw's square (his "gennet shows in party / healing targeting viv")
+      var B5 = mkG('?npc=chuul&lvl=3&vs=cleric:3:human,rogue:3:human,fighter:3:human'), c5 = cls(B5, 'cleric'), r5 = cls(B5, 'rogue'), f5 = cls(B5, 'fighter'), ch5 = foesG(B5)[0], o5 = openG(6, 4);
+      onlyG(B5, [c5, r5, f5, ch5]); putG(B5, [[ch5, o5[0] + 2, o5[1] + 1], [c5, o5[0] + 1, o5[1] + 1], [r5, o5[0] + 4, o5[1] + 1], [f5, o5[0] + 4, o5[1] + 2]]);
+      [r5, f5].forEach(function (h, i) { h.inClaws = { by: ch5.id, side: i ? -1 : 1, from: [h.x, h.y] }; h.x = ch5.x; h.y = ch5.y; h.conds.grappled = { by: ch5.id, dc: 14 }; }); ch5.clawing = true; ch5.holding = [r5, f5];
+      RUg.startTurn(c5); B5.active = c5; B5.hoverUnit = null; f5.hp = 0; var p5a = UIg.heldIn(B5, c5, ch5); f5.hp = 10; r5.hp = 12;
+      B5.hoverUnit = f5; var p5b = UIg.heldIn(B5, c5, ch5); B5.hoverUnit = null; var p5c = UIg.heldIn(B5, c5, ch5), amb = B5.heldAmbig;
+      var got5 = null, ans0 = B5.answer; B5.answer = function (c) { got5 = c; }; UIg.command(B5, c5, { do: 'cast', id: 'curewounds', slot: 1, target: p5c }); B5.answer = ans0;
+      var hpR = r5.hp, hpF = f5.hp, ask5 = got5 && got5.do === 'whichheld' ? runG(B5.exec(c5, got5), function (p) { var o = p.opts.filter(function (q) { return q.value === f5.id; })[0]; return o ? o.value : 0; }) : [];
+      okG('two of ours in its claws: the one down first (' + (p5a === f5) + '), the hovered figure (' + (p5b === f5) + '); neither -- the click asks: ' + (got5 && got5.do) + ' (' + ask5.join('; ') + '), the fighter picked healed ' + hpF + ' -> ' + f5.hp + ', the rogue untouched ' + hpR + ' -> ' + r5.hp,
+        p5a === f5 && p5b === f5 && !!amb && got5 && got5.do === 'whichheld' && ask5.some(function (t) { return /WHICH ONE/.test(t); }) && f5.hp > hpF && r5.hp === hpR);
+      // 6. B4: the walk-over takes only its own; the card says where it went (B8: one "R1" on a thrown weapon's line)
+      var B6 = mkG('?npc=goblin&lvl=3&vs=fighter:3:human,fighter:3:human'), a6 = cls(B6, 'fighter', 0), b6 = cls(B6, 'fighter', 1), g6 = foesG(B6)[0], o6 = openG(5, 2);
+      onlyG(B6, [a6, b6, g6]); putG(B6, [[a6, o6[0], o6[1]], [b6, o6[0] + 2, o6[1]], [g6, o6[0] + 4, o6[1]]]);
+      RUg.startTurn(a6); B6.active = a6; B6.ground = [{ id: 'handaxe', name: 'Handaxe', x: a6.x, y: a6.y, by: b6.id, how: 'pack', atk: null }]; B6.groundStep(a6);
+      var friendLeft = B6.ground.length === 1 && !a6.turn.freeObj, ownTaken;
+      B6.ground = [{ id: 'handaxe', name: 'Handaxe', x: a6.x, y: a6.y, by: a6.id, how: 'pack', atk: null }]; var n6 = nG(B6); B6.groundStep(a6); var l6 = logG(B6, n6); ownTaken = !B6.ground.length;
+      B6.flying = { u: b6, tgt: g6, id: 'handaxe', atk: { name: 'Handaxe' }, hit: true, how: 'pack' }; var n6b = nG(B6); B6.landThrow(); var l6b = logG(B6, n6b);
+      okG('the walk-over: a friend\'s handaxe left for PICK UP, the free hand kept (' + friendLeft + '); its own taken up: "' + l6 + '"; the thrown line "' + l6b + '" (one round mark)',
+        friendLeft && ownTaken && /into the pack/.test(l6) && /lies at/.test(l6b) && !/R\d+ R\d+/.test(l6b));
+      // 7. B5: a readied Burning Hands asks once a walk (HOLD on "comes into sight" holds for the walk)
+      var B7 = mkG('?npc=goblin&lvl=5&vs=wizard:5:human'), w7 = cls(B7, 'wizard'), g7 = foesG(B7)[0], o7 = openG(9, 2);
+      onlyG(B7, [w7, g7]); putG(B7, [[w7, o7[0], o7[1]], [g7, o7[0] + 7, o7[1]]]); if ((w7.known || []).indexOf('burninghands') < 0) (w7.known = w7.known || []).push('burninghands'); RUg.startTurn(w7); B7.active = w7;
+      runG(B7.exec(w7, { do: 'ready', trigger: 'near', what: 'spell', id: 'burninghands', slot: 1 }));
+      var rd7 = !!w7.ready; RUg.startTurn(g7); B7.active = g7; var asked7 = runG(B7.exec(g7, { do: 'move', x: o7[0] + 1, y: o7[1] }));
+      okG('a readied Burning Hands (readied ' + rd7 + '), a goblin walking up to the wizard: asked ' + asked7.filter(function (t) { return /^AIM/.test(t); }).length + ' time(s) for the one walk (' + asked7.join('; ') + '), held each time',
+        rd7 && asked7.filter(function (t) { return /^AIM/.test(t); }).length === 1);
+      // 8. B6: "Hold Person on Amara", not "on the Amara"
+      var B8 = mkG('?npc=amara&lvl=5&vs=wizard:5:human'), w8 = cls(B8, 'wizard'), am8 = foesG(B8).filter(function (w) { return /amara/i.test(w.kind || w.id || ''); })[0] || foesG(B8)[0];
+      RUg.startTurn(w8); B8.active = w8; B8.units.forEach(function (w) { if (w.side === 'foe') w.reaction = 0; }); /* (no Counterspell back: the words are what is benched) */ var n8 = nG(B8); runG(Mg.cast(B8, w8, 'holdperson', 2, am8)); var l8 = logG(B8, n8);
+      okG('Hold Person at a named foe: "' + l8.slice(0, 120) + '"', /on Amara/.test(l8) && !/on the Amara/.test(l8));
+      // 9. B9: the off hand at 5th, after Extra Attack's two swings (his Festival bout, 11-23: the turn passed with the bonus unspent)
+      var B9 = mkG('?npc=goblin&lvl=5&vs=fighter:5:human+handaxe+off:handaxe'), f9 = cls(B9, 'fighter'), g9 = foesG(B9)[0], o9 = openG(3, 2);
+      onlyG(B9, [f9, g9]); putG(B9, [[f9, o9[0], o9[1]], [g9, o9[0] + 1, o9[1]]]); g9.hp = g9.maxhp = 300; RUg.startTurn(f9); B9.active = f9; B9.req = { turn: f9 }; pinG(15);
+      runG(B9.exec(f9, { do: 'attack', target: g9 })); var t9a = JSON.stringify({ al: f9.turn.attacksLeft, a: f9.turn.action }), n9 = nG(B9); runG(B9.exec(f9, { do: 'attack', target: g9 })); D.d = d0G; var l9 = logG(B9, n9);
+      var oh9 = B9.commands(f9).filter(function (c) { return c.id === 'offhand'; })[0], sp9 = UIg.spent(B9, f9);
+      okG('a 5th-level fighter, two handaxes: after the first swing ' + t9a + ', after the second ' + JSON.stringify({ al: f9.turn.attacksLeft, a: f9.turn.action, bonus: f9.turn.bonus, attacked: !!f9.turn.attacked, aa: !!f9.turn.attackAction }) + '; OFF HAND ' + (oh9 ? oh9.ok + ' "' + oh9.why + '"' : 'none') + '; the turn spent ' + sp9 + '; said after the second swing: ' + /still open/.test(l9),
+        oh9 && oh9.ok && !sp9 && /OFF HAND.*still open/.test(l9));
+      // 10. the held frog bites only what it holds (SRD 5.1: "the frog can't bite another target")
+      var B10 = mkG('?npc=giantfrog&lvl=3&vs=fighter:3:human,rogue:3:human'), f10 = cls(B10, 'fighter'), r10 = cls(B10, 'rogue'), fr10 = foesG(B10)[0], o10 = openG(4, 3);
+      onlyG(B10, [f10, r10, fr10]); putG(B10, [[fr10, o10[0] + 1, o10[1] + 1], [f10, o10[0] + 2, o10[1] + 1], [r10, o10[0] + 1, o10[1] + 2]]); r10.hp = 1; f10.hp = f10.maxhp;
+      RUg.startTurn(fr10); B10.active = fr10; pinG(15); runG(B10.attack(fr10, f10, fr10.attacks.bite));
+      var held10 = !!(f10.conds.restrained && f10.conds.restrained.by === fr10.id), hpF10 = f10.hp, hpR10 = r10.hp, n10 = nG(B10);
+      RUg.startTurn(fr10); B10.active = fr10; runG(D.ai.turn(B10, fr10)); D.d = d0G; var l10 = logG(B10, n10);
+      okG('the frog holds the fighter (' + held10 + '); its turn with the rogue at 1 HP beside it: the rogue untouched ' + hpR10 + ' -> ' + r10.hp + ', the bite at the fighter (' + /Bite/.test(l10) + ') "' + l10.slice(0, 140) + '"',
+        held10 && r10.hp === hpR10 && !/> Rogue/.test(l10));
+      // 12. THE PIKE WALL'S BRACE (his 4-ogre door of 11-24, "counting on your analysis to find any oddities": two braces fill the +2; a third and a fourth paid reactions for nothing,
+      // and the fourth's thrust found "nothing in the pike's reach" with an ogre at the wall's corner 5 ft from it): past the +2 the ask says it is the thrust only; a pike with no
+      // foe in its reach is not asked and keeps its reaction; a foe at the wall's corner is the thrust's when no foe of the push is in reach
+      var mkWall = function (corner) {
+        var Bw = mkG('?npc=goblin,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3'), ps = Bw.units.filter(function (w) { return w.side === 'party'; }), sh = ps.slice(0, 4), pk = ps.slice(4, 8), gs = foesG(Bw), ow = openG(8, 6);
+        sh.forEach(function (u, i) { u.name = 'Shield ' + (i + 1); u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield' }); u.conds = {}; });
+        pk.forEach(function (u, i) { u.name = 'Pike ' + (i + 1); u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = Object.assign({}, u.src.equip || {}, { weapon: 'pike', shield: null }); u.weapon = D.save.weaponOf(u.src); u.conds = {}; });
+        gs.forEach(function (g) { g.maxhp = g.hp = 999; g.conds = {}; g.size = 1; });
+        var X = ow[0] + 1, Y = ow[1] + 3;
+        if (!corner) { gs[1].x = 0; gs[1].y = 0; gs[1].hp = 0; gs[1].dead = true; }
+        putG(Bw, sh.map(function (u, i) { return [u, X + i, Y]; }).concat(pk.map(function (u, i) { return [u, X + i, Y + 1]; })).concat([[gs[0], X, Y - 1]]).concat(corner ? [[gs[1], X + 4, Y - 1]] : []));
+        sh.forEach(function (u) { RUg.startTurn(u); Bw.active = u; runG(Bw.exec(u, { do: 'setshields' })); });
+        pk.forEach(function (u) { RUg.startTurn(u); Bw.active = u; runG(Bw.exec(u, { do: 'setpikes' })); });
+        ps.forEach(function (u) { RUg.startTurn(u); }); Bw.active = sh[0];
+        return { B: Bw, sh: sh, pk: pk, gs: gs };
+      };
+      var pushW = function (h) { var lines = {}, n0 = nG(h.B); pinG(1); var asked = runG(h.B.exec(h.sh[0], { do: 'wallpush' }), function (p) { lines[p.title] = (p.lines || []).join(' '); return p.opts[0].value; }); D.d = d0G; return { asked: asked, lines: lines, log: logG(h.B, n0) }; };
+      var hw1 = mkWall(false), joinedW = hw1.pk.every(function (p) { return Fg.pikeJoined(p, hw1.B); }), pw1 = pushW(hw1);
+      var p3L = pw1.lines['Pike 3: BRACE?'] || '', p4asked = pw1.asked.indexOf('Pike 4: BRACE?') >= 0;
+      okG('the brace past +2 (pikes joined ' + joinedW + '): asked ' + pw1.asked.join(', ') + '; Pike 3 told the thrust only ("' + p3L.slice(0, 90) + '"); Pike 4, no foe in its reach, not asked (' + !p4asked + '), its reaction kept ' + hw1.pk[3].reaction + '; "nothing in reach" said ' + /nothing in the pike/.test(pw1.log),
+        joinedW && pw1.asked.indexOf('Pike 1: BRACE?') >= 0 && pw1.asked.indexOf('Pike 2: BRACE?') >= 0 && /braced it to \+2 already/.test(p3L) && !p4asked && hw1.pk[3].reaction === 1 && !/nothing in the pike/.test(pw1.log));
+      var hw2 = mkWall(true), pw2 = pushW(hw2);
+      okG('a goblin at the wall\'s corner: Pike 4 asked (' + (pw2.asked.indexOf('Pike 4: BRACE?') >= 0) + ') and thrusts at it (' + /Pike 4 > Goblin/.test(pw2.log) + ')',
+        pw2.asked.indexOf('Pike 4: BRACE?') >= 0 && /Pike 4 thrusts past the wall/.test(pw2.log) && /Pike 4 > Goblin/.test(pw2.log));
+      // 11. a long area card keeps every save in the log (his Ice Storm of 11-23 on five gnolls and two hyenas: the seventh save line was in neither the card nor the record)
+      var B11 = mkG('?npc=goblin,goblin,goblin,goblin,goblin,goblin,goblin&lvl=9&vs=wizard:9:human'), w11 = cls(B11, 'wizard'), gs11 = foesG(B11), o11 = openG(8, 6);
+      onlyG(B11, [w11].concat(gs11)); putG(B11, [[w11, o11[0], o11[1] + 5]].concat(gs11.map(function (g, i) { return [g, o11[0] + 2 + (i % 4), o11[1] + Math.floor(i / 4)]; })));
+      gs11.forEach(function (g) { g.hp = g.maxhp = 300; }); RUg.startTurn(w11); B11.active = w11; var n11 = nG(B11);
+      runG(Mg.cast(B11, w11, 'icestorm', 4, { x: o11[0] + 3, y: o11[1] })); var l11 = logG(B11, n11), sv11 = (l11.match(/Goblin: d20/g) || []).length;
+      okG('Ice Storm on seven goblins: ' + sv11 + ' save lines in the log (want 7)', sv11 === 7);
+    } catch (e) { repG.errors.push(String(e && e.stack || e)); }
+    D.d = d0G;
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
+    return;
+  }
   // THE PIKE WALL (mode=pikewall1121; Soldiering's, Shape A of the leveling lane's 2026-11-20 (late) section, built 11-21 on Griz's "Go on 1-5" -- his lean: "join the pike wall
   // (or just pike wall) like 'set shield' is under skills, where non-polearm masters get to use set and push back as moves called similar to the wall calling push (and
   // polearm-masters in the pike wall get a bonus to theirs) - and maybe move with marches and successful pushes"): SET PIKES on the ring behind a set shield, a bonus action,

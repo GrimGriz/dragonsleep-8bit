@@ -50,7 +50,7 @@
       if (!sv.ok) failed.push(w);
     });
     if (!list.length) lines.push('  {g}no one in it.{/}');
-    B.card(lines.slice(0, 8), 420);
+    B.cardCut(lines, 8, 420);
     yield { fx: 1 };
     hits.forEach(function (h) { B.hurt(h[0], h[1], type, MAGIC); });
     if (o.cond) failed.forEach(function (w) { if (!w.dead && (w.hp > 0 || o.onDown)) o.cond(w); });
@@ -413,7 +413,7 @@
         if (w.hp <= left) { left -= w.hp; w.conds.blinded = { by: u.id, till: { who: u.id, at: 'end', n: 2 } }; lines.push('  ' + Nm(B, w) + ' (' + w.hp + '): {p}blinded{/}'); }
         else lines.push('  ' + Nm(B, w) + ' (' + w.hp + '): too much left in it');
       });
-      B.card(lines.slice(0, 8), 420); yield { fx: 1 }; yield 24;
+      B.cardCut(lines, 8, 420); yield { fx: 1 }; yield 24;
     },
     ai: function (B, u, e, slot, fs) {
       var pool = avg((6 + 2 * Math.max(0, slot - 1)) + 'd10');
@@ -879,12 +879,12 @@
     cast: function* (B, u, t, slot, head, x) {
       B.units.forEach(function (w) { if (w.conds.accounted && w.conds.accounted.by === u.id) delete w.conds.accounted; });
       var sv = RU.save(t, 'wis', u.spellDC);
-      B.card([head + ': ' + u.name + ' calls ' + nm(B, t) + ' to account  WIS ' + RU.saveText(sv) + ' vs DC ' + u.spellDC + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{y}ANSWERABLE{/}')], 240);
-      if (sv.ok) { yield 14; return; }
+      B.card([head + ': ' + u.name + ' calls ' + nm(B, t) + ' to account  WIS ' + RU.saveText(sv) + ' vs DC ' + u.spellDC + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{y}ANSWERABLE{/}')], 420); // (as long as every save's card, saveAll's 420 and 24 -- 11-24, the desk's B7, his 'am I getting the spell thing and clicking through fast or not getting it - there's usually a save popup')
+      if (sv.ok) { yield 24; return; }
       t.conds.accounted = { by: u.id, dice: (1 + Math.max(0, (slot || 1) - 1)) + 'd8' };
       FX.ring(t, 'gold', 30);
       if (!(u.conc && u.conc.id === 'calledtoaccount')) M.concentrate(B, u, 'calledtoaccount', 'Called to Account', function () { B.units.forEach(function (w) { if (w.conds.accounted && w.conds.accounted.by === u.id) delete w.conds.accounted; }); });
-      yield 16;
+      yield 24;
     },
     ai: function (B, u, e, slot, fs) {
       if (u.conc && u.conc.id === 'calledtoaccount') return null;
@@ -1683,13 +1683,68 @@
       return b;
     }
   };
+  // THE SPHERE'S GROUND (11-24, his "moves like a hero's MOVE"): the squares it reaches with `left` feet from where it is, each { x, y, cost, prev, end, ram, jump }. A step is
+  // 5 ft, a diagonal too (the grid's measure); a step goes into an open square no more than 5 ft higher (a drop any height), or over a low barrier (LOW: rolled over, never
+  // stopped on); a JUMP crosses one or two squares of pit (open ground more than 5 ft below the square it leaves) in a straight line to ground no lower than that and no more
+  // than 5 ft higher, 10 or 15 ft of the roll. A creature's square ends the way (`ram`: the sphere stops on the square before it). `end`: a square a click may take
+  var LOW_BAR = { f: 1, k: 1, K: 1, w: 1, V: 1 }; // (a rail or fence, a woodpile or crates, a counter, a well, a wagon's open bed: js/iso.js STANDS -- a tree, a stalagmite, a covered wagon, shelves stand taller)
+  function sphereReach(B, z, left) {
+    var m = G.map, st = (m.def && m.def.step) || 1, FIVE = 2 * st, out = {}, k0 = z.x + ',' + z.y, q = [{ x: z.x, y: z.y, cost: 0 }];
+    var occ = function (x, y) { var w = G.occupant(x, y); return w && w.hp > 0 && !w.dead && !w.object ? w : null; };
+    var rolls = function (s) { return !!s && (s.open && !s.pillar && !s.cocoon || !!LOW_BAR[s.ch]); };
+    out[k0] = { x: z.x, y: z.y, cost: 0, prev: null };
+    while (q.length) {
+      q.sort(function (a, b) { return a.cost - b.cost; }); var c = q.shift(), cs = m.at(c.x, c.y), cz = m.gz(c.x, c.y);
+      if (out[c.x + ',' + c.y].cost < c.cost) continue;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        // a step
+        var nx = c.x + dx, ny = c.y + dy, s = m.at(nx, ny), nc = c.cost + 5, key = nx + ',' + ny;
+        if (s && nc <= left) {
+          var who = occ(nx, ny);
+          if (who && !(out[key] && out[key].cost <= nc)) out[key] = { x: nx, y: ny, cost: nc, prev: c.x + ',' + c.y, end: true, ram: who };
+          else if (!who && rolls(s) && s.gz - cz <= FIVE && !(out[key] && out[key].cost <= nc)) { out[key] = { x: nx, y: ny, cost: nc, prev: c.x + ',' + c.y, end: s.open && !s.pillar && !s.block }; q.push({ x: nx, y: ny, cost: nc }); }
+        }
+        // a jump across a pit, one or two squares of it
+        for (var w = 1; w <= 2; w++) {
+          var px = c.x + dx * w, py = c.y + dy * w, ps = m.at(px, py); if (!ps || !ps.open || occ(px, py) || cz - ps.gz <= FIVE) break;
+          var lx = px + dx, ly = py + dy, ls = m.at(lx, ly), lc = c.cost + 5 * (w + 1), lk = lx + ',' + ly;
+          if (!ls || lc > left || !ls.open || ls.pillar || ls.block || occ(lx, ly) || ls.gz < cz - FIVE || ls.gz - cz > FIVE) continue;
+          if (!(out[lk] && out[lk].cost <= lc)) { out[lk] = { x: lx, y: ly, cost: lc, prev: c.x + ',' + c.y, end: true, jump: true }; q.push({ x: lx, y: ly, cost: lc }); }
+        }
+      }
+    }
+    delete out[k0];
+    return out;
+  }
+  M.sphereReach = sphereReach; // (dev/bench16.js grid1124)
+  // one leg of the roll, to `to` (a square sphereReach gives, or the AI's point: the reachable square nearest it): along the path square by square, the light with it; a ram at its end
+  function* sphereLeg(B, u, z, mv, to) {
+    var reach = sphereReach(B, z, mv.left), k = to.x + ',' + to.y, r = reach[k];
+    if (!r) { var best = null; Object.keys(reach).forEach(function (kk) { var c = reach[kk]; if (!c.end) return; var d = Math.max(Math.abs(c.x - to.x), Math.abs(c.y - to.y)) * 100 - c.cost; if (!best || d < best.d) best = { d: d, k: kk }; }); r = best && reach[best.k]; }
+    if (!r) return;
+    var path = [], c = r; while (c && c.prev) { path.unshift(c); c = reach[c.prev]; }
+    var steps = 0, lt = sphereLight(B, u);
+    for (var i = 0; i < path.length; i++) {
+      var p = path[i];
+      if (p.ram) { mv.rammed = p.ram; mv.left = 0; break; }
+      z.x = p.x; z.y = p.y; steps++; if (lt) { lt.x = z.x; lt.y = z.y; } if (B.lightMap) B.lightMap = null;
+      FX.sparkle({ x: z.x, y: z.y, size: 1 }, 'fire', 6); yield p.jump ? 8 : 4;
+    }
+    if (!mv.rammed) mv.left -= r.cost;
+    D.sfx('fire'); FX.sparkle({ x: z.x, y: z.y, size: 1 }, 'fire', 16);
+    if (mv.rammed) {
+      B.card(['{y}' + u.name + '{/} ' + (!steps ? 'rams the flaming sphere into ' + nm(B, mv.rammed) + '!' : 'rolls the flaming sphere ' + (r.cost - 5) + ' ft -- into ' + nm(B, mv.rammed) + '!') + '  {g}(it stops for this turn){/}'], 240); // (from beside it, a ram, not "0 ft": 11-08, his record)
+      yield 16; zoneHit(B, z, mv.rammed, 'is rammed by the flaming sphere', true); yield 16;
+    } else yield 8;
+  }
   // Flaming Sphere (SRD 5.1): a 5-ft ball of fire at a free square within 60 ft (concentration, a minute); whoever ends a turn within
   // 5 ft of it, DEX or 2d6 fire (half; a d6 more a slot); a bonus action rolls it up to 30 ft, and rammed into a creature it stops
   // and that creature saves. Bright light 20 ft and dim 20 more. (Fire: refused under a roost, as every fire is.)
   E.flamingsphere = {
-    geo: function (B, u, g) { return zoneOf(B, u, 'flamingsphere') ? Object.assign({}, g, { free: true, move: true, again: true, time: 'B' }) : null; },
+    geo: function (B, u, g) { return zoneOf(B, u, 'flamingsphere') ? Object.assign({}, g, { free: true, move: true, again: true, time: 'B', noAim: true }) : null; }, // (noAim: no point to aim -- the roll's own gold squares, js/ui.js spellAim; 11-24)
     againName: 'Flaming Sphere: roll it',
-    summary: function (e, u) { var z = D.battle && zoneOf(D.battle, u); return (z ? 'bonus action · the sphere rolls up to 30 ft and rams what it meets: ' : 'a ball of fire, 5 ft across, at a free square within 60 ft (concentration; a bonus action rolls it 30 ft): ') + 'ending a turn within 5 ft of it, or rammed, DEX or ' + (z ? z.dice : dice(e.sp, u, e.slot)) + ' fire (half) · bright 20 ft'; },
+    summary: function (e, u) { var z = D.battle && zoneOf(D.battle, u); return (z ? 'bonus action · roll it up to 30 ft, click by click on the gold squares (round what stands in the way, over 5 ft, across a 10-ft pit); into a creature is a ram, and it stops: ' : 'a ball of fire, 5 ft across, at a free square within 60 ft (concentration; a bonus action rolls it 30 ft): ') + 'ending a turn within 5 ft of it, or rammed, DEX or ' + (z ? z.dice : dice(e.sp, u, e.slot)) + ' fire (half) · bright 20 ft'; },
     cast: function* (B, u, t, slot, head, x) {
       var z = zoneOf(B, u, 'flamingsphere');
       if (!z) {
@@ -1704,18 +1759,27 @@
         yield* M.brighten(B, u, 'flame', head + ': a ball of fire, 5 ft across, rolls out (concentration; a bonus action rolls it 30 ft).', { x: z.x, y: z.y, bright: 20 });
         return;
       }
-      // the roll: up to 30 ft toward the point, square by square; a creature in the way is rammed, and the sphere stops before it
-      var steps = 0, rammed = null, line = G.line(z.x, z.y, t.x, t.y).slice(1);
-      for (var i = 0; i < line.length && steps < 6; i++) {
-        var q = line[i], s = G.map.at(q[0], q[1]); if (!s || !s.open) break;
-        var occ = G.occupant(q[0], q[1]); if (occ) { rammed = occ; break; }
-        z.x = q[0]; z.y = q[1]; steps++;
+      // THE ROLL, LIKE A HERO'S MOVE (RULED 11-22, Griz, on his 17:39Z fight: "Flaming sphere essentially needs a move-turn, or a right-click to do patrol-point pathing - opine",
+      // and "it's hard to steer vs large targets because mousing over them anywhere forces you into a single selected this monster square"; the patrol points struck, "(lose that
+      // - it was for if you couldn't move like regular left click until you spend movement and all movement had to happen in one roll)"): the bonus action gives the sphere its
+      // 30 ft, spent click by click on the gold squares it can reach -- round walls and bodies, over a barrier up to 5 ft (a rail, a woodpile, a counter, a well's lip, a rise of
+      // 5 ft), across a pit up to 10 ft (a drop of more than 5 ft, a square or two wide, to ground no lower than it left); SRD 5.1: "you can direct it over barriers up to 5
+      // feet tall and jump it across pits up to 10 feet wide". A creature's square, any one of a big one's, is the ram: "that creature must make the saving throw against the
+      // sphere's damage, and the sphere stops moving this turn". STOP HERE ends its roll (the feet left go with it). Till then it went one straight line at the clicked point,
+      // stopped at the first closed square. The AI's roll is the same path toward its point, all at once
+      var mv = { left: 30, rammed: null };
+      if (t && t.x != null && !(t === u)) yield* sphereLeg(B, u, z, mv, t);
+      while (t === u && mv.left >= 5 && !mv.rammed && !(u.dead || u.hp <= 0) && zoneOf(B, u, 'flamingsphere') === z) {
+        var reach = sphereReach(B, z, mv.left), keys = Object.keys(reach).filter(function (k) { return reach[k].end; });
+        if (!keys.length) break;
+        var pk = keys.map(function (k) { return { x: reach[k].x, y: reach[k].y }; });
+        var opts = keys.map(function (k) { var r0 = reach[k]; return { label: r0.ram ? 'RAM ' + nm(B, r0.ram).toUpperCase() + ' (' + r0.cost + ' FT)' : 'ROLL ' + r0.cost + ' FT' + (r0.jump ? ', A JUMP' : ''), value: { x: r0.x, y: r0.y } }; });
+        opts.push({ label: 'STOP HERE', value: 0, no: true });
+        var to = yield { prompt: { who: u, title: u.name + ': THE FLAMING SPHERE -- ' + mv.left + ' FT LEFT', lines: ['A gold square rolls it there; a creature\'s square rams it.'], opts: opts, pick: pk, squares: true } };
+        if (!to) break;
+        yield* sphereLeg(B, u, z, mv, to);
       }
-      var lt = sphereLight(B, u); if (lt) { lt.x = z.x; lt.y = z.y; } if (B.lightMap) B.lightMap = null;
-      D.sfx('fire'); FX.sparkle({ x: z.x, y: z.y, size: 1 }, 'fire', 16);
-      B.card(['{y}' + u.name + '{/} ' + (rammed && !steps ? 'rams the flaming sphere into ' + nm(B, rammed) + '!' : 'rolls the flaming sphere ' + (steps * 5) + ' ft' + (rammed ? ' -- into ' + nm(B, rammed) + '!' : '.'))], 240); // (from beside it, a ram, not "0 ft": 11-08, his record)
-      yield 16;
-      if (rammed) { zoneHit(B, z, rammed, 'is rammed by the flaming sphere', true); yield 16; }
+      if (!mv.rammed && mv.left < 30) B.card(['{y}' + u.name + '{/} rolls the flaming sphere ' + (30 - mv.left) + ' ft.'], 200);
     },
     ai: function (B, u, e, slot, fs) {
       var z = zoneOf(B, u, 'flamingsphere'), d = avg(z ? z.dice : dice(e.sp, u, slot)), best = null, zz = z || { save: 'dex' };
@@ -1982,7 +2046,7 @@
       var sq = M.area(u, x.g, t.x, t.y, t.z), list = caughtIn(B, sq); FX.bloom(t.x, t.y, sq, 'fire');
       var f = D.roll(more('4d6', up(x.sp, slot))), r = D.roll('4d6'), lines = [head + '  a column of divine fire: ' + f.total + ' fire + ' + r.total + ' radiant  DEX DC ' + x.dc], hits = [];
       list.forEach(function (w) { if (M.globed(B, u, w, 5)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}')); hits.push([w, Math.floor(f.total * k), Math.floor(r.total * k)]); }); // (the Globe of Invulnerability: this one had no filter at all)
-      B.card(lines.slice(0, 8), 420); yield { fx: 1 };
+      B.cardCut(lines, 8, 420); yield { fx: 1 };
       hits.forEach(function (h) { B.hurtAll(h[0], [[h[1], 'fire'], [h[2], 'radiant']], MAGIC); }); // (one concentration save on the sum: B.hurtAll)
       yield 24;
     },
@@ -2796,7 +2860,7 @@
     var sq = G.sphere(bd.x, bd.y, 20), list = caughtIn(B, sq), r = D.roll((12 + bd.grown) + 'd6'), lines = ['{o}The bead bursts!{/}  ' + (12 + bd.grown) + 'd6 = ' + r.total + ' fire  DEX DC ' + bd.dc];
     FX.bloom(bd.x, bd.y, sq, 'fire');
     list.forEach(function (w) { if (M.zoneGlobed(B, bd, w)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', bd.dc, false, null, r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' -> {r}' + n + '{/}'); B.hurt(w, n, 'fire', MAGIC); }); // (the Globe of Invulnerability: the bead was cast from outside it)
-    B.card(lines.slice(0, 8), 420);
+    B.cardCut(lines, 8, 420);
     B.beads = (B.beads || []).filter(function (b) { return b !== bd; });
   };
   E.divineword = {
@@ -2824,7 +2888,7 @@
         else if (w.hp <= 50) lay(['deafened']);
         else lines.push('  ' + Nm(B, w) + ': {g}too much life in it{/}');
       });
-      B.card(lines.slice(0, 8), 420); yield 30;
+      B.cardCut(lines, 8, 420); yield 30;
     },
     ai: function (B, u, e, slot, fs) { var near = unshut(B, u, e, fs.filter(function (w) { return G.range(u, w) <= 30 && !cantHear(w); })); if (!near.length) return null; return { score: near.reduce(function (s, w) { return s + TX().pFail(w, 'cha', u.spellDC) * (HOME.test(w.type || '') ? w.hp * 0.5 + TX().dpr(w) * 3 : w.hp <= 20 ? w.hp + TX().dpr(w) * 2 : w.hp <= 40 ? TX().dpr(w) * 2 : w.hp <= 50 ? 1 : 0); }, 0), t: u }; }
   };
@@ -2851,7 +2915,7 @@
           else { lines.push('  ' + Nm(B, w) + ': the violet ray ' + (sv.ok ? '{n}saved{/}' : '{p}blinded{/}')); if (!sv.ok) w.conds.blinded = { by: u.id, till: { who: w.id, at: 'end', n: 2 } }; }
         });
       });
-      B.card(lines.slice(0, 8), 480); yield { fx: 1 };
+      B.cardCut(lines, 8, 480); yield { fx: 1 };
       hits.forEach(function (h) { if (!h[0].dead) B.hurt(h[0], h[1], h[2], MAGIC); });
       yield 24;
     },
@@ -2922,7 +2986,7 @@
       var list = caughtIn(B, sq), f = D.roll('20d6'), b = D.roll('20d6'), lines = [head + ': the sky falls  ' + f.total + ' fire + ' + b.total + ' bludgeoning  DEX DC ' + x.dc], hits = [];
       // (the Globe of Invulnerability: a 9th-level spell is past the highest globe there is -- one raised from a 9th-level slot holds out the 8th and under -- so nothing is ever shut out here; asked all the same, so a rule that moved would not leave this one behind)
       list.forEach(function (w) { if (M.globed(B, u, w, 9)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv)); hits.push([w, Math.floor(f.total * k), Math.floor(b.total * k)]); });
-      B.card(lines.slice(0, 8), 480); yield { fx: 1 };
+      B.cardCut(lines, 8, 480); yield { fx: 1 };
       hits.forEach(function (h) { B.hurtAll(h[0], [[h[1], 'fire'], [h[2], 'bludgeoning']], MAGIC); }); // (one concentration save on the sum: B.hurtAll)
       yield 30;
     },
@@ -2982,7 +3046,7 @@
       g.fired = true; B.grounds = B.grounds.filter(function (x) { return x !== g; });
       var lines = ['{y}The glyph flares!{/}  WIS DC ' + g.dc];
       B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.dist(u, w) <= 60; }).forEach(function (w) { if (M.zoneGlobed(B, g, w)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'wis', g.dc); lines.push('  ' + Nm(B, w) + ': ' + (sv.ok ? '{n}steady{/}' : '{p}stunned{/}')); if (!sv.ok) w.conds.stunned = { by: g.by, dc: g.dc, pws: true }; });
-      B.card(lines.slice(0, 8), 360); stop = true;
+      B.cardCut(lines, 8, 360); stop = true;
     });
     return stop;
   };
