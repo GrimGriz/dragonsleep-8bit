@@ -303,10 +303,11 @@
     '{g}To follow another, pick it there and press E to pin it. Nothing else moves your pin.{/}'];
   H16.LINES.pinnedShort = '{g}Pinned.{/}';
   H16.lesson = function (f, ids) { if (f.journalTaught || ids.indexOf('work') < 0) return []; f.journalTaught = 1; return H16.LINES.lesson.map(function (l) { return D.keys ? D.keys(l) : l; }); };
-  H16.missionCard = function* (B) {
-    var R = D.roam, st = C.state(B), f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
+  // THE MISSION CARD'S PAGES (11-24, world-1124: split from H16.missionCard so THE WORLD shows them too -- H16.worldMission): one a mission where a scene gave an order (f.cardEach), else one; the flags set as they are said, as before
+  H16.missionPages = function (st) {
+    var pages = [], f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
     nu.forEach(function (q) { f['q:' + q.id] = 1; if (q.step && q.step.key) f['k:' + q.id + ':' + q.step.key] = 1; }); // (a mission opening on a key step: its own card says it, not a second -- H16.keyCard)
-    var open = nu.filter(function (q) { return !q.done; }); if (!open.length) return;
+    var open = nu.filter(function (q) { return !q.done; }); if (!open.length) return pages;
     // one card a mission, in the order a scene gave them, the one it wants left active pinned (10-30, his "gives two missions? the one to winters to appear second and be left
     // active", on Papa's at the Hex's door: the Company, then Finding Work -- Winters' papers its first -- pinned; f.cardEach, H16.papaScene)
     if (f.cardEach) {
@@ -317,9 +318,9 @@
         var lsn = H16.lesson(f, [q1.id]); // (Finding Work's first card: the JOURNAL's lesson, 11-18 -- with it, the pin's own line short)
         if (q1.id === pinId && !live) { f.pin = q1.id; ls.push(lsn.length ? H16.LINES.pinnedShort : D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned); } // (`!live`: never over a live pin, 11-18)
         ls = ls.concat(lsn);
-        B.card(R.wrap(ls), 480); B.cards.pop(); yield* H16.fly(B, R.wrap(ls));
+        pages.push(ls);
       }
-      return;
+      return pages;
     }
     // (a mission given to be pinned -- the council's ask, H16.COUNCIL.looks; the runner's summons; a paper off the board; the true word -- leads the card, and is pinned when
     // nothing live is. Till 11-18 it was pinned over what was: RULED 11-18, his "we don't need to ever take the quest marker from what was pinned by player")
@@ -330,10 +331,28 @@
     var lsn2 = H16.lesson(f, open.map(function (q) { return q.id; })); // (Finding Work's first card: the JOURNAL's lesson, 11-18 -- with it, the pin's own line short)
     if (pinned) lines.push(lsn2.length ? H16.LINES.pinnedShort : D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned);
     lines = lines.concat(lsn2);
-    B.card(R.wrap(lines), 480); // (no sound as it appears since 10-29 night, his "remove first sound on appearance and keep the tucked away in journal sound": the 10-28 ding,
+    pages.push(lines); return pages; // (H16.missionCard: no sound as it appears since 10-29 night, his "remove first sound on appearance and keep the tucked away in journal sound": the 10-28 ding,
     // H16.DING, is no longer played; the chime as the words go into the JOURNAL is the fly-in's, below)
     // ... and into the JOURNAL (10-29, below): the card kept in the log, its words on the fly-in instead of the floor's card
-    B.cards.pop(); yield* H16.fly(B, R.wrap(lines));
+  };
+  H16.missionCard = function* (B) {
+    var R = D.roam, pages = H16.missionPages(C.state(B));
+    for (var k = 0; k < pages.length; k++) { B.card(R.wrap(pages[k]), 480); B.cards.pop(); yield* H16.fly(B, R.wrap(pages[k])); } // (each page on the floor's card, kept in the log, then flown into the JOURNAL: H16.fly)
+  };
+  // THE MISSION CARD ON THE WORLD AT ONCE (11-24, his NOTES day 13 16:55, Web Gulch 18,2: "anchor pin mission journal pop-up on next roam entry? (just happened to me)"; the lean RULED on
+  // his "leans otherwise approved"): a mission opened on THE WORLD -- the glory-seekers' pin (js/trueword.js TW.won), anything a card or a fight there gives -- is said there as soon
+  // as the world is on top with no card up, each page a world card, the JOURNAL's chime as it closes (no fly-in on the map); till then it waited for the next roam floor's beat
+  // (H16.missionDue). The first look (qSeen) as the floor's. js/world.js World.prototype.update asks it twice a second
+  H16.worldMission = function (scene) {
+    var Wd = D.world; if (!scene || !Wd || !Wd.house || !Wd.house() || (scene.cards && scene.cards.length) || scene.pm || D.top() !== scene) return false;
+    var st = C.state(null); if (!st || !st.flags) return false;
+    if (!st.flags.qSeen) { st.flags.qSeen = 1; H16.fresh(st).forEach(function (q) { st.flags['q:' + q.id] = 1; }); return false; }
+    if (!H16.fresh(st).length) return false;
+    var pages = H16.missionPages(st); if (!pages.length) return false;
+    if (Wd.save) Wd.save();
+    pages.forEach(function (p) { var ls = []; p.forEach(function (l) { ls = ls.concat(D.wrap ? D.wrap(l, 300) : [l]); }); scene.card(ls, function () { D.sfx('journal'); }); });
+    if (D.house && D.house.trail) D.house.trail('quest', 'on THE WORLD: ' + pages.map(function (p) { return window.DS && window.DS.stripCodes ? window.DS.stripCodes(p[0]) : p[0]; }).join(' | '));
+    return true;
   };
   // A KEY STEP (RULED 10-31, Tuesday 6, Griz: "Something similar to the 'quest in the journal' on key moment (i.e. just roped the proof of the missing 5) - suggestions?", then
   // "a, like add flag that some missions will have a key step and key step handling?"; 11-05 on live, "nothing would have let me know to talk to the gate guy again for more
@@ -1162,6 +1181,11 @@
   // shared over the day's bells (H16.STARTS); NEXT BELL gives one bell's share back, any other wait its hours at the day's own rate (a twenty-fourth an hour); never more than the
   // march walked. Returns the hexes given back
   H16.marchBack = function (a, hrs) { var W = D.world, S = W && W.state && W.state(), Hs = D.house; if (!S || !Hs || !Hs.DAYHEX || !(S.todayHex > 0)) return 0; var was = S.todayHex, back = a === 0 ? Hs.DAYHEX / H16.STARTS.length : Hs.DAYHEX * (hrs || 0) / 24; S.todayHex = Math.max(0, was - back); if (S.todayHex < Hs.DAYHEX) S.pushing = false; if (W.save) W.save(); return was - S.todayHex; };
+  // THE MARCH GIVEN BACK, SAID (11-24, his NOTES day 13 23:10, Web Gulch 13,9: "short rest/waiting restoring march capacity? should we put that where they see it post waiting (party
+  // rested for X hexes more march)(wording)"; the lean RULED on his "leans otherwise approved"): every wait, hour and short rest that gives march back ends on this line -- the hexes
+  // given back and the day's walked against the march -- and nothing when none came back (no march walked today). The words the seat's draft (invented.json march-back-said-1124)
+  H16.MARCHSAID = 'The party is rested for {n} more {hexes} of march today ({walked} of {day} walked).';
+  H16.marchSaid = function (back) { var S = D.world && D.world.state && D.world.state(), Hs = D.house; if (!S || !Hs || !(back > 0.05)) return null; var n = Hs.hexes(back); return H16.MARCHSAID.replace('{n}', n).replace('{hexes}', n === 1 ? 'hex' : 'hexes').replace('{walked}', Hs.hexes(S.todayHex)).replace('{day}', Hs.DAYHEX); };
   H16.waitRests = function (a, hrs) { return a === 2 || ((a === 0 || a === 4) && hrs > 1 + 1e-6); };
   H16.waitPlay = function* (B) {
     B.roam.waitAsk = 0;
@@ -1174,13 +1198,13 @@
     if (a === 3) return;
     var tillAt = a === 4 ? D.house.longFrom(D.house.LONG_HOURS) : null;
     var hrs = H16.waitHours(a, h), rest = H16.waitRests(a, hrs), lines = (MN ? MN.clockOn(B, hrs) : (H16.pass(B, hrs), [])), h2 = H16.hourNow(R.q, B), said = [];
-    H16.marchBack(a, hrs); // (the day's march given back by the wait: H16.marchBack)
+    var mbSaid = H16.marchSaid(H16.marchBack(a, hrs)); // (the day's march given back by the wait: H16.marchBack; said since 11-24, H16.marchSaid)
     if (a === 4) said.push(W8.tillDone.replace('{when}', D.house.clockAt(tillAt)));
     // (what passed, one card: the street's turn where the hour turned it, else the bell's word (NEXT BELL) or the hour's (AN HOUR); off the street the floor's own line where
     // its day turned (js/mines.js M.lightNow); SHORT REST says the rest alone; then the rest's dice and any Light gone out)
     if (street) { var was = R.def.phase, turned = H16.phaseOf(h2) !== was; if (turned) { H16.relay(B, h2); H16.light(B); } else D.roam.def.hour = h2; said.push(turned ? H16.TURN[D.roam.def.phase] : a === 0 ? W8.bell.replace('{band}', H16.band(h2)) : a === 1 ? W8.hour : null); }
     else { var ln = MN && MN.lightNow ? MN.lightNow(B) : null; said.push(a === 0 ? W8.off.replace('{band}', H16.band(h2)) : a === 1 ? W8.hour : null); if (ln) said.push(ln); }
-    said = said.filter(function (s) { return !!s; });
+    said = said.filter(function (s) { return !!s; }); if (mbSaid) said.push(mbSaid);
     if (rest) said = said.concat(D.house.shortRestOnFloor(B, { head: a === 2 ? null : W8.restToo }));
     if (D.house && D.house.trail) D.house.trail('rest', 'WAIT: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
     D.sfx('popup'); B.card(D.roam.wrap(said.concat(lines)), rest ? 360 : 240); yield 20;
@@ -1193,7 +1217,7 @@
     var ask = H16.waitAsk(S.t), W8 = H16.WAIT, keyOf = { 0: 'n1', 1: 'n2', 2: 'n3', 4: 'n4', 3: 'b' };
     var go = function (a) {
       var tillAt = a === 4 ? Hs.longFrom(Hs.LONG_HOURS) : null, hrs = H16.waitHours(a, S.t), rest = H16.waitRests(a, hrs);
-      S.t += hrs; H16.marchBack(a, hrs); Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null].filter(function (s) { return !!s; });
+      S.t += hrs; var mbSaid = H16.marchSaid(H16.marchBack(a, hrs)); Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null, mbSaid].filter(function (s) { return !!s; });
       if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, a === 2 ? null : W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
       said = said.concat(Hs.lightsOut(null));
       Hs.trail('rest', 'WAIT on THE WORLD: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
@@ -1240,14 +1264,14 @@
   };
   H16.placeTill = function (B, hours) { // (WAIT TILL A LONG REST at a place: the clock to the hour a rest of `hours` may begin, where they stand)
     var Hs = D.house, W8 = H16.WAIT, MN = D.mines, at = Hs.longFrom(hours), hrs = Math.max(0, Hs.longWait(hours)), lines = MN && MN.clockOn ? MN.clockOn(B, hrs) : (H16.pass(B, hrs), []);
-    H16.marchBack(4, hrs); var said = [W8.tillDone.replace('{when}', Hs.clockAt(at))].concat(H16.landHour(B));
+    var mbSaid = H16.marchSaid(H16.marchBack(4, hrs)); var said = [W8.tillDone.replace('{when}', Hs.clockAt(at))].concat(H16.landHour(B), mbSaid ? [mbSaid] : []);
     if (hrs > 1 + 1e-6) said = said.concat(Hs.shortRestOnFloor(B, { head: W8.restToo }));
     if (Hs.trail) Hs.trail('rest', 'WAIT TILL A LONG REST at ' + (D.roam.def && (D.roam.def.name || D.roam.def.key)) + ': ' + (Math.round(hrs * 100) / 100) + ' h' + (hrs > 1 + 1e-6 ? ', a short rest' : ''));
     return said.concat(lines);
   };
   H16.placeHour = function (B) { // (SHORT REST: AN HOUR at a place that had none -- Cassia's rooms, Aldwin's floor: an hour on, the hit dice, the march by the hour, as the camp's)
-    var Hs = D.house, MN = D.mines, lines = MN && MN.clockOn ? MN.clockOn(B, 1) : (H16.pass(B, 1), []); H16.marchBack(2, 1);
-    return H16.landHour(B).concat(Hs.shortRestOnFloor(B), lines);
+    var Hs = D.house, MN = D.mines, lines = MN && MN.clockOn ? MN.clockOn(B, 1) : (H16.pass(B, 1), []), mbSaid = H16.marchSaid(H16.marchBack(2, 1));
+    return H16.landHour(B).concat(mbSaid ? [mbSaid] : [], Hs.shortRestOnFloor(B), lines);
   };
   H16.toDawn = function (h) { var hh = ((h % 24) + 24) % 24, d = ((H16.STARTS[0] - hh) % 24 + 24) % 24; return d < 1e-6 ? 24 : d; }; // (the hours to the next dawn bell)
   // the bread line's loaf (his "13 yes, he'd give 4 to the party token"): a second game's own thing (content/items.json is the first game's), the SRD's day of rations as bread --

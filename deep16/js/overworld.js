@@ -149,7 +149,7 @@
     S.t += hrs; S.today += hrs; w.path.shift(); W.save();
     if (W.house()) { // (the forced march's saves as a tile completes a hex past the day's: a failure holds the walk on a card till OK, as the hex view's)
       var ml = D.house.marchStep(st); if (ml === null) { ov.walk = null; return; }
-      if (ml.length) { W.save(); D.sfx('popup'); var path = w.path.slice(); ov.walk = null; sc.card(D.house.marchCard(ml), null, [['a', function () { OV.arrive(sc, st, next, { path: path, arrows: w.arrows }); }, 'OK']]); return; }
+      if (ml.length) { W.save(); D.sfx('popup'); var path = w.path.slice(); ov.walk = null; D.house.marchFail(sc, ml, path.length > 0, function (keep) { OV.arrive(sc, st, next, { path: keep ? path : [], arrows: w.arrows }); }); return; } // (KEEP WALKING / CAMP HERE / STAY since 11-24: js/house.js H.marchFail)
     }
     OV.arrive(sc, st, next, w);
   };

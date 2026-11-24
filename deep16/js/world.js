@@ -429,12 +429,16 @@
     if (this.cards.length) { // (a card waits for its key)
       var cd = this.cards[0];
       if (cd.keys && m.click && cd.btns) for (var bi = 0; bi < cd.btns.length; bi++) { var bb = cd.btns[bi]; if (m.x >= bb.x && m.x < bb.x + bb.w && m.y >= bb.y && m.y < bb.y + bb.h) { if (cd.keys[bi][3]) { D.sfx('error'); return; } this.cards.shift(); D.sfx('confirm'); cd.keys[bi][1](); return; } } // (a click on a choice: his 10-21 "playable by mouse only")
+      // (a right-click: the card's X -- STAY, STAY ON THE ROAD, WALK ON -- where it has one: 11-24, his NOTES day 12 07:10, plains hex 52,49: "right-click on 'here popup' = stay on the road";
+      // a card with no X keeps its keys; a card with no keys closes as a click does)
+      if (cd.keys && m.rclick) { for (var kr = 0; kr < cd.keys.length; kr++) if (cd.keys[kr][0] === 'b' && !cd.keys[kr][3]) { this.cards.shift(); D.sfx('cancel'); cd.keys[kr][1](); return; } }
       if (cd.keys) { for (var ki = 0; ki < cd.keys.length; ki++) if (I.pressed(cd.keys[ki][0])) { if (cd.keys[ki][3]) { D.sfx('error'); return; } this.cards.shift(); D.sfx('confirm'); cd.keys[ki][1](); return; } return; } // (a key's fourth, off: greyed, refused -- a long rest inside the 24 hours, 11-05)
-      if (I.pressed('a') || I.pressed('b') || m.click) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
+      if (I.pressed('a') || I.pressed('b') || m.click || m.rclick) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
       return;
     }
     var ap = this.arrivePend; // (an arrival a fight broke off: finished where the party still stands -- World.prototype.arrive)
     if (ap) { this.arrivePend = null; if (D.top() === this && ap.map === M.key && ap.at.join() === S.at.join()) { this.arrive({ after: true, h: 0, mi: ap.st.mi }); if (D.top() !== this || this.cards.length) return; } }
+    if ((this.t & 15) === 0 && W.house() && D.hours && D.hours.worldMission && D.hours.worldMission(this)) return; // (a mission opened on THE WORLD, said here at once: js/hours.js H16.worldMission, 11-24)
     // M: the party's menu -- EQUIP, ITEMS, STATUS, SAVE -- walking or not (his 10-22 "M - menu isn't available": a walk waits under it); the bare door has no party
     if (I.pressed('menu')) { if (W.house()) { D.house.openMenu(this); D.sfx('menu'); } else this.say('No party here: the menu is the game\'s (deep16/?world, or NEW GAME).'); return; }
     if (I.pressed('verdict') && W.OV) { if (this.view === 'tiles') W.OV.close(this); else W.OV.open(this); return; } // (V: the hex view or the top-down tiles)
@@ -470,6 +474,9 @@
     // where the mouse points: the hex, and the way there
     var pp = m.inside ? this.pickPlace(m.x, m.y) : null, hv = pp ? pp.hex.slice() : m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) + (pp ? '|' + pp.id : '') : null; // (a place's mark or name: that place -- pickPlace)
     if (hk !== this.hovK) { this.hovK = hk; this.hov = hv; this.plan = hv ? W.planTo(pp ? [pp.x, pp.y] : hc(hv[0], hv[1])) : null; } // (past the area's edge: to it, and on across THE WORLD)
+    // a click on the hex the party stands on: HERE, as E and the button (11-24, his NOTES day 12 07:10, plains hex 52,49: "clicking current hex on the world map = clicking 'here'
+    // button"; till then a plan with no hexes, and nothing happened)
+    if (m.click && m.inside && hv && hv[0] === S.at[0] && hv[1] === S.at[1] && !(this.plan && this.plan.hexes && this.plan.hexes.length)) { this.plan = null; D.sfx('confirm'); this.here(); return; }
     if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.clicked = { x: Math.round(m.x), y: Math.round(m.y), zi: this.zi, zn: ZS.length, hex: hv.slice(), place: pp ? pp.id : null }; this.plan = null; D.sfx('confirm'); return; } // (clicked: the travel record's -- W.travel)
     if (I.pressed('a')) this.here();
     if (I.pressed('end') && W.house()) { this.campPage(); return; } // (the camp's page since 11-16: World.campPage)
@@ -492,7 +499,7 @@
     if (st.exit) { var fw = atw(hc(S.from[0], S.from[1])[0], hc(S.from[0], S.from[1])[1], MS.world.w); W.use('world'); S.map = null; S.at = st.exit.slice(); S.from = fw; S.pos = hc(S.at[0], S.at[1]); S.rv = null; } // (off the area's edge: THE WORLD's hex, from the 5-mile hex the area's covered)
     if (W.house()) { // (the forced march's saves, each hex past the day's: a failure stops the walk on a card till OK -- his 10-21 "probably need a quick popup every time someone moves a hex and loses the save"; the bottom line was written over by the next hex)
       var ml = D.house.marchStep(st), self = this; if (ml === null) { this.walk = null; return; }
-      if (ml.length) { W.save(); D.sfx('popup'); this.card(D.house.marchCard(ml.concat(lo)), null, [['a', function () { self.arrive(st); }, 'OK']]); return; }
+      if (ml.length) { W.save(); D.sfx('popup'); D.house.marchFail(this, ml.concat(lo), w.path.length > 0, function (keep) { if (!keep && self.walk) self.walk.path = []; self.arrive(st); }); return; } // (KEEP WALKING / CAMP HERE / STAY since 11-24: js/house.js H.marchFail)
     }
     var m0 = this.msg; this.arrive(st);
     if (lo.length) this.say((this.msg && this.msg !== m0 ? this.msg.s + ' ' : '') + lo.join(' ')); // (after the arrival's own word, not over it)
@@ -570,15 +577,15 @@
   // one with the feat. Its words, said on the map's line and returned
   // (the day's march given back by the hour, as M > WAIT's SHORT REST gives it -- RULED 11-16, Griz: "1 yes", on "the camp's SHORT REST gives no march back ... Should they match?")
   World.prototype.campHour = function () {
-    S.t += 1; if (D.hours && D.hours.marchBack) D.hours.marchBack(2, 1); W.save(); var said = D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ');
+    S.t += 1; var mbSaid = D.hours && D.hours.marchBack ? D.hours.marchSaid(D.hours.marchBack(2, 1)) : null; W.save(); var said = (mbSaid ? [mbSaid] : []).concat(D.house.shortRest(D.house.cur.party), D.house.lightsOut(null)).join(' '); // (the march given back, said: H16.marchSaid, 11-24)
     this.say(said); D.house.secondDraft(D.house.cur.party); return said;
   };
   // the camp's wait till a long rest -- M > WAIT's TILL A LONG REST (js/hours.js H16.worldWait), here for the page: to the hour a long rest may begin, a short rest in it past an
   // hour, the day's march given back by its hours (H16.marchBack). Its words, said on the map's line and returned
   World.prototype.campWait = function () {
     var Hs = D.house, H16 = D.hours, W8 = H16.WAIT, tillAt = Hs.longFrom(Hs.LONG_HOURS), hrs = H16.waitHours(4, S.t), rest = H16.waitRests(4, hrs);
-    S.t += hrs; H16.marchBack(4, hrs); W.save();
-    var said = [W8.tillDone.replace('{when}', Hs.clockAt(tillAt))];
+    S.t += hrs; var mbSaid = H16.marchSaid(H16.marchBack(4, hrs)); W.save();
+    var said = [W8.tillDone.replace('{when}', Hs.clockAt(tillAt))].concat(mbSaid ? [mbSaid] : []);
     if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
     said = said.concat(Hs.lightsOut(null)); Hs.trail('rest', 'WAIT on THE WORLD (the camp): ' + W8.till + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
     this.say(said.join(' ')); return said.join(' ');

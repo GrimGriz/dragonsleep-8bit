@@ -208,8 +208,18 @@
     if ((S.todayHex || 0) + H.marchCost(st) <= H.DAYHEX + 1e-9 || S.pushing) return false;
     var path = w.path.slice(); scene.walk = null;
     scene.card(['{y}THE DAY\'S MARCH IS WALKED{/} (' + H.hexes(S.todayHex) + ' hexes), ' + W.timeOfDay() + '.', 'Push on: each hex past ' + H.DAYHEX + ', a CON save for everyone (DC 10 + 1 a hex past);', 'a failure, a level of exhaustion.', '', D.keys('{g}E{/}: push on    {g}R{/}: make camp    {g}X{/}: stay')], null,
-      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { if (!H.longOpen(W.REST) && scene.campPage) scene.campPage(); /* (the camp's page since 11-16: js/world.js) */ else if (!H.longOpen(W.REST) && scene.campCard) scene.campCard(); else H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]); // (MAKE CAMP inside the 24 hours: the camp's card, its night greyed -- H.longOpen, 11-05)
+      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { H.makeCamp(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]); // (MAKE CAMP inside the 24 hours: the camp's card, its night greyed -- H.longOpen, 11-05)
     return true;
+  };
+  H.makeCamp = function (scene) { var W = D.world; if (!H.longOpen(W.REST) && scene.campPage) scene.campPage(); /* (the camp's page since 11-16: js/world.js) */ else if (!H.longOpen(W.REST) && scene.campCard) scene.campCard(); else H.night(scene); };
+  // THE FORCED MARCH'S CARD, ITS CHOICES (11-24, his NOTES day 18 01:30, Silverton 40,48: "every exhaustion popup grant chance to stop and camp even if you clicked really far away...";
+  // the lean RULED on his "leans otherwise approved"): a save lost on the walk stops it on the card with KEEP WALKING (the walk goes on, and the march's saves with it), CAMP HERE
+  // (the rest of the way dropped, then the march's MAKE CAMP) and STAY (the rest of the way dropped); with no way left, OK and CAMP HERE. arrive(keep): the step's end, the rest of
+  // the way kept or not -- the hex view's (js/world.js World.stepWalk) and the top-down view's (js/overworld.js OV.stepWalk). Till then OK alone, and a long click walked on
+  H.marchFail = function (scene, lines, left, arrive) {
+    var camp = function () { arrive(false); if (D.top() === scene && !(scene.cards && scene.cards.length) && !scene.walk && !(scene.ov && scene.ov.walk)) H.makeCamp(scene); }; // (not over a fight the step's end rolled, or a door's card)
+    scene.card(H.marchCard(lines).concat(['', D.keys(left ? '{g}E{/}: keep walking    {g}R{/}: camp here    {g}X{/}: stay' : '{g}E{/}: OK    {g}R{/}: camp here')]), null,
+      left ? [['a', function () { arrive(true); }, 'KEEP WALKING'], ['rec', camp, 'CAMP HERE'], ['b', function () { arrive(false); }, 'STAY']] : [['a', function () { arrive(false); }, 'OK'], ['rec', camp, 'CAMP HERE']]);
   };
   H.marchHours = function (st) { return st.h / (H.pace() || 1); };
   // after a step: the day's hexes counted, the forced march's saves for each hex past. Returns the lines, or null if the march killed them all (the title)
@@ -649,8 +659,8 @@
     // A NIGHT'S SLEEP WITH NO LONG REST (o.noLong -- the inns' choice inside the 24 hours, RULED 11-05, his "offer both": H.longOpen): the clock o.hours on, the day's march
     // back by its hours (since 11-18, the rest offers: the inns' A NIGHT'S SLEEP: TILL THE DAWN BELL -- js/hours.js H16.restOffers), not fresh; the night's downtime a short rest (the hit dice: the SRD sets a short rest no limit), no morning page -- its picks, bonds and spells are the long rest's -- and a card
     if (o.noLong && house) {
-      var S1 = W.state(), hN = o.hours || H.LONG_HOURS; S1.t += hN; if (D.hours && D.hours.marchBack) D.hours.marchBack(4, hN); W.save(); // (the march given back by its hours, as any wait's -- the rest offers, RULED 11-16: "2 still offer as functional 'wait until dawn bell' at inns"; the seat's reading, his to overrule)
-      var ls1 = H.shortRestOnFloor(B, { head: H.NIGHT_SLEEP }), lo1 = H.lightsOut(B);
+      var S1 = W.state(), hN = o.hours || H.LONG_HOURS; S1.t += hN; var mbSaid1 = D.hours && D.hours.marchBack ? D.hours.marchSaid(D.hours.marchBack(4, hN)) : null; W.save(); // (the march given back by its hours, as any wait's -- the rest offers, RULED 11-16: "2 still offer as functional 'wait until dawn bell' at inns"; the seat's reading, his to overrule)
+      var ls1 = H.shortRestOnFloor(B, { head: H.NIGHT_SLEEP }), lo1 = H.lightsOut(B); if (mbSaid1) ls1 = [mbSaid1].concat(ls1); // (the march given back, said: js/hours.js H16.marchSaid, 11-24)
       if (o.before) o.before();
       D.sfx('popup'); B.card(R.wrap(['{y}' + (o.title || 'MORNING') + '{/}'].concat(o.line ? [o.line] : [], ls1, lo1)), 480); yield 30;
       return;
@@ -1181,6 +1191,40 @@
     var r = f < 3 || f > 10 ? 1 : 3, gx = at[0] + 12, gy = at[1] + 4;
     ctx.fillStyle = '#FCFCFC'; ctx.fillRect(gx, gy, 1, 1); ctx.fillRect(gx - r, gy, r, 1); ctx.fillRect(gx + 1, gy, r, 1); ctx.fillRect(gx, gy - r, 1, r); ctx.fillRect(gx, gy + 1, 1, r);
   };
+  // THE EGGS' NAMES ON THE LOAD SCREEN (E14, 11-24, Griz, his note of 11-23: "on the load screen from title, mouseover name and description of (only) collected eggs"): the mouse over a FOUND
+  // egg beside the saves names it and says how it came, in a small box by the egg; a shadow says nothing, it stays a secret; the keys never need it. The lines are DRAFTS, one each, said as what
+  // happened (invented.json id egg-hover-1124, the world-1124 seat records them); the names are the first game's own (first/js/events.js EV.EGGS) and js/grimoire.js M.EGGS
+  H.EGG_WORDS = {
+    joke: ['Guess I\'m the Joke, Now', 'Aurdin\'s Hideous Laughter, cast on Aurdin, gnolls by.'],
+    darkness: ['Stare Into the Void Long Enough', 'Magic Missile at the darkness, deep in the cloaker\'s gallery.'],
+    dunk: ['Dunking Booth', 'Rocked off the Edifice\'s edge into a fountain.'],
+    counted: ['Counted Him Right', 'The Old One\'s makings counted and answered right.'],
+    witness: ['Witness Him', 'The party joined GreyFang\'s as the Harbinger took the head.'],
+    stars: ['Something Went By', 'The party passed near the Vessel on the road, never met.'],
+    bucket: ['Bucket List', 'The whole party asleep under Elsbeth\'s bucket at the inn.']
+  };
+  H.eggRects = function (eggs, b) { // (where H.drawEggs lays each egg, still: the found ones past the six only; i = the index into H.EGGS)
+    var EW = 9 * EGG_K, EH = 11 * EGG_K, gap = 6, col = 3 * EH + 2 * gap, y0 = Math.round(b.y + (b.h - col) / 2), out = [];
+    eggs.forEach(function (hue, i) {
+      var side = i < 3 ? 0 : 1, k = i % 3, x = side ? b.x + b.w + 14 : b.x - 14 - EW, y = y0 + k * (EH + gap);
+      if (i >= 6) { if (!hue) return; var ex = eggs.slice(6).filter(Boolean).length, k6 = eggs.slice(6, i).filter(Boolean).length; x = Math.round(b.x + b.w / 2 - (ex * (EW + gap) - gap) / 2) + k6 * (EW + gap); y = b.y + b.h + 8; }
+      out.push({ i: i, x: x, y: y, w: EW, h: EH, hue: hue });
+    });
+    return out;
+  };
+  H.eggTip = function (ctx, eggs, b, mx, my) { // -> the tip drawn for the found egg under (mx, my), or null
+    var hit = null, pad = 3;
+    H.eggRects(eggs, b).forEach(function (r) { if (r.hue && mx >= r.x - pad && mx < r.x + r.w + pad && my >= r.y - pad - 2 && my < r.y + r.h + pad + 2) hit = r; });
+    var wd = hit && H.EGG_WORDS[H.EGGS[hit.i].id];
+    if (!wd) return null;
+    var P = EGG_HUES[hit.hue] || {}, col = hit.hue === 'black' ? '#E8ECFC' : (P.l || '#f8f8f8'), w = Math.min(D.W - 8, Math.max(D.textWidth(wd[0]), D.textWidth(wd[1])) + 16), h = 28;
+    var x = Math.max(4, Math.min(D.W - w - 4, Math.round(hit.x + hit.w / 2 - w / 2))), y = hit.y + hit.h + 5;
+    if (y + h > D.H - 20) y = hit.y - h - 5; // (no room under it: over it)
+    y = Math.max(4, y);
+    D.win8(ctx, x, y, w, h);
+    D.text(ctx, wd[0], x + 8, y + 6, col); D.text(ctx, wd[1], x + 8, y + 16, D.WIN8.text);
+    return { name: wd[0], line: wd[1], x: x, y: y, w: w, h: h };
+  };
 
   // ---------------------------------------------------------------- SLOTS: three, to save into or load from
   function Slots(mode, done) { this.kind = 'houseslots'; this.mode = mode; this.done = done || null; this.i = Math.max(0, (H.slot || 1) - 1); this.msg = null; this.t = 0; this.opaque = false; }
@@ -1219,6 +1263,7 @@
     if (this.msg) D.text(ctx, '{y}' + this.msg + '{/}', D.W / 2, b.y + b.h - 12, D.WIN8.text, 'center');
     ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17); // (its own line over the screen's)
     D.hint(ctx, 'up/down choose · E ' + (this.mode === 'save' ? 'save here' : 'load') + ' · X back', D.W / 2, D.H - 12, '#9a96a8', 'center');
+    var mo = I.mouse; this.tip = (mo && mo.inside && !this.closeIn) ? H.eggTip(ctx, H.eggsOf(H.read(this.i + 1)), b, mo.x, mo.y) : null; // (E14, 11-24: the name and the line of a found egg under the mouse, over all)
   };
   H.Slots = Slots;
 

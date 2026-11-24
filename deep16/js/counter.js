@@ -213,8 +213,10 @@
   // as the first game's do (G.hired, ever hired; G.lead, the one who leads -- js/house.js H.fresh)
   C.cond = function (c, st) {
     var names = st.party.map(function (h) { return h.key || h.id; }), rec = D.house && D.house.playing && D.house.cur, hired = rec && rec.hired || names, lead = rec && rec.lead || names[0];
-    return D.town.cond(c, st.flags, function (k, v) { return k === 'has' ? count(st, v) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === v; }); }) : k === 'hired' ? hired.indexOf(v) >= 0 : k === 'lead' ? lead === v : false; });
+    return D.town.cond(c, st.flags, function (k, v) { return k === 'has' ? count(st, v) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === v; }); }) : k === 'hired' ? hired.indexOf(v) >= 0 : k === 'lead' ? lead === v : k === 'renown' ? C.renownOf() >= +v : false; });
   };
+  // (renown:N -- the party's renown at N or more, a talk branch's condition like flag: and has: (11-24, his NOTES day 8 15:00 at the Hex: "NPC dialog one-liners changing with renown
+  // level"; the lean RULED on his "leans otherwise approved"): C.renownOf, the save's; js/town.js T.cond reads the word)
   // renown (the first game's js/events.js EV.renown): a point on the save, and the milestone XP -- 250 a point to everyone standing -- banked for the long rest (the
   // house's way, js/house.js H.bank). Returns the lines
   C.renown = function (st, n, why) {
@@ -263,6 +265,24 @@
     }
     return D.town.say(B, id);
   };
+  // THE TOWN KNOWS YOU (11-24, world-1124 -- his NOTES day 8 15:00, the Hex (the sand and the bars) 38,29: "NPC dialog one-liners changing with renown level"; the lean RULED on his
+  // "leans otherwise approved", the desk's list E15): the unnamed in costume (C.GENERIC: the street's townsfolk, the Hex's drinkers and gamblers, the crews, the hands at the
+  // gates) say first a line of how they know the party by its renown -- nothing for a stranger, then a face in the crowd, a name at the bars, on the board, up and down the
+  // road, the corridor's own, a local hero (content/config.json renownTitles) -- one of two for each, turn and turn about, and then their word as ever. A named keeper's own
+  // branch may ask renown:N (C.cond). The words the seat's drafts (invented.json renown-one-liners-1124)
+  C.RENOWN_SAYS = [null,
+    ['"Seen you about."', '"You\'re not from here. Are you?"'],
+    ['"You\'re the ones they talk about at the bars."', '"Heard your name over a drink. Thought you\'d be taller."'],
+    ['"Your name\'s on Hessle\'s board, isn\'t it? Thought so."', '"Board-work, is it? Good coin, if you live."'],
+    ['"They know you on the road now, I hear."', '"Carters talk about you. Mostly good."'],
+    ['"The corridor\'s own. Somebody buy them a drink."', '"Whole corridor knows your faces now."'],
+    ['"It\'s you. Mind if I shake a hand?"', '"Make way -- that\'s them."']];
+  C.renownSay = function (st, id) {
+    if (!C.GENERIC[id] || !st) return null; var r = C.renownOf(), band = Math.min(r, C.RENOWN_SAYS.length - 1), ls = C.RENOWN_SAYS[band]; if (!ls) return null;
+    var k = 'renownSay:' + id, n = st.flags[k] || 0; st.flags[k] = n + 1; return ls[n % ls.length];
+  };
+  var words0 = C.words;
+  C.words = function (B, id) { var out = words0.apply(this, arguments), st = C.GENERIC[id] ? C.state(B) : null, ln = st && C.renownSay(st, id); return ln ? [ln].concat(out || []) : out; };
 
   // ---------------------------------------------------------------- the portrait: the sheet's own rows (tools/portrait-sheet.py), drawn on its anchor -- the head's
   // middle over the hands' line, where the screen's counter is
@@ -417,8 +437,8 @@
   Counter.prototype.subButtons = function () {
     var s = this.sub, out = [], bx = RX + 8, self = this;
     if (s.kind === 'qty') {
-      out.push({ x: bx, y: 160, w: 26, h: 16, label: '-', go: 'qminus', off: s.n <= 1 }, { x: bx + 90, y: 160, w: 26, h: 16, label: '+', go: 'qplus', off: s.n >= s.max });
-      out.push({ x: bx + 124, y: 160, w: 30, h: 16, label: 'MAX', go: 'qmax', off: s.n >= s.max });
+      if (!s.one) out.push({ x: bx, y: 160, w: 26, h: 16, label: '-', go: 'qminus', off: s.n <= 1 }, { x: bx + 90, y: 160, w: 26, h: 16, label: '+', go: 'qplus', off: s.n >= s.max });
+      if (!s.one) out.push({ x: bx + 124, y: 160, w: 30, h: 16, label: 'MAX', go: 'qmax', off: s.n >= s.max });
       out.push({ x: bx, y: 186, w: 110, h: 16, label: s.sell ? 'SELL' : 'BUY', go: 'qok' }, { x: bx + 120, y: 186, w: 90, h: 16, label: 'BACK', go: 'qback' });
     }
     if (s.kind === 'equip') {
@@ -441,7 +461,7 @@
       var r = this.rows()[b.k]; if (!r) return; this.cur = b.k;
       var it = DS.DATA.items[r.id];
       if (this.tab === 'buy') { var p = this.price(r.id); if (stacks(it)) { var mx = Math.min(99, Math.floor(this.st.silver() / p)); if (mx > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: mx, price: p }; return; } } this.buy(r.id, 1); }
-      else { var cnt = count(this.st, r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it, r.id), sell: true }; this.setFace('skeptical'); return; } this.sell(r.id, 1); }
+      else { var cnt = count(this.st, r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it, r.id), sell: true }; this.setFace('skeptical'); return; } this.sub = { kind: 'qty', id: r.id, n: 1, max: 1, price: this.offer(it, r.id), sell: true, one: true }; this.setFace('skeptical'); } // (one of a thing: SELL IT? and its price, SELL or BACK -- 11-24, his NOTES day 8 15:00, Silverton 45,32: "reloading, seems i sold the wrong rope..."; the lean RULED on his "leans otherwise approved")
       return;
     }
     if (s && b.go === 'qminus') { s.n--; return; }
@@ -509,8 +529,8 @@
       var s = this.sub, it = DS.DATA.items[s.id];
       D.win8(ctx, RX, 104, RW, 140);
       if (s.kind === 'qty') {
-        D.text(ctx, '{y}' + (s.sell ? 'SELL' : 'BUY') + ' HOW MANY?{/}  ' + it.name, RX + 9, 112, W8.text);
-        D.text(ctx, s.n + '', RX + 8 + 58, 164, W8.gold, 'center');
+        D.text(ctx, '{y}' + (s.sell ? 'SELL' : 'BUY') + (s.one ? ' IT?' : ' HOW MANY?') + '{/}  ' + it.name, RX + 9, 112, W8.text);
+        if (!s.one) D.text(ctx, s.n + '', RX + 8 + 58, 164, W8.gold, 'center');
         D.text(ctx, s.n + ' x ' + s.price + ' = ' + (s.n * s.price) + ' sp', RX + 9, 132, W8.text);
       } else D.text(ctx, '{y}EQUIP IT NOW?{/}  ' + it.name + ' -- who takes it?', RX + 9, 112, W8.text);
     }
@@ -868,7 +888,7 @@
   // a hero's portrait by the figure the hero wears (js/save.js SV.look): the big bust on the first page of the art desk's package, a still (tools/hero-portrait.py;
   // 10-22, Griz: "The first page of the characters stuff was supposed to have a big one, if you can find that use the one based on the outfit he's in") --
   // Aurdin's Red Mantle out of robes, his Ochre in them
-  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre', lymen_p0: 'pt_lymen', lymen_p1: 'pt_lymen', lymen_p2: 'pt_lymen', barley_p2: 'pt_barley_coat', vivian_p0: 'pt_vivian', vivian_p2: 'pt_vivian', vivian_p3: 'pt_vivian' }; // (Lymen's talking portrait, art-wanted §33, cut mirrored to sit bottom left: the company scene, js/hours.js H16.papaScene, 10-30; Vivian's, art-wanted §37, the same way, 11-05)
+  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre', lymen_p0: 'pt_lymen', lymen_p1: 'pt_lymen', lymen_p2: 'pt_lymen', barley_p2: 'pt_barley_coat', barley_p3: 'pt_barley_coat', vivian_p0: 'pt_vivian', vivian_p2: 'pt_vivian', vivian_p3: 'pt_vivian' }; // (barley_p3, his chain, on the coat's bust till the art desk's chain bust comes: 11-24, Griz, "if we lack the barley chain portrait the regular portrait is better than what we're using"; the chain bust asked: deep16-art-wanted.md section 97, deep16/_src/outbox/ASK-2026-11-24-barley-chain-bust) (Lymen's talking portrait, art-wanted §33, cut mirrored to sit bottom left: the company scene, js/hours.js H16.papaScene, 10-30; Vivian's, art-wanted §37, the same way, 11-05)
   C.heroPortrait = function (h) { var pt = C.HERO_PT[C.heroSheet(h)]; return pt && D.SHEETS && D.SHEETS[pt] ? pt : null; };
   // a hero with no portrait: the figure the hero wears on the floor, turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
   C.HERO_FACE = { facing: 7, zoom: 3, anim: 'idle', above: 4 }; // (at 2 the whole figure shows small; at 3 the head and the mantle: the seat's eye, 10-22)
@@ -1163,6 +1183,9 @@
   // points given back below it); with nobody worn it is supper and no more, and her word says so before a coin goes down. invented.json marta-hot-meal (the lines: the seat's)
   C.MEAL = { price: 1, offer: 'A hot meal off the fire, eaten here: {cost}.', worn: 'Somebody\'s dragging. Hot food takes the edge off.', fed: 'Nobody here\'s dragging. It\'s supper, no more.',
     served: 'Bowls of her stew, bread to wipe them, eaten standing at the stall.', less: '{name} is less worn (exhausted {n}).', clear: '{name} eats the weariness off: not exhausted now.', none: 'Warm and fed.' };
+  // any meal eaten that is a MEAL: Marta's rule and Marta's words for each one who sheds a level, none when nobody is worn (11-24, his NOTES day 12 07:10 at the Halfway Inn: "home-cooked
+  // meal also does exhaustion like Viv's mom"; the lean RULED on his "leans otherwise approved") -- the inn's supper (js/inn.js In.meal) calls it; Asdis's food has its own (js/asdis.js A.fed)
+  C.mealFed = function (B) { var out = []; C.mealEaters(B).forEach(function (u) { if (!C.mealOne(u)) return; var n = D.house.exh(u.src); out.push((n ? C.MEAL.less : C.MEAL.clear).split('{name}').join(u.name).split('{n}').join(n)); }); return out; };
   C.mealEaters = function (B) { var R0 = B && B.roam; return R0 ? R0.members.filter(function (u) { return u.src && !u.dead && u.hp > 0 && !u.src.dead; }) : []; };
   C.mealCost = function (B) { return C.mealEaters(B).filter(function (u) { return (u.src.key || u.src.id) !== 'vivian'; }).length * C.MEAL.price; };
   // one who eats: a level of exhaustion off the sheet, and the figure on the floor as the sheet now stands. The levels shed
@@ -1472,16 +1495,16 @@
   // lean: ready the morning after the party brings him the braid). The braid is the ettercap's Braided Cord (content/items.json cord), cut out of its web when it is beaten (js/gulch.js
   // Gu.ettercap). Coming into Percy's (js/town.js T.goIn -> C.atDoor) Ned speaks up, once a visit, while he has something to say: the braid in the pack (since 11-18 no offer before it), the wand ready; E on
   // him says it too (C.ned, first). Flags: nedWand (asked), nedBraid (THE WORLD's hour the braid came in), nedWandGot. Words the seat's drafts, invented.json ned-wand-1116
-  C.WAND = { item: 'wandofweb', braid: 'cord', morning: 6 }; // (ready from 06:00 the day after the braid came in: invented.json wand-morning-1116)
+  C.WAND = { item: 'wandofweb', braid: 'cord', morning: 5 }; // (ready from 06:00 the day after the braid came in: invented.json wand-morning-1116; from the dawn bell, 05:00, since 11-24 -- his NOTES day 9 05:55 dawn, Silverton 33,49: "not yet, in the morning - but it's morning?", the lean RULED on his "leans otherwise approved": THE WORLD's clock says dawn from 05:00, js/world.js W.todAt)
   // RE-CUT 2026-11-18 (his NOTES of 11-16 night, Silverton 33,49: "Nothing from Ned regarding the wand until you have it, then happen to walk into Percy's. Then Ned interrupts like
   // he's doing now with "You killed the Ettercap. My Rat says you have it's braid. I could make you a wand with that.""): no offer before the braid -- the bounty and the braid
   // rumour lines are gone; the braid in the pack, coming into Percy's, his line (verbatim, "it's" its), then the braid handed over and the morning after as before
   C.NED_WAND = {
     heard: ['"You killed the Ettercap. My Rat says you have its braid. I could make you a wand with that."'],
     braidAsk: '"Is that the braid?"',
-    braid: ['Ned turns the braid over in the lamplight. "Even-handed. Patient." He winds it round two fingers and puts it in his coat.', '"Come back in the morning. It\'ll be ready."'],
+    braid: ['Ned turns the braid over in the lamplight. "Even-handed. Patient." He winds it round two fingers and puts it in his coat.', '"Come back at first light. It\'ll be ready."'],
     keep: ['"It keeps. Bring it when you want the wand."'],
-    waiting: ['"Not yet. In the morning -- silk wants a night."'],
+    waiting: ['"Not yet. At first light -- silk wants a night."'],
     ready: ['"Morning." Ned sets a slim wand on the counter, grey and ridged, like a braid pulled tight.', '"Seven webs in it, and it finds a few more each dawn. It wants a spellcaster to hold it."'] };
   C.NED_WAND_REPLIES = { give: 'Here it is.', keep: 'Not yet.' };
   // a save that beat the ettercap before 11-16 was told "There is a braided cord in the web" and never given it: in the pack once, here
@@ -1543,7 +1566,7 @@
   // 3rd its words say he is ready and its step is a KEY step (js/hours.js H16.keyCard: it flies into the JOURNAL as the lead reaches it); the ring had, done, and onward to the lake
   // in Winters' words (winters.ring: "For the thing in the lake"). invented.json winters-ring-at-3-1105
   C.RING_WORDS = { text: 'Ambrose Winters, Acquisitions & Estates, Fountain Street. The one who leads you is ready now, and Winters has something for you.',
-    step: 'Winters, on Fountain Street: the one who leads you is level 3 now, and he is ready.',
+    step: 'Winters, on Fountain Street: the one who leads you is level 3 now, and ready.', // (no "he": the one who leads may be any of the four -- 11-24, world-1124)
     doneText: 'The Ring of Water Walking, for the thing in the lake, Winters says. The Halfway Inn, down the road.' };
   // NED'S WAND (C.nedWand, 11-16): in the JOURNAL once he has spoken of the braid (11-18: no offer before it), done with the wand in hand
   C.OWN_QUESTS.push({ id: 'nedwand', name: 'Ned\'s Wand', show: 'flag:nedWand', done: 'flag:nedWandGot',
@@ -1552,9 +1575,20 @@
     steps: [{ 'if': '!has:cord & !flag:nedBraid', site: 'webgulch', where: 'The ettercap\'s braid, out of its web at Web Gulch\'s strung end: out of Silverton by the east gate, then down the road on THE WORLD past the fork.' },
       { 'if': 'has:cord & !flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the braid for the wand.' },
       { 'if': 'flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned has the braid. The wand will be ready in the morning, at Percy\'s Particulars.' }] });
-  C.OWN_QUESTS.push({ id: 'ring', doneText: function (st) { return st && st.flags && st.flags.wintersLakeRing ? C.WINTERS_LAKE.doneText : C.RING_WORDS.doneText; }, // (the lake dead first: C.WINTERS_LAKE)
-    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return st && st.flags && st.flags.lakeDone && !st.flags.wintersRing ? C.WINTERS_LAKE.text : C.ringReady(st) ? C.RING_WORDS.text : q.text; },
-    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; if (st && st.flags && st.flags.lakeDone && !st.flags.wintersRing) return [{ map: 'winters', npc: 'winters', where: C.WINTERS_LAKE.step }]; return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
+  // TO THE INN BY THE LAKE'S NIGHT (11-24, world-1124 -- his NOTES day 15 12:15, bog hex 60,28: "discuss - adding steps to 'when you're ready' that get you to the inn on sacrifice
+  // night"; the lean RULED on his "leans otherwise approved", the desk's list E16): the ring had, WHEN YOU'RE READY stays open till the thing in the lake is dead (lakeDone), its
+  // step the Halfway Inn by dusk on the next due night (js/inn.js In.nightsToDue: day 15, then every 28 -- 43, 71), counted from THE WORLD's day, and on the night itself
+  // "Tonight"; a party past it is sent to the next. Its arrow THE WORLD's site, the inn. Done: Winters' ring words with the lake quiet. Till then it was done with the ring in
+  // hand, and nothing said when the lake is fed. The words the seat's drafts (invented.json ring-lake-night-1124)
+  C.RING_LAKE = { by: 'The Halfway Inn by dusk on day {day}: the thing in the lake is fed that night ({when}). Winters\' ring walks the one who wears it out on the water.',
+    tonight: 'Tonight, at the Halfway Inn: the thing in the lake is fed. Be there by dusk.', done: 'The Ring of Water Walking, for the thing in the lake, Winters said. The lake is quiet now.' };
+  C.ringLakeSteps = function (st) {
+    var In = D.inn, W = D.world, d = NaN; try { d = W && W.day ? W.day() : NaN; } catch (e) { } if (!In || !In.nightsToDue || !isFinite(d)) return [{ site: 'inn', where: C.RING_WORDS.doneText }];
+    var n = In.nightsToDue(st.flags, d); return [{ site: 'inn', where: n <= 0 ? C.RING_LAKE.tonight : C.RING_LAKE.by.replace('{day}', d + n).replace('{when}', n === 1 ? 'tomorrow' : 'in ' + n + ' days') }];
+  };
+  C.OWN_QUESTS.push({ id: 'ring', done: 'has:ringwaterwalking & flag:lakeDone', doneText: function (st) { return st && st.flags && st.flags.wintersLakeRing ? C.WINTERS_LAKE.doneText : C.RING_LAKE.done; }, // (the lake dead first: C.WINTERS_LAKE)
+    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return st && st.flags && st.flags.lakeDone && !st.flags.wintersRing ? C.WINTERS_LAKE.text : st && C.cond('has:ringwaterwalking', st) ? C.RING_WORDS.doneText : C.ringReady(st) ? C.RING_WORDS.text : q.text; },
+    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; if (st && st.flags && st.flags.lakeDone && !st.flags.wintersRing) return [{ map: 'winters', npc: 'winters', where: C.WINTERS_LAKE.step }]; if (st && !st.flags.lakeDone && C.cond('has:ringwaterwalking', st)) return C.ringLakeSteps(st); return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
   // (a second game's record of a first-game id stands over it, field by field -- its show, its words, its steps: js/hours.js; `text` and `steps` may be read off the state; the
   // list in C.QUESTS's order)
   C.quests = function (st) {

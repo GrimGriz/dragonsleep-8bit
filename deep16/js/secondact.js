@@ -446,7 +446,7 @@
   A.bucketEgg = function* (B) {
     var f = B.roam.flags, Mg = D.magic, e = Mg && Mg.EGGS && Mg.EGGS.bucket; if (!e || !Mg.eggDraw || f[e.flag]) return false;
     f[e.flag] = 1; A.trail('THE BUCKET LIST: the yellow egg, the whole party asleep under Elsbeth\'s bucket');
-    yield { scene: { draw: Mg.eggDraw(e.line, e.hue), frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: 'bucket' } }; // (the floor holds while it is up, as a fight does: js/ui.js scene)
+    yield { scene: { draw: Mg.eggDraw(e.line, e.hue), frames: Mg.EGG_FRAMES || 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: 'bucket' } }; // (the floor holds while it is up, as a fight does: js/ui.js scene)
     return true;
   };
   A.drag = function* (B, party, seat) {

@@ -459,7 +459,7 @@
   // the 8-bit's conditions on the floor's flags: flag:x, !flag:x, & and | (js/roam.js R.cond's reading); has:, hired:, lead: read off the party (T.holds)
   T.cond = function (c, flags, holds) {
     if (!c) return true;
-    return String(c).split('|').some(function (any) { return any.split('&').every(function (t) { t = t.trim(); var neg = t.charAt(0) === '!'; if (neg) t = t.slice(1); var m = /^(flag|has|hired|lead):(.+)$/.exec(t), v = !m ? true : m[1] === 'flag' ? !!flags[m[2]] : !!(holds && holds(m[1], m[2])); return neg ? !v : v; }); });
+    return String(c).split('|').some(function (any) { return any.split('&').every(function (t) { t = t.trim(); var neg = t.charAt(0) === '!'; if (neg) t = t.slice(1); var m = /^(flag|has|hired|lead|renown):(.+)$/.exec(t), v = !m ? true : m[1] === 'flag' ? !!flags[m[2]] : !!(holds && holds(m[1], m[2])); return neg ? !v : v; }); });
   };
 
   // ---------------------------------------------------------------- on the floor: the people stood, a door stepped on, a word with someone
@@ -510,7 +510,7 @@
     var holds = function (k, v) {
       if (k === 'has') return (B.inv || []).some(function (s) { return s.id === v && s.n > 0; });
       var who = (R0 ? R0.members : []).map(function (u) { return String(u.name || '').toLowerCase(); });
-      return k === 'hired' ? who.indexOf(v) >= 0 : k === 'lead' ? who[0] === v : false;
+      return k === 'hired' ? who.indexOf(v) >= 0 : k === 'lead' ? who[0] === v : k === 'renown' ? !!(D.counter && D.counter.renownOf && D.counter.renownOf() >= +v) : false; // (renown:N, the party's renown at N or more: 11-24, js/counter.js C.cond)
     };
     var t = (N.talk || []).filter(function (e) { return T.cond(e['if'], f, holds); })[0];
     if (t && t.say) return t.say.slice();

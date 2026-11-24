@@ -760,12 +760,15 @@
     // (SOMETHING WENT BY, 11-15: the black egg -- within five miles of the Vessel on his road and never met; paid a day or more later, at a sleep or the third dawn,
     // never at the pass: deep16/js/blackegg.js keeps its flag in the save's own flags)
     stars: { flag: 'eggStars', line: 'Something Went By', hue: 'black' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
+  // THE EGG SCREEN HELD LONGER (11-24, his NOTES day 12 07:10, the Halfway Inn: "text slower on egg screen"; the lean RULED on his "leans otherwise approved"): 480 frames, 8 s, where
+  // it was 230; E or a click goes on after the first second as before (js/ui.js scene). The floor's egg (js/secondact.js A.bucketEgg) reads it too
+  M.EGG_FRAMES = 480;
   M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = M.jokeFlags ? M.jokeFlags(B) : (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); }; // (the house's save too, 11-05: js/house.js keeps an egg found -- once a save)
   M.egg = function* (B, key) {
     if (M.eggFound(B, key)) return;
     B.flags8 = B.flags8 || {}; B.flags8[M.EGGS[key].flag] = 1;
     // the battle holds while the egg is up (a cutscene beat, js/ui.js scene: E, or a click, after a second goes on)
-    yield { scene: { draw: key === 'joke' ? M.jokeEgg : M.eggDraw(M.EGGS[key].line, M.EGGS[key].hue), frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: key } };
+    yield { scene: { draw: key === 'joke' ? M.jokeEgg : M.eggDraw(M.EGGS[key].line, M.EGGS[key].hue), frames: M.EGG_FRAMES, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: key } };
   };
   // Hunter's Mark and Mirror's Gaze: a mark held by concentration; when the marked one drops, a bonus action moves it (no slot)
   function markSpell(id, name, o) {

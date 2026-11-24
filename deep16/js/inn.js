@@ -949,6 +949,7 @@
     S.canPush = function (e) { return S.offer === 'none' && (S.tell === 'full' || !!(S.opened[e.key] || {}).bowl); };
     var wait = function (o) { return o.narr ? sc.narr([o.narr]) : o.look ? sc.lookAt(who(o.look), [o.line], o.at ? who(o.at) : null) : sc.by(who(o.by), [o.line]); };
     f.mealHad = 1; f.mealDay = d; f.supCount = (f.supCount || 0) + 1; f.supKind = kind; if (kind === 'amara') f.supAmara = 1; if (kind === 'alone') f.supAlone = 1;
+    if (D.counter && D.counter.mealFed && D.house && D.house.exh) D.counter.mealFed(B).forEach(function (l) { S.out.push({ narr: l }); In.trail('supper: ' + l); }); // (the supper sheds a level of exhaustion as Marta's hot meal: js/counter.js C.mealFed, 11-24 -- world-1124; said before the table's own words)
     In.trail('supper: ' + kind + ', day ' + d + ', renown ' + S.renown + ', the table ' + ['cold', 'civil', 'warm'][S.warm]);
     if (kind === 'first' || kind === 'later') { var had = f.supAsked || {}; SU.KEPT.forEach(function (k) { if (had[k]) S.asked[k] = 1; }); var rd0 = f.supReads || {}; ['counted', 'rich', 'coin'].forEach(function (id) { if (!rd0[id]) S.reads([id]); else S.qd[id] = 1; }); }
     else S.reads({ amara: ['barnbowl', 'noname'], alone: [], sacrifice: [] }[kind]);

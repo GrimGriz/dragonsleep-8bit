@@ -60,6 +60,12 @@
   R.warpsOn = function (M8, flags) { return (M8.warps || []).filter(function (w) { return R.cond(w.cond, flags || {}); }); };
   // a quarter counter-clockwise, as the Settling's grid (data/maps.js wet: the 8-bit square (x, y) is the grid's (y, W8 - 1 - x))
   R.turn = function (R8) { var W8 = R8[0].length, rows = []; for (var gy = 0; gy < W8; gy++) { var r = ''; for (var gx = 0; gx < R8.length; gx++) r += R8[gx][W8 - 1 - gy]; rows.push(r); } return rows; };
+  // THE POOLS TO THE KNEE (11-24, his NOTES day 8 17:30, the Crawler Warrens 17,5: "can we make the wet roam pools of water the knee-deep type we have elsewhere - right now barley
+  // was standing on top (landlord stays the same - other wet pools)"; the lean RULED on his "leans otherwise approved"): a floor's '~' to the knee, as the inn's lake (js/innprops.js
+  // IP.WADE, 9) -- js/ui.js UI.wading reads a def's wadeAt as the def's own method; a 'D' (the landlord's deep water, the drowned stair) as before, 3. The Wet's def and the
+  // Warrens' and the mines' floors (js/mines.js M.fieldDef) carry it
+  R.WADE_KNEE = 9;
+  R.wadeKnee = function (x, y) { var r = this.rows && this.rows[y]; return r && r[x] === '~' ? R.WADE_KNEE : 3; };
   R.wholeWet = function (flags) {
     var M8 = window.DS.DATA.maps.warrens_d, sig = R.tileSig(M8, flags);
     if (D.MAPS.wetwhole && D.MAPS.wetwhole.sig === sig) return D.MAPS.wetwhole;
@@ -71,6 +77,7 @@
     var at8 = function (l) { return l.map(function (p) { return from8(p[0], p[1]); }); };
     D.MAPS.wetwhole = {
       // (sub: a player's words since 11-04, the house lane's Tuesday 10 -- not `name`, which seeds the floor's look)
+      wadeAt: R.wadeKnee, // (the pools to the knee, the landlord's water as it was: R.wadeKnee, 11-24)
       name: 'The Wet', sub: 'the flooded floor under the old workings', dark: true, step: 10, deepWater: 'D', // (the settling pools and the inflow wadable since 10-13, his "1 yes"; the landlord's water and the drowned stair deep)
       music: M8.music || 'dungeon', // (the first game's tune for warrens_d, at the door and again after a fight pulled in: R.tune -- 10-22, his "boss music still doesn't stop after landlord gets bucket")
       lampAt: wet.lampAt, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
