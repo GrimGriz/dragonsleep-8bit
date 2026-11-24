@@ -13325,9 +13325,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 4. a sleep begun 24 hours or more after: paid -- in the morning page's dark, the beat
       var sc4 = game(away, tp + 30, { pass: { t: tp, d: 4, day: 7, hour: 15 } }); D.ctx = cxBK; sfxL.length = 0; randN = 0; var m4 = camp(sc4), st4 = rec(), tr4 = (HB.cur.trail || []).filter(function (x) { return /SOMETHING WENT BY/.test(x.s); });
       var lit = function (y1) { var d = cxBK.getImageData(0, 0, D.W, y1).data, n = 0; for (var i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 330) n++; return n; }, shots = {}, phases = [], kB = 0;
-      while (m4 && m4.phase === 'night' && kB++ < 2000) { m4.update(); var tB = m4.stars ? m4.stars.t : -1; if (tB === 60 || tB === 150 || tB === 250 || tB === BE.T.egg + 40) { cxBK.clearRect(0, 0, D.W, D.H); m4.draw(cxBK); shots[tB] = lit(Math.round(D.H * 0.3)); } }
-      okBK('4 a camp begun 30 hours after the pass (day 8 at 21:00): paid at "' + st4.how + '" (the flag ' + HB.cur.flags.eggStars + ', the trail: ' + (tr4[0] ? tr4[0].s : 'NONE') + '); the morning page\'s night is the beat (' + !!(m4 && m4.stars) + '), ' + kB + ' frames; bright points in the sky at 60, 150 (the breath), 250 (back): ' + [shots[60], shots[150], shots[250]].join(', ') + ', and over the egg ' + shots[BE.T.egg + 40] + '; the sounds ' + sfxL.join(' ') + '; then ' + (m4 && m4.phase) + '; dice drawn ' + randN,
-        !!m4 && !!m4.stars && st4.paid != null && /sleep/.test(st4.how) && HB.cur.flags.eggStars === 1 && tr4.length === 1 && shots[60] > 20 && shots[150] === 0 && shots[250] > 20 && m4.phase === 'dawn' && sfxL.slice(0, 5).join(' ') === 'starsout starsback eggstars shine shine' && randN === 0 && st4.shown === true /* (then the dawn page's own confirm) */);
+      // (the frames read off BE.T since 11-24, the seat eyes-1124: the beat slowed -- before the out, in the breath, all back)
+      var fOut = 60, fDark = BE.T.out + BE.T.outFor + 20, fBack = BE.T.back + BE.T.backFor + 10;
+      while (m4 && m4.phase === 'night' && kB++ < 4000) { m4.update(); var tB = m4.stars ? m4.stars.t : -1; if (tB === fOut || tB === fDark || tB === fBack || tB === BE.T.egg + 40) { cxBK.clearRect(0, 0, D.W, D.H); m4.draw(cxBK); shots[tB] = lit(Math.round(D.H * 0.3)); } }
+      okBK('4 a camp begun 30 hours after the pass (day 8 at 21:00): paid at "' + st4.how + '" (the flag ' + HB.cur.flags.eggStars + ', the trail: ' + (tr4[0] ? tr4[0].s : 'NONE') + '); the morning page\'s night is the beat (' + !!(m4 && m4.stars) + '), ' + kB + ' frames; bright points in the sky at ' + fOut + ', ' + fDark + ' (the breath), ' + fBack + ' (back): ' + [shots[fOut], shots[fDark], shots[fBack]].join(', ') + ', and over the egg ' + shots[BE.T.egg + 40] + '; the sounds ' + sfxL.join(' ') + '; then ' + (m4 && m4.phase) + '; dice drawn ' + randN,
+        !!m4 && !!m4.stars && st4.paid != null && /sleep/.test(st4.how) && HB.cur.flags.eggStars === 1 && tr4.length === 1 && shots[fOut] > 20 && shots[fDark] === 0 && shots[fBack] > 20 && m4.phase === 'dawn' && sfxL.slice(0, 5).join(' ') === 'starsout starsback eggstars shine shine' && randN === 0 && st4.shown === true /* (then the dawn page's own confirm) */);
       wake(); D.ctx = ctx0BK;
       // 5. once a save: a second pass, a sleep 30 hours after it -- nothing more
       var S5 = WB.state(), paid5 = S5.stars.paid; BE.stage(BE.side(vAt(tp + 40).pt, 4) || vAt(tp + 40).pt, tp + 40); frames(sc4, 3); var pass5 = JSON.stringify(S5.stars.pass); BE.stage(away, tp + 72); D.ctx = cxBK; var m5 = camp(sc4);
@@ -18823,6 +18825,126 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.d = d0Oh;
     var preOh = document.createElement('pre'); preOh.id = 'out'; preOh.textContent = 'BENCH16 ' + JSON.stringify(repOh);
     document.body.appendChild(preOh);
+    return;
+  }
+  // THE SEAT eyes-1124 (mode=eyes1124; the eyes lane's 2026-11-24 section D1-D11 and the menus lane's 11-22 and 11-24 sections -- his play of 11-22 night to 11-24 and his "leans
+  // otherwise approved"): each re-doored card's door puts on screen what it asks (his 11-18 "need to see what it wants to me to look at or why bother"), and the menus' EFFECTS,
+  // the portraits' condition tints, the THROWN row and the OPTIONS clicks
+  if (get('mode', '') === 'eyes1124') {
+    var repE4 = { checks: [], errors: [] }, memE4 = {}, stGE4 = D.store.get, stSE4 = D.store.set, d0E4 = D.d, mu0E4 = D.music;
+    function okE4(what, v) { repE4.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function oursE4(Bx) { return Bx.units.filter(function (w) { return w.side === 'party' && !w.familiar; }); }
+    function showE4(mk, q) { var Bx = mk(q); D.battle = Bx; Bx.enter(); Bx.party0E4 = oursE4(Bx); var v, k = 0; while (Bx.co && k++ < 400000) { var r = Bx.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (y && y.prompt) v = y.prompt.opts[0].value; } return Bx; } // (party0E4: the party as it walked in -- each beat stages only its own)
+    function fightE4(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; return Bx; }
+    D.store.get = function (k) { return memE4[k] ? JSON.parse(memE4[k]) : null; }; D.store.set = function (k, v) { memE4[k] = JSON.stringify(v); return true; };
+    D.music = function () { };
+    try {
+      // D1: &only= in the address's order (the old show opened on Gennet's yield while the card named the chuul's claw first)
+      var B1e = showE4(D.rulesshow.make, '?rulesshow&fast&only=chuulheld,chuultentacles,spikeflier,thrownpickup,yieldstop&lvl=3'), r1e = B1e.rulesReport || [];
+      okE4('D1 ?rulesshow&only=chuulheld,chuultentacles,spikeflier,thrownpickup,yieldstop&lvl=3: ' + r1e.map(function (r) { return r.id + (r.ok ? '' : ' NO: ' + r.why); }).join(', ') + ' (want that order, each shown); the band at ' + oursE4(B1e).map(function (u) { return u.lvl; }).join('/'),
+        r1e.map(function (r) { return r.id; }).join(',') === 'chuulheld,chuultentacles,spikeflier,thrownpickup,yieldstop' && r1e.every(function (r) { return r.ok; }) && oursE4(B1e).every(function (u) { return u.lvl === 3; }));
+      // D2: the story's four in the roles (the old show stood the class band where the card named Aurdin); the mirror stirge on the Glowseep's ground
+      var B2e = showE4(D.rulesshow.make, '?rulesshow&fast&only=gridfixes1106&cast=story&lvl=3'), r2e = B2e.rulesReport || [], n2e = B2e.party0E4.map(function (u) { return u.name + ' ' + u.lvl; });
+      var why2e = function (id) { return ((r2e.filter(function (r) { return r.id === id; })[0]) || {}).why || ''; };
+      okE4('D2 ?rulesshow&only=gridfixes1106&cast=story&lvl=3: ' + n2e.join(', ') + ' -- ' + r2e.map(function (r) { return r.id + ': ' + (r.ok ? 'ok' : 'NO ' + r.why); }).join('; ') + ' | layhelp "' + why2e('layhelp') + '" | sleepaim ' + why2e('sleepaim'),
+        r2e.length === 5 && r2e.every(function (r) { return r.ok; }) && ['Aurdin 3', 'Vivian 3', 'Lymen 3', 'Barley 3'].every(function (s) { return n2e.indexOf(s) >= 0; }) && /Aurdin shaken awake/.test(why2e('layhelp')) && /on Barley/.test(why2e('layhelp')) && /Vivian \(\d+\) is in it/.test(why2e('sleepaim')));
+      var B2s = showE4(D.seepshow.make, '?seepshow&fast&only=mirrorstirge&cast=story&map=bog'), r2s = B2s.seepReport || [];
+      okE4('D2 ?seepshow&only=mirrorstirge&cast=story&map=bog: on ' + (B2s.fight && B2s.fight.map) + ' ("' + (B2s.fight && B2s.fight.name) + '"), ' + B2s.party0E4.map(function (u) { return u.name; }).join(', ') + ' -- ' + r2s.map(function (r) { return (r.ok ? 'ok ' : 'NO ') + r.why; }).join('; '),
+        r2s.length === 1 && r2s[0].ok && B2s.fight.map === 'bog' && /Barley, blood \(true\)/.test(r2s[0].why) && B2s.party0E4.some(function (u) { return u.name === 'Aurdin'; }));
+      // D3-D5: the wagon's three beats (THE WORLD, the house's NEW GAME)
+      var xE4 = new XMLHttpRequest(); xE4.open('GET', '../deep16/data/world-near.js', false); xE4.send(); (0, eval)(xE4.responseText);
+      try { var xT4 = new XMLHttpRequest(); xT4.open('GET', '../deep16/data/world-tiles.js', false); xT4.send(); (0, eval)(xT4.responseText); } catch (eT4) { }
+      window.DS.autoPicks = true; D.world.index(); var WgE = D.wagon, WE = D.world, HE = D.house, beatE = function (id) { return WgE.BEATS.filter(function (b) { return b.id === id; })[0]; };
+      D.seed = 1124; WgE.play(beatE('roadnorth')); var scN = WE.scene, bN = null, bS = null;
+      WgE.fight(scN, { leg: 'north', k: 0 }); bN = D.top(); if (bN instanceof D.Battle) D.pop();
+      WgE.fight(scN, { leg: 'south', k: 0 }); bS = D.top(); if (bS instanceof D.Battle) D.pop();
+      var ridersE = function (b) { return b instanceof D.Battle ? b.riders.filter(function (r) { return !r.team; }).length : -1; };
+      okE4('D3 the road north\'s fight: ' + ridersE(bN) + ' "goblin" on the wagon\'s tail (want 1, as the talk\'s picture), the road south\'s ' + ridersE(bS) + ' (want 2)', ridersE(bN) === 1 && ridersE(bS) === 2);
+      HE.playing = false; HE.cur = null; D.scenes.length = 0;
+      WgE.play(beatE('roadday')); var sc4e = WE.scene, S4e = WE.state(), m4e = WE.M(), w4e = WgE.now(), p4e = WgE.roadS(WE.restPt()).s, nb4e = null;
+      for (var dy4 = -1; dy4 <= 1; dy4++) for (var dx4 = -1; dx4 <= 1; dx4++) { var x4 = S4e.at[0] + dx4, y4 = S4e.at[1] + dy4, P4 = m4e.road[WE.K(x4, y4)]; if (P4 && (dx4 || dy4) && (P4.id === 'pitroad' || P4.id === 'mile')) { var s4 = WgE.roadS(WE.hc(x4, y4)).s; if (!nb4e || s4 < nb4e.s) nb4e = { x: x4, y: y4, s: s4 }; } }
+      var t4e = S4e.t; if (nb4e) { sc4e.walk = { path: [[nb4e.x, nb4e.y]], f: 0, goal: [nb4e.x, nb4e.y] }; for (var k4 = 0; k4 < 900 && sc4e.walk && D.top() === sc4e; k4++) sc4e.update(); }
+      var top4e = D.top();
+      okE4('D4 the road by day: the four at mile ' + p4e.toFixed(2) + ', the wagon at ' + (w4e ? w4e.s.toFixed(2) + ' (' + w4e.leg + ')' : 'none') + ' at ' + WE.timeOfDay() + '; a step south to ' + (nb4e ? nb4e.x + ',' + nb4e.y + ' (mile ' + nb4e.s.toFixed(2) + ')' : 'NO ROAD HEX') + ': ' + (top4e instanceof D.counter.Counter ? 'the talk, ' + top4e.o.name + ', ' + top4e.o.what : 'no talk (' + (top4e && (top4e.kind || top4e.constructor.name)) + ')'),
+        !!w4e && w4e.leg === 'south' && p4e > w4e.s && !!nb4e && t4e % 24 === 16 && top4e instanceof D.counter.Counter && top4e.o.name === 'Amara' && /south of the Halfway Inn/.test(top4e.o.what));
+      HE.playing = false; HE.cur = null; D.scenes.length = 0;
+      var row5e = (window.DS.EYES || {})['eyes-wagon-mark-debug-1124'];
+      okE4('D5 the mark\'s card asks for the debug mark: ' + (row5e && row5e.url) + ' (Wg.mark reads &wagonmark)', !!row5e && /[?&]wagonmark\b/.test(row5e.url) && /beat=mark/.test(row5e.url));
+      // D6: the replay the card opens ships with the game (walk-replays/ is the benches', kept off the live site)
+      var f6e = null; try { var x6 = new XMLHttpRequest(); x6.open('GET', '../deep16/replays/questwalk-five-seed3-1115.json', false); x6.send(); f6e = JSON.parse(x6.responseText); } catch (e6) { f6e = null; }
+      var row6e = (window.DS.EYES || {})['eyes-markers-replay-live-1124'];
+      okE4('D6 the replay: RP.DIRS ' + JSON.stringify(D.replay && D.replay.DIRS) + '; deep16/replays/questwalk-five-seed3-1115.json ' + (f6e ? 'v' + f6e.v + ' ' + f6e.mode + ' seed ' + f6e.seed + ' to day ' + f6e.to : 'NOT THERE') + '; the card\'s door ' + (row6e && row6e.url),
+        !!D.replay && D.replay.DIRS.indexOf('replays/') >= 0 && !!f6e && f6e.v === 1 && f6e.mode === 'questwalk1114' && !!row6e && /replay=questwalk-five-seed3-1115\b/.test(row6e.url));
+      // D7: the supper's test floor with silver in the purse
+      var mk7 = function (q) { var b = D.roam.make(q); D.scenes.length = 0; D.push(b); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return b; };
+      var B7e = mk7('?roam=halfway&hour=18&day=5&at=24,17&silver=60&lvl=3'), sv7 = B7e.roam ? B7e.roam.silver : null, svC7 = D.counter.state(B7e).silver(), lv7 = ((B7e.roam && B7e.roam.members) || []).map(function (u) { return u.lvl; });
+      var B7b = mk7('?roam=halfway&hour=18&day=5&at=24,17'), sv7b = B7b.roam ? B7b.roam.silver : null; D.scenes.length = 0;
+      okE4('D7 the supper\'s door, &silver=60: the floor\'s purse ' + sv7 + ' (the counter reads ' + svC7 + '), the four at ' + lv7.join('/') + '; without it ' + sv7b + ' (a room is ' + D.inn.PRICE + ' a head)', sv7 === 60 && svC7 === 60 && sv7b === 0 && lv7.every(function (l) { return l === 3; }));
+      // D8: the black egg's clock, slowed
+      var T8e = D.blackEgg.T, dark8 = T8e.line1 - (T8e.out + T8e.outFor), hold8 = T8e.back - T8e.line1, read8 = T8e.egg - T8e.line2;
+      okE4('D8 the black egg: ' + dark8 + ' frames of dark before the first line, held ' + hold8 + ' before the stars, back over ' + T8e.backFor + ', the second line ' + (T8e.line2 - T8e.back - T8e.backFor) + ' after the last star, ' + read8 + ' before the egg (sixty a second)',
+        dark8 >= 50 && hold8 >= 200 && T8e.backFor >= 120 && T8e.line2 >= T8e.back + T8e.backFor && read8 >= 300 && T8e.end - T8e.egg >= 230);
+      // D9: his wheel with FOLLOW on and a laid rune's square under him (every click went to the rune's card)
+      var RN9 = D.runes, Pr9 = new D.Pocket(); Pr9.enter(); Pr9.ask = function () { return true; }; Pr9.st.dm = true; var cp9 = D.pocketdm.camp(Pr9.st); cp9.purse = 100000;
+      var m9 = D.pocketdm.newModule(Pr9.st, 'EYES BENCH'), s9 = D.pocketdm.addSlot(Pr9, m9, 'hexfloor', 16); s9.foes = ['goblin']; s9.mine = 0; s9.units = [];
+      var B9 = RN9.floor(Pr9, m9, 0); D.battle = B9; B9.enter(); var L9 = B9.lay, ms9 = D.input.mouse, onM9 = RN9.onMage, at9 = RN9.runeAt, oc9 = RN9.openCard, cards9 = 0, a9 = null, b9 = null, c9 = null;
+      RN9.runeAt = function () { return { at: [0, 0], sq: [], foes: ['goblin'] }; }; RN9.openCard = function () { cards9++; };
+      try {
+        RN9.onMage = function () { return true; }; L9.follow = true; L9.mode = 'fly'; L9.floorHover = { x: L9.mage.x, y: L9.mage.y }; ms9.click = true; RN9.input(B9); a9 = L9.mode; ms9.click = false; if (L9.wheel) RN9.closeWheel(B9);
+        RN9.onMage = function () { return false; }; ms9.rclick = true; RN9.input(B9); b9 = L9.mode; ms9.rclick = false; if (L9.wheel) RN9.closeWheel(B9);
+        ms9.click = true; RN9.input(B9); c9 = cards9; ms9.click = false; // (a click on a rune off him: its card, as before)
+      } finally { RN9.onMage = onM9; RN9.runeAt = at9; RN9.openCard = oc9; ms9.click = false; ms9.rclick = false; }
+      okE4('D9 FOLLOW on, a laid rune under him: a click on him opens ' + a9 + ' (want wheel, no rune card), a right click off him ' + b9 + ' (want wheel); a click on a rune off him opens its card (' + c9 + ')', a9 === 'wheel' && b9 === 'wheel' && c9 === 1);
+      // D10: Drill's turn begun on his thrown dagger (the old door never staged it)
+      var DRILLe = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger';
+      var B10 = D.npcFight('?npc=bugbear&lvl=3&vs=' + DRILLe + '&underfoot', {}); D.battle = B10; B10.enter(); var d10 = oursE4(B10)[0], th10 = !!(d10 && d10.offhandThrown), g10 = (B10.ground || []).map(function (g) { return g.name + '@' + g.x + ',' + g.y; });
+      var on10 = (B10.ground || []).every(function (g) { return d10 && g.x === d10.x && g.y === d10.y; }), k10 = 0; while (!B10.order.length && k10++ < 400) B10.co.next(); B10.dark = false;
+      D.rules.startTurn(d10); B10.active = d10; B10.reloadAtStart(d10);
+      var l10 = (B10.logEntries || []).map(function (e) { return window.DS.stripCodes(String(e.text)); }).join(' | '), pk10 = (B10.commands(d10) || []).filter(function (c) { return c.id === 'pickup'; })[0];
+      okE4('D10 &underfoot: at the start ' + d10.name + '\'s off hand thrown ' + th10 + ', underfoot ' + g10.join(', ') + ' (on his square ' + on10 + '); his turn begun: the off hand thrown ' + !!d10.offhandThrown + ', left there ' + (B10.ground || []).map(function (g) { return g.name; }).join(', ') + ', PICK UP ' + (pk10 ? pk10.cost + ' ' + pk10.label : 'none') + ' -- "' + ((/[^|]*takes up the dagger[^|]*/.exec(l10) || [''])[0]).trim() + '"',
+        th10 && g10.length === 2 && on10 && !d10.offhandThrown && (B10.ground || []).length === 1 && B10.ground[0].id === 'handaxe' && (l10.match(/takes up the dagger from underfoot/g) || []).length === 1 && !!pk10 && pk10.ok && pk10.cost === 'A');
+      // D11: the second act's show takes &seed=, set as the beat begins and again as the lake fight begins
+      var A11 = D.secondact; A11.show('?show=secondact&beat=offerwater&lvl=3&seed=1124'); var sq11 = A11.seedQ; A11.show('?show=secondact&beat=offerwater&lvl=3'); var sq11b = A11.seedQ;
+      okE4('D11 ?show=secondact&seed=1124: the show holds ' + sq11 + ' (and ' + sq11b + ' without it); A.play and A.lakeFight set it', sq11 === 1124 && sq11b === null && /A\.seedQ != null\) D\.seed = A\.seedQ/.test(String(A11.play)) && /A\.seedQ != null\) D\.seed = A\.seedQ/.test(String(A11.lakeFight)));
+      // THE MENUS: the four laid as the fight begins (&conds=), the menu opened on the first of ours
+      var B12 = fightE4('?npc=giantspider&lvl=3&conds=poisoned:1,restrained:2,paralyzed:3,light:4'), o12 = oursE4(B12), MNe = window.DS.MENU, PALe = D.PAL.ramps;
+      D.rules.startTurn(o12[0]); B12.active = o12[0]; var req12 = B12.req; B12.req = Object.assign({}, req12 || {}, { turn: o12[0] }); D.ui.openMenu(B12); B12.req = req12; var m12 = B12.menu && B12.menu.m, host12 = m12 && m12.host; // (the hero's turn begun: EQUIP in a fight reads its turn's costs)
+      var hOf12 = function (n) { return host12.party().filter(function (x) { return x.name === n; })[0]; }, lk12 = {};
+      ['Barley', 'Aurdin', 'Vivian', 'Lymen'].forEach(function (n) { lk12[n] = MNe.lookOf(host12, hOf12(n), 0); });
+      okE4('M tints on the menu\'s portraits (&conds=poisoned:1,restrained:2,paralyzed:3,light:4 -- ' + o12.map(function (u) { return u.name + ' ' + Object.keys(u.conds).join('+'); }).join(', ') + '): ' + JSON.stringify(lk12),
+        !!lk12.Barley && !!lk12.Barley.tint && lk12.Barley.tint[0] === PALe.orc[3] && lk12.Barley.poison && !!lk12.Aurdin && lk12.Aurdin.web && !!lk12.Vivian && lk12.Vivian.tint[0] === PALe.violet[4] && !lk12.Lymen);
+      okE4('M the grid\'s own: poisoned tinted ' + JSON.stringify(D.ui.condTint({ conds: { poisoned: {} } }, 0)) + ' (it had none), paralyzed ' + JSON.stringify(D.ui.condTint({ conds: { paralyzed: {} } }, 0)) + '; a web is webbed ' + D.ui.webbed({ conds: { restrained: { by: 'x' } } }) + ', a grip is not ' + D.ui.webbed({ conds: { restrained: { grapple: true } } }) + '; LK.web ' + typeof (D.looks && D.looks.web),
+        D.ui.condTint({ conds: { poisoned: {} } }, 0)[0] === PALe.orc[3] && D.ui.condTint({ conds: { paralyzed: {} } }, 0)[0] === PALe.violet[4] && D.ui.webbed({ conds: { restrained: { by: 'x' } } }) && !D.ui.webbed({ conds: { restrained: { grapple: true } } }) && typeof D.looks.web === 'function');
+      var efL12 = MNe.effectsOf(host12, hOf12('Lymen')), efB12 = MNe.effectsOf(host12, hOf12('Barley')), SP12 = new MNe.StatusPage(m12, hOf12('Lymen')), ki12 = SP12.pages.map(function (p) { return p.k; }).indexOf('effects'); SP12.p = ki12;
+      var ln12 = SP12.lines().map(function (l) { return l.t; }).join(' / ');
+      okE4('M EFFECTS on STATUS (page ' + ki12 + ' of ' + SP12.pages.map(function (p) { return p.g; }).join(',') + '): Lymen "' + ln12 + '"; Barley ' + JSON.stringify(efB12.on),
+        ki12 === 1 && efL12.on.some(function (e) { return e.t === 'light' && e.by === 'Aurdin'; }) && efL12.lights.some(function (l) { return /the Light cantrip, from Aurdin: bright 20 ft, dim 20 more/.test(l.t); }) && efB12.on.some(function (e) { return e.t === 'poisoned' && !!e.by; }) && /Lymen gives light/.test(ln12));
+      var cv12 = document.createElement('canvas'); cv12.width = D.W; cv12.height = D.H; var cx12 = cv12.getContext('2d'), err12 = null;
+      try { m12.draw(cx12); m12.push(SP12); m12.draw(cx12); m12.pop(); } catch (eD12) { err12 = String(eD12 && eD12.stack || eD12).slice(0, 300); }
+      okE4('M the panel and STATUS drawn with the tints and EFFECTS: ' + (err12 || 'no error'), !err12);
+      // OPTIONS: a click (E) on MUSIC or SOUND, off -> 1..10 -> off
+      var Ae = window.DS.audio, mv0e = Ae.musicVol, sv0e = Ae.sfxVol, sp0e = Ae.savePrefs, ops = [], key0 = { pressed: function (x) { return x === 'a'; }, repeat: function () { return false; } };
+      Ae.savePrefs = function () { };
+      try {
+        m12.root.go('options'); var op12 = m12.pages[m12.pages.length - 1];
+        Ae.musicVol = 0.95; op12.list.i = 0; op12.update(key0); ops.push('music 9.5 -> ' + Ae.musicVol); op12.list.i = 0; op12.update(key0); ops.push('-> ' + Ae.musicVol);
+        Ae.sfxVol = 1; op12.list.i = 1; op12.update(key0); ops.push('sound 10 -> ' + Ae.sfxVol); var rs12 = op12.rows()[1].right; op12.list.i = 1; op12.update(key0); ops.push('-> ' + Ae.sfxVol + ' (it read ' + rs12 + ' at 0)');
+        var mv1 = ops[0], mv2 = ops[1], sv1 = ops[2], sv2 = ops[3];
+        okE4('M OPTIONS clicks: ' + ops.join('; '), /-> 0$/.test(mv1) && /-> 0.1$/.test(mv2) && /-> 0$/.test(sv1) && /^-> 0.1 \(it read OFF at 0\)$/.test(sv2));
+        m12.pop();
+      } finally { Ae.musicVol = mv0e; Ae.sfxVol = sv0e; Ae.savePrefs = sp0e; }
+      // THROWN: the row named and its words
+      m12.root.go('equip'); var ep12 = m12.pages[m12.pages.length - 1], alt12 = ((ep12.list && ep12.list.items) || []).filter(function (r) { return r.value === 'alt'; })[0];
+      okE4('M EQUIP\'s carried throwing row: "' + (alt12 && alt12.label) + '", its note "' + (alt12 && alt12.note) + '"', !!alt12 && alt12.label === 'THROWN' && /THROW takes/.test(alt12.note || ''));
+      B12.menu = null;
+      // the fresh rows
+      var ids12 = ['eyes-gridfix-claw-first-1124', 'eyes-gridfixes-four-1124', 'eyes-mirror-stirge-seep-1124', 'eyes-wagon-roadnorth-fight-1124', 'eyes-wagon-roadday-met-1124', 'eyes-wagon-mark-debug-1124', 'eyes-markers-replay-live-1124', 'eyes-supper-silver-1124', 'eyes-black-egg-slow-1124', 'eyes-runes-wheel-follow-1124', 'eyes-underfoot-staged-1124', 'eyes-effects-status-1124', 'eyes-portrait-tints-1124', 'eyes-options-cycle-1124', 'eyes-thrown-row-1124'];
+      var miss12 = ids12.filter(function (id) { return !(window.DS.EYES || {})[id]; });
+      okE4('the fresh rows in js/eyes.js: ' + (ids12.length - miss12.length) + ' of ' + ids12.length + (miss12.length ? ' (missing ' + miss12.join(', ') + ')' : ''), !miss12.length);
+    } catch (e) { repE4.errors.push(String(e && e.stack || e)); }
+    D.d = d0E4; D.music = mu0E4; D.store.get = stGE4; D.store.set = stSE4; if (D.battle) D.battle.menu = null;
+    var preE4 = document.createElement('pre'); preE4.id = 'out'; preE4.textContent = 'BENCH16 ' + JSON.stringify(repE4);
+    document.body.appendChild(preE4);
     return;
   }
   // THE FLOOR PICK-UP FROM THE SQUARE STOOD ON (mode=pickup1121; the grid's rules lane, 2026-11-21 -- Griz's card note on Drill's daggers, his ear file of 11-21 0112Z: "watch fight
