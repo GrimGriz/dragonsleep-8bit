@@ -4,6 +4,16 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-24
 
+- 2026-11-24 · `66966123` · the story build · The Dominion's dragger fighting: `dragger_p2` cut from ART-159, the pike thrust along the hip and the Pike Rank in all eight facings, beside the Line Guard, worn by no one yet (the cutter seat cutter-1124); art-wanted 95's fourth page in hand (`9c9d9d2f`) · *"Dominion will have both as well"*
+- 2026-11-24 · seen · the leveling · `eyes-runes-lay-1110`, SEEN on the card before it; cut (`f9d5c9d3`) · *"Runes-lay was effectively demonstrated on the card I did before it, so that pass was 'already seen' of sorts"*
+- 2026-11-24 · seen · the Halfway Inn and the lake · `eyes-kat-boards-1121`, BROKEN (Kat walks to the box and vanishes; the inn seat rebuilds it); cut (`f9d5c9d3`) · his "passed", and the desk's lean to cut it standing under *"leans otherwise approved"*
+- 2026-11-24 · ruled · every lane the desk's list names · Every lean in the desk's sorted list of his days 8-18 (`the-lab\rec-read-2026-11-24\desk-list.md`) stands, but where his words below change one · *"leans otherwise approved"*
+- 2026-11-24 · ruled · the grid's rules · PROTECTION is not offered while the protector holds a Ready; the squares that allow it audited; the coverage stays the SRD's · *"should we not let it fire when readied instead? Check which position locations allow the protection, leave the coverage SRD"*
+- 2026-11-24 · ruled · the grid's rules · The Wand of Web is held as a main-hand weapon, its Web on the ring's front in ATTACK's place · *"Like a main hand weapon, with it's function showing on the front wheel when equipped in place of 'attack'"*
+- 2026-11-24 · ruled · the grid's rules · Flanking stays, a house rule over the SRD · *"Keep Flanking"*
+- 2026-11-24 · ruled · the Halfway Inn and the lake · A 50/50 roll on which villain works the wagon's buckle; that one runs when the other falls · *"go ahead with the 50/50"*
+- 2026-11-24 · ruled · the menus · STATUS gets an EFFECTS page: the spells, conditions and lights running on a hero · *"EFFECTS instead of ON HIM"*
+- 2026-11-24 · ruled · the world map · The joke egg's gnoll laugh is re-cut for its close-up from the art's originals, in place of a lesser zoom · *"The cutter makes what is sent smaller, what about recut of gnoll laugh at a prettier scale?"*
 - 2026-11-24 · seen · the Halfway Inn and the lake · `eyes-lake-thing-alone-1121b`, WORKS (his ear file of 11-24 0901Z, Sylvia's table); cut (`fedf0414`)
 - 2026-11-24 · seen · the Halfway Inn and the lake · `eyes-lake-take-hands-1121`, WORKS (his ear file of 11-24 0901Z, Sylvia's table); cut (`fedf0414`)
 - 2026-11-24 · seen · the Halfway Inn and the lake · `eyes-gennet-reached-1121`, UNCLEAR (his ear file of 11-24 0901Z, Sylvia's table); cut (`fedf0414`), his words to the lane (11-24) · *"wouldn't a bench with pinned numbers solve this? i failed to keep her alive"*
