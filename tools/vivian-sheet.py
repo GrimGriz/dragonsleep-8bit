@@ -140,7 +140,9 @@ def cut(look):
     scale = {}
     MT, SA = L.get('match') or {}, L.get('scaleas') or {}
     TG = L.get('tallground')   # (`tallground`: a frame's height is its crown to its ground line, not its drawing's -- trooperpike_p2, 11-20: the pike past the boots in S and N)
-    HT = lambda c: gnd[c] if TG and c in gnd else crops[c][1].shape[0]
+    CW = L.get('crownw')       # (`crownw`: the crown is the first row at least this many source px wide, not the drawing's top -- dragger_p2, 11-24: the pike's tip over his head in N)
+    crown = {c: int(np.where(m.sum(1) >= CW)[0][0]) for c, (_, m) in crops.items()} if CW else {}
+    HT = lambda c: (gnd[c] if TG and c in gnd else crops[c][1].shape[0]) - crown.get(c, 0)
     for pg in set(pageof.values()):
         mine = [c for c, p in pageof.items() if p == pg]
         idle = [HT(c) for c in mine if c[1] == 'idle']

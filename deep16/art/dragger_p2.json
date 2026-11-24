@@ -1,0 +1,86 @@
+{
+ "image": "art/dragger_p2.png",
+ "fw": 102,
+ "fh": 96,
+ "ax": 51,
+ "ay": 76,
+ "top": 52,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 102,
+   "fh": 96,
+   "ax": 51,
+   "ay": 76,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 768,
+   "fw": 98,
+   "fh": 96,
+   "ax": 49,
+   "ay": 76,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 108,
+   "fh": 96,
+   "ax": 54,
+   "ay": 76,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "pikerank": {
+   "y": 2304,
+   "fw": 94,
+   "fh": 96,
+   "ax": 47,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 3072,
+   "fw": 98,
+   "fh": 96,
+   "ax": 49,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3840,
+   "fw": 92,
+   "fh": 96,
+   "ax": 46,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 4608,
+   "fw": 92,
+   "fh": 96,
+   "ax": 46,
+   "ay": 76,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Dragger",
+ "hold": [
+  "pikerank: played where his pike strikes through a set wall or over the rank in front (js/battle.js attack, F.pikeThrough), as trooperpike_p2's",
+  "attack: the pike thrust along the hip, contact on frame 4; NE: the cuff and hand continuity across the thrust (the art desk's own note)",
+  "pikerank: the planted contacts; NE the thrust grip and the rear boot, N frame 4 the rear boot at the planted anchor (the art desk's own notes)",
+  "walk: stands by its cells, his crown level and the feet rising (S 3-4 and 7-8 most); drawn leaning, short for its head, scaled between the two rulers; the lead foot changes to be judged in playback (the art desk's own note)",
+  "hurt: the opening Fall frames bring the pike upright off the idle's level and keep it in hand through the collapse (the art desk's own note)",
+  "flinch: NE raises the pike steeply off the idle's angle (the art desk's own \"check the pike angle at the return to Idle\")",
+  "prone: the last Fall cel held"
+ ],
+ "source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}
