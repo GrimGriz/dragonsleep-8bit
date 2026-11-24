@@ -244,7 +244,7 @@
     G.setup(m, B.units);
     D.spr.ensure([mage.sheet]);
     B.focus(mage);
-    B.card(['{y}' + F_name(B) + '{/}: the floor as the party will find it.', '{g}A click on him (or Q): his wheel -- FOLLOW, SPELLS, THE WAY IN. E: LAY THE RUNE -- a unit of yours, by its CR. A click on a rune: its posture; on the pale one, the party\'s way in. Shift+wheel or [ ]: the mage up and down. X: back to BUILD.{/}'], 420, 'lay');
+    B.card(['{y}' + F_name(B) + '{/}: the floor as the party will find it.', '{g}A click on him (or Q, or a right click): his wheel -- FOLLOW, SPELLS, THE WAY IN. E: LAY THE RUNE -- a unit of yours, by its CR. A click on a rune off him: its posture; on the pale one, the party\'s way in. Shift+wheel or [ ]: the mage up and down. X: back to BUILD.{/}'], 420, 'lay');
     RN.warnCheck(B, true);
     if (o.show) RN.stage(B);
   };
@@ -364,11 +364,15 @@
       if (a) return RN.openPick(B);
       if (b) return RN.leave(B);
       if (I.pressed('ring')) return RN.openWheel(B); // (Q, the ring's key on the grid)
+      // HIS FIGURE FIRST (11-24, the seat eyes-1124, his "seems impossible to open ring when follow is on", BROKEN): following, he is under the pointer wherever it goes, and the
+      // laid runes' squares under him took the click -- each opened its rune's card, never his wheel. A click on his figure is his wheel, a rune under him or not (a rune's card:
+      // a click on it with FOLLOW off, as his STAY says); a right click is his wheel too, anywhere (it was nothing here)
+      if ((m.click && RN.onMage(B)) || m.rclick) return RN.openWheel(B);
       if (m.click && L.floorHover) { var hr = RN.runeAt(B, L.floorHover.x, L.floorHover.y); if (hr === 'entry') return RN.openEntry(B); if (hr) return RN.openCard(B, hr); }
       // CLICK HIM (11-10, Griz: "add a 'click him' to turn off and on whether he's following the mouse, we'll do more with this later"; "I'd like a wheel-menu version for a
       // mouse-over player, so incorporate the above into a wheel-like mode select"): a click on his figure -- or anywhere off a rune while he follows the pointer, since he is
       // under it -- opens his wheel; staying, a click on the floor sends him there
-      if (m.click && (RN.onMage(B) || L.follow)) return RN.openWheel(B);
+      if (m.click && L.follow) return RN.openWheel(B);
       if (m.click && L.hover && !L.follow) { L.park = [L.hover.x, L.hover.y]; D.sfx('cursor'); return; }
       return;
     }

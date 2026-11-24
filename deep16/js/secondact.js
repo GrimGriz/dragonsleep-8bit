@@ -911,6 +911,7 @@
   // the chuul fight on the floor's point end, the `chuul` fight's frog with it and the Ring of Binding's rounds laid on the floor's fight (js/battle.js enter's rule, for this fight);
   // with no ring worn, the chuul and its frog as the SRD has them (`ring` null)
   A.lakeFight = function* (B, Y, ring) {
+    if (A.seedQ != null) D.seed = A.seedQ; // (the show's &seed= again as the fight begins, 11-24: its dice the fight's own, however long the walk to the stone took -- A.show)
     var Rm = R(), R0 = B.roam, F = B.fight, keep = {}, Fd = D.fight && D.fight('chuul');
     ['runWhenHurt', 'fledEnds', 'loosen', 'exit', 'noFlee'].forEach(function (k) { keep[k] = F[k]; });
     F.runWhenHurt = null; F.fledEnds = false; F.loosen = null; F.exit = []; F.noFlee = false;
@@ -1102,6 +1103,7 @@
     { id: 'wand', beat: 'wand', label: 'ELSBETH\'S WAND in the kitchen', note: 'Day 12 at six, inside by the tub, her first telling had already. E on Elsbeth: CALL GENNET A FRAUD -- the hand goes in the apron: the word, a WIS save at 15 (the dice pinned to fail), and you walk out of the kitchen; PRESS ON and the other word empties it. She is done for the night.', flags: { dishes: 1, elsbethTier: 1 }, dice: [2, 2, 2, 2] } // (dishes: her first telling is by day and by renown or the notice since 11-12, ruling 58 -- the wand's show starts past it)
   ];
   A.play = function (bt) {
+    if (A.seedQ != null) D.seed = A.seedQ; // (&seed=: A.show)
     var H = D.house, rec = H.fresh(); rec.at = { town: null }; rec.silver = Math.max(rec.silver || 0, 60);
     rec.flags = Object.assign({ reachedInn: 1, mealHad: 1, gennetNamed: 1, wagonCycle: 0, dueCycle: 0, dueTonight: 1, kidTaken: 1, glamourBroken: 1, glamourSeen: 1, kidAtInn: 1, katGone: 1, wagonStopped: 'c0', wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept', secondAct: bt.beat === 'fork' ? null : { beat: bt.beat, id: bt.id, strike: !!bt.strike, far: !!bt.far, fled: !!bt.fled, hold: !!bt.hold } }, bt.flags || {});
     if (bt.beat === 'wand') { delete rec.flags.wagonIn; delete rec.flags.dueTonight; delete rec.flags.doranAway; rec.flags.secondAct = null; } // (doranAway too, 11-05: six on day 12 is before the wagon, and with Doran gone and no ring Elsbeth only sends the party to Winters -- js/inn.js M.SCENES.elsbeth; his "all i'm getting from elsbeth is 'go see winters'")
@@ -1121,7 +1123,9 @@
     var nb = D.roam.make('?roam=' + In.KEY + (bt.beat === 'wand' || bt.beat === 'poison' ? '&inside' : ''), { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
     D.push(nb);
   };
-  A.show = function (q) { return new D.roam.WetShow(q, { kind: 'actshow', beats: A.BEATS, play: A.play, title: '{y}THE SECOND ACT, 11-04{/} -- the signs, the fork, the path, the fight, the rise, the wand (a show)' }); };
+  // &seed=<n> (11-24, the seat eyes-1124 -- his "wouldn't a bench with pinned numbers solve this? i failed to keep her alive", on Gennet's card): the dice from that seed, set as
+  // the beat's NEW GAME begins (A.play), so a beat played the same way rolls the same -- the bench-balance pipeline's seed, as ?npc= and ?fight= take it
+  A.show = function (q) { var sd = /[?&]seed=(\d+)/.exec(String(q || '')); A.seedQ = sd ? +sd[1] | 0 : null; return new D.roam.WetShow(q, { kind: 'actshow', beats: A.BEATS, play: A.play, title: '{y}THE SECOND ACT, 11-04{/} -- the signs, the fork, the path, the fight, the rise, the wand (a show)' }); };
   // the floor's script runs the staged beat first (a show's, or a bench's): f.secondAct { beat, strike, far, fled } -- cleared as it runs
   A.resume = function* (B) {
     var R0 = B.roam, f = R0.flags, s = f.secondAct; if (!s || !s.beat) return;

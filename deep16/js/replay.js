@@ -21,7 +21,9 @@
   var D = window.D16, W = D.world, I = D.input, SQ3 = Math.sqrt(3);
   if (!W) return;
   var RP = D.replay = { on: false, scene: null, data: null, name: null, list: null, err: null, t: 0, play: false, rate: 0.05, fold: false, looks: [true, true, true, true], hovers: [], ui: [] };
-  RP.DIRS = ['../walk-replays/', '/walk-replays/']; // (the page's folder up, then the server's root: a worktree's page on 8923 finds the shared checkout's files)
+  RP.DIRS = ['../walk-replays/', '/walk-replays/', 'replays/']; // (the page's folder up, then the server's root: a worktree's page on 8923 finds the shared checkout's files)
+  // (then deep16/replays/, TRACKED -- 11-24, the seat eyes-1124: walk-replays/ is gitignored, so the eyes row's door found nothing on live, his "no replay ... in walk-replays/";
+  // the one replay the row opens, questwalk-five-seed3-1115, is shipped there. A bench's new runs still go to the shared checkout's walk-replays/ alone)
   RP.LOOKS = ['THE PARTY', 'THE MAKINGS', 'THE SURVIVORS', 'THE SNOOT\'S ROAD'];
   var C = RP.COL = { party: '#f8d878', partyFar: 'rgba(248,216,120,.22)', lost: '#e8503c', made: '#ee58d0', madeDim: '#9a4c8c', charged: '#fff04a', ripples: '#ff60e0', hit: '#b03ca0',
     sv: '#4ee0d4', snoot: '#ff8c30', burned: '#e0301c', road: '#ffffff', mirror: '#ff78ec', fight: '#c8c4b8', gone: '#8a8a96' };

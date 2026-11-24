@@ -38,7 +38,11 @@
   // THE LINES (drafts, the seat's, standing on his RULED 09-24 rule that drafts stand -- invented.json black-egg-1115): never a word of where
   BE.LINES = ['In the night, every star went out at once.', 'For the space of a breath there was nothing. Then they were back.'];
   // the beat's clock, in frames (sixty a second): the sky fades in; the stars out; the first line; the stars back, each its own frame; the second line; the egg (its 230, as every egg's)
-  BE.T = { fade: 20, out: 100, outFor: 8, line1: 118, back: 196, backFor: 30, line2: 206, egg: 296, end: 526, skip: 60 };
+  // SLOWED 11-24 (the seat eyes-1124, on his "very short breath, faster than my reading speed - if 1 by 1 so fast as to be all at the same time, then egg before finish reading
+  // second line", the desk's lean RULED by his "leans otherwise approved"): the dark a second before the first line and near five in all (it was a second and a half); the first
+  // line held near four seconds in the dark; the stars back over two and a half seconds, one by one where the eye can follow (half a second before); the second line after the
+  // last star, held over five seconds before the egg (a second and a half before). E or a click still brings the egg at once (BE.beatTick)
+  BE.T = { fade: 20, out: 100, outFor: 8, line1: 168, back: 388, backFor: 150, line2: 538, egg: 858, end: 1088, skip: 60 };
 
   function S0() { return W.house() && W.state ? W.state() : null; }
   function flags() { return H.cur ? (H.cur.flags = H.cur.flags || {}) : null; }

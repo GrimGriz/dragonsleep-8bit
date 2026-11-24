@@ -274,7 +274,8 @@
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
     R0.fam = B.units.filter(function (u) { return u.familiar && u.side === 'party'; })[0] || null; // (the wizard's familiar, if the save brought one: R.famPlace)
     // the purse, the kill tally and the XP banked till the next gather (R.pay): the save's own, or the fixture's none
-    var data0 = (B.from && B.from.data) || {}; R0.silver = data0.silver || 0; R0.kills = JSON.parse(JSON.stringify(data0.kills || {})); R0.xpBank = 0;
+    // (&silver=N: a test floor's purse -- 11-24, the seat eyes-1124, his "how is tester supposed to have dinner with 0 silver door?" on the supper's door: the fixture walks in with none)
+    var data0 = (B.from && B.from.data) || {}, svQ = R.emb ? null : /[?&]silver=(\d+)/.exec(R.q || ''); R0.silver = svQ ? +svQ[1] : data0.silver || 0; R0.kills = JSON.parse(JSON.stringify(data0.kills || {})); R0.xpBank = 0;
     if (R.emb) R0.flags = JSON.parse(JSON.stringify(data0.flags || {})); // (inside the 8-bit: its flags, all of them, and back out at the door)
     else R0.flags = JSON.parse(JSON.stringify(R.flags0 || {})); // (the test's from its address: &flags=, &drained -- R.make)
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)

@@ -2,7 +2,10 @@
    engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs them to fall one way (its card says so). The shape is
    js/rulesshow.js's: at the end of each beat the show waits -- ENTER (or E, or a click) plays it again, RIGHT the next, LEFT the one before.
 
-     deep16/?seepshow              every beat, in order · &only=wisp,mirror,stirge or a beat's id keeps to those · &beat=N starts at the Nth · &fast no pauses (the bench)
+     deep16/?seepshow              every beat, in order · &only=wisp,mirror,stirge or a beat's id keeps to those, in the address's order (11-24) · &beat=N starts at the Nth · &fast no pauses (the bench)
+                                   · &cast=story the story's four in the roles: Aurdin the wizard, Barley the fighter, Lymen the cleric -- their own sheets, named on the cards; &map=bog
+                                   the Glowseep's own ground (data/maps.js bog) for the class floor (11-24, the seat eyes-1124, on his "show doesn't match - says aurdin and glowseep this is
+                                   gallery - looks like it was working though": the mirror stirge's card named Aurdin and the marsh, the show stood three class NPCs on the Hex floor)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- a creature's whole turn is AI.turn, a hero's PULL IT OFF is B.exec --
    so what it shows is what a fight does. Each beat checks what it showed; B.seepReport holds the tally (dev/bench16.js mode=seep1113 runs it headless with &fast).
@@ -16,10 +19,10 @@
   SS.make = function (q) {
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    var FAST = /[?&]fast\b/.test(q), L = 3; // (level 3, as the story's doors are staged)
-    var B = new D.Battle({ npc: { foes: ['wisp', 'mirrorwisp', 'stirge', 'mirrorstirge'], party: ['cleric:' + L + ':human', 'wizard:' + L + ':human', 'fighter:' + L + ':human'] },
-      fightDef: D.classFight(L, { what: 'The Seep\'s own, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
-    B.seepshow = true;
+    var FAST = /[?&]fast\b/.test(q), L = 3, STORY = get('cast') === 'story', mp = get('map'); // (level 3, as the story's doors are staged)
+    var B = new D.Battle({ npc: { foes: ['wisp', 'mirrorwisp', 'stirge', 'mirrorstirge'], party: STORY ? null : ['cleric:' + L + ':human', 'wizard:' + L + ':human', 'fighter:' + L + ':human'] }, // (&cast=story: the fixture's four, js/battle.js)
+      fightDef: D.classFight(L, { what: STORY ? 'The Seep\'s own, shown with the four' : 'The Seep\'s own, shown', intro: 'A beat at a time. ENTER plays a beat again.', map: mp && D.MAPS[mp] ? mp : null, name: mp && D.MAPS[mp] ? D.MAPS[mp].name : null }) });
+    B.seepshow = true; B.storyCast = STORY;
     var enter0 = B.enter;
     B.enter = function () { enter0.apply(this, arguments); this.req = null; this.co = show(this, get, FAST); };
     return B;
@@ -31,6 +34,9 @@
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
     var cls = function (c) { return party.filter(function (w) { return w.cls === c; })[0]; }, kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
     var cleric = cls('cleric'), wizard = cls('wizard'), fighter = cls('fighter');
+    if (B.storyCast) { var who = function (n) { return party.filter(function (w) { return w.name === n; })[0]; }; wizard = who('Aurdin'); fighter = who('Barley'); cleric = who('Lymen'); } // (&cast=story, 11-24)
+    var ROLE = { cleric: cleric, wizard: wizard, fighter: fighter };
+    var named = function (s) { return !B.storyCast ? s : String(s).replace(/\b([Tt])he (cleric|wizard|fighter)\b/g, function (m0, t, r) { return ROLE[r] ? ROLE[r].name : m0; }); };
     var wisp = kind('wisp'), mwisp = kind('mirrorwisp'), stirge = kind('stirge'), mstirge = kind('mirrorstirge');
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, slots: w.slots ? w.slots.slice() : null, glow: w.glow ? Object.assign({}, w.glow) : null }; });
     var cx = Math.floor(G.map.w / 2), cy = Math.floor(G.map.h / 2);
@@ -82,7 +88,7 @@
     }
     var mark = function () { return (B.log || []).length; };
     var since = function (n) { return (B.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); };
-    var say = function (lines, n) { B.card(lines.map(function (l) { return '{c}' + l + '{/}'; }), W(n || 90)); };
+    var say = function (lines, n) { B.card(lines.map(function (l) { return '{c}' + named(l) + '{/}'; }), W(n || 90)); };
     function* go(w) { RU.startTurn(w); B.active = w; yield* fire(AI.turn(B, w)); B.active = null; } // (its whole turn, the engine's)
     var down = function (w) { w.hp = 0; w.ko = true; w.anim = 'hurt'; w.animT = B.t - 400; };
     var lit = function (w) { return (D.light && D.light.carried ? D.light.carried(w) : []).filter(function (l) { return l.kind === 'glow'; })[0] || null; };
@@ -203,20 +209,21 @@
       { id: 'latch', group: 'stirge', name: 'The stirge\'s latch, and PULL IT OFF', what: 'The wheel\'s line said "a STR check, DC 1" (accurate, and odd): it says "an action, no check" now.', run: latch }
     ];
 
-    var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });
+    // &only= in the address's own order (11-24, as js/rulesshow.js)
+    var only = get('only'), list = !only ? BEATS.slice() : only.split(',').reduce(function (a, o) { return a.concat(BEATS.filter(function (b) { return (o === b.id || o === b.group) && a.indexOf(b) < 0; })); }, []);
     var i = Math.max(0, Math.min(list.length - 1, (+(get('beat') || 1)) - 1));
     while (i < list.length) {
       var b = list[i];
       B.clearCards();
-      B.card(['{y}THE SEEP\'S OWN, SHOWN  ' + (i + 1) + ' / ' + list.length + ':  ' + b.name.toUpperCase() + '{/}'].concat(D.wrap(b.what, 440).map(function (l) { return '{g}' + l + '{/}'; })), 1e9);
+      B.card(['{y}THE SEEP\'S OWN, SHOWN  ' + (i + 1) + ' / ' + list.length + ':  ' + named(b.name).toUpperCase() + '{/}'].concat(D.wrap(named(b.what), 440).map(function (l) { return '{g}' + l + '{/}'; })), 1e9);
       yield W(60);
       var res;
       try { res = yield* b.run.call(b); } catch (e) { res = [false, 'threw: ' + String(e && e.message || e)]; if (window.console) console.error('seepshow ' + b.id, e); }
       setPin(null, null);
-      var rep = { id: b.id, name: b.name, ok: !!res[0], why: res[1], log: (B.log || []).slice(-40).join(' | ') };
+      var rep = { id: b.id, name: named(b.name), ok: !!res[0], why: named(res[1]), log: (B.log || []).slice(-40).join(' | ') };
       var at = report.map(function (r) { return r.id; }).indexOf(b.id); if (at >= 0) report[at] = rep; else report.push(rep);
       B.clearCards();
-      B.card(['{y}' + (i + 1) + ' / ' + list.length + ':  ' + b.name.toUpperCase() + '{/}  ' + (res[0] ? '{n}SHOWN{/}' : '{r}NOT AS IT SHOULD BE{/}'), '{g}' + res[1] + '{/}'].concat(FAST ? [] : ['', '{c}ENTER{/} again   {c}RIGHT{/} next   {c}LEFT{/} back']), 1e9);
+      B.card(['{y}' + (i + 1) + ' / ' + list.length + ':  ' + named(b.name).toUpperCase() + '{/}  ' + (res[0] ? '{n}SHOWN{/}' : '{r}NOT AS IT SHOULD BE{/}'), '{g}' + named(res[1]) + '{/}'].concat(FAST ? [] : ['', '{c}ENTER{/} again   {c}RIGHT{/} next   {c}LEFT{/} back']), 1e9);
       if (FAST) { i++; continue; }
       var v = yield { seepshow: true };
       if (v === 'again') continue;

@@ -3,8 +3,12 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures,ailights1113,aileads1114 keeps to those (a beat's id or its group) · &beat=N starts at the Nth
-                                   · &fast no pauses, no waits (the bench)
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal,gust,gridfixes1106,gridfix1107,gridfix1110,postures,ailights1113,aileads1114 keeps to those (a beat's id or its group),
+                                   IN THE ORDER THE ADDRESS NAMES THEM (11-24, the seat eyes-1124: the file's order before -- his "doesn't seem to be the right card for what's on the screen", the
+                                   card naming the chuul's claw first and the show opening on Gennet's yield) · &beat=N starts at the Nth · &fast no pauses, no waits (the bench)
+                                   · &cast=story the story's four in the roles (11-24, his "seeing a gallery with goblins and generic NPCs..." on a card that named Aurdin): Aurdin the wizard,
+                                   Vivian the rogue and the bard, Lymen the paladin, Barley the cleric -- their own sheets, named on the cards; for the beats that name those roles (gridfixes1106)
+                                   · &lvl=N the party's level (5 by default; a story door's 3)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
    B.exec's cast and its bonus-action flare, the housekeeping at a turn's end B.sweep -- so what it shows is what a fight does. A hero's hit points are made deep for a
@@ -18,10 +22,11 @@
   RS.make = function (q) {
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear', 'bandit', 'robber', 'thug', 'giantbat', 'giantbat', 'giantbat', 'giantbat', 'giantbat', 'patrollady'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
-      fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
-    B.rulesshow = true;
+    var FAST = /[?&]fast\b/.test(q), lv = +(get('lvl') || 0), L = lv >= 1 && lv <= 20 ? lv : 5, STORY = get('cast') === 'story';
+    // (&cast=story: no class band -- the Battle walks in the fixture's four at L, the story's own sheets: js/battle.js, an npc fight with no party)
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin', 'gennet', 'wolf', 'wolf', 'bandit', 'chuul', 'harpy', 'bugbear', 'bandit', 'robber', 'thug', 'giantbat', 'giantbat', 'giantbat', 'giantbat', 'giantbat', 'patrollady'], party: STORY ? null : ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human', 'rogue:' + L + ':human', 'paladin:' + L + ':human'] },
+      fightDef: D.classFight(L, { what: STORY ? 'The grid\'s rules, shown with the four' : 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
+    B.rulesshow = true; B.storyCast = STORY;
     var enter0 = B.enter;
     B.enter = function () { enter0.apply(this, arguments); this.req = null; this.co = show(this, get, FAST); };
     return B;
@@ -32,6 +37,13 @@
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
     var cleric = party.filter(function (w) { return w.cls === 'cleric'; })[0], bard = party.filter(function (w) { return w.cls === 'bard'; })[0], wizard = party.filter(function (w) { return w.cls === 'wizard'; })[0];
     var rogue = party.filter(function (w) { return w.cls === 'rogue'; })[0], paladin = party.filter(function (w) { return w.cls === 'paladin'; })[0]; // (the grid's fixes of 11-06: their beats, below)
+    // THE STORY'S FOUR IN THE ROLES (&cast=story, 11-24): each role's hero, and a card's "the rogue" said as her name -- one hero a role, so the lines' pronouns are that hero's
+    if (B.storyCast) {
+      var who = function (n) { return party.filter(function (w) { return w.name === n; })[0]; };
+      wizard = who('Aurdin'); rogue = who('Vivian'); paladin = who('Lymen'); cleric = who('Barley'); bard = rogue;
+    }
+    var ROLE = { rogue: rogue, cleric: cleric, wizard: wizard, paladin: paladin, bard: bard };
+    var named = function (s) { return !B.storyCast ? s : String(s).replace(/\b([Tt])he (rogue|cleric|wizard|paladin|bard)\b/g, function (m0, t, r) { return ROLE[r] ? ROLE[r].name : m0; }); };
     var kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
     var spider = kind('giantspider'), pudding = kind('pudding'), hob = kind('hobgoblin'), ooze = kind('grayooze'), gob = kind('goblin');
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, baseAC: w.baseAC, armored: w.armored, metalArmor: w.metalArmor, weapon: w.weapon, equip: w.src && w.src.equip ? Object.assign({}, w.src.equip) : null, slots: w.slots ? w.slots.slice() : null, known: w.known ? w.known.slice() : null }; });
@@ -86,7 +98,7 @@
     var mark = function () { return (B.log || []).length; };
     var since = function (n) { return (B.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); };
     var turn = function (w) { RU.startTurn(w); B.active = w; };
-    var say = function (lines, n) { B.card(lines.map(function (l) { return '{c}' + l + '{/}'; }), W(n || 90)); };
+    var say = function (lines, n) { B.card(lines.map(function (l) { return '{c}' + named(l) + '{/}'; }), W(n || 90)); };
 
     // ---- the beats
     function* antitoxin() {
@@ -712,20 +724,21 @@
       { id: 'realsurprise', group: 'postures', name: 'Real surprise, any fight', what: 'Your "we should have \'real\' surprise": any fight where someone starts hidden -- a lurker, a rune\'s ambush, a story\'s hidden foes, one of ours who hid -- rolls the SRD\'s surprise, each hider\'s Stealth against each passive Perception on the other side; whoever notices no threat takes no turn in round 1. A spider lurking against the cleric and the wizard; then the rogue, hidden, against a goblin.', run: realSurprise },
     ];
 
-    var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });
+    // &only= in the address's own order (11-24): each name's beats (a group keeps its file order inside it), a beat named twice shown once
+    var only = get('only'), list = !only ? BEATS.slice() : only.split(',').reduce(function (a, o) { return a.concat(BEATS.filter(function (b) { return (o === b.id || o === b.group) && a.indexOf(b) < 0; })); }, []);
     var i = Math.max(0, Math.min(list.length - 1, (+(get('beat') || 1)) - 1));
     while (i < list.length) {
       var b = list[i];
       B.clearCards();
-      B.card(['{y}THE GRID\'S RULES, SHOWN  ' + (i + 1) + ' / ' + list.length + ':  ' + b.name.toUpperCase() + '{/}'].concat(D.wrap(b.what, 440).map(function (l) { return '{g}' + l + '{/}'; })), 1e9);
+      B.card(['{y}THE GRID\'S RULES, SHOWN  ' + (i + 1) + ' / ' + list.length + ':  ' + named(b.name).toUpperCase() + '{/}'].concat(D.wrap(named(b.what), 440).map(function (l) { return '{g}' + l + '{/}'; })), 1e9);
       yield W(60);
       var res;
       try { res = yield* b.run.call(b); } catch (e) { res = [false, 'threw: ' + String(e && e.message || e)]; if (window.console) console.error('rulesshow ' + b.id, e); }
       setPin(null, null);
-      var rep = { id: b.id, name: b.name, ok: !!res[0], why: res[1], log: (B.log || []).slice(-40).join(' | ') };
+      var rep = { id: b.id, name: named(b.name), ok: !!res[0], why: named(res[1]), log: (B.log || []).slice(-40).join(' | ') };
       var at = report.map(function (r) { return r.id; }).indexOf(b.id); if (at >= 0) report[at] = rep; else report.push(rep);
       B.clearCards();
-      B.card(['{y}' + (i + 1) + ' / ' + list.length + ':  ' + b.name.toUpperCase() + '{/}  ' + (res[0] ? '{n}SHOWN{/}' : '{r}NOT AS IT SHOULD BE{/}'), '{g}' + res[1] + '{/}'].concat(FAST ? [] : ['', '{c}ENTER{/} again   {c}RIGHT{/} next   {c}LEFT{/} back']), 1e9);
+      B.card(['{y}' + (i + 1) + ' / ' + list.length + ':  ' + named(b.name).toUpperCase() + '{/}  ' + (res[0] ? '{n}SHOWN{/}' : '{r}NOT AS IT SHOULD BE{/}'), '{g}' + named(res[1]) + '{/}'].concat(FAST ? [] : ['', '{c}ENTER{/} again   {c}RIGHT{/} next   {c}LEFT{/} back']), 1e9);
       if (FAST) { i++; continue; }
       var v = yield { rulesshow: true };
       if (v === 'again') continue;

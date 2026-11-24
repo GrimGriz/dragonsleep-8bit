@@ -907,4 +907,46 @@
     B.o.npc.party = specs.map(function (sp, i) { return Object.assign({ id: 'p' + i + '-' + (sp.equip.shield ? 'shield' : 'pike') }, sp); }); // (Battle.enter builds the party from these: battle.js)
     return B;
   };
+  // THE DAGGER UNDERFOOT, STAGED (11-24, the seat eyes-1124 -- his "seemed like there were 2 daggers and I got an extra free action pickup at end of turn - discuss" on the card
+  // eyes-pickup-underfoot-1121, whose door never brought a turn begun on the dagger: the throw's free draw refilled the off hand from the carried one, and a walk over the
+  // dagger took it up on the way): &underfoot on the class floor -- the first of ours with a weapon in the off hand begins the fight with it thrown and lying on the square it
+  // stands on (thrown the round before and walked onto with the hand on an object already spent), a handaxe of nobody's beside it on the same square. Its first turn begins
+  // on them: its own taken up (js/battle.js Battle.groundUnder), the other left for PICK UP
+  var npcFight1 = D.npcFight;
+  D.npcFight = function (q, o) {
+    var B = npcFight1.apply(this, arguments);
+    if (!/[?&]underfoot\b/.test(q || '')) return B;
+    var e0 = B.enter;
+    B.enter = function () {
+      e0.apply(this, arguments);
+      var u = this.units.filter(function (w) { return w.side === 'party' && !w.familiar && w.offhand && w.src && w.src.equip && w.src.equip.offhand; })[0]; if (!u) return;
+      var id = u.src.equip.offhand, it = R.item ? R.item(id) : null, nm = (it && it.name) || u.offhand.name;
+      u.offhandThrown = true;
+      (this.ground = this.ground || []).push({ id: id, name: nm, x: u.x, y: u.y, by: u.id, how: 'off', atk: null }, { id: 'handaxe', name: 'Handaxe', x: u.x, y: u.y, by: 'nobody', how: 'pack', atk: null });
+      if (this.logOnly) this.logOnly(['(the door: ' + u.name + '\'s ' + String(nm).toLowerCase() + ' lies underfoot, thrown the round before, the off hand empty; a handaxe beside it)']);
+    };
+    return B;
+  };
+  // CONDITIONS AT THE START (11-24, the seat eyes-1124: a testing room's knob, as &afraid -- the eyes cards of the menu's portrait tints and STATUS's EFFECTS open on them):
+  // &conds=poisoned:1,restrained:2,paralyzed:3,light:4 lays each condition on the nth of ours (in the party's order) as the fight begins -- laid by their first foe (a web's
+  // hold, not a grip: no `grapple`), the Light by our first wizard. A fight's own rules then run them as any (a save at a turn's end, the hour)
+  var npcFight2 = D.npcFight;
+  D.npcFight = function (q, o) {
+    var B = npcFight2.apply(this, arguments), cq = /[?&]conds=([a-z:0-9,]+)/i.exec(q || '');
+    if (!cq) return B;
+    var e0 = B.enter;
+    B.enter = function () {
+      e0.apply(this, arguments);
+      var ours = this.units.filter(function (w) { return w.side === 'party' && !w.familiar; }), foe = this.units.filter(function (w) { return w.side === 'foe'; })[0], wiz = ours.filter(function (w) { return w.cls === 'wizard'; })[0], said = [];
+      cq[1].split(',').forEach(function (p) {
+        var a = p.split(':'), k = a[0], u = ours[(+a[1] || 1) - 1]; if (!k || !u) return;
+        var by = k === 'light' ? (wiz || u).id : foe ? foe.id : u.id;
+        u.conds[k] = k === 'light' ? { by: by, from: null, lv: 0 } : { by: by };
+        if (k === 'paralyzed' || k === 'stunned') u.conds.incapacitated = { by: by };
+        said.push(u.name + ' ' + k);
+      });
+      if (said.length && this.logOnly) this.logOnly(['(the door: ' + said.join(', ') + ')']);
+    };
+    return B;
+  };
 })();

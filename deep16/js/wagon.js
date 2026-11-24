@@ -278,6 +278,9 @@
   Wg.fight = function (scene, w) {
     var H = D.house, F0 = D.fight && D.fight('roadday'); if (!F0 || !H || !H.playing) return;
     var F = Object.assign({}, F0, { level: (H.cur.party[0] || {}).lvl || F0.level, sub: (w.leg === 'north' ? 'north' : 'south') + ' of the Halfway Inn, by day' });
+    // ONE "GOBLIN" FEWER ON THE ROAD NORTH (11-24, the seat eyes-1124, his "fight is using unwagon and combat goblins - two goblins" on the road north's card): the talk's picture
+    // dropped the second rider north (Wg.tailPic) and the fight kept both -- the one left at the inn is the second's, kid2
+    if (w.leg === 'north') F.riders = (F0.riders || []).filter(function (r) { return r.after !== 'kid2_p0'; });
     var rec = { fight: 'roadday', name: 'The Pit road: ' + F.name, level: (H.cur.party[0] || {}).lvl, simple: false };
     var recEnd = function (b, res) { if (b && b.rec && D.rec && D.rec.finish) { try { D.rec.finish(b, res || 'left'); } catch (e) { /* (the record must never stop the way back) */ } } };
     var b = new D.Battle({ fightDef: F, data: H.living(H.cur), house: true, world: true, record: rec,
@@ -320,7 +323,9 @@
   var WD = Wg.cal().first; // (the first WAGON DAY: 12 since 11-05, js/inn.js In.WAGON -- the beats follow it)
   Wg.BEATS = [
     { id: 'mark', label: 'THE MARK ON THE WORLD: the wagon on the road south of the inn, WAGON DAY at noon', note: 'A NEW GAME at the Halfway Inn\'s hex at noon on day ' + WD + ' (the first WAGON DAY). South down the Pit road, eight miles off, a wagon under a canvas cover is on the road, coming north at a walk: wheel out to see it, in to name it. It reaches the inn at dusk; the inn\'s own wagon night is the ?innshow\'s. Walk south down the road and you meet it.', day: WD, hour: 12, atInn: true },
-    { id: 'roadday', label: 'THE ROAD BY DAY: the wagon met south of the inn (the talk, the reads, the gold or steel)', note: 'Day ' + WD + ', five in the afternoon, the four on the Pit road a hex south of the wagon, an hour short of the inn. Walk one hex north (an arrow, or click the next hex): Amara\'s word from the bench, the house\'s silent read, ASK WHERE THEY ARE BOUND (her lie: Insight 13, a second look), LOOK IN THE BED (Perception 12), DETECT MAGIC (Aurdin\'s ritual: the bed hums), LET THEM BY; seen through, STAND IN THE ROAD -- Lymen\'s word, and the fight on the road by day: the pair break for the greys from the first turn, and with the horses they are lost unless you drop them first. The dice pinned: the lie heard, the second look made.', day: WD, hour: 17, off: -1, dice: [15, 18, 18, 18] },
+    // (THE ROAD BY DAY, re-staged 11-24 by the seat eyes-1124 -- his "didn't meet them on the road..." on its card: at five in the afternoon a hex behind it, the wagon walking
+    // on ahead and in at the inn by six, no step north ever came near enough; now the four a hex up the road from it at four, and a step south toward it meets it, crossed)
+    { id: 'roadday', label: 'THE ROAD BY DAY: the wagon met south of the inn (the talk, the reads, the gold or steel)', note: 'Day ' + WD + ', four in the afternoon, the four on the Pit road a hex north of the wagon as it comes up from the Pit. Walk one hex south toward it (an arrow, or click the next hex down the road): Amara\'s word from the bench, the house\'s silent read, ASK WHERE THEY ARE BOUND (her lie: Insight 13, a second look), LOOK IN THE BED (Perception 12), DETECT MAGIC (Aurdin\'s ritual: the bed hums), LET THEM BY; seen through, STAND IN THE ROAD -- Lymen\'s word, and the fight on the road by day: the pair break for the greys from the first turn, and with the horses they are lost unless you drop them first. The dice pinned: the lie heard, the second look made.', day: WD, hour: 16, off: 1, dice: [15, 18, 18, 18], say: 'The Pit road, four in the afternoon: the wagon is coming up the road from the south. Walk a hex south to meet it.' },
     { id: 'roadnorth', label: 'THE ROAD NORTH: the morning after a quiet wagon night', note: 'Day ' + (WD + 1) + ', eight in the morning, the four at the inn\'s hex after a night the wagon left at first light (the glamour broken at the window, the traveler ridden out with it). Walk north up the road: the wagon one "goblin" fewer, the young woman on the bench, the same talk -- and STAND IN THE ROAD goes straight to the fight; a fight lost here is the pair in Silverton by nightfall, the Tower\'s door in words.', day: WD + 1, hour: 8, off: 0, flags: { wagonCycle: 0, wagonOutcome: 'quiet', katRode: 1, katGone: 1, glamourBroken: 1, reachedInn: 1 }, atInn: true }
   ];
   Wg.play = function (bt) {
@@ -331,9 +336,21 @@
     In.pinned = bt.dice ? bt.dice.slice() : null;
     var R = Wg.route(), w = Wg.at(t, rec.flags), hw = w && w.pt ? W.worldHexOf(w.pt[0], w.pt[1]) : null, mw = hw && W.nearOn() && W.inArea(hw[0], hw[1]) && W.map('near') ? W.map('near').w : 5; // (a hex of the map that covers the wagon)
     var s = bt.atInn || !w ? (R ? R.inn : 0) : w.s + (bt.off || 0) * mw * 0.95, pt = Wg.pt(Math.max(0, s));
+    // a hex up the road from it (bt.off > 0, 11-24): the road's hex on the map that covers the wagon whose mile is the first past the wagon's -- the next road hex south is
+    // then at or behind it, so a step south toward it crosses it (Wg.meeting's `crossed`) whatever the map's hexes measure
+    if (w && w.leg === 'south' && bt.off > 0 && !bt.atInn) {
+      var wpt = Wg.pt(w.s); if (wpt && W.place(wpt) && W.scene) W.scene.onMap();
+      var M0 = W.M(), best = null;
+      Object.keys(M0.road || {}).forEach(function (k) {
+        var P = M0.road[k]; if (!P || !(P.id === 'pitroad' || P.id === 'mile')) return;
+        var q = k.split(',').map(Number), c = W.hc(q[0], q[1]), rs = Wg.roadS(c); if (rs.d > M0.w / 2 || rs.s <= w.s) return;
+        if (!best || rs.s < best.s) best = { s: rs.s, pt: c };
+      });
+      if (best) pt = best.pt;
+    }
     if (pt) { S.pos = pt.slice(); if (W.place(pt)) W.scene.onMap(); S.from = null; S.rv = null; var sc = W.scene, lk = sc.lookAt(pt[0], pt[1]); sc.cam.cx = lk[0]; sc.cam.cy = lk[1]; }
     W.save();
-    if (W.scene) W.scene.say(bt.id === 'mark' ? 'Noon on WAGON DAY at the inn: the wagon is on the road to the south.' : 'The Pit road, ' + W.timeOfDay() + ': walk north a hex.');
+    if (W.scene) W.scene.say(bt.say || (bt.id === 'mark' ? 'Noon on WAGON DAY at the inn: the wagon is on the road to the south.' : 'The Pit road, ' + W.timeOfDay() + ': walk north a hex.'));
   };
   Wg.show = function (q) { return new D.roam.WetShow(q, { kind: 'wagonshow', beats: Wg.BEATS, play: Wg.play, title: '{y}THE WAGON ON THE ROAD, 11-04{/} -- the mark on THE WORLD, the road by day, the road north (a show)' }); };
 })();
