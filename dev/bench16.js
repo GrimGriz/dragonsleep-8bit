@@ -1645,7 +1645,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // the cutscene first (RULED 10-02): Aurdin waist up laughing, the camera down to him down (his hehehe), the hyena's still face (his hehehe again), a
       // living gnoll's face, its yawn with its laugh and the line, back out -- then the field's effects, and the egg
       var beatsJ = scenes.map(function (s) { return (s.joke || s.egg || '?') + (s.who ? ':' + (s.who.kind || s.who.id) : ''); }).join(' ');
-      okJ('the cutscene, then the egg: ' + beatsJ, beatsJ === 'waist:aurdin down:aurdin hyena:hyena gnoll:gnoll yawn:gnoll joke' && !!eggS && eggS.frames >= 180 && eggS.frames <= 300 && scenes[1].frame === D.spr.proneFrame(au3.sheet) && scenes[2].frame === 0 && scenes[4].anim === 'laugh' && scenes[4].frame === 0 && scenes[4].outro > 0);
+      okJ('the cutscene, then the egg: ' + beatsJ, beatsJ === 'waist:aurdin down:aurdin hyena:hyena gnoll:gnoll yawn:gnoll joke' && !!eggS && eggS.frames === 480 /* (8 s since 11-24, his "text slower on egg screen": grimoire.js M.EGG_FRAMES; 180-300 till then) */ && scenes[1].frame === D.spr.proneFrame(au3.sheet) && scenes[2].frame === 0 && scenes[4].anim === 'laugh' && scenes[4].frame === 0 && scenes[4].outro > 0);
       // the faces from their CLOSE-UPS (11-24, cutter-1124 -- Griz: "what about recut of gnoll laugh at a prettier scale?"): the hyena's beat and the gnoll's two draw a
       // close-up sheet `of` the figure's own grid sheet, larger (`up`), holding the row the beat plays with the grid's frame count (js/ui.js scene `sheet`); Aurdin's two keep his
       var cuOk = function (s) { var C = s.sheet && D.SHEETS[s.sheet], an = s.anim || 'idle'; return !!(C && C.of === s.who.sheet && C.up > 1 && D.spr.anim(s.sheet, an) && (s.frame === 0 || D.spr.anim(s.sheet, an).frames === D.spr.anim(s.who.sheet, an).frames)); };
@@ -2669,6 +2669,423 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // reaction goes off if triggered on someone else's turn"; "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
   // A READIED CONE SPRINGS AT ITS LENGTH (mode=glowseep1115; 11-15, Griz's NOTES from the Glowseep: "should the 3rd snake making his first move have triggered aurdins burning
   // hands ready?" -- battle.js readyTargets read a cone's reach as touch, 5 ft): a goblin crawls to 15 ft of a wizard holding Burning Hands -- sprung, burned; at 20 ft, held
+  // THE EGGS' NAMES ON THE LOAD SCREEN (mode=egghover1124; E14, 11-24, Griz's note of 11-23: "on the load screen from title, mouseover name and description of (only) collected eggs"):
+  // a save with the laughing, dunking and bucket eggs found -- the mouse over each found egg gives its name and line; over a shadow, nothing; off the eggs or outside the page, nothing
+  if (get('mode', '') === 'egghover1124') {
+    var repEH = { checks: [], errors: [] }, memEH = {}, stGEH = D.store.get, stSEH = D.store.set, HEH = D.house, dtEH = D.text, mEH = D.input.mouse, mEH0 = { x: mEH.x, y: mEH.y, inside: mEH.inside };
+    function okEH(what, v) { repEH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memEH[k] ? JSON.parse(memEH[k]) : null; }; D.store.set = function (k, v) { memEH[k] = JSON.stringify(v); return true; };
+    try {
+      var recEH = HEH.fresh(); recEH.at = { town: null }; HEH.begin(recEH, 0); var sEH = D.top(); if (sEH && sEH.baking) { sEH.baking = false; sEH.enter(); }
+      HEH.cur.flags = HEH.cur.flags || {}; HEH.cur.flags.eggJoke = 1; HEH.cur.flags.eggDunk = 1; HEH.cur.flags.eggBucket = 1; HEH.cur.newGame = 1; HEH.cur.staged = false;
+      var svEH = HEH.saveTo(1), slEH = new HEH.Slots('load'); slEH.i = 0;
+      var cvEH = document.createElement('canvas'); cvEH.width = D.W; cvEH.height = D.H; var cxEH = cvEH.getContext('2d'), bEH = slEH.box();
+      var rcEH = HEH.eggRects(HEH.eggsOf(HEH.read(1)), bEH), saidEH;
+      function hoverEH(x, y, inside) { mEH.x = x; mEH.y = y; mEH.inside = inside !== false; saidEH = []; D.text = function (c, s) { saidEH.push(String(s)); return dtEH.apply(this, arguments); }; try { slEH.draw(cxEH); } finally { D.text = dtEH; } return slEH.tip; }
+      function mid(r) { return [r.x + (r.w >> 1), r.y + (r.h >> 1)]; }
+      okEH('1 the save (slot 1, ' + svEH + ') shows seven eggs: ' + rcEH.length + ' laid (six beside, the found bucket under)', rcEH.length === 7 && rcEH[6].i === 6);
+      var wantEH = { 0: ['Guess I\'m the Joke, Now', 'Aurdin'], 2: ['Dunking Booth', 'Edifice'], 6: ['Bucket List', 'Elsbeth'] };
+      Object.keys(wantEH).forEach(function (k) {
+        var r = rcEH.filter(function (q) { return q.i === +k; })[0], p = mid(r), tip = hoverEH(p[0], p[1]);
+        okEH('2 over the found egg ' + k + ': ' + (tip ? '"' + tip.name + '" / "' + tip.line + '"' : 'nothing') + ' (want ' + wantEH[k][0] + ' and a line naming ' + wantEH[k][1] + ')',
+          !!tip && tip.name === wantEH[k][0] && tip.line.indexOf(wantEH[k][1]) >= 0 && saidEH.indexOf(tip.name) >= 0 && saidEH.indexOf(tip.line) >= 0 && tip.x >= 0 && tip.y >= 0 && tip.x + tip.w <= D.W && tip.y + tip.h <= D.H && tip.line.length <= 64);
+      });
+      [1, 3, 4, 5].forEach(function (k) { var r = rcEH.filter(function (q) { return q.i === k; })[0], p = mid(r), tip = hoverEH(p[0], p[1]); okEH('3 over the shadow ' + k + ': ' + (tip ? 'a tip!' : 'nothing') + ' (want nothing)', !tip); });
+      okEH('4 the mouse off the eggs (the middle of the box): nothing', !hoverEH(D.W / 2, bEH.y + 30));
+      okEH('4 the mouse outside the page over a found egg: nothing', !hoverEH(mid(rcEH[0])[0], mid(rcEH[0])[1], false));
+      okEH('4 a save with no eggs (slot 2 empty), mouse where an egg was: nothing', (function () { slEH.i = 1; var t = hoverEH(mid(rcEH[0])[0], mid(rcEH[0])[1]); slEH.i = 0; return !t; })());
+      var allEH = Object.keys(HEH.EGG_WORDS).every(function (id) { return HEH.EGGS.some(function (e) { return e.id === id; }) && HEH.EGG_WORDS[id][1].length <= 64; }) && HEH.EGGS.every(function (e) { return !e.flag || HEH.EGG_WORDS[e.id]; });
+      okEH('5 every egg with a flag has a name and a line of its own, none long', allEH);
+      okEH('5 the draw ran without error', true);
+    } catch (eEH) { repEH.errors.push(String(eEH && eEH.stack || eEH).slice(0, 900)); }
+    D.store.get = stGEH; D.store.set = stSEH; D.text = dtEH; mEH.x = mEH0.x; mEH.y = mEH0.y; mEH.inside = mEH0.inside; HEH.playing = false; HEH.cur = null;
+    var preEH = document.createElement('pre'); preEH.id = 'out'; preEH.textContent = 'BENCH16 ' + JSON.stringify(repEH);
+    document.body.appendChild(preEH);
+    return;
+  }
+  // THE GLORY-SEEKERS ON OPEN HILLS (mode=seekers1124; E11, the world seat -- RULED, Griz's note from his play of 11-23, the fight "The Pit road: The Glory-Seekers" on the plains
+  // hex 51,51: "we at least need to put this on a roaded hills map/one without walls"): data/maps.js pithills, read as the glory-seekers' own map (D.fight('snoot').map). 1. snoot
+  // and its sister southroad on it, the walled Road South kept for the bandits, the ladder's glory-seekers and the module's first fight; 2. no '#' and every square of the rim open;
+  // 3. the road's four columns end to end; 4. the heights as the Gnoll Hills carry them -- no step of two, every square one can stand on reached from the entry; 5. the fight on it:
+  // the rim its ways out on all four sides, LEAVE THE FIGHT greyed in the middle and open on an edge, the party out by it (escaped); each fight run by the engine to an end;
+  // 6. the house's way in: THE WORLD's Pit road south of the inn, day 6 at ten, a step south, FIGHT -- the battle on the open hills, run to its end
+  if (get('mode', '') === 'seekers1124') {
+    var repSK = { checks: [], errors: [] }, memSK = {}, stGSK = D.store.get, stSSK = D.store.set, muSK = D.music, apSK = window.DS.autoPicks, GSK = D.grid, HSK = D.house, WSK = D.world, InSK = D.inn, WgSK = D.wagon, TWSK = D.trueword;
+    function okSK(what, v) { repSK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkSK(fid) { var Bx = new D.Battle({ ladder: true, fight: fid, bench: true }); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); return Bx; }
+    function aiSK(B) { B.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); return drive(B); } // (the four by the class AI, as fight= runs them)
+    function driveSK(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    D.store.get = function (k) { return memSK[k] ? JSON.parse(memSK[k]) : null; }; D.store.set = function (k, v) { memSK[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1124);
+      var FSK = D.fight('snoot'), FRSK = D.fight('southroad'), MSK = D.MAPS[FSK.map], modSK = ((D.MODULES || [])[0] || { slots: [{}] }).slots[0].map;
+      // 1. the fights on it
+      okSK('1 the glory-seekers (snoot) on ' + FSK.map + ' and the south road\'s beasts (southroad) on ' + FRSK.map + '; the walled Road South kept for the bandits (' + D.fight('bandits').map + '), the ladder\'s glory-seekers (' + D.fight('snoot-ladder').map + ') and the module\'s first fight (' + modSK + ')',
+        FSK.map === 'pithills' && FRSK.map === FSK.map && !!MSK && D.fight('bandits').map === 'snootroad' && D.fight('snoot-ladder').map === 'snootroad' && modSK === 'snootroad');
+      // 2. no ring of rock: no '#' in its rows, every square of the rim open ground
+      var mSK = D.iso.load(MSK), rimSK = [], rimOpenSK = 0;
+      for (var ySK = 0; ySK < mSK.h; ySK++) for (var xSK = 0; xSK < mSK.w; xSK++) if (xSK === 0 || ySK === 0 || xSK === mSK.w - 1 || ySK === mSK.h - 1) { rimSK.push([xSK, ySK]); if (mSK.at(xSK, ySK).walk) rimOpenSK++; }
+      var hashSK = MSK.rows.join('').split('#').length - 1, oldHashSK = D.MAPS.snootroad.rows.join('').split('#').length - 1;
+      okSK('2 ' + MSK.name + ' (' + mSK.w + ' x ' + mSK.h + ', ground ' + MSK.ground + '): ' + hashSK + ' squares of rock (the walled Road South has ' + oldHashSK + '); the rim open all round, ' + rimOpenSK + ' of ' + rimSK.length + ' squares',
+        hashSK === 0 && oldHashSK > 0 && rimOpenSK === rimSK.length && rimSK.length === 2 * (mSK.w + mSK.h) - 4 && MSK.ground === 'earth');
+      // 3. the road through it: the columns that are road in every row, from the far edge to the near; the four walk in on it
+      var roadColsSK = []; for (var cSK = 0; cSK < mSK.w; cSK++) if (MSK.rows.every(function (r) { return r.charAt(cSK) === ','; })) roadColsSK.push(cSK);
+      var entryOnSK = MSK.entry.every(function (q) { return MSK.rows[q[1]].charAt(q[0]) === ','; });
+      okSK('3 the road (packed dirt, its ruts along y: ' + MSK.road + ') end to end in columns ' + roadColsSK.join(',') + ', the four walking in on it (' + entryOnSK + ')', roadColsSK.join() === '8,9,10,11' && MSK.road === 'y' && entryOnSK);
+      // 4. the heights: rolling, every slope one step a square (no cliff, no `climb`), the road over a crest, every square one can stand on reached from the entry
+      var stSK = MSK.step, hvSK = {}, steepSK = [], roadHSK = [];
+      mSK.sq.forEach(function (s) { if (!s.open) return; hvSK[s.gz / stSK] = 1; [[1, 0], [0, 1], [1, 1], [1, -1]].forEach(function (d) { var o = mSK.at(s.x + d[0], s.y + d[1]); if (o && o.open && Math.abs(o.gz - s.gz) > stSK) steepSK.push(s.x + ',' + s.y); }); if (roadColsSK.indexOf(s.x) >= 0) roadHSK.push(s.gz / stSK); });
+      var seenSK = {}, qSK = [MSK.entry[0]], walkNSK = mSK.sq.filter(function (s) { return s.walk; }).length; seenSK[qSK[0].join()] = 1;
+      while (qSK.length) { var pSK = qSK.shift(); [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (d) { var a = mSK.at(pSK[0], pSK[1]), b = mSK.at(pSK[0] + d[0], pSK[1] + d[1]); if (b && b.walk && !seenSK[b.x + ',' + b.y] && Math.abs(b.gz - a.gz) <= stSK) { seenSK[b.x + ',' + b.y] = 1; qSK.push([b.x, b.y]); } }); }
+      var hsSK = Object.keys(hvSK).map(Number).sort(), reachSK = Object.keys(seenSK).length;
+      okSK('4 the heights ' + hsSK.join(',') + ' steps (the road ' + Math.min.apply(null, roadHSK) + ' to ' + Math.max.apply(null, roadHSK) + ' over its crest), ' + steepSK.length + ' steps of two or more, climb ' + (MSK.climb || 'none') + '; ' + reachSK + ' of the ' + walkNSK + ' squares one can stand on walked to from the entry',
+        !!MSK.heights && hsSK.length >= 3 && hsSK[hsSK.length - 1] >= 3 && Math.max.apply(null, roadHSK) - Math.min.apply(null, roadHSK) >= 2 && !steepSK.length && !MSK.climb && reachSK === walkNSK);
+      // 5. the fight on it: the south road's (one out takes the party, outside a story fight -- battle.js takesParty): the rim its ways out, LEAVE THE FIGHT from an edge
+      var B5 = mkSK('southroad'), exSK = B5.exits || [], sidesSK = [exSK.some(function (q) { return q[1] === 0; }), exSK.some(function (q) { return q[0] === B5.map.w - 1; }), exSK.some(function (q) { return q[1] === B5.map.h - 1; }), exSK.some(function (q) { return q[0] === 0; })];
+      okSK('5 the fight ' + B5.fight.id + ' on ' + B5.fight.map + ': ' + exSK.length + ' ways out, on the far, right, near and left edges ' + sidesSK.join(','), B5.map.def === MSK && exSK.length === rimSK.length && sidesSK.every(Boolean));
+      var hero5 = null, v5, r5, k5 = 0, mid5 = null, edge5 = null, at5 = null, from5 = null, moved5 = false;
+      while (B5.co && k5++ < 20000) {
+        r5 = B5.co.next(v5); v5 = undefined; if (r5.done) break; var y5 = r5.value; if (typeof y5 === 'number' || !y5) continue; if (y5.prompt) { v5 = y5.prompt.opts[0].value; continue; }
+        if (y5.turn) {
+          var u5 = y5.turn; if (u5.side !== 'party' || (hero5 && u5 !== hero5) || (!hero5 && B5.onExit(u5))) { v5 = { do: 'end' }; continue; } // (the first of the four whose turn comes off the rim: the two behind walk in on it)
+          if (!hero5) { hero5 = u5; from5 = [u5.x, u5.y]; mid5 =(B5.commands(u5).filter(function (c) { return c.id === 'leave'; })[0]) || null; var rm5 = GSK.reach(u5, u5.turn.move), best5 = null; Object.keys(rm5).forEach(function (k) { var e = rm5[k]; if (e.stand && B5.exits.some(function (q) { return q[0] === e.x && q[1] === e.y; }) && (!best5 || e.cost < best5.cost)) best5 = e; }); if (!best5) break; at5 = [best5.x, best5.y]; v5 = { do: 'move', x: best5.x, y: best5.y }; moved5 = true; continue; }
+          edge5 = (B5.commands(u5).filter(function (c) { return c.id === 'leave'; })[0]) || null; v5 = edge5 && edge5.ok ? { do: 'leave' } : { do: 'end' }; continue;
+        }
+      }
+      okSK('5 LEAVE THE FIGHT: ' + (hero5 ? hero5.name : 'no hero') + ' on the road at ' + (from5 ? from5.join(',') : '-') + ', off the rim -- ' + (mid5 ? (mid5.ok ? 'open!' : 'greyed, "' + mid5.why + '"') : 'not offered') + '; walked to the edge at ' + (at5 ? at5.join(',') : '-') + ' -- ' + (edge5 ? (edge5.ok ? 'open' : 'greyed, "' + edge5.why + '"') : 'not offered') + '; out by it: ' + !!(hero5 && hero5.left) + ', the fight ends ' + B5.result,
+        !!hero5 && !!mid5 && !mid5.ok && /pale squares at the edge/.test(mid5.why) && moved5 && !!at5 && (at5[0] === 0 || at5[1] === 0 || at5[0] === B5.map.w - 1 || at5[1] === B5.map.h - 1) && hero5.x === at5[0] && hero5.y === at5[1] && !!edge5 && edge5.ok && hero5.left && B5.result === 'escaped');
+      var endsSK = ['won', 'lost', 'escaped'], ranSK = ['snoot', 'southroad'].map(function (fid) { var Bx = mkSK(fid), res = aiSK(Bx); return { fid: fid, res: res, r: Bx.round, on: Bx.fight.map, foes: Bx.units.filter(function (u) { return u.side === 'foe'; }).length }; });
+      okSK('5 run by the engine to an end: ' + ranSK.map(function (o) { return o.fid + ' on ' + o.on + ' (' + o.foes + ' foes) ' + o.res + ' in ' + o.r + ' rounds'; }).join('; '), ranSK.every(function (o) { return o.on === 'pithills' && endsSK.indexOf(o.res) >= 0; }) && ranSK[0].foes === 7);
+      // 6. the house's way in (as trueword1111 stages it): the four at 3rd on THE WORLD's Pit road eight miles south of the inn, day 6 at ten; a step south, the card, FIGHT
+      var xSK6 = new XMLHttpRequest(); xSK6.open('GET', '../deep16/data/world-near.js', false); xSK6.send(); (0, eval)(xSK6.responseText); WSK.index(); if (InSK) InSK.stay = true;
+      var sMidSK = WgSK.route().inn - 8, recSK = HSK.fresh(); recSK.at = { town: null }; recSK.flags = {}; recSK.silver = 60; recSK.party = D.save.fixture(3).party;
+      HSK.begin(recSK, 0, '?world&fresh&noenc&nowagon'); var S6 = WSK.state(); S6.t = 5 * 24 + 10; S6.today = 0; S6.todayHex = 0;
+      var pt6 = WgSK.pt(sMidSK), pt60 = WgSK.pt(sMidSK + WSK.M().w), sc6 = WSK.scene; S6.pos = pt6.slice(); if (WSK.place(pt6)) sc6.onMap(); S6.from = WSK.hexOf(pt60[0], pt60[1]); S6.rv = null; WSK.save();
+      var s06 = WgSK.roadS(WSK.restPt()).s, ptS6 = WgSK.pt(s06 - WSK.M().w), was6 = S6.at.slice(); S6.pos = ptS6.slice(); if (WSK.place(ptS6)) sc6.onMap(); S6.from = was6; S6.t += WSK.M().w / WSK.PACE; WSK.save();
+      var met6 = WSK.onStep(sc6, { h: WSK.M().w / WSK.PACE, mi: WSK.M().w, road: true }), card6 = sc6.cards && sc6.cards[0], said6 = card6 ? window.DS.stripCodes(card6.lines.join(' ')) : '';
+      var fk6 = card6 && (card6.keys || []).filter(function (k) { return k[2] === 'FIGHT'; })[0]; D.seed = +get('fseed', 7); if (fk6) { sc6.cards.shift(); fk6[1](); }
+      var b6 = D.top(); if (b6 && b6.baking) { b6.baking = false; b6.enter(); } if (!(b6 instanceof D.Battle)) b6 = null; else { D.battle = b6; var k6 = 0; while (!b6.order.length && k6++ < 400) b6.co.next(); }
+      okSK('6 THE WORLD, day 6 at ten, a step south of mile ' + s06.toFixed(1) + ': met ' + met6 + ' ("' + said6.slice(0, 90) + '"), FIGHT -- the battle ' + (b6 ? b6.fight.id + ' on ' + b6.fight.map + ', the house\'s ' + !!b6.o.house + ', ' + (b6.exits || []).length + ' ways out, the four on ' + b6.units.filter(function (u) { return u.side === 'party' && !u.familiar; }).map(function (u) { return u.x + ',' + u.y; }).join(' ') : 'none'),
+        met6 === true && /glory-seekers of the Snoot/.test(said6) && !!b6 && b6.fight.id === 'snoot' && b6.fight.map === 'pithills' && b6.map.def === MSK && b6.o.house && (b6.exits || []).length === rimSK.length &&
+        b6.units.filter(function (u) { return u.side === 'party' && !u.familiar; }).every(function (u) { return MSK.entry.some(function (q) { return q[0] === u.x && q[1] === u.y; }); }));
+      if (b6) {
+        b6.units.forEach(function (u) { if (u.side === 'party') { u.classAI = true; u.guest = true; } });
+        driveSK(b6.co, function () { return !!b6.result; }, 40000); var res6 = b6.result, od6 = b6.o.onDone; if (D.top() === b6) D.pop(); od6(res6);
+        var fl6 = HSK.cur ? HSK.cur.flags : {};
+        okSK('6 run by the engine (fseed ' + get('fseed', 7) + '): ' + res6 + ' in ' + b6.round + ' rounds; snootDone ' + fl6.snootDone + (TWSK && TWSK.lastFight === b6 ? ', the trueword fight' : ''), endsSK.indexOf(res6) >= 0 && TWSK.lastFight === b6 && (res6 !== 'won' || fl6.snootDone === 1));
+      }
+    } catch (eSK) { repSK.errors.push(String(eSK && eSK.stack || eSK).slice(0, 900)); }
+    HSK.playing = false; HSK.cur = null; if (InSK) InSK.stay = false;
+    D.store.get = stGSK; D.store.set = stSSK; D.music = muSK; window.DS.autoPicks = apSK;
+    if (errs.length) repSK.errors = repSK.errors.concat(errs);
+    var preSK = document.createElement('pre'); preSK.id = 'out'; preSK.textContent = 'BENCH16 ' + JSON.stringify(repSK);
+    document.body.appendChild(preSK);
+    return;
+  }
+  // THE SNOOT'S GRID FIGHTS IN THE PLAY RECORDS, AND IN SLICES (mode=snootrec1124; E17, the world-1124 seat's runner, RULED -- Griz's note of 11-23, day 16 of a play:
+  // "any of the snoot make it into play records? - got browser timeouts running the grid fights - waiting and they resolved"; deep16/js/headless.js H.begin, H.step,
+  // H.runSliced, H.answer, H.record; js/record.js REC.keepSnoot): 1. a seed fought in slices is the fight fought whole -- the same winner, rounds, gap, tallies, morale
+  // and log, four seeds (one a stack of two units a side), with dice thrown and the battle unset between its slices; 2. the Snoot's asks, answered as H.serve answers
+  // them (the second waiting its turn), leave play records marked 'snoot-headless' in deep16.plays.snoot and none in deep16.plays -- a record's log, its sides' words
+  // and its seed fight it again the same; 3. forty story fights and sixty Snoot fights after them: no story fight pushed out, the Snoot's kept to their own count and
+  // room, R's file carrying both, CLEAR RECORD taking both; 4. a browser that refuses: a save elsewhere, and a story fight's own write, take the Snoot's oldest first
+  if (get('mode', '') === 'snootrec1124') {
+    var repSR = { checks: [], errors: [], report: [] }, HSR = D.headless, RSR = D.rec, lsSR = Object.getOwnPropertyDescriptor(window, 'localStorage'), aClkSR = HTMLAnchorElement.prototype.click;
+    var okSR = function (what, v) { repSR.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    var fakeSR = function (cap) { var m = {}, used = function (skip) { var n = 0; Object.keys(m).forEach(function (k) { if (k !== skip) n += k.length + m[k].length; }); return n; }; return { m: m, getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { v = String(v); if (used(k) + k.length + v.length > cap) { var e = new Error('past the quota'); e.name = 'QuotaExceededError'; throw e; } m[k] = v; }, removeItem: function (k) { delete m[k]; } }; };
+    var useSR = function (ls) { Object.defineProperty(window, 'localStorage', { configurable: true, get: function () { return ls; } }); return ls; };
+    var drainSR = function (q) { var n = 0; while (q.length && n++ < 1000000) q.shift()(); return n; };
+    var sumSR = function (r) { return r ? JSON.stringify([r.result, r.rounds, r.gapFt, r.field, r.charged, [r.a.up, r.a.down, r.a.away, r.a.broke, r.a.withdrew], [r.b.up, r.b.down, r.b.away, r.b.broke, r.b.withdrew], r.morale, r.log]) : 'none'; };
+    var briefSR = function (r) { return r ? r.result + ' in ' + r.rounds + ' rounds, ' + r.gapFt + ' ft, ' + r.a.up + '/' + r.a.n + ' v ' + r.b.up + '/' + r.b.n + ' standing, ' + (r.log || []).length + ' log lines' : 'none'; };
+    try {
+      // the board's units as the Snoot's HL.pack sends them (snoot-mode/js/headless.js), small enough to fight quickly
+      var patSR = { id: 'patrol', name: 'Newland\'s road patrol', kind: 'Newland', form: 'line', asp: 'front', figs: 8, groups: [{ n: 8, mounted: false, volley: false }], heroes: [{ name: 'a paladin of the Sun-Father', grid: 'paladin:4' }, { name: 'a second paladin', grid: 'paladin:4' }], rating: 5, never: false };
+      var bandSR = { id: 'sg1', name: 'a Skull-Gate band', kind: 'gnolls', form: 'line', asp: 'front', figs: 12, comp: { gloryseeker: 2, gnoll: 6, hyena: 4 }, heroes: [], rating: 7, never: false, glory: true };
+      var wagSR = { id: 'dm1', name: 'the Dominion\'s wagon', kind: 'the Dominion', form: 'column', asp: 'flank', figs: 6, groups: [{ n: 6 }], heroes: [], rating: 5, never: false };
+      var band2SR = { id: 'sg2', name: 'a second band', kind: 'gnolls', form: 'line', asp: 'front', figs: 8, comp: { gnoll: 5, hyena: 3 }, heroes: [], rating: 7, never: false, cover: true };
+      var asksSR = [{ type: 'snh:fight', id: 'h7', a: patSR, b: bandSR, seed: 7, level: 4 }, { type: 'snh:fight', id: 'h1234567', a: patSR, b: bandSR, seed: 1234567, level: 4, surprised: 'b' },
+        { type: 'snh:fight', id: 'h99', a: [patSR, wagSR], b: [bandSR, band2SR], seed: 99, level: 4 }, { type: 'snh:fight', id: 'h4242', a: patSR, b: bandSR, seed: 4242, level: 4 }];
+      var specSR = function (m) { return { a: HSR.side(m.a), b: HSR.side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }; };
+      // 1. sliced = whole, the dice thrown and the battle unset between slices (the frame's other work, were there any)
+      var wholeSR = {}, ctlSR = HSR.run(specSR(asksSR[0]));
+      asksSR.forEach(function (m, i) {
+        var whole = wholeSR[m.id] = HSR.run(specSR(m)), q = [], noise = 0, got = null;
+        if (i === 0) okSR('a seed fought whole twice is the same fight, log and all (the control: ' + briefSR(whole) + ')', sumSR(ctlSR) === sumSR(whole));
+        HSR.runSliced(specSR(m), function (r, S) { got = { r: r, S: S }; }, { ms: 1, defer: function (fn) { D.rand(); D.rand(); D.battle = null; noise++; q.push(fn); } });
+        drainSR(q);
+        okSR('seed ' + m.seed + (m.surprised ? ' (b surprised)' : '') + (Array.isArray(m.a) ? ' (two units a side)' : '') + ': fought in ' + (got ? got.S.slices : 0) + ' slices of 1 ms, two dice thrown and the battle unset between each, it is the fight fought whole -- ' + briefSR(got && got.r),
+          !!got && got.S.slices > 2 && noise === got.S.slices && sumSR(got.r) === sumSR(whole) && whole.result !== 'error');
+      });
+      repSR.report.push('whole: ' + asksSR.map(function (m) { return m.seed + ' ' + briefSR(wholeSR[m.id]); }).join(' | '));
+      // 2. the Snoot's asks answered as H.serve answers them, on a clean store
+      var LS2 = useSR(fakeSR(4800000)), posted = [], q2 = [], defer2 = function (fn) { q2.push(fn); };
+      HSR.answer(asksSR[0], function (msg) { posted.push(msg); }, { ms: 1, defer: defer2 });
+      HSR.answer(asksSR[1], function (msg) { posted.push(msg); }, { ms: 1, defer: defer2 });
+      okSR('a second ask while the first is fought waits its turn (nothing answered yet, ' + q2.length + ' slice queued)', posted.length === 0 && q2.length === 1);
+      drainSR(q2);
+      var sn2 = JSON.parse(LS2.getItem(RSR.SNOOT_KEY) || '[]'), r2 = sn2[0] || {}, r2b = sn2[1] || {};
+      okSR('both answered done, in order, each its whole fight\'s result, the log left off (' + posted.map(function (p) { return p.id + ' ' + p.type + ' ' + (p.res && p.res.result); }).join(', ') + ')',
+        posted.length === 2 && posted[0].id === 'h7' && posted[1].id === 'h1234567' && posted.every(function (p) { return p.type === 'd16h:done' && p.res && !('log' in p.res) && !('frames' in p.res); }) &&
+        posted[0].res.result === wholeSR.h7.result && posted[0].res.rounds === wholeSR.h7.rounds && posted[1].res.result === wholeSR.h1234567.result && posted[1].res.rounds === wholeSR.h1234567.rounds);
+      okSR('each left a play record in ' + RSR.SNOOT_KEY + ', marked \'' + HSR.REC_FIGHT + '\': "' + r2.name + '", ' + r2.result + ', ' + r2.rounds + ' rounds, seed ' + r2.seed + ', ' + (r2.log || []).length + ' log lines, ' + JSON.stringify(r2).length + ' characters',
+        sn2.length === 2 && sn2.every(function (f) { return f.fight === 'snoot-headless' && f.started && f.ended && Array.isArray(f.log) && f.log.length > 10 && f.sides && f.a && f.b; }) && r2.result === wholeSR.h7.result && r2.rounds === wholeSR.h7.rounds && r2.seed === 7 && r2b.seed === 1234567 && r2b.surprised === 'b' && /patrol/.test(r2.name) && r2.log.join() === wholeSR.h7.log.join());
+      okSR('and none in deep16.plays (the story\'s store untouched); REC.count is ' + RSR.count(), LS2.getItem('deep16.plays') === null && RSR.count() === 2);
+      var fromRec = function (r) { var sd = function (s) { return { name: s.name, units: s.units.map(function (x) { return Object.assign({}, x, { list: HSR.words(x.words) }); }) }; }; return HSR.run({ a: sd(r.sides.a), b: sd(r.sides.b), level: r.level, seed: r.seed, surprised: r.surprised }); };
+      okSR('the record fights again the same: its sides\' words (' + r2.sides.a.units.map(function (x) { return x.words; }).join(' + ') + ' against ' + r2.sides.b.units.map(function (x) { return x.words; }).join(' + ') + ') and its seed', sumSR(fromRec(r2)) === sumSR(wholeSR.h7) && sumSR(fromRec(r2b)) === sumSR(wholeSR.h1234567));
+      // 3. forty story fights, then sixty of the Snoot's: none of his pushed out
+      var LS3 = useSR(fakeSR(4800000)), story = [];
+      for (var iS = 0; iS < 40; iS++) story.push({ fight: 'story', name: 'a story fight ' + iS, started: '2026-11-2' + (iS < 10 ? '0' : '1') + 'T0' + (iS % 10) + ':00:00.000Z', steps: [], log: ['R1 one line'] });
+      LS3.setItem('deep16.plays', JSON.stringify(story));
+      for (var kS = 0; kS < 60; kS++) RSR.keepSnoot(Object.assign({}, r2, { started: '2026-11-24T' + (kS < 10 ? '0' : '') + kS + ':00:00.000Z' }));
+      var st3 = JSON.parse(LS3.getItem('deep16.plays')), sn3 = JSON.parse(LS3.getItem(RSR.SNOOT_KEY) || '[]'), sn3c = (LS3.getItem(RSR.SNOOT_KEY) || '').length;
+      okSR('forty story fights, then sixty Snoot fights: all forty story fights kept, in order', st3.length === 40 && st3.every(function (f, i) { return f.started === story[i].started; }));
+      okSR('the Snoot\'s kept to their own count and room: ' + sn3.length + ' kept (count ' + RSR.SNOOT_KEEP + ', room ' + RSR.SNOOT_ROOM + '), ' + sn3c + ' characters, the newest last', sn3.length >= 1 && sn3.length <= RSR.SNOOT_KEEP && sn3c <= RSR.SNOOT_ROOM + 2 && sn3[sn3.length - 1].started === '2026-11-24T59:00:00.000Z' && RSR.count() === 40 + sn3.length);
+      var dlSR = []; HTMLAnchorElement.prototype.click = function () { dlSR.push(this.download); };
+      var sb3 = RSR.saveBody(new Date('2026-11-24T12:00:00.000Z')), fs3 = sb3 ? sb3.file.fights : [];
+      okSR('R\'s file carries both: the forty story fights first, then the ' + sn3.length + ' Snoot fights marked \'snoot-headless\' (file.snoot ' + (sb3 && sb3.file.snoot) + ')', fs3.length === 40 + sn3.length && fs3.slice(0, 40).every(function (f, i) { return f.fight === 'story' && f.started === story[i].started; }) && fs3.slice(40).every(function (f) { return f.fight === 'snoot-headless'; }) && sb3.file.snoot === sn3.length && /snoot-headless/.test(sb3.file.what));
+      var nm3 = RSR.save(); RSR.keepSnoot(Object.assign({}, r2, { started: '2026-11-25T00:00:00.000Z' }));
+      var sn3n = RSR.snootAll().length, cl3 = RSR.clearable(), clr3 = RSR.clear(), st3b = JSON.parse(LS3.getItem('deep16.plays') || '[]'), sn3b = JSON.parse(LS3.getItem(RSR.SNOOT_KEY) || '[]'); // (sn3n: the one fought since may have pushed the Snoot's oldest out of their room)
+      okSR('R saved ' + nm3 + '; CLEAR RECORD after it takes the ' + cl3 + ' fights that file holds and are still kept (40 story, ' + (sn3n - 1) + ' Snoot), and keeps the Snoot fight fought since', dlSR.length === 1 && cl3 === 40 + sn3n - 1 && clr3 && clr3.gone === cl3 && clr3.kept === 1 && st3b.length === 0 && sn3b.length === 1 && sn3b[0].started === '2026-11-25T00:00:00.000Z');
+      // 4. a browser that refuses (a 1 M cap): the Snoot's oldest give way first, a save elsewhere and a story fight's own write alike
+      var LS4 = useSR(fakeSR(1000000)), story4 = story.slice(0, 39);
+      LS4.setItem('deep16.plays', JSON.stringify(story4));
+      for (var k4 = 0; k4 < 60; k4++) RSR.keepSnoot(Object.assign({}, r2, { started: '2026-11-24T' + (k4 < 10 ? '0' : '') + k4 + ':00:00.000Z' }));
+      var n4a = RSR.snootAll().length, w4 = D.store.set('deep16.pocket', { pad: new Array(450001).join('p') }), n4b = RSR.snootAll().length, st4 = JSON.parse(LS4.getItem('deep16.plays'));
+      okSR('a 450 K save refused at a full store is written after the Snoot\'s oldest give way (' + n4a + ' to ' + n4b + '); all 39 story fights kept', w4 && !!LS4.getItem('deep16.pocket') && n4b > 0 && n4b < n4a && st4.length === 39);
+      var B4 = { o: {}, units: [], logEntries: [], round: 3, inv: [] }, big4 = new Array(100001).join('w');
+      RSR.start(B4, { fight: 'story-new', name: 'a story fight, written at the edge', level: 3 }); B4.logEntries = [{ id: null, text: 'R1 ' + big4 }];
+      RSR.finish(B4, 'won');
+      var st4b = JSON.parse(LS4.getItem('deep16.plays') || '[]'), n4c = RSR.snootAll().length;
+      okSR('a story fight\'s own write refused at the edge takes the Snoot\'s oldest first (' + n4b + ' to ' + n4c + '): ' + st4b.length + ' story fights, the new one last, none of the 39 gone', st4b.length === 40 && st4b[39].fight === 'story-new' && st4b.slice(0, 39).every(function (f, i) { return f.started === story4[i].started; }) && n4c < n4b);
+    } catch (eSR) { repSR.errors.push(String(eSR && eSR.stack || eSR).slice(0, 900)); }
+    finally { HTMLAnchorElement.prototype.click = aClkSR; if (lsSR) Object.defineProperty(window, 'localStorage', lsSR); else delete window.localStorage; }
+    if (errs.length) repSR.errors = repSR.errors.concat(errs.slice(0, 5));
+    var preSR = document.createElement('pre'); preSR.id = 'out'; preSR.textContent = 'BENCH16 ' + JSON.stringify(repSR);
+    document.body.appendChild(preSR);
+    return;
+  }
+  // THE GULCH OF 11-24 (mode=drum1124; the seat world-1124, on the gulch lane's 2026-11-22 section and the desk's list E8, E9): 1. THE DRUMMER'S AURA, his design ("if there's a
+  // fight triggered the drummer boy goes to work and during the fight the drum radiates an aura the spiders won't enter and if the players all move into that aura the monsters
+  // flee down the gulch and the fight ends") -- set down outside it, barred from it, the flight once all the party stands in it, no XP for the fled, none out of his hearing;
+  // 2. every way in -- the east gate at 28,59, the west at its trail's foot, the mouths on the road, each step into the cut off the area's hexes; 3. the traveler's words;
+  // 4. the camp's keepers on the ettercap, the Snoot and the farms (E9); the watch fought at the fire is gulchcamp1120's (E8)
+  if (get('mode', '') === 'drum1124') {
+    var repDR = { checks: [], errors: [] }, memDR = {}, stGDR = D.store.get, stSDR = D.store.set, muDR = D.music, apDR = window.DS.autoPicks, GuDR = D.gulch, RDR = D.roam, MDR = D.mines, WDR = D.world, GDR = D.grid;
+    function okDR(what, v) { repDR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memDR[k] ? JSON.parse(memDR[k]) : null; }; D.store.set = function (k, v) { memDR[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    function floorDR(q) { var B = RDR.make(q); D.scenes.length = 0; D.push(B); for (var k = 0; k < 44; k++) D.update(); D.battle = B; return B; }
+    // a coroutine run to its end: prompts answered with their first, each hero turn handed to onTurn (its answer, or the turn ended), the VICTORY panel kept
+    function runDR(B, g, onTurn) {
+      var v, k = 0, out = { turns: 0, victory: null, cards: [] }, c0 = B.card;
+      B.card = function (ls) { out.cards.push(window.DS.stripCodes([].concat(ls).join(' '))); return c0.apply(this, arguments); };
+      try {
+        while (k++ < 200000) {
+          var st = g.next(v); v = undefined; if (st.done) { out.ret = st.value; break; } var y = st.value;
+          if (typeof y === 'number') { B.t += Math.max(1, y); continue; } if (!y) continue;
+          if (y.prompt) { v = y.prompt.opts[0].value; continue; }
+          if (y.victory) { out.victory = y.victory; continue; }
+          if (y.turn) { out.turns++; v = (onTurn && onTurn(B, out.turns)) || { do: 'end' }; continue; }
+        }
+      } finally { B.card = c0; }
+      return out;
+    }
+    var ftOf = function (dr, x, y) { return Math.max(Math.abs(x - dr.at[0]), Math.abs(y - dr.at[1])) * 5; };
+    try {
+      // 1a. by night in the camp: the boy by the fire, the party a few squares south of it -- in his hearing; a random encounter set down outside his reach
+      var B1 = floorDR('?roam=webgulch&hour=22&at=12,15'), boy1 = GuDR.drummer(B1), near1 = GuDR.drumNear(B1);
+      okDR('1 the boy by night at ' + (boy1 && boy1.x + ',' + boy1.y) + ', the party at 12,15: in his hearing (' + !!near1 + ', ' + (near1 && near1.ft) + ' ft round him)', !!boy1 && boy1.x === 13 && boy1.y === 10 && !!near1 && near1.ft === 30);
+      var placedOut = [], nInside = 0;
+      for (var s1 = 0; s1 < 6; s1++) {
+        var Bp = floorDR('?roam=webgulch&hour=22&at=12,15&seed=' + (11 + s1)), n0 = Bp.roam.groups.length, gp = RDR.encounter(Bp, 'steps'), kp = 0, stp;
+        while (kp++ < 400) { stp = gp.next(); if (stp.done || D.top() !== Bp) break; }
+        var grp1 = Bp.roam.groups[Bp.roam.groups.length - 1], bp = GuDR.drummer(Bp);
+        if (grp1 && bp) grp1.foes.forEach(function (u) { var d = ftOf({ at: [bp.x, bp.y] }, u.x, u.y); placedOut.push(u.kind + '@' + u.x + ',' + u.y + ' ' + d + 'ft'); if (d <= 30) nInside++; });
+        if (Bp.drum) nInside += 100; // (the placing's drum lifted once they are down)
+      }
+      okDR('1 six encounters by the fire: every foe set down outside the 30 ft (' + placedOut.slice(0, 6).join('; ') + ' ...), none inside (' + nInside + ')', placedOut.length > 0 && nInside === 0);
+      // 1b. the fight: the drum's card, the bars (a foe outside barred from the reach; one inside may go out, not in), then the party moved in -- the flight
+      var B2 = floorDR('?roam=webgulch&hour=22&at=12,15&seed=12'), g2 = RDR.encounter(B2, 'steps'), k2 = 0, st2; while (k2++ < 400) { st2 = g2.next(); if (st2.done || D.top() !== B2) break; }
+      var grp2 = B2.roam.groups[B2.roam.groups.length - 1], xp0 = B2.roam.xpBank, kills0 = JSON.stringify(B2.roam.kills), bars = null, startY = null;
+      var r2 = runDR(B2, RDR.engage(B2, grp2, false, 'yours'), function (B, n) {
+        if (n > 1 || !B.drum) return null;
+        var dr = B.drum, f = (dr.foes || []).filter(function (u) { return !u.dead; })[0]; startY = (dr.foes || []).map(function (u) { return u.y; });
+        if (f) {
+          var inSq = null, outSq = null, ox = f.x, oy = f.y;
+          for (var y = dr.at[1] - 6; y <= dr.at[1] + 6 && !inSq; y++) for (var x = dr.at[0] - 6; x <= dr.at[0] + 6 && !inSq; x++) if (ftOf(dr, x, y) <= 30 && ftOf(dr, x, y) >= 20 && GDR.map.at(x, y) && GDR.map.at(x, y).walk && !GDR.occupant(x, y)) inSq = [x, y];
+          var inStand = GDR.canStand(f, inSq[0], inSq[1]), inPass = GDR.canPass(f, inSq[0], inSq[1]);
+          // the same foe set three squares from the boy: a step deeper refused, a step out allowed
+          var mid = null; for (var y2 = dr.at[1] + 1; y2 <= dr.at[1] + 5 && !mid; y2++) for (var x2 = dr.at[0] - 3; x2 <= dr.at[0] + 3 && !mid; x2++) if (ftOf(dr, x2, y2) === 15 && GDR.map.at(x2, y2) && GDR.map.at(x2, y2).walk && !GDR.occupant(x2, y2)) mid = [x2, y2];
+          f.x = mid[0]; f.y = mid[1]; var deeper = null, outer = null;
+          [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]].forEach(function (d) { var x3 = mid[0] + d[0], y3 = mid[1] + d[1], s3 = GDR.map.at(x3, y3); if (!s3 || !s3.walk || GDR.occupant(x3, y3)) return; var ft3 = ftOf(dr, x3, y3); if (ft3 < 15 && !deeper) deeper = [x3, y3]; if (ft3 > 15 && !outer) outer = [x3, y3]; });
+          bars = { foe: f.kind, inSq: inSq, inStand: inStand, inPass: inPass, deeper: deeper && GDR.canStand(f, deeper[0], deeper[1]), outer: outer && GDR.canStand(f, outer[0], outer[1]), stay: GDR.canStand(f, mid[0], mid[1]), party: GDR.canStand(B.roam.members[0], inSq[0], inSq[1]) || true };
+          f.x = ox; f.y = oy;
+        }
+        // every one of the party into the reach, by the fire
+        var taken = {}; B.units.forEach(function (w) { if (w.side === 'foe') taken[w.x + ',' + w.y] = 1; });
+        GuDR.drumWho(B).forEach(function (u) { for (var r = 0; r <= 5; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { var x4 = dr.at[0] + dx, y4 = dr.at[1] + dy; if (u.placedIn || taken[x4 + ',' + y4] || GDR.occupant(x4, y4) || !GDR.canStand(u, x4, y4)) continue; u.x = x4; u.y = y4; u.tween = null; u.placedIn = true; taken[x4 + ',' + y4] = 1; } delete u.placedIn; });
+        GDR.setup(GDR.map, B.units); return { do: 'end' };
+      });
+      var dl = GuDR.drumLast || {}, ran = dl.ran || [], cards2 = r2.cards.join(' | ');
+      okDR('1 the fight called by the fire: the drum\'s card ("' + ((cards2.match(/The drummer boy is up and at it[^|]*/) || [''])[0]).slice(0, 90) + '..."), its ring at ' + (dl.at || []).join(',') + ' (' + dl.ft + ' ft) on ' + (dl.foes || []).length + ' foes',
+        /The drummer boy is up and at it/.test(cards2) && dl.ft === 30 && (dl.foes || []).length > 0);
+      okDR('1 the spiders won\'t enter: ' + JSON.stringify(bars), !!bars && bars.inStand === false && bars.inPass === false && bars.deeper === false && bars.outer === true && bars.stay === true);
+      var bossAt = (dl.at || [0, 0]), awayOK = ran.every(function (s, i) { var m = /(\d+),(\d+)>(\d+),(\d+)$/.exec(s); if (!m) return false; var y0 = +m[2], y1 = +m[4], d0 = Math.max(Math.abs(+m[1] - bossAt[0]), Math.abs(y0 - bossAt[1])), d1 = Math.max(Math.abs(+m[3] - bossAt[0]), Math.abs(y1 - bossAt[1])); return d1 > d0 && (y0 < bossAt[1] ? y1 < y0 : y1 > y0); });
+      okDR('1 all of the party inside it: the foes ran away from the drum, down the gully or up out of the north mouth as they stood (' + ran.join('; ') + ', away ' + awayOK + '), "' + ((cards2.match(/The drum does not stop[^|]*/) || [''])[0]).slice(0, 80) + '"; the fight ' + B2.roam.lastOutcome + ' after ' + r2.turns + ' turn(s), the floor\'s foes left ' + B2.units.filter(function (u) { return u.side === 'foe'; }).length,
+        dl.fled === true && ran.length === (dl.foes || []).length && awayOK && /The drum does not stop/.test(cards2) && B2.roam.lastOutcome === 'won' && !B2.units.some(function (u) { return u.side === 'foe'; }) && B2.roam.mode === 'walk');
+      okDR('1 no XP and nothing paid for the fled: the bank ' + xp0 + ' > ' + B2.roam.xpBank + ', the tally the same (' + (JSON.stringify(B2.roam.kills) === kills0) + '), no VICTORY panel (' + !r2.victory + '); the drum lifted after (' + !B2.drum + ', the bars ' + !GuDR.drumB + ')',
+        B2.roam.xpBank === xp0 && JSON.stringify(B2.roam.kills) === kills0 && !r2.victory && !B2.drum && !GuDR.drumB);
+      // 1c. out of his hearing: midway down the gully by night, no drum
+      var B3 = floorDR('?roam=webgulch&hour=22&at=20,45'), g3 = RDR.encounter(B3, 'steps'), k3 = 0, st3; while (k3++ < 400) { st3 = g3.next(); if (st3.done || D.top() !== B3) break; }
+      var grp3 = B3.roam.groups[B3.roam.groups.length - 1], dr3 = 'none', r3 = grp3 ? runDR(B3, RDR.engage(B3, grp3, false, 'yours'), function (B) { dr3 = B.drum ? 'on' : 'none'; B.units.forEach(function (u) { if (u.side === 'foe' && !u.roamAside) { u.hp = 0; u.dead = true; } }); return { do: 'end' }; }) : { cards: [] };
+      okDR('1 out of his hearing (20,45, ' + (GuDR.drummer(B3) ? Math.max(Math.abs(GuDR.drummer(B3).x - 20), Math.abs(GuDR.drummer(B3).y - 45)) * 5 : '?') + ' ft off): no drum (' + dr3 + ', no card ' + !/drummer boy/.test(r3.cards.join(' ')) + '), the fight fought (' + B3.roam.lastOutcome + ')', !!grp3 && dr3 === 'none' && !/drummer boy/.test(r3.cards.join(' ')) && B3.roam.lastOutcome === 'won');
+      // 1d. at noon he is out at the near webs with the cutters: the ring goes with him
+      var B4 = floorDR('?roam=webgulch&hour=12&at=16,32'), n4 = GuDR.drumNear(B4);
+      okDR('1 at noon the boy at the near webs (' + (n4 && n4.at.join(',')) + '), the party at 16,32 in his hearing (' + !!n4 + ')', !!n4 && n4.at.join() === '14,28');
+      // 2. every way in
+      var gq = MDR.FLOORS[GuDR.KEY].gates, arrive = function (gate) { var B = floorDR('?roam=webgulch&hour=10&gate=' + gate), t = B.roam.token; return [t.x, t.y]; };
+      var aE = arrive('east'), aW = arrive('west'), aN = arrive('north'), aS = arrive('south');
+      var sqOf = function (a) { return GuDR.ROWS[a[1]].charAt(a[0]); };
+      okDR('2 by the east gate the party stands at ' + aE + ' (his "28, 59; 28, 60": where the east trail\'s dirt ends, "' + sqOf(aE) + '", the dirt east of it "' + GuDR.ROWS[59].charAt(29) + '"); the gate itself still ' + gq.east.slice(0, 2),
+        aE.join() === '28,59' && sqOf(aE) === '.' && GuDR.ROWS[59].charAt(29) === ':' && gq.east[0] === 38);
+      okDR('2 by the west gate at the foot of the silk-cutters\' descent: ' + aW + ' ("' + sqOf(aW) + '", the trail "' + GuDR.ROWS[10].charAt(8) + '" to its west, the fire at ' + GuDR.FIRE + ')', aW.join() === '9,10' && sqOf(aW) === '.' && GuDR.ROWS[10].charAt(8) === ':');
+      okDR('2 by the mouths, on the road as ever: north ' + aN + ' ("' + sqOf(aN) + '"), south ' + aS + ' ("' + sqOf(aS) + '")', aN.join() === '17,1' && aS.join() === '22,110' && sqOf(aN) === ',' && sqOf(aS) === ',');
+      var Bat = floorDR('?roam=webgulch&hour=10&gate=east&at=20,40'), tAt = Bat.roam.token;
+      okDR('2 a door\'s own square wins (&gate=east&at=20,40): ' + tAt.x + ',' + tAt.y, tAt.x === 20 && tAt.y === 40);
+      // 2b. each step into the cut off the Silverton area's hexes: which gate, and where it sets the party down
+      if (!D.WORLD_NEAR) { var xN = new XMLHttpRequest(); xN.open('GET', '../deep16/data/world-near.js', false); xN.send(); (0, eval)(xN.responseText); }
+      WDR.index(); var MN = WDR.map('near'), sp = GuDR.span(MN), use0 = WDR.M, rows = [], bad = [], seenGate = {};
+      var KN = function (q) { return q[0] + ',' + q[1]; }, NB = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]], gateOn = function (from, to) { var a = GuDR.hc(MN, from[0], from[1]), b = GuDR.hc(MN, to[0], to[1]), v = [a[0] - b[0], a[1] - b[1]], G = WDR.DOORS[GuDR.KEY].gates, best = 'north', bd = -1e9; Object.keys(G).forEach(function (k) { var d = G[k][0] * v[0] + G[k][1] * v[1]; if (d > bd) { bd = d; best = k; } }); return best; };
+      sp.hexes.forEach(function (h) {
+        NB.forEach(function (d) {
+          var from = [h[0] + d[0], h[1] + d[1]]; if (sp.set[KN(from)] || !MN.hex[KN(from)]) return;
+          var gate = gateOn(from, h), sq = GuDR.entrySq(sp, from, h, gate), at = sq || (GuDR.FOOT[gate] ? GuDR.FOOT[gate].slice(0, 2) : gq[gate].slice(0, 2)), ch = GuDR.ROWS[at[1]].charAt(at[0]);
+          seenGate[gate] = (seenGate[gate] || 0) + 1; rows.push(KN(from) + '>' + KN(h) + ' ' + gate + ' ' + at.join(','));
+          var good = gate === 'east' ? at.join() === '28,59' : gate === 'west' ? at.join() === '9,10' : ch === ',';
+          if (!good) bad.push(KN(from) + '>' + KN(h) + ' ' + gate + ' at ' + at + ' "' + ch + '"');
+        });
+      });
+      okDR('2 every step into the cut off the area (' + rows.length + ' steps; by gate ' + JSON.stringify(seenGate) + '): the side gates at their feet, the rest on the road -- ' + (bad.length ? 'WRONG: ' + bad.slice(0, 4).join('; ') : rows.slice(0, 3).join('; ') + ' ...'), rows.length > 6 && !bad.length && seenGate.east > 0 && seenGate.west > 0);
+      // 3. the traveler's words: off down the road, as he runs (south, Gu.LAD.runTo)
+      var tw = [].concat(D.counter.L('gulch.snaredFree')).join(' ');
+      okDR('3 the traveler cut down: "' + tw + '" (he runs to ' + GuDR.LAD.runTo + ')', /off down the road at a run/.test(tw) && !/north/.test(tw) && GuDR.LAD.runTo[1] > GuDR.SNARE[1]);
+      // 4. the camp's keepers: the ettercap dead, the glory-seekers broken; a fresh camp says its hour alone
+      var talkDR = function (B, id) { var said = [], g = MDR.SCENES[id]({ say: function (ls) { said = said.concat(ls); return 0; }, st: D.counter.state(B) }, B), st, n = 0; while (n++ < 20) { st = g.next(); if (st.done) break; } return said; };
+      var B5 = floorDR('?roam=webgulch&hour=9&at=12,11'), fresh5 = talkDR(B5, 'gulchboss');
+      D.counter.state(B5).flags.ettercapDone = 1; var done5 = talkDR(B5, 'gulchboss'), guard5 = talkDR(B5, 'gulchguard');
+      D.counter.state(B5).flags.snootDone = 1; var snoot5 = talkDR(B5, 'gulchguard');
+      okDR('4 the crew boss by day, a fresh camp: ' + JSON.stringify(fresh5) + '; the ettercap dead: ' + JSON.stringify(done5), fresh5.length === 1 && /Hessle's board/.test(fresh5[0]) && done5.length === 2 && !/Hessle/.test(done5.join(' ')) && /far end's yours/.test(done5[0]) && /slack/.test(done5[1]));
+      okDR('4 the guard: the ettercap dead ' + JSON.stringify(guard5) + '; the glory-seekers broken ' + JSON.stringify(snoot5), guard5.length === 2 && /strung end/.test(guard5[1]) && snoot5.length === 2 && /broke the laughing ones/.test(snoot5[1]));
+      var SRDR = D.snootroad, hs0 = WDR.house, b0 = SRDR && SRDR.bands, rd0 = SRDR && SRDR.rumorDay, on0 = SRDR && SRDR.on;
+      if (SRDR) {
+        var dy0 = WDR.day; try { SRDR.on = true; WDR.house = function () { return true; }; WDR.day = function () { return 5; }; SRDR.bands = function () { return []; }; SRDR.rumorDay = function () { return 1; }; var farms5 = GuDR.news(B5); SRDR.bands = function () { return [{ id: 'sg1' }]; }; var bands5 = GuDR.news(B5), boss5 = talkDR(B5, 'gulchboss'); }
+        finally { WDR.house = hs0; WDR.day = dy0; SRDR.bands = b0; SRDR.rumorDay = rd0; SRDR.on = on0; }
+        okDR('4 THE WORLD\'s news first: the farms\' word in (' + farms5 + '), the Snoot\'s bands out (' + bands5 + '): the crew boss "' + boss5.join(' ').slice(0, 160) + '"', farms5 === 'farms' && bands5 === 'snoot' && /laughing ones are out south/.test(boss5.join(' ')));
+      } else okDR('4 the Snoot\'s road (js/snootroad.js) on the page', false);
+    } catch (eDR) { repDR.errors.push(String(eDR && eDR.stack || eDR).slice(0, 900)); }
+    D.store.get = stGDR; D.store.set = stSDR; D.music = muDR; window.DS.autoPicks = apDR;
+    var preDR = document.createElement('pre'); preDR.id = 'out'; preDR.textContent = 'BENCH16 ' + JSON.stringify(repDR);
+    document.body.appendChild(preDR);
+    return;
+  }
+  // HIS PLAY OF DAYS 8-18, THE WORLD AND THE TOWNS (mode=world1124; the seat world-1124, the desk's list of 11-24 §E, every lean RULED on his "leans otherwise approved"):
+  // E1 the chain Barley's portrait; E2 Ned's wand at the dawn bell; E3 the pools to the knee; E4 SELL IT? and one braid; E5 a click on your own hex is HERE, a right-click a card's
+  // X; E6 the forced march's card KEEP WALKING / CAMP HERE / STAY; E7 the march a wait gives back, said; E10 a mission opened on THE WORLD said there at once; E13 the egg screen's
+  // eight seconds and the inn's supper shedding exhaustion as Marta's meal does
+  if (get('mode', '') === 'world1124') {
+    var repWW = { checks: [], errors: [] }, memWW = {}, stGWW = D.store.get, stSWW = D.store.set, muWW = D.music, apWW = window.DS.autoPicks, WWW = D.world, HWW = D.house, CWW = D.counter, RWW = D.roam, H6W = D.hours, IWW = D.input, onStepWW = WWW.onStep, roll0WW = D.roll;
+    function okWW(what, v) { repWW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    D.store.get = function (k) { return memWW[k] ? JSON.parse(memWW[k]) : null; }; D.store.set = function (k, v) { memWW[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1124);
+      // E1 the chain Barley's portrait: his coat's bust
+      okWW('E1 Barley in his chain (barley_p3) on the coat\'s bust: ' + CWW.HERO_PT.barley_p3 + ' (the coat\'s ' + CWW.HERO_PT.barley_p2 + ')', CWW.HERO_PT.barley_p3 === 'pt_barley_coat' && CWW.HERO_PT.barley_p2 === 'pt_barley_coat');
+      // E2 Ned's wand at the dawn bell (items1116 W2 walks it)
+      okWW('E2 Ned\'s wand ready from ' + CWW.WAND.morning + ':00, the dawn bell; his word while it waits: ' + CWW.NED_WAND.waiting[0], CWW.WAND.morning === 5 && /At first light/.test(CWW.NED_WAND.waiting[0]) && WWW.todAt(5) === 'dawn');
+      // E3 the pools to the knee, the landlord's water as it was
+      var wet = RWW.wholeWet({}), wq = null, wd = null; wet.rows.forEach(function (r, y) { for (var x = 0; x < r.length; x++) { if (r[x] === '~' && !wq) wq = [x, y]; if (r[x] === 'D' && !wd) wd = [x, y]; } });
+      okWW('E3 the Wet: a pool (' + wq + ') ' + (wq && wet.wadeAt.call(wet, wq[0], wq[1])) + ' up a figure, the landlord\'s deep (' + wd + ') ' + (wd && wet.wadeAt.call(wet, wd[0], wd[1])), !!wq && wet.wadeAt.call(wet, wq[0], wq[1]) === 9 && (!wd || wet.wadeAt.call(wet, wd[0], wd[1]) === 3));
+      var BW3 = RWW.make('?roam=wet'); D.scenes.length = 0; D.push(BW3); for (var k3 = 0; k3 < 44; k3++) D.update(); D.battle = BW3;
+      var mW3 = D.grid.map, pq = null, dq = null; for (var y3 = 0; y3 < mW3.h; y3++) for (var x3 = 0; x3 < mW3.w; x3++) { var s3 = mW3.at(x3, y3); if (!s3) continue; if (s3.ch === '~' && !s3.deep && !pq) pq = [x3, y3]; if (s3.deep && !dq) dq = [x3, y3]; }
+      var bW = BW3.roam.members.filter(function (u) { return u.id === 'barley'; })[0] || BW3.roam.members[0], x0W = bW.x, y0W = bW.y, wdW = null, wdD = null;
+      if (pq) { bW.x = pq[0]; bW.y = pq[1]; wdW = D.ui.wading(BW3, bW); } if (dq) { bW.x = dq[0]; bW.y = dq[1]; wdD = D.ui.wading(BW3, bW); } bW.x = x0W; bW.y = y0W;
+      okWW('E3 the Wet\'s floor (' + RWW.def.key + '): ' + bW.name + ' in a settling pool at ' + pq + ' wades to ' + (wdW && wdW.cut) + ' (an ankle was 3); in the landlord\'s deep at ' + dq + ' ' + (wdD && wdD.cut) + ' as before', !!pq && !!wdW && wdW.cut === 9 * (bW.size || 1) && (!dq || (!!wdD && wdD.cut === 3 * (bW.size || 1))));
+      // E4 SELL IT?: one of a thing asks before it goes; and one braid from the ettercap, its fight's own drop counted
+      var silW = 0, stS = { flags: {}, inv: [{ id: 'handaxe', n: 1 }], party: [], silver: function (n) { if (n) silW += n; return silW; } }, scS = Object.create(CWW.Counter.prototype);
+      scS.st = stS; scS.shop = window.DS.DATA.shops.copperbottom; scS.shopId = 'copperbottom'; scS.id = 'smith'; scS.tab = 'sell'; scS.scroll = 0; scS.cur = 0; scS.msg = ''; scS.wait = {}; scS.setFace = function () { }; scS.remark = function () { return null; };
+      var rowS = scS.rows().map(function (r) { return r.id; }).indexOf('handaxe'); scS.press({ go: 'row', k: rowS }); var subS = scS.sub && JSON.stringify(scS.sub), heldS = CWW.count(stS, 'handaxe');
+      scS.press({ go: 'qok' }); var soldS = CWW.count(stS, 'handaxe');
+      okWW('E4 one handaxe to sell: the ask first (' + subS + '; still in the pack ' + heldS + '), SELL and it goes (' + soldS + ', ' + silW + ' sp)', !!subS && scS.sub === null && /"one":true/.test(subS) && heldS === 1 && soldS === 0 && silW > 0);
+      var BW4 = { roam: { flags: {}, members: [], token: { x: 0, y: 0 } }, inv: [{ id: 'cord', n: 1 }], units: [], card: function () { } }, gW4 = D.gulch.ettercapSpoils(BW4), nW4 = 0; while (nW4++ < 20 && !gW4.next().done) { }
+      var st4 = CWW.state(BW4);
+      okWW('E4 the ettercap\'s spoils with its fight\'s own cord already in the pack: braids ' + CWW.count(st4, 'cord') + ', fangs ' + CWW.count(st4, 'ettercapfangs') + ', cordTaken ' + st4.flags.cordTaken, CWW.count(st4, 'cord') === 1 && CWW.count(st4, 'ettercapfangs') === 1 && st4.flags.cordTaken === 1);
+      // THE WORLD, a fresh game on it
+      WWW.onStep = null; HWW.worldDoor('?world&fresh&noenc'); var scW = D.top(), SW = WWW.state(), m = IWW.mouse;
+      var clearW = function () { while (D.scenes.length && D.top() !== scW) D.pop(); scW.cards = []; scW.walk = null; scW.plan = null; scW.hovK = null; };
+      // E5 a click on the party's own hex: HERE
+      var hereN = 0, here0 = scW.here; scW.here = function () { hereN++; }; var pix = null;
+      scW.update(); for (var py = 20; py < D.H - 20 && !pix; py += 3) for (var px = 20; px < D.W - 20 && !pix; px += 3) { var hv = scW.pick(px, py), pp = scW.pickPlace(px, py); if (hv && hv[0] === SW.at[0] && hv[1] === SW.at[1] && !pp) pix = [px, py]; }
+      if (pix) { m.x = pix[0]; m.y = pix[1]; m.inside = true; m.inWin = true; scW.update(); m.click = true; scW.update(); m.click = false; }
+      scW.here = here0;
+      okWW('E5 a click on the hex the party stands on (' + SW.at + ', at the pixel ' + pix + '): HERE (' + hereN + '), no walk (' + !scW.walk + ')', !!pix && hereN === 1 && !scW.walk);
+      clearW(); var saidB = 0, saidA = 0; scW.card(['A door.'], null, [['a', function () { saidA++; }, 'GO IN'], ['b', function () { saidB++; }, 'STAY ON THE ROAD']]);
+      m.rclick = true; scW.update(); m.rclick = false; var gone1 = !scW.cards.length;
+      scW.card(['No X.'], null, [['a', function () { saidA++; }, 'OK'], ['rec', function () { }, 'CAMP']]); m.rclick = true; scW.update(); m.rclick = false; var kept2 = scW.cards.length === 1;
+      okWW('E5 a right-click on a card: its X taken (STAY ON THE ROAD ' + saidB + ', GO IN ' + saidA + ', the card gone ' + gone1 + '); a card with no X keeps its keys (' + kept2 + ')', saidB === 1 && saidA === 0 && gone1 && kept2);
+      // E6 the forced march: every save lost, a long walk -- KEEP WALKING / CAMP HERE / STAY
+      var pathOf = function (n) { var at = SW.at.slice(), out = [], prev = null; for (var i = 0; i < n; i++) { var nx = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [at[0] + d[0], at[1] + d[1]]; }).filter(function (q) { return WWW.stepHours(at, q) && !(prev && q[0] === prev[0] && q[1] === prev[1]) && !out.some(function (o) { return o[0] === q[0] && o[1] === q[1]; }); })[0]; if (!nx) break; out.push(nx); prev = at; at = nx; } return out; };
+      var failCard = function (how) {
+        clearW(); var at0 = SW.at.slice(), p = pathOf(3); SW.todayHex = 5; SW.pushing = true; D.roll = function () { return { total: 1 }; };
+        scW.walk = { path: p.slice(), f: 0 }; for (var f = 0; f < 200 && scW.walk && !scW.cards.length; f++) scW.stepWalk(); D.roll = roll0WW;
+        var cd = scW.cards[0], res = { path: p.length, keys: cd && cd.keys ? cd.keys.map(function (k) { return k[2]; }) : null, lines: cd ? cd.lines.join(' ') : '' };
+        if (cd && cd.keys) { var kk = cd.keys.filter(function (k) { return k[2] === how; })[0]; scW.cards.shift(); if (kk) kk[1](); }
+        res.walk = scW.walk ? scW.walk.path.length : 0; res.top = D.top() === scW ? 'world' : (D.top() && D.top().kind); res.at = SW.at.join(); res.from = at0.join();
+        HWW.cur.party.forEach(function (h) { HWW.exhaust(h, -6); }); SW.pushing = false; SW.todayHex = 0;
+        while (D.scenes.length && D.top() !== scW) D.pop(); return res;
+      };
+      var fS = failCard('STAY'), fK = failCard('KEEP WALKING'), fC = failCard('CAMP HERE');
+      okWW('E6 a save lost on a three-hex walk: ' + JSON.stringify(fS.keys) + ' ("' + window.DS.stripCodes(fS.lines).slice(0, 80) + '...")', JSON.stringify(fS.keys) === '["KEEP WALKING","CAMP HERE","STAY"]' && /FORCED MARCH/.test(fS.lines) && /keep walking/.test(window.DS.stripCodes(fS.lines)));
+      okWW('E6 STAY: the rest of the way dropped (' + fS.walk + ' left), the party a hex on (' + fS.from + ' > ' + fS.at + '); KEEP WALKING: the walk on (' + fK.walk + ' left of ' + fK.path + '); CAMP HERE: the way dropped (' + fC.walk + ') and the camp opened (' + fC.top + ')',
+        fS.walk === 0 && fS.at !== fS.from && fK.walk === fK.path - 1 && fC.walk === 0 && (fC.top === 'worldcamp' || fC.top === 'housemorning' || fC.top === 'housewatches' || /camp|watch|morning/i.test(String(fC.top))));
+      // E7 the march a wait gives back, said
+      clearW(); SW.todayHex = 3; var saidH = scW.campHour(); SW.todayHex = 0; var saidH0 = scW.campHour();
+      okWW('E7 an hour at the camp with 3 hexes walked: "' + window.DS.stripCodes(saidH).slice(0, 120) + '"; with none walked, no such line', /The party is rested for 0\.2 more hexes of march today \(2\.8 of 5 walked\)\./.test(saidH) && !/rested for/.test(saidH0));
+      SW.todayHex = 4; var saidPH = H6W.marchSaid(H6W.marchBack(0, 0)); SW.todayHex = 0;
+      okWW('E7 NEXT BELL\'s share said the same way: "' + saidPH + '"', /^The party is rested for 0\.8 more hexes of march today \(3\.2 of 5 walked\)\.$/.test(saidPH || ''));
+      // E10 the glory-seekers beaten on THE WORLD: their mission said on THE WORLD at once, not on the next floor
+      clearW(); var stM = CWW.state(null); H6W.worldMission(scW); /* (the first look: what is open now is seen) */ var TWW = D.trueword, sc0 = D.scenes.length;
+      if (TWW && TWW.won) { TWW.won(null); while (D.scenes.length > sc0) D.pop(); }
+      var freshM = H6W.fresh(stM).map(function (q) { return q.id; });
+      if (!freshM.length) { var q0 = CWW.quests(stM).filter(function (q) { return !q.done; })[0]; if (q0) { delete stM.flags['q:' + q0.id]; freshM = [q0.id + ' (made fresh)']; } }
+      var cardsM = []; for (var fM = 0; fM < 40 && !scW.cards.length; fM++) scW.update(); scW.cards.forEach(function (c) { cardsM.push(window.DS.stripCodes(c.lines.join(' '))); });
+      okWW('E10 a mission opened on THE WORLD (' + freshM.join(',') + '): its card on THE WORLD within a few frames -- "' + (cardsM[0] || 'none').slice(0, 140) + '"; none left fresh (' + H6W.fresh(stM).length + ')', freshM.length > 0 && cardsM.length > 0 && /In your JOURNAL|JOURNAL/.test(cardsM.join(' ')) && !H6W.fresh(stM).length);
+      // E13 the egg screen held eight seconds; the inn's supper sheds a level of exhaustion as Marta's meal does
+      var gE = D.magic.egg({ flags8: {}, from: null }, 'dunk'), yE = gE.next().value;
+      okWW('E13 the egg screen up ' + (yE && yE.scene && yE.scene.frames) + ' frames (8 s; it was 230), E or a click on after the first second', !!yE && yE.scene.frames === 480 && D.magic.EGG_FRAMES === 480);
+      var hE = HWW.cur.party[0]; HWW.exhaust(hE, 2); var BE = { roam: { members: [{ src: hE, hp: hE.hp, name: hE.name, conds: {} }] } }, linesE = CWW.mealFed(BE), nE = HWW.exh(hE); HWW.exhaust(hE, -6);
+      okWW('E13 a supper eaten, ' + hE.name + ' exhausted 2: "' + linesE.join(' ') + '", exhausted ' + nE + '; the inn\'s supper calls it (' + (String(D.inn.meal).indexOf('mealFed') >= 0) + ')', nE === 1 && /less worn \(exhausted 1\)/.test(linesE.join(' ')) && String(D.inn.meal).indexOf('mealFed') >= 0);
+      // E15 the town knows you: renown:N in a talk's condition, and the unnamed's first line by the party's renown
+      var stR = CWW.state(null), r0R = HWW.cur.renown || 0, BR = { roam: { flags: stR.flags, members: [] }, inv: [] };
+      HWW.cur.renown = 0; var w0R = CWW.words(BR, 'hexpatron1'), c0R = CWW.cond('renown:2', stR);
+      HWW.cur.renown = 2; var w2R = CWW.words(BR, 'hexpatron1'), w2bR = CWW.words(BR, 'hexpatron1'), c2R = CWW.cond('renown:2', stR), c3R = CWW.cond('renown:3', stR), nmR = CWW.words(BR, 'marta');
+      HWW.cur.renown = r0R;
+      okWW('E15 a drinker at the Hex: a stranger hears "' + (w0R || []).join(' ').slice(0, 60) + '"; at renown 2 "' + (w2R || [])[0] + '", then "' + (w2bR || [])[0] + '"; renown:2 ' + c0R + '/' + c2R + ', renown:3 ' + c3R + '; a named keeper unprefixed ("' + (nmR || [])[0] + '")',
+        !/talk about at the bars|Heard your name/.test((w0R || []).join(' ')) && /^"You're the ones they talk about at the bars\."$/.test((w2R || [])[0]) && /^"Heard your name over a drink/.test((w2bR || [])[0]) && c0R === false && c2R === true && c3R === false && !/at the bars|Heard your name/.test((nmR || [])[0] || ''));
+      // E16 WHEN YOU'RE READY with the ring in hand: open till the lake is dead, its step the inn by the due night
+      var stQ = CWW.state(null), ringQ = function () { return CWW.quests(stQ).filter(function (q) { return q.id === 'ring'; })[0]; }, fQ = stQ.flags, t0Q = SW.t, inv0Q = JSON.stringify(stQ.inv);
+      fQ.wintersMet = 1; fQ.wintersRing = 1; CWW.give(stQ, 'ringwaterwalking', 1);
+      SW.t = 11 * 24 + 10; var dQ12 = WWW.day(), q12 = ringQ(); SW.t = 14 * 24 + 10; var dQ15 = WWW.day(), q15 = ringQ(); SW.t = 15 * 24 + 10; var dQ16 = WWW.day(), q16 = ringQ(); fQ.lakeDone = 1; var qDone = ringQ();
+      SW.t = t0Q; delete fQ.lakeDone; delete fQ.wintersRing; CWW.take(stQ, 'ringwaterwalking', 1);
+      okWW('E16 the ring had, day ' + dQ12 + ': ' + (q12.done ? 'done' : 'open') + ' -- "' + q12.where + '" (' + (q12.step && q12.step.site) + '); day ' + dQ15 + ': "' + q15.where + '"; day ' + dQ16 + ': "' + q16.where + '"; the lake dead: ' + (qDone.done ? 'done -- ' + qDone.doneText : 'open'),
+        !q12.done && /^The Halfway Inn by dusk on day 15: the thing in the lake is fed that night \(in 3 days\)/.test(q12.where || '') && q12.step && q12.step.site === 'inn' && /^Tonight, at the Halfway Inn/.test(q15.where || '') && /on day 43/.test(q16.where || '') && qDone.done && /lake is quiet now/.test(qDone.doneText || ''));
+    } catch (eWW) { repWW.errors.push(String(eWW && eWW.stack || eWW).slice(0, 900)); }
+    D.store.get = stGWW; D.store.set = stSWW; D.music = muWW; window.DS.autoPicks = apWW; WWW.onStep = onStepWW; D.roll = roll0WW; if (HWW) { HWW.playing = false; HWW.cur = null; }
+    var preWW = document.createElement('pre'); preWW.id = 'out'; preWW.textContent = 'BENCH16 ' + JSON.stringify(repWW);
+    document.body.appendChild(preWW);
+    return;
+  }
   // WEB GULCH'S CAMP (mode=gulchcamp1120; the gulch seat, on Griz's 11-16 ruling -- "total 3 tents with two more NPCs to sell secured workers camp", "make the players do a
   // watch and adding a male crewboss to fights that night", "DM hand-wavey text on the victory card about the drummer boy running to the crew boss with a healers kit if he
   // falls, playing on screen behind victory card"; js/gulch.js THE CUTTERS' FIRE A CAMP): 1. three tents and four keepers in their costumes, by day and by night; 2. no fight
@@ -2714,6 +3131,22 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
             continue;
           }
           if (s !== B) { D.pop(); continue; }
+          // (the watch's fight on the floor at the fire since 11-24, his "can we use the actual camp/roam map for this fight?" -- js/gulch.js Gu.watchFight: driven where it stands, as
+          // runG2 drives the gully's in-place fights -- the crew boss down first when `bossFalls`, then every foe; the VICTORY panel read and the boy's run stepped behind it)
+          if (B.req && B.req.turn) {
+            var bossF = B.units.filter(function (u) { return u.ally && u.kind === 'crewboss' && !u.look; })[0] || null;
+            if (!out.cur) { out.cur = { foes: B.units.filter(function (u) { return u.side === 'foe' && !u.roamAside && !u.dead; }).map(function (u) { return u.kind; }), boss: !!bossF, bossSide: bossF && bossF.side, title: B.roam.last && B.roam.last.why, onFloor: D.battle === B && D.grid.map === B.map,
+              ours: B.units.filter(function (u) { return u.side === 'party' && u.src && !u.ally && !u.look; }).map(function (u) { return { name: u.name, armor: (u.src.equip || {}).armor || null, ac: u.baseAC }; }), seenAt: seen.length }; out.fights.push(out.cur); out.cur.bossRef = bossF; }
+            if (bossF && bossFalls) bossF.hp = 0; B.units.forEach(function (u) { if (u.side === 'foe' && !u.roamAside) { u.hp = 0; u.dead = true; } });
+            B.answer({ do: 'end' }); continue;
+          }
+          if (B.req && B.req.victory) {
+            var fv = out.cur || {}, vl = []; (function walk(o) { if (!o) return; if (typeof o === 'string') vl.push(o); else if (Array.isArray(o)) o.forEach(walk); else if (typeof o === 'object') Object.keys(o).forEach(function (k) { walk(o[k]); }); })(B.req.victory);
+            fv.paid = window.DS.stripCodes(vl.join(' / '));
+            var boyF = B.units.filter(function (u) { return u.npc === 'drummer' && u.run; })[0], bsR = fv.bossRef;
+            if (boyF && bsR) { var startF = boyF.run.from.slice(); for (var jF = 0; jF < 400 && !boyF.run.done; jF++) if (B.ambient) B.ambient(B); fv.boy = { from: startF, at: [boyF.x, boyF.y], done: boyF.run.done, by: Math.max(Math.abs(boyF.x - bsR.x), Math.abs(boyF.y - bsR.y)), bystander: !!boyF.bystander, sheet: boyF.sheet }; }
+            out.cur = null; B.answer(); continue;
+          }
           if (B.req && B.req.prompt) { seen.push('? ' + B.req.prompt.title + ': ' + B.req.prompt.lines.join(' ')); B.answer(B.req.prompt.opts[0].value); continue; }
           D.update();
         }
@@ -2763,7 +3196,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         bare3.length > 0 && inFight3.length === bare3.length && inFight3.every(function (o) { return !o.armor; }) && keep3.every(function (o) { return bare3.every(function (b) { return b.indexOf(o.name + ' ') !== 0; }); }) && /with no time to buckle on armour/.test(n3.seen) && arm3() === armBefore);
       okGC('the fire: "' + (n3.seen.match(/Our fire's yours[^/]*/) || [''])[0] + '"; LONG REST taken, the watches asked (' + /WATCHES: \{/.test(n3.seen) + ')', /Our watch is yours too/.test(n3.seen) && /LONG REST: 8 HOURS/.test(n3.seen) && /WATCHES: \{/.test(n3.seen));
       okGC('three watches, one fight, in the second: ' + JSON.stringify((cn.fights || []).map(function (f) { return { k: f.k, zone: f.zone, list: f.list, lent: f.lent, fell: f.bossFell, res: f.res }; })), (cn.fights || []).length === 1 && cn.fights[0].k === 2 && cn.fights[0].zone === 'gulch_night' && cn.fights[0].res === 'won');
-      okGC('the fight on the grid with the crew boss lent (' + f3.boss + ', side ' + f3.bossSide + '): the foes ' + (f3.foes || []).join(',') + '; "' + f3.title + '"', f3.boss && f3.bossSide === 'party' && (f3.foes || []).length > 0 && /second watch/.test(f3.title || ''));
+      var wc3 = (n3.seen.match(/CARD: THE SECOND WATCH: [^/]*/) || [''])[0]; // (on the floor at the fire since 11-24, js/gulch.js Gu.watchFight: the watch's card, the crew boss's "The boy needs his sleep.")
+      okGC('the fight on the floor at the fire (' + f3.onFloor + ') with the crew boss lent (' + f3.boss + ', side ' + f3.bossSide + '): the foes ' + (f3.foes || []).join(',') + '; "' + wc3.slice(6, 230) + '"', f3.onFloor === true && f3.boss && f3.bossSide === 'party' && (f3.foes || []).length > 0 && /The boy needs his sleep\./.test(wc3));
       okGC('he fell: the VICTORY panel "' + (f3.paid || '').slice(-170) + '"', /drummer boy is already running, a healer's kit/.test(f3.paid || ''));
       var by3 = f3.boy || {};
       okGC('the boy run to him behind the panel: from ' + by3.from + ' to ' + by3.at + ' (' + by3.by + ' off, done ' + by3.done + ', no one\'s target ' + by3.bystander + ', ' + by3.sheet + ')', by3.done && by3.by <= 1 && by3.bystander && (by3.from || [])[0] + ',' + (by3.from || [])[1] !== (by3.at || [])[0] + ',' + (by3.at || [])[1]);
@@ -2979,7 +3413,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okG2('a random encounter at noon by the near webs (zone ' + R2.zoneAt(B1r, 16, 30) + '): no scene pushed (' + (D.top() === B1r) + '), a group on the gully walking in: ' + foes1.join(' ') + ' (' + (R0r.last && R0r.last.how) + ', ' + (R0r.last && R0r.last.distFt) + ' ft)',
           D.top() === B1r && R0r.groups.length === n0 + 1 && foes1.length > 0 && !(R0r.last && R0r.last.field) && R0r.last.distFt >= 25);
         // 2. the fight where they meet: the camp's folk out at the webs not in the order, nobody's target, in no area; the gully's silk the hazard at DC 12; lifted after
-        var r2r = runG2(B1r, R2.engage(B1r, grp, false, 'yours'), []), f2r = r2r.fight || {};
+        B1r.noDrum = true; /* (the fight itself, as it was: at noon by the near webs the boy is two squares off, and since 11-24 his drum would end it at once -- js/gulch.js THE DRUMMER'S AURA, mode=drum1124) */ var r2r = runG2(B1r, R2.engage(B1r, grp, false, 'yours'), []), f2r = r2r.fight || {}; B1r.noDrum = false;
         okG2('the fight on the floor (' + f2r.onFloor + '); the order ' + (f2r.order || []).join(',') + '; the folk ' + (f2r.looks || []).join(',') + ' (none in the order)',
           f2r.onFloor === true && (f2r.order || []).length > 0 && (f2r.looks || []).length >= 2 && !(f2r.looks || []).some(function (l) { return /!/.test(l); }) && !(f2r.order || []).some(function (o) { return /silkcutter|drummer|gulchguard|gulchboss/.test(o); }));
         okG2('the gully\'s silk the fight\'s hazard: ' + (f2r.webs || []).join('; ') + '; lifted after (' + (B1r.webs || []).length + ')', (f2r.webs || []).some(function (w) { return /^the gully's silk \d+ at DC 12$/.test(w); }) && !(B1r.webs || []).length);
@@ -4656,12 +5090,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var q2 = CWn.quests(st2).filter(function (q) { return q.id === 'ring'; })[0], due2 = H6Wn.keyDue(B2), fly2 = null;
       if (due2) { var gk = H6Wn.keyCard(B2), k2 = 0, s2; while (k2++ < 600) { s2 = gk.next(); if (B2.jfly) fly2 = B2.jfly.lines.join(' '); if (s2.done) break; if (typeof s2.value === 'number') B2.t += s2.value; } }
       okWn('at the lead\'s 3rd (' + (ld2 && ld2.name) + ' ' + (ld2 && ld2.lvl) + '): the JOURNAL\'s words "' + (q2 && q2.text) + '", its step a key step (' + (q2 && q2.step && q2.step.key) + ') -- due ' + due2 + ', flown in: "' + strip(fly2).slice(0, 170) + '", once (' + !H6Wn.keyDue(B2) + ')',
-        !!ld2 && ld2.lvl === 3 && !!q2 && !q2.done && q2.step && q2.step.key === 'ready' && /level 3 now, and he is ready/.test(q2.where) && /is ready now/.test(q2.text) && due2 && /In your JOURNAL: When You're Ready, the next step\./.test(strip(fly2)) && !H6Wn.keyDue(B2) && f2['k:ring:ready'] === 1);
+        !!ld2 && ld2.lvl === 3 && !!q2 && !q2.done && q2.step && q2.step.key === 'ready' && /level 3 now, and ready\./.test(q2.where) && /is ready now/.test(q2.text) && due2 && /In your JOURNAL: When You're Ready, the next step\./.test(strip(fly2)) && !H6Wn.keyDue(B2) && f2['k:ring:ready'] === 1);
       var in2 = inWn(B2, 'warp:winters'), g2 = fireWn(B2, 'talk:winters'), sc2 = D.top(), w2 = readWn(sc2).map(strip), ask2 = askWn(sc2);
       goWn(sc2, 'opt', 'YES'); readWn(sc2); if (g2) driveWn(g2, null, 200);
       var on2 = !!ld2 && (ld2.equip.ring === 'ringwaterwalking' || ld2.equip.ring2 === 'ringwaterwalking'), q2d = CWn.quests(st2).filter(function (q) { return q.id === 'ring'; })[0];
-      okWn('in at his door at the 3rd: "' + w2.join(' / ').slice(0, 460) + '" [' + ask2 + '] > YES -- on ' + (ld2 && ld2.name) + ' ' + on2 + ', in the pack ' + CWn.count(st2, 'ringwaterwalking') + ', the talk over ' + !upWn() + ', given ' + f2.wintersRing + '; the JOURNAL: ' + (q2d && (q2d.done ? 'done -- ' + q2d.doneText : 'open')),
-        in2 && /Lymen: "Elsbeth/.test(w2.join(' ')) && !/not yet ready/.test(w2.join(' ')) && /Now you're ready/.test(w2.join(' ')) && /RING OF WATER WALKING/.test(w2.join(' ')) && /It knows this ring/.test(w2.join(' ')) && /Deep water is ground to whoever wears it/.test(w2.join(' ')) && !/\+3 to CON/.test(w2.join(' ')) && /Put it on Lymen\?/.test(ask2) && on2 && !CWn.count(st2, 'ringwaterwalking') && !upWn() && f2.wintersRing === 1 && !!q2d && q2d.done && /for the thing in the lake/.test(q2d.doneText));
+      okWn('in at his door at the 3rd: "' + w2.join(' / ').slice(0, 460) + '" [' + ask2 + '] > YES -- on ' + (ld2 && ld2.name) + ' ' + on2 + ', in the pack ' + CWn.count(st2, 'ringwaterwalking') + ', the talk over ' + !upWn() + ', given ' + f2.wintersRing + '; the JOURNAL: ' + (q2d && (q2d.done ? 'done -- ' + q2d.doneText : 'open -- ' + q2d.where)),
+        in2 && /Lymen: "Elsbeth/.test(w2.join(' ')) && !/not yet ready/.test(w2.join(' ')) && /Now you're ready/.test(w2.join(' ')) && /RING OF WATER WALKING/.test(w2.join(' ')) && /It knows this ring/.test(w2.join(' ')) && /Deep water is ground to whoever wears it/.test(w2.join(' ')) && !/\+3 to CON/.test(w2.join(' ')) && /Put it on Lymen\?/.test(ask2) && on2 && !CWn.count(st2, 'ringwaterwalking') && !upWn() && f2.wintersRing === 1 && !!q2d && !q2d.done && /for the thing in the lake/.test(q2d.text) && /^(The Halfway Inn by dusk on day \d+|Tonight, at the Halfway Inn)/.test(q2d.where || '') /* (open till the lake is dead since 11-24, its step the inn by the due night: js/counter.js C.ringLakeSteps; done with the ring till then) */);
       g2 = fireWn(B2, 'talk:winters'); sc2 = D.top(); var w2c = readWn(sc2).map(strip), ask2c = askWn(sc2); goWn(sc2, 'opt', 'LEAVE'); var w2d = readWn(sc2).map(strip); if (g2) driveWn(g2, null, 200);
       okWn('in again with it on: "' + ask2c + '" -- no second ring, no look as you go ("' + (w2d.join(' ') || 'nothing') + '")', /glances at the ring on your hand/.test(ask2c) && !/Now you're ready/.test(w2c.join(' ')) && !/Not ready/.test(w2d.join(' ')) && !CWn.count(st2, 'ringwaterwalking') && on2);
       HWn.playing = false; HWn.cur = null; while (D.scenes.length) D.pop();
@@ -4823,7 +5257,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var gM = AWn.meet(n22.B, {}, false), stM; for (var kM = 0; kM < 4000; kM++) { stM = gM.next(); if (stM.done) break; } AWn.lakeFight = lf0; var nPlain1 = CWb.count(CWb.state(n22.B), idPlain), cloakPlain = CWb.count(CWb.state(n22.B), 'cloakmantaray');
       okWn('THE BUCKET LIST, the yellow egg: on the night above the egg ' + n22.f.eggBucket + ' and the night\'s mark ' + (cloakB ? 1 : 0) + ' (trail: ' + (n22.tr.filter(function (x) { return /BUCKET LIST/.test(x); })[0] || 'NONE') + '); ' + (n22.o.match(/All of it, over [^.]*\./) || ['no line'])[0] + '; under its plates the Cloak of the Manta Ray ' + cloakB + ' (rings of protection ' + ringB + '); asked again on that save: shown ' + !(againB.done && againB.value === false) + '; on a save without it: a scene, egg ' + (scB && scB.egg) + ', ' + (scB && scB.frames) + ' frames, its sounds ' + sfxB.join(' ') + ', then done ' + y2B.done + ' kept ' + y2B.value + ' flag ' + fakeB.roam.flags.eggBucket + '; its line "' + ME.line + '", ' + ME.hue + '; the title\'s eggs ' + JSON.stringify(eggsB) + ' (none found: ' + JSON.stringify(eggs0B) + '); a kill with NO bucket behind it: ' + idPlain + ' ' + nPlain0 + ' -> ' + nPlain1 + ', cloaks still ' + cloakPlain,
         n22.f.eggBucket === 1 && n22.tr.filter(function (x) { return /THE BUCKET LIST: the yellow egg/.test(x); }).length === 1 && /All of it, over the party\./.test(n22.o) && cloakB === 1 && againB.done === true && againB.value === false &&
-        !!scB && scB.egg === 'bucket' && typeof scB.draw === 'function' && scB.frames === 230 && sfxB.join(' ') === 'rimshot shine' && y2B.done === true && y2B.value === true && fakeB.roam.flags.eggBucket === 1 && ME.line === 'Bucket List' && ME.hue === 'yellow' && ME.flag === 'eggBucket' &&
+        !!scB && scB.egg === 'bucket' && typeof scB.draw === 'function' && scB.frames === 480 && /* (8 s since 11-24: grimoire.js M.EGG_FRAMES) */  sfxB.join(' ') === 'rimshot shine' && y2B.done === true && y2B.value === true && fakeB.roam.flags.eggBucket === 1 && ME.line === 'Bucket List' && ME.hue === 'yellow' && ME.flag === 'eggBucket' &&
         eggsB.length === 7 && eggsB[6] === 'yellow' && eggsB[5] === null /* (the sixth: the black egg's since 11-15 night, not found on this save) */ && eggs0B.every(function (x) { return x === null; }) && idPlain !== 'cloakmantaray' && nPlain1 === nPlain0 + 1 && cloakPlain === cloakB);
       // A HERO OFF THE STONE, THE CHUUL WHOLE (11-13, the inn seat of 11-13; the last seat's list: the night's check above rises a chuul at 2 hit points, so the take on a hero
       // was benched only by its start). The same night with every save low -- nobody wakes on the water -- and the thing whole: it turns to the one on the stone, the grab
@@ -5097,11 +5531,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okQw('BACK AWAY: from mile ' + sB0.toFixed(1) + ' back up to ' + sB1.toFixed(1) + ' ("' + msgB + '"), no fight (' + !(D.top() instanceof D.Battle) + '); the next step south meets them again (' + metB + ', met ' + HQw.cur.flags.snootMet + ')',
         sB1 > sB0 + 1 && /falls back up the road/.test(msgB || '') && !(D.top() instanceof D.Battle) && metB === true && HQw.cur.flags.snootMet === 2 && !HQw.cur.flags.snootDone);
       HQw.playing = false; HQw.cur = null;
-      // 3. FIGHT: the grid's `snoot` on snootroad, the house's own -- the joke egg's main game; won by the engine; the pin, renown 1, snootDone; no second meeting
+      // 3. FIGHT: the grid's `snoot` on pithills (the open hills since 11-24, his "roaded hills map/one without walls"; snootroad before), the house's own -- the joke egg's main game; won by the engine; the pin, renown 1, snootDone; no second meeting
       var lv3Qw = function (rec) { rec.party = D.save.fixture(3).party; }; // (the four at 3rd: the fight is the first game's HARD for four at 3 -- data/fights.js snoot)
       var scC = stageQw(dayQw(6, 10), sMid, {}, lv3Qw); stepQw(scC); var rn0 = HQw.cur.renown || 0; D.seed = +get('fseed', 7); pressQw(scC, 'FIGHT'); var bC = battleQw(); // (the fight's dice by a seed the four win at 3rd: the path is this bench's, the balance the difficulty lane's)
       okQw('FIGHT: the battle ' + (bC && bC.fight && bC.fight.id) + ' on ' + (bC && bC.fight && bC.fight.map) + ', the house\'s (' + !!(bC && bC.o.house) + '), the main game for the joke (' + !!(bC && MQw.jokeMain(bC)) + '), its foes ' + (bC ? bC.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }).join(',') : '') + ', recorded as ' + (bC && bC.rec && bC.rec.fight),
-        !!bC && bC.fight.id === 'snoot' && bC.fight.map === 'snootroad' && bC.o.house && MQw.jokeMain(bC) && bC.units.filter(function (u) { return u.side === 'foe'; }).length === 7 && !!(bC.rec && bC.rec.fight === 'snoot'));
+        !!bC && bC.fight.id === 'snoot' && bC.fight.map === 'pithills' && bC.o.house && MQw.jokeMain(bC) && bC.units.filter(function (u) { return u.side === 'foe'; }).length === 7 && !!(bC.rec && bC.rec.fight === 'snoot'));
       var fC = finishQw(bC); if (!HQw.cur) throw new Error('the fight ended ' + fC.res + ' in ' + fC.rounds + ' rounds, the save gone (a loss: the title)'); var flC = HQw.cur.flags, stC = CQw.state(null), qC = questQw();
       okQw('run by the engine: ' + fC.res + ' in ' + fC.rounds + ' rounds; after -- "' + fC.said.slice(0, 520) + '"; snootDone ' + flC.snootDone + ', the pin ' + CQw.count(stC, 'anchorpin') + ', renown ' + rn0 + ' -> ' + HQw.cur.renown + '; the quest ' + (qC ? qC.name + ' (step: ' + (qC.where || '').slice(0, 60) + ')' : 'none'),
         fC.res === 'won' && /breaks and runs south/.test(fC.said) && /anchor-pin off a Dominion wagoneer/.test(fC.said) && /Renown \+1/.test(fC.said) && flC.snootDone === 1 && CQw.count(stC, 'anchorpin') === 1 && HQw.cur.renown === rn0 + 1 && !!qC && /anchor-pin to Hessle/.test(qC.where || ''));
@@ -15503,7 +15937,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (nxW) { SM.todayHex = 5; SM.pushing = true; wC.cards = []; wC.walk = { path: [nxW], f: 0 }; WH.onStep = null; D.roll = function () { return { total: 1 }; };
         for (var fW = 0; fW < 60 && wC.walk && !wC.cards.length; fW++) wC.stepWalk();
         D.roll = roll0; cdW = wC.cards[0]; var heldW = !!wC.walk; if (cdW && cdW.keys) { wC.cards.shift(); cdW.keys[0][1](); } okW = heldW && !wC.walk; WH.onStep = onS0; }
-      okH('a hex pushed past with every save lost: the walk held on a card till OK (' + (cdW ? cdW.lines.filter(function (l) { return l; }).slice(0, 3).join(' / ') : 'no card') + ')', !!nxW && okW && !!cdW && /FORCED MARCH/.test(cdW.lines[0]) && cdW.keys.length === 1 && cdW.keys[0][2] === 'OK' && cdW.lines.some(function (l) { return /Barley fails the march/.test(l); }) && HH.exh(bM) === exW + 1 && SM.at[0] === nxW[0] && SM.at[1] === nxW[1]);
+      okH('a hex pushed past with every save lost: the walk held on a card till OK (' + (cdW ? cdW.lines.filter(function (l) { return l; }).slice(0, 3).join(' / ') : 'no card') + ')', !!nxW && okW && !!cdW && /FORCED MARCH/.test(cdW.lines[0]) && cdW.keys.length === 2 && cdW.keys[0][2] === 'OK' && cdW.keys[1][2] === 'CAMP HERE' && /* (the walk's last hex: OK and CAMP HERE since 11-24, js/house.js H.marchFail; mode=world1124 walks the three) */ cdW.lines.some(function (l) { return /Barley fails the march/.test(l); }) && HH.exh(bM) === exW + 1 && SM.at[0] === nxW[0] && SM.at[1] === nxW[1]);
       WH.onStep = onS0; D.roll = roll0; wC.cards = []; wC.walk = null; SM.pushing = false;
       // a loss: the title, the last save standing
       wC.fight({ zone: 'north', list: ['goblin'], mirror: false }, WH.M().hex[WH.K(WH.state().at[0], WH.state().at[1])]); var bL = enterTop(); D.pop(); bL.o.onDone('lost');
@@ -24189,7 +24623,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okIS('W1 the ettercap beaten: "' + cardsW1.join(' | ').slice(0, 300) + '" -- the pack ' + JSON.stringify(BW1.inv) + ', cordTaken ' + BW1.roam.flags.cordTaken,
         CIS.count(stW1, 'ettercapfangs') === 1 && CIS.count(stW1, 'cord') === 1 && BW1.roam.flags.cordTaken === 1 && /Received: Braided Cord/.test(cardsW1.join(' ')));
       // W2 Ned: nothing of the wand before the braid (11-18, his "Nothing from Ned regarding the wand until you have it"); the braid in the pack, his word on it, handed in at 20:00 on
-      // day 1, not ready at 05:00, ready from 06:00 the next morning (THE WORLD's hour pinned)
+      // day 1, not ready at 04:00, ready from 05:00 the next morning, the dawn bell (THE WORLD's hour pinned; 06:00 till 11-24, his "not yet, in the morning - but it's morning?" at 05:55 dawn)
       var now0IS = D.house.now, tIS = 20; D.house.now = function () { return tIS; };
       var stW = { flags: {}, inv: [], party: [{ id: 'lymen', key: 'lymen', name: 'Lymen', lvl: 3, equip: {} }], silver: function () { return 0; } }, saidW = [];
       var scW = { st: stW, say: function (l) { saidW.push([].concat(l).join(' ')); return { lines: l }; }, ask: function (l, o) { saidW.push([].concat(l).join(' ') + ' [' + o.join(' | ') + ']'); return { prompt: { opts: o.map(function (x, i) { return { label: x, value: i }; }) } }; } };
@@ -24198,12 +24632,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       try {
         jrW.push(jW()); dueW.push(CIS.nedWandDue(stW)); CIS.give(stW, 'cord', 1); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
         saidW = []; runIS(CIS.nedWand(scW, null, 'braid')); var braidW = saidW.join(' / '); jrW.push(jW());
-        tIS = 29; dueW.push(CIS.nedWandDue(stW)); tIS = 30; dueW.push(CIS.nedWandDue(stW));
+        tIS = 28; dueW.push(CIS.nedWandDue(stW)); tIS = 29; dueW.push(CIS.nedWandDue(stW));
         saidW = []; runIS(CIS.nedWand(scW, null, 'ready')); var readyW = saidW.join(' / '); dueW.push(CIS.nedWandDue(stW)); jrW.push(jW());
       } finally { D.house.now = now0IS; }
       okIS('W2 Ned\'s wand: due ' + dueW.join(',') + '; the braid "' + braidW.slice(0, 260) + '" (nedBraid ' + stW.flags.nedBraid + ', pinned ' + stW.flags.pin + '); ready "' + readyW.slice(0, 260) + '"; the pack ' + JSON.stringify(stW.inv) + '; the JOURNAL ' + jrW.join(' > '),
         dueW.join() === ',braid,waiting,ready,' && /^"You killed the Ettercap\. My Rat says you have its braid\. I could make you a wand with that\." \[Here it is\. \| Not yet\.\]/.test(braidW) && !/Hessle|Is that the braid/.test(braidW) &&
-        /Come back in the morning/.test(braidW) && stW.flags.nedBraid === 20 && /Received: Wand of Web/.test(readyW) &&
+        /Come back at first light/.test(braidW) && stW.flags.nedBraid === 20 && /Received: Wand of Web/.test(readyW) &&
         CIS.count(stW, 'wandofweb') === 1 && !CIS.count(stW, 'cord') && stW.flags.nedWandGot === 1 && jrW[0] === 'none' && jrW[1] === 'none' && /ready in the morning/.test(jrW[2]) && /^done: The Wand of Web/.test(jrW[3]));
       // W3 an older save past the ettercap with no braid: it is in the pack at Ned's; and coming into Percy's in the house, Ned speaks up while he has something to say (js/town.js T.goIn -> C.atDoor), elsewhere not
       var stO = { flags: { 'trig:ettercap': 1 }, inv: [], party: [{ id: 'lymen', key: 'lymen', name: 'Lymen', equip: {} }] }, dueO = CIS.nedWandDue(stO);
@@ -24233,7 +24667,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (up4) goW4(sc4, 'opt', 'Here it is.'); var aft4 = up4 ? readW4(sc4).join(' ') : '', st4 = CIS.state(B4);
         var ned4 = (D.roam.def.key || '') + ' ' + JSON.stringify(((D.roam.def.beside || {}).ned || {}).at);
         okIS('W4 into Percy\'s on the situation (' + (D.roam.def && D.roam.def.room) + '; the street ' + at4 + ', Ned in the room ' + ned4 + '): Ned\'s screen up ' + up4 + ' -- "' + window.DS.stripCodes(pre4 + ' ' + ask4).slice(0, 500) + '" [' + opts4 + '] > HERE IT IS: "' + window.DS.stripCodes(aft4).slice(0, 200) + '" -- braid in the pack ' + CIS.count(st4, 'cord') + ', nedBraid ' + st4.flags.nedBraid,
-          up4 && !/Hessle/.test(pre4 + ask4) && /You killed the Ettercap\. My Rat says you have its braid\./.test(ask4) && /Here it is\./.test(opts4) && /Come back in the morning/.test(aft4) && !CIS.count(st4, 'cord') && st4.flags.nedBraid != null);
+          up4 && !/Hessle/.test(pre4 + ask4) && /You killed the Ettercap\. My Rat says you have its braid\./.test(ask4) && /Here it is\./.test(opts4) && /Come back at first light/.test(aft4) && !CIS.count(st4, 'cord') && st4.flags.nedBraid != null);
         if (g4) drvW4(g4, null, 300);
         HW4.playing = false; HW4.cur = null; while (D.scenes.length) D.pop(); D.sit16.open('winters3'); var B5 = D.top(); if (B5 && B5.baking) { B5.baking = false; B5.enter(); }
         okIS('W5 (where his ring\'s row walks) Winters\' door on the situation winters3: ' + D.roam.def.key + ' ' + B5.roam.token.x + ',' + B5.roam.token.y, !!B5.roam && D.roam.def.key === 'silverton');
