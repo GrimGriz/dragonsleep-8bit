@@ -9,7 +9,7 @@
    THE MEETING (RULED 11-11, Griz to the lanes desk: "1 - lean, happens once doesn't apply to 'back away' / 2 - lean / 3 - hessle / 4 - lean / 5 - the easy way and I'll look at it / 6 - both" -- the seat's six as leaned; the clock lane's 2026-11-11 section): on THE WORLD's Pit road south of the Halfway Inn (more than TW.CLEAR miles south of the inn's
    mile and short of the Pit by as much), by day (TW.HOURS), from day TW.FROM_DAY (the Gray Keeping's young blood harry the edge farms first, RULED 11-04 item 3; the farmers reach
    the inn on day 7), the first step the party takes there -- the first game's card (road.snoot), FIGHT or BACK AWAY (back up the road a hex, as the first game's run walked
-   back; met again on the next step south). The fight is the grid's own `snoot` (data/fights.js, the map snootroad), the house's: the joke egg can come up in it
+   back; met again on the next step south). The fight is the grid's own `snoot` (data/fights.js, the map pithills -- the open hills, no wall ring, since 11-24: his "roaded hills map/one without walls"), the house's: the joke egg can come up in it
    (js/grimoire.js M.jokeMain reads B.o.house). Won: snootDone, the anchor-pin (road.snootPin), renown 1 (renown.snoot). One meeting a save.
    THE QUEST: `trueword` in the JOURNAL, opened by the board's Snoot paper (js/hours.js H16.boardPlay) or the win; done when Hessle pays true word (js/counter.js C.hessle,
    `snootWord`). THE PIECES (TW.PIECES) are what the party brings back, shown in the JOURNAL as they are gathered; at the scales the gold is the board's, static (500 sp),
@@ -55,7 +55,7 @@
     var fr = S.from.slice(); S.from = S.at.slice(); S.at = fr; S.pos = W.hc(fr[0], fr[1]); S.rv = null; W.save();
   };
 
-  // ---------------------------------------------------------------- the fight: the grid's `snoot` on snootroad, the house's own (the joke egg's main game)
+  // ---------------------------------------------------------------- the fight: the grid's `snoot` on pithills (snootroad till 11-24), the house's own (the joke egg's main game)
   TW.fight = function (scene) {
     var H = D.house, F0 = D.fight && D.fight('snoot'); if (!F0 || !H || !H.playing) return;
     var F = Object.assign({}, F0, { level: (H.cur.party[0] || {}).lvl || F0.level, sub: 'the Pit road, south of the Halfway Inn, by day' });

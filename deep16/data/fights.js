@@ -114,7 +114,7 @@
       from: 'the 8-bit game: deep.js S.holdStair (a crew boss, two thugs, two of the night crew; the 8-bit game\'s easy fight at 6, hard for four at 2)', won: 'THE STAIR HOLDS.',
       foes: [{ id: 'boss', kind: 'crewboss', at: [9, 2] }, { id: 'th1', kind: 'thug', at: [6, 3] }, { id: 'th2', kind: 'thug', at: [13, 3] },
              { id: 'nc1', kind: 'robber', at: [4, 5] }, { id: 'nc2', kind: 'robber', at: [15, 5] }], wave: null },
-    { id: 'snoot', story: true, level: 3, ladder: false, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss',
+    { id: 'snoot', story: true, level: 3, ladder: false, map: 'pithills', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss', // (map: the open hills since 11-24, E11 -- Griz of this fight, his play of 11-23: "we at least need to put this on a roaded hills map/one without walls"; data/maps.js pithills, the same squares)
       intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',
       from: 'the 8-bit game: events.js S.snoot (a glory-seeker, three gnolls, three hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',
       // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): a third
@@ -294,7 +294,7 @@
       intro: 'Goblins in the old camp, and something big and furred behind them that does not want to be seen until it swings.',
       from: 'the 8-bit game\'s hw1 table (bugbears and goblins)', won: 'THE CAMP IS EMPTY.',
       foes: [{ id: 'bb', kind: 'bugbear', at: [9, 3] }, { id: 'g1', kind: 'goblin', at: [6, 6] }, { id: 'g2', kind: 'goblin', at: [9, 7] }, { id: 'g3', kind: 'goblin', at: [13, 7] }], wave: null },
-    { id: 'southroad', bestiary: true, level: 3, map: 'snootroad', name: 'The South Road', sub: 'past the Halfway Inn',
+    { id: 'southroad', bestiary: true, level: 3, map: 'pithills', name: 'The South Road', sub: 'past the Halfway Inn', // (the same road south of the inn, so the same open hills since 11-24 -- the glory-seekers' map, his "roaded hills map/one without walls": data/maps.js pithills)
       intro: 'Two axe beaks on the road, and a boar the size of a pony coming out of the scrub behind them.',
       from: 'the 8-bit game\'s south road table (axe beaks, a giant boar)', won: 'THE ROAD SOUTH IS OPEN.',
       foes: [{ id: 'ab1', kind: 'axebeak', at: [6, 2] }, { id: 'ab2', kind: 'axebeak', at: [12, 3] }, { id: 'boar', kind: 'giantboar', at: [8, 1] }], wave: null },

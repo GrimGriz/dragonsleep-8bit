@@ -508,6 +508,56 @@ window.D16.MAPS.snootroad = {
   wave: null
 };
 
+// The Pit road in the open hills (11-24, E11, the world seat; Griz's note from his play of 11-23, the fight "The Pit road: The Glory-Seekers" on the plains hex 51,51: "we at least
+// need to put this on a roaded hills map/one without walls"): the road up the middle through rolling country and no ring of rock -- the field simply ends, every square of its rim a
+// way out (battle.js exits, LEAVE THE FIGHT). The heights as the Gnoll Hills carry them, every slope one step a square, so all of it is walked and none climbed: a hill to the west and
+// one to the east, three steps up, a lone tree on each crown; a knoll and a shoulder at the far corners; the road climbing two steps over a crest at the far end, where the
+// glory-seekers stand to be seen, and down again past it. The road packed dirt and ruts (',', as the road north and THE WORLD's road fields lay it), scrub and stones rough
+// going (r), meadow (g). Its squares are snootroad's own -- the road's four columns, the entry, every foe's square open -- so data/fights.js snoot and southroad stand where they
+// stood; the walled Road South above stays for the north road's bandits, the ladder's glory-seekers and the module's first fight
+window.D16.MAPS.pithills = {
+  name: 'The Pit Road',
+  sub: 'the open hills south of the Halfway Inn',
+  step: 10,
+  ground: 'earth',
+  road: 'y',
+  rows: [
+    '....g...,,,,.....g..',
+    '..T.....,,,,.....T..',
+    '.gg.....,,,,..r.....',
+    '....r...,,,,.r......',
+    '..r.....,,,,....gg..',
+    '.......r,,,,.......r',
+    'g...rr..,,,,..r.....',
+    '........,,,,.....gg.',
+    '..T.....,,,,..r.....',
+    '.g......,,,,........',
+    '....r...,,,,.....T..',
+    '..gg....,,,,...r....',
+    '.r......,,,,......g.',
+    '....g...,,,,.r......'
+  ],
+  heights: [
+    '11222110000011122211',
+    '12222111111111222221',
+    '11222211222222222211',
+    '11122111222222222110',
+    '11121111111111111100',
+    '11222111100000001100',
+    '12222110000000001110',
+    '22332210000000011111',
+    '22332210000000112221',
+    '22332210000000122322',
+    '12222110000000123332',
+    '11221100000000122322',
+    '01111000000000112221',
+    '00000000000000011111'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  foes: [],
+  wave: null
+};
+
 // The Pit road by day, the wagon met on it (11-04, the Inn build seat 2; the Halfway Inn lane's item 12, the Inn seat's §3 (a) and (c): "a fight forced here is the
 // southroad map with the pair fleeing north by the road"): the Road South's open country with Amara's wagon standing on the road, the greys in its traces at the north
 // end (the fight's `riders`, data/fights.js roadday), its open bed at the tail where the "goblins" ride. North is up the map, the way the pair run (both road ends are
