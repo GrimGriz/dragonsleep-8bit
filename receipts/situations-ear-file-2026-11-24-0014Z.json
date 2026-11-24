@@ -1,0 +1,203 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-24T00:14:44.001Z",
+ "previous_save": "2026-11-23T16:36:50.215Z",
+ "items": [
+  {
+   "id": "eyes-inn-exits-1121n",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE INN'S FIGHTS LEAVE BY ITS EXITS: off the grounds, back to the world map (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the notes seat; deep16/js/roam.js R.setExits, R.after; deep16/js/inn.js In.yardRan)",
+   "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121n7",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:04:57.519Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-twowatch-lymen-1121n",
+   "eyes": true,
+   "pri": 1,
+   "title": "TWO ON THE SECOND WATCH: INVESTIGATE wakes the party, and Lymen speaks at the bribe (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the notes seat; deep16/js/inn.js In.wagonNight, In.wagonRest)",
+   "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121n1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:02:42.261Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-barn-before-wagon-1121n",
+   "eyes": true,
+   "pri": 1,
+   "title": "NO GOBLIN IN THE BARN BEFORE THE WAGON COMES (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the notes seat; deep16/js/inn.js In.barnGoblinOn)",
+   "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121n4",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-23T23:59:43.001Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagon-ne-window-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON FROM THE WINDOW, RE-LAID: Willem on the box, one in the arch, the meeting round 14,22 (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21, A. THE WAGON RE-LAID (the wagon-ne seat; deep16/js/inn.js In.WAGONL, In.wagonNight; deep16/js/innprops.js IP.archDraw)",
+   "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121w",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:05:50.674Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-lake-thing-alone-1121b",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE THING IN THE LAKE ALONE: no frog, 20 more hit points than the SRD's (113) (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat, second run; deep16/js/secondact.js A.lakeThing; data/fights.js chuul)",
+   "url": "deep16/?show=secondact&beat=risenoring&lvl=3&fresh=1121h",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-23T16:30:11.195Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-kat-boards-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "KATARINA WALKS TO THE WAGON after Doran's drive, as the card says she goes up on the bench (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/inn.js In.yardAfter)",
+   "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121a",
+   "verdict": "",
+   "note": "passed",
+   "at": "2026-11-23T16:27:14.348Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-lake-take-hands-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE TAKE: hands held till it has her, then yours -- wound it, or it goes down with her (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/secondact.js A.lakeFight, the show's hold)",
+   "url": "deep16/?show=secondact&beat=take&lvl=3&fresh=1121d",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-23T16:36:42.103Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-gennet-reached-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "GENNET DOWN IN ITS CLAWS, AND REACHED: heal her before the fight ends; a click on its square finds her (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/secondact.js A.lakeFight; deep16/js/ui.js heldIn)",
+   "url": "deep16/?show=secondact&beat=offerwater&lvl=3&fresh=1121e",
+   "verdict": "unclear",
+   "note": "wouldn't a bench with pinned numbers solve this? i failed to keep her alive",
+   "at": "2026-11-23T16:36:32.696Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-snoot-replay-1114",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE JANKY HEAD REPLAYS A FIGHT A GROUP AT A TIME: the charge, thrown spears, the glory-seekers' kill (11-14)",
+   "pt": "the Snoot mode, 2026-11-14 (the Snoot seat; deep16/js/headless.js H.replay, H.play, the charge, glory; deep16/js/ai.js u.hunts; deep16/data/foes.js guard)",
+   "url": "deep16/?headless&a=patrollady,dominion*12&anh=1&an=the%20Dominion%20wagon&b=gloryseeker*3,gnoll*9,hyena*6&bn=the%20band&bg=1&bch=1&seed=1&fresh=1114r",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:14:21.656Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-snoot-seating-1114",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SNOOT ON THE GRID: formation, the side of entry, surprise and the walls as where the bodies stand (11-14)",
+   "pt": "the Snoot mode, 2026-11-14 (the Snoot seat; deep16/js/headless.js H.make the seating; deep16/js/battle.js u.hcover; snoot-mode/js/headless.js HL.day)",
+   "url": "deep16/?headless&a=paladin:4*3,guard*12&af=square&ac=1&b=gloryseeker*3,gnoll*9,hyena*6&ba=flank&sur=a&seed=7&fresh=1114s",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:13:30.625Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-consume-life-1113",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WISP: Consume Life, saved and failed; a Death Ward (11-13)",
+   "pt": "the bestiary lane, 2026-11-13 (the wisp-and-stirge seat; deep16/js/seep.js S.consumeLife; SRD 5.1 Will-o'-Wisp)",
+   "url": "deep16/?seepshow&only=consumesaved,consumelife,deathward&fresh=1113a",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:09:36.015Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-mirror-wisp-1113",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE MIRROR WISP: Consume Magic eats a spell slot (11-13)",
+   "pt": "the bestiary lane, 2026-11-13 (the wisp-and-stirge seat; deep16/data/foes.js mirrorwisp; deep16/js/seep.js S.consumeMagic; tools/mirrorwisp-sheet.py)",
+   "url": "deep16/?seepshow&only=mirrorwisp&fresh=1113a",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-24T00:08:25.016Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-mirror-stirge-1113",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE MIRROR STIRGE: latched, it drinks spell slots, on its own drawn sheet (11-13)",
+   "pt": "the bestiary lane, 2026-11-13 (the wisp-and-stirge seat; deep16/data/foes.js mirrorstirge; deep16/js/ai.js the stirge's branch; deep16/js/seep.js S.drinkSlot)",
+   "url": "deep16/?seepshow&only=mirrorstirge&fresh=1113a",
+   "verdict": "unclear",
+   "note": "show doesn't match - says aurdin and glowseep this is gallery - looks like it was working though",
+   "at": "2026-11-24T00:07:40.569Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagon-mark-1118",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON'S MARK ON THE WORLD: the wagon on the road south of the inn, WAGON DAY at noon (level 3) (11-18)",
+   "pt": "the Halfway Inn and the lake, item 12’s rest (deep16/js/wagon.js; data/fights.js roadday, data/maps.js southroad) · eyes",
+   "url": "deep16/?wagonshow&beat=mark&lvl=3&fresh=1118k",
+   "verdict": "unclear",
+   "note": "i cannot",
+   "at": "2026-11-24T00:12:19.157Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagon-roadday-1118",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON MET ON THE ROAD BY DAY: Amara's word, the reads, LOOK IN THE BED, STAND IN THE ROAD (level 3) (11-18)",
+   "pt": "the Halfway Inn and the lake, item 12’s rest (deep16/js/wagon.js; data/fights.js roadday, data/maps.js southroad) · eyes",
+   "url": "deep16/?wagonshow&beat=roadday&lvl=3&fresh=1118l",
+   "verdict": "unclear",
+   "note": "didn't meet them on the road...",
+   "at": "2026-11-24T00:11:48.913Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wagon-roadnorth-1118",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WAGON ON THE ROAD NORTH, the morning after a quiet wagon night: one \"goblin\" fewer (level 3) (11-18)",
+   "pt": "the Halfway Inn and the lake, item 12’s rest (deep16/js/wagon.js; data/fights.js roadday, data/maps.js southroad) · eyes",
+   "url": "deep16/?wagonshow&beat=roadnorth&lvl=3&fresh=1118m",
+   "verdict": "unclear",
+   "note": "if you meant portrait card in text-box yes - fight is using unwagon and combat goblins - two goblins",
+   "at": "2026-11-24T00:10:51.320Z",
+   "new_since_last_save": true
+  }
+ ]
+}

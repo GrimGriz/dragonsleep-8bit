@@ -1,0 +1,1563 @@
+{
+ "game": "DRAGONSLEEP",
+ "kind": "hero-situations-feedback",
+ "v": 2,
+ "from": "the second game",
+ "at": "2026-11-24T09:02:20.975Z",
+ "notes": "-- day 18 · 09:30 morning · Silverton 23,44 --\ndo the fight records save with these, or do i still need to get them from pocket DM fight record?",
+ "page": "https://grimgriz.github.io/dragonsleep-8bit/deep16/?resume=3",
+ "game2": {
+  "slot": 3,
+  "where": "Silverton",
+  "at": {
+   "town": "silverton",
+   "gate": "south",
+   "sq": [
+    23,
+    44
+   ],
+   "dir": "down"
+  },
+  "world": {
+   "map": "near",
+   "hex": [
+    68,
+    21
+   ],
+   "t": 417.5
+  },
+  "day": 18,
+  "hour": 9.5,
+  "time": "morning",
+  "lead": "barley",
+  "hired": [
+   "barley",
+   "lymen",
+   "vivian",
+   "aurdin"
+  ],
+  "silver": 531,
+  "renown": 9,
+  "steps": 7050,
+  "party": [
+   {
+    "name": "Barley",
+    "cls": "fighter",
+    "lvl": 5,
+    "hp": "65/65",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": ""
+   },
+   {
+    "name": "Vivian",
+    "cls": "rogue",
+    "lvl": 4,
+    "hp": "36/36",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": ""
+   },
+   {
+    "name": "Lymen",
+    "cls": "paladin",
+    "lvl": 4,
+    "hp": "48/48",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [],
+    "slots": "3 of 3"
+   },
+   {
+    "name": "Aurdin",
+    "cls": "wizard",
+    "lvl": 4,
+    "hp": "24/24",
+    "ko": false,
+    "dead": false,
+    "exhaustion": 0,
+    "conds": [
+     "mageArmor"
+    ],
+    "slots": "3/3 of 4/3"
+   }
+  ],
+  "quests": [
+   "Company (done)",
+   "The Council Sends for You (done)",
+   "Gull's Reward (done)",
+   "The Missing Five (done)",
+   "The Cradles (done)",
+   "The Cull",
+   "The Forty-Gold Tail",
+   "The Braiding Ettercap (done)",
+   "True Word of the Gnolls (done)",
+   "Fight Night (done)",
+   "Winters' Errands (done)",
+   "When You're Ready (done)",
+   "Ned's Page (done)",
+   "Ned's Wand (done)"
+  ],
+  "screens": [
+   "world",
+   "Battle",
+   "housenotes"
+  ]
+ },
+ "trail": [
+  {
+   "k": "talk",
+   "s": "meal",
+   "t": 380,
+   "at": "2026-11-23T07:31:22.151Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: supper: later, day 16, renown 9, the table warm",
+   "t": 380,
+   "at": "2026-11-23T07:31:22.152Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Doran's first supper home: the Pit's people took them; the Snoot getting worse",
+   "t": 380,
+   "at": "2026-11-23T07:31:22.152Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen: (Eat quietly.)",
+   "t": 380,
+   "at": "2026-11-23T07:31:40.385Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Lymen History 7 - 1 = 6 vs DC 10, missed (silent)",
+   "t": 380,
+   "at": "2026-11-23T07:31:41.919Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Aurdin History 12 + 4 = 16 vs DC 10, made (silent)",
+   "t": 380,
+   "at": "2026-11-23T07:31:41.919Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: Aurdin Arcana 12 + 6 = 18 vs DC 13, made (silent)",
+   "t": 380,
+   "at": "2026-11-23T07:31:41.919Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: to bed upstairs: the road-end room",
+   "t": 380,
+   "at": "2026-11-23T07:31:51.619Z"
+  },
+  {
+   "k": "rest",
+   "s": "short rest",
+   "t": 389,
+   "at": "2026-11-23T07:31:52.129Z"
+  },
+  {
+   "k": "check",
+   "s": "THE MEAL: the morning upstairs done (the gift not owed)",
+   "t": 389,
+   "at": "2026-11-23T07:31:52.585Z"
+  },
+  {
+   "k": "talk",
+   "s": "elsbeth",
+   "t": 389,
+   "at": "2026-11-23T07:32:08.469Z"
+  },
+  {
+   "k": "act",
+   "s": "THE SECOND ACT: the rowboat: pushed out and sounded the deep",
+   "t": 389,
+   "at": "2026-11-23T07:32:35.552Z"
+  },
+  {
+   "k": "act",
+   "s": "THE SECOND ACT: the thing in the lake killed",
+   "t": 389,
+   "at": "2026-11-23T07:35:26.288Z"
+  },
+  {
+   "k": "talk",
+   "s": "elsbeth",
+   "t": 389.25,
+   "at": "2026-11-23T07:35:56.288Z"
+  },
+  {
+   "k": "talk",
+   "s": "elsbeth",
+   "t": 389.25,
+   "at": "2026-11-23T07:36:05.305Z"
+  },
+  {
+   "k": "talk",
+   "s": "doranIn",
+   "t": 389.25,
+   "at": "2026-11-23T07:36:11.338Z"
+  },
+  {
+   "k": "walk",
+   "s": "click 258,90 at zoom 1/9 on the area map: picked 68,21 (silverton), from 52,49, 31 hexes planned -- stopped at 55,40 on the area map after 4.5 h, morning: an encounter on the way",
+   "t": 389.25,
+   "at": "2026-11-23T07:36:36.239Z"
+  },
+  {
+   "k": "town",
+   "s": "webgulch by the south gate",
+   "t": 393.75,
+   "at": "2026-11-23T07:36:40.422Z"
+  },
+  {
+   "k": "walk",
+   "s": "click 303,91 at zoom 9/9 on the area map: picked 56,40, from 55,41, 1 hex planned -- stopped at 56,40 on the area map after 0.5 h, morning: an encounter on the way",
+   "t": 393.75,
+   "at": "2026-11-23T07:36:43.722Z"
+  },
+  {
+   "k": "fight",
+   "s": "won in 1 rounds: Giant Spider",
+   "t": 394.25,
+   "at": "2026-11-23T07:37:01.335Z"
+  },
+  {
+   "k": "walk",
+   "s": "click 275,82 at zoom 8/9 on the area map: picked 57,39, from 56,40, 1 hex planned -- stopped at 57,39 on the area map after 0.5 h, midday: the walk done",
+   "t": 394.5,
+   "at": "2026-11-23T07:37:02.439Z"
+  },
+  {
+   "k": "walk",
+   "s": "click 245,123 at zoom 4/9 on the area map: picked 58,37, from 57,39, 2 hexes planned -- stopped at 58,37 on the area map after 1 h, midday: the walk done",
+   "t": 395,
+   "at": "2026-11-23T07:37:06.606Z"
+  },
+  {
+   "k": "walk",
+   "s": "click 257,52 at zoom 1/9 on the area map: picked 68,21 (silverton), from 58,37, 19 hexes planned -- stopped at 58,34 on the area map after 1.5 h, midday: a card up",
+   "t": 396,
+   "at": "2026-11-23T07:37:09.522Z"
+  },
+  {
+   "k": "walk",
+   "s": "the walk taken up again from 58,34 -- stopped at 68,21 on the area map (Silverton) after 12 h, night: a card up",
+   "t": 397.5,
+   "at": "2026-11-23T07:37:12.039Z"
+  },
+  {
+   "k": "town",
+   "s": "silverton by the south gate",
+   "t": 409.5,
+   "at": "2026-11-23T07:37:27.156Z"
+  },
+  {
+   "k": "talk",
+   "s": "percy",
+   "t": 409.5,
+   "at": "2026-11-23T07:37:55.556Z"
+  },
+  {
+   "k": "talk",
+   "s": "marta",
+   "t": 409.5,
+   "at": "2026-11-23T07:38:45.874Z"
+  },
+  {
+   "k": "talk",
+   "s": "marta",
+   "t": 409.5,
+   "at": "2026-11-23T07:38:51.990Z"
+  },
+  {
+   "k": "talk",
+   "s": "marta",
+   "t": 409.5,
+   "at": "2026-11-23T07:38:56.090Z"
+  },
+  {
+   "k": "talk",
+   "s": "marta",
+   "t": 409.5,
+   "at": "2026-11-23T07:38:59.374Z"
+  },
+  {
+   "k": "talk",
+   "s": "winters",
+   "t": 409.5,
+   "at": "2026-11-23T07:39:18.808Z"
+  },
+  {
+   "k": "save",
+   "s": "slot 3",
+   "t": 409.5,
+   "at": "2026-11-23T07:39:28.158Z"
+  },
+  {
+   "k": "town",
+   "s": "silverton by the south gate",
+   "t": 409.5,
+   "at": "2026-11-23T16:25:31.780Z"
+  },
+  {
+   "k": "talk",
+   "s": "aldwin",
+   "t": 409.5,
+   "at": "2026-11-23T16:26:13.071Z"
+  },
+  {
+   "k": "rest",
+   "s": "long rest",
+   "t": 417.5,
+   "at": "2026-11-23T16:26:15.425Z"
+  },
+  {
+   "k": "save",
+   "s": "slot 3",
+   "t": 417.5,
+   "at": "2026-11-23T16:26:39.388Z"
+  },
+  {
+   "k": "town",
+   "s": "silverton by the south gate",
+   "t": 417.5,
+   "at": "2026-11-24T00:20:08.905Z"
+  },
+  {
+   "k": "save",
+   "s": "slot 3",
+   "t": 417.5,
+   "at": "2026-11-24T00:20:21.420Z"
+  },
+  {
+   "k": "town",
+   "s": "silverton by the south gate",
+   "t": 417.5,
+   "at": "2026-11-24T09:01:27.132Z"
+  },
+  {
+   "k": "save",
+   "s": "slot 3",
+   "t": 417.5,
+   "at": "2026-11-24T09:01:36.525Z"
+  }
+ ],
+ "card": null,
+ "save": {
+  "v": 1,
+  "lead": "barley",
+  "hired": [
+   "barley",
+   "lymen",
+   "vivian",
+   "aurdin"
+  ],
+  "party": [
+   {
+    "id": "barley",
+    "name": "Barley",
+    "cls": "fighter",
+    "lvl": 5,
+    "xp": 8221,
+    "base": {
+     "str": 16,
+     "dex": 13,
+     "con": 16,
+     "int": 9,
+     "wis": 14,
+     "cha": 11
+    },
+    "abil": {
+     "str": 18,
+     "dex": 13,
+     "con": 16,
+     "int": 9,
+     "wis": 14,
+     "cha": 11
+    },
+    "maxhp": 65,
+    "hp": 65,
+    "equip": {
+     "weapon": "handaxe",
+     "armor": "rustyscale",
+     "shield": null,
+     "ring": "ringwaterwalking",
+     "offhand": "handaxe"
+    },
+    "known": [],
+    "feats": {
+     "secondWind": 1,
+     "actionSurge": 1,
+     "indomitable": 0
+    },
+    "conds": {},
+    "ko": false,
+    "subclass": "Champion",
+    "look": "barley",
+    "weapon": "flail",
+    "skills": {
+     "Athletics": 5,
+     "Perception": 4,
+     "Insight": 4,
+     "Survival": 4
+    },
+    "saveProf": [
+     "str",
+     "con"
+    ],
+    "attuned": [],
+    "slotsMax": [],
+    "slots": [],
+    "style": "twf",
+    "chose": {
+     "1": {
+      "style": "twf"
+     },
+     "3": {
+      "archetype": "Champion"
+     },
+     "4": {
+      "asi": {
+       "str": 2
+      }
+     }
+    },
+    "hdLeft": 4
+   },
+   {
+    "id": "vivian",
+    "name": "Vivian",
+    "cls": "rogue",
+    "lvl": 4,
+    "xp": 6513,
+    "base": {
+     "str": 10,
+     "dex": 16,
+     "con": 12,
+     "int": 12,
+     "wis": 14,
+     "cha": 13
+    },
+    "abil": {
+     "str": 10,
+     "dex": 16,
+     "con": 12,
+     "int": 12,
+     "wis": 14,
+     "cha": 13
+    },
+    "maxhp": 36,
+    "hp": 36,
+    "equip": {
+     "weapon": "shortbow",
+     "armor": "studded",
+     "shield": null,
+     "ring": "charm",
+     "ring2": null
+    },
+    "known": [],
+    "feats": {},
+    "conds": {},
+    "ko": false,
+    "subclass": "Cutthroat",
+    "look": "vivian",
+    "weapon": "dagger",
+    "skills": {
+     "Sleight of Hand": 7,
+     "Perception": 6,
+     "Stealth": 5,
+     "Insight": 4,
+     "Deception": 3,
+     "Investigation": 3,
+     "Acrobatics": 3
+    },
+    "saveProf": [
+     "dex",
+     "int"
+    ],
+    "attuned": [],
+    "slotsMax": [],
+    "slots": [],
+    "expertise1": [
+     "Perception",
+     "Stealth"
+    ],
+    "chose": {
+     "1": {
+      "expertise1": [
+       "Perception",
+       "Stealth"
+      ]
+     },
+     "3": {
+      "archetype": "Cutthroat"
+     },
+     "4": {
+      "asi": {
+       "feat": "heldbreath"
+      }
+     }
+    },
+    "hdLeft": 4,
+    "featIds": [
+     "heldbreath"
+    ]
+   },
+   {
+    "id": "lymen",
+    "name": "Lymen",
+    "cls": "paladin",
+    "lvl": 4,
+    "xp": 6646,
+    "base": {
+     "str": 17,
+     "dex": 10,
+     "con": 15,
+     "int": 8,
+     "wis": 12,
+     "cha": 14
+    },
+    "abil": {
+     "str": 18,
+     "dex": 10,
+     "con": 15,
+     "int": 8,
+     "wis": 12,
+     "cha": 15
+    },
+    "maxhp": 48,
+    "hp": 48,
+    "equip": {
+     "weapon": "longsword",
+     "armor": "chainmail",
+     "shield": "shield",
+     "ring": null
+    },
+    "known": [
+     "bless",
+     "curewounds",
+     "shieldoffaith",
+     "divinefavor",
+     "heroism"
+    ],
+    "feats": {
+     "channel": 1,
+     "lay": 20,
+     "relentless": 1
+    },
+    "conds": {},
+    "ko": false,
+    "subclass": "the Oath of the Green Return",
+    "look": "lymen",
+    "weapon": "sword",
+    "skills": {
+     "Athletics": 5,
+     "Insight": 3,
+     "Religion": 1,
+     "Intimidation": 4
+    },
+    "saveProf": [
+     "wis",
+     "cha"
+    ],
+    "attuned": [],
+    "slotsMax": [
+     3
+    ],
+    "slots": [
+     3
+    ],
+    "prepared": [
+     "bless",
+     "calledtoaccount",
+     "heroism",
+     "shieldoffaith"
+    ],
+    "style": "protection",
+    "chose": {
+     "2": {
+      "style": "protection"
+     },
+     "3": {
+      "archetype": "the Oath of the Green Return"
+     },
+     "4": {
+      "asi": {
+       "str": 1,
+       "cha": 1
+      }
+     }
+    },
+    "hdLeft": 4
+   },
+   {
+    "id": "aurdin",
+    "name": "Aurdin",
+    "cls": "wizard",
+    "lvl": 4,
+    "xp": 6621,
+    "base": {
+     "str": 11,
+     "dex": 14,
+     "con": 10,
+     "int": 17,
+     "wis": 9,
+     "cha": 13
+    },
+    "abil": {
+     "str": 11,
+     "dex": 14,
+     "con": 10,
+     "int": 19,
+     "wis": 9,
+     "cha": 13
+    },
+    "maxhp": 24,
+    "hp": 24,
+    "equip": {
+     "weapon": "quarterstaff",
+     "armor": "robes1",
+     "shield": null,
+     "ring": "ringofprotection",
+     "wand": "wandofweb"
+    },
+    "known": [
+     "firebolt",
+     "light",
+     "acidsplash",
+     "burninghands",
+     "magicmissile",
+     "shield",
+     "sleep",
+     "detectmagic",
+     "mageArmor",
+     "thunderwave",
+     "findfamiliar",
+     "grease",
+     "enlargereduce",
+     "flamingsphere",
+     "holdperson",
+     "gustofwind",
+     "chilltouch",
+     "hideouslaughter"
+    ],
+    "feats": {
+     "arcaneRecovery": 1
+    },
+    "conds": {
+     "mageArmor": true
+    },
+    "ko": false,
+    "subclass": "School of Evocation",
+    "look": "aurdin",
+    "weapon": "staff",
+    "skills": {
+     "Arcana": 5,
+     "Investigation": 5,
+     "Religion": 5,
+     "Insight": 1
+    },
+    "saveProf": [
+     "int",
+     "wis"
+    ],
+    "attuned": [
+     "wandofweb",
+     "ringofprotection"
+    ],
+    "slotsMax": [
+     4,
+     3
+    ],
+    "slots": [
+     3,
+     3
+    ],
+    "prepared": [
+     "mageArmor",
+     "shield",
+     "magicmissile",
+     "burninghands",
+     "flamingsphere",
+     "sleep",
+     "gustofwind",
+     "holdperson"
+    ],
+    "chose": {
+     "2": {
+      "archetype": "School of Evocation"
+     },
+     "3": {
+      "spells": [
+       "enlargereduce",
+       "flamingsphere"
+      ]
+     },
+     "4": {
+      "asi": {
+       "int": 2
+      },
+      "spells": [
+       "holdperson",
+       "gustofwind"
+      ],
+      "cantrip": [
+       "chilltouch"
+      ]
+     }
+    },
+    "hdLeft": 4
+   }
+  ],
+  "guests": [],
+  "inv": [
+   {
+    "id": "ropeclimbing",
+    "n": 1
+   },
+   {
+    "id": "cord",
+    "n": 1
+   },
+   {
+    "id": "batpie",
+    "n": 4
+   },
+   {
+    "id": "simples",
+    "n": 3
+   },
+   {
+    "id": "tent",
+    "n": 1
+   },
+   {
+    "id": "arrows",
+    "n": 70
+   },
+   {
+    "id": "missionbread",
+    "n": 4
+   },
+   {
+    "id": "willembook",
+    "n": 1
+   }
+  ],
+  "silver": 531,
+  "renown": 9,
+  "steps": 7050,
+  "flags": {
+   "qSeen": 1,
+   "kSeen": 1,
+   "heard:r-doserate": 1,
+   "heardCradles": 1,
+   "q:cradles": 1,
+   "heardWork": 1,
+   "gullAsked": 1,
+   "heard:r-guanowages": 1,
+   "heardGalleries": 1,
+   "q:work": 1,
+   "q:cull": 1,
+   "journalTaught": 1,
+   "heardWarrens": 1,
+   "heard:r-pete": 1,
+   "heardPete": 1,
+   "q:warrens": 1,
+   "papaLymen": 1,
+   "q:company": 1,
+   "work:board": 1,
+   "workOrder": "board,winters,cradles",
+   "heard:r-cloakerNumber": 1,
+   "heardCloaker": 1,
+   "rumorIdx:towns3": 3,
+   "paper:ettercap": 1,
+   "boardRead": 1,
+   "heardEttercap": 1,
+   "paper:cloaker": 1,
+   "q:tail": 1,
+   "q:ettercap": 1,
+   "wintersMet": 1,
+   "wintersLooked": 2,
+   "q:errands": 1,
+   "q:ring": 1,
+   "rumorIdx:towns7": 2,
+   "heard:r-winters": 1,
+   "work:winters": 1,
+   "rumorIdx:towns1": 2,
+   "heard:r-dwarves": 1,
+   "rumorIdx:towns5": 2,
+   "work:cradles": 1,
+   "heard:r-maps": 1,
+   "bread:1": 1,
+   "heardHex": 1,
+   "workAll": 1,
+   "q:hex": 1,
+   "gullPaid": 1,
+   "luciaMet": 1,
+   "wErrA": 1,
+   "wSealed": 1,
+   "wValued": 1,
+   "wErrADone": 1,
+   "wErrB": 1,
+   "wSigned": 1,
+   "wPaid": 1,
+   "wErrBDone": 1,
+   "heard:r-coldridge": 1,
+   "heard:r-boxes": 1,
+   "hex:brawl": 1,
+   "hex:freeman": 1,
+   "rumorIdx:hexpatron2": 2,
+   "heard:r-talmok": 1,
+   "heard:r-scaleslit": 1,
+   "rumorIdx:gambler2": 1,
+   "rumorIdx:bartenderE": 1,
+   "heard:r-deathround": 1,
+   "rumorIdx:towns6": 1,
+   "heard:r-escort": 1,
+   "nedStory": 1,
+   "nedSaw": 1,
+   "nedQuest": 1,
+   "q:nedpage": 1,
+   "nedDone": 1,
+   "luciaSnoot": 1,
+   "heard:r-snoot": 1,
+   "tallyMet": 1,
+   "fiveKnown": 1,
+   "shifts": 6,
+   "hobMet": 1,
+   "councilNotice": 1,
+   "chest:warrens_c:41,5": 1,
+   "chest:warrens_c:30,5": 1,
+   "chest:warrens_c:13,14": 1,
+   "campWest": 9,
+   "heard:r-mouths": 1,
+   "luciaLy": 1,
+   "familiar": {
+    "kind": "owl",
+    "by": "aurdin",
+    "hp": 1
+   },
+   "said:hobCamp:0": 1,
+   "heard:r-promised": 1,
+   "skarnOk": 1,
+   "skarnGateOpen": 1,
+   "chest:warrens_b:1,9": 1,
+   "chest:warrens_d:38,21": 1,
+   "fiveRecovered": 1,
+   "k:warrens:gear": 1,
+   "jellyDead": 1,
+   "fiveDone": 1,
+   "k:warrens:paid": 1,
+   "skarnPaid": 1,
+   "councilCalled": 1,
+   "q:council": 1,
+   "rumorIdx:hexpatron1": 1,
+   "councilSeen": 1,
+   "k:ring:ready": 1,
+   "heard:r-webgulch": 1,
+   "trig:snared": 1,
+   "chest:gulch:28,74": 1,
+   "trig:ettercap": 1,
+   "cordTaken": 1,
+   "k:ettercap:fangs": 1,
+   "chest:gulch:9,83": 1,
+   "reachedInn": 1,
+   "nedWand": 1,
+   "nedBraid": 180.41666666666666,
+   "q:nedwand": 1,
+   "heard:r-shibboleth": 1,
+   "heardTrueWord": 1,
+   "ettercapDone": 1,
+   "fiveNotice": 1,
+   "wordCalled": 1,
+   "q:trueword": 1,
+   "councilWord": 1,
+   "pinWant": "trueword",
+   "heard:r-lake": 1,
+   "heard:r-lantern": 1,
+   "wintersRing": 1,
+   "heard:r-roost": 1,
+   "deepShifts": 3,
+   "deepEmpty": 7,
+   "herdWarned": 1,
+   "landlordSpoke": 1,
+   "bucketBy": null,
+   "otyughFed": 1,
+   "heard:r-stream": 1,
+   "otyughFedXp": 1,
+   "councilHerd": 1,
+   "bread:9": 1,
+   "nedWandGot": 1,
+   "sawMirror": 1,
+   "mirrorFought": 1,
+   "katInk": 1,
+   "katLooked": 1,
+   "katVision": 1,
+   "katSaw": 2,
+   "gennetNamed": 1,
+   "mealHad": 1,
+   "mealDay": 16,
+   "supCount": 3,
+   "supKind": "later",
+   "toldMirrorFought": 1,
+   "supThreads": {
+    "made": 11,
+    "moot": 12
+   },
+   "heardMade": "true",
+   "mealWarm": 2,
+   "pointedSouth": 1,
+   "heardCoin": 1,
+   "innRegard": 2,
+   "supAsked": {
+    "coin": 1
+   },
+   "supReads": {
+    "rich": 1,
+    "coin": 1,
+    "counted": 1
+   },
+   "eggStars": 1,
+   "dishes": 1,
+   "elsbethTier": 3,
+   "elsbethTold": 1,
+   "heardMoot": "true",
+   "heardDominion": "true",
+   "newsHearsay": 1,
+   "eyesMade": 1,
+   "mealWrong": 1,
+   "wagonCycle": 0,
+   "katKnewAmara": 1,
+   "kidTaken": 1,
+   "glamourSuspect": 1,
+   "glamourSeen": 1,
+   "wagonFought": 1,
+   "glamourBroken": 1,
+   "wagonStopped": "c0",
+   "wagonOutcome": "inn",
+   "dueOffC": 0,
+   "dueOff": "kept",
+   "doranPit": 1,
+   "kidAtInn": 1,
+   "katGone": 1,
+   "katRode": 1,
+   "lakeGiftGot": 1,
+   "katBookTaken": 1,
+   "katLetter": 1,
+   "snootMet": 1,
+   "eggJoke": 1,
+   "snootDone": 1,
+   "k:trueword:pin": 1,
+   "pin": "trueword",
+   "madeSurvivors2": 14,
+   "katBookAndroit": 1,
+   "snootWord": 1,
+   "trueWordPieces": "meal,mirror,vision,book",
+   "orderWord": 1,
+   "hex:card": 1,
+   "hex:talmok": 1,
+   "talmokBeaten": 1,
+   "hex:festival": 1,
+   "doranPitSaid": 1,
+   "chuulSeen": 1,
+   "lakeDone": 1,
+   "lakeDay": 17,
+   "lakeMorn": 17,
+   "elsbethLakeSaid": 1,
+   "elsbethCandle": 1
+  },
+  "kills": {
+   "brawler": 2,
+   "stablefighter": 3,
+   "giantfrog": 4,
+   "glowseep_day:giantfrog": 2,
+   "insectswarm": 1,
+   "glowseep_day:insectswarm": 1,
+   "firebeetle": 10,
+   "glowseep_day:firebeetle": 2,
+   "snake": 3,
+   "glowseep_day:snake": 3,
+   "wolf": 2,
+   "ratswarm": 6,
+   "warrens_c:ratswarm": 2,
+   "warrens_d:ratswarm": 4,
+   "ochrejelly": 1,
+   "stirge": 17,
+   "glowseep_day:stirge": 12,
+   "glowseep_night:firebeetle": 4,
+   "wolfspider": 32,
+   "gulch:wolfspider": 26,
+   "giantspider": 6,
+   "gulch_night:wolfspider": 2,
+   "gulch:giantspider": 2,
+   "ettercap": 1,
+   "crawler": 7,
+   "warrens_d:crawler": 4,
+   "gnoll": 6,
+   "amara": 1,
+   "willem": 1,
+   "gloryseeker": 1,
+   "hyena": 3,
+   "merc": 1,
+   "talmok": 1,
+   "berserker": 1,
+   "chuul": 1
+  },
+  "world": {
+   "at": [
+    68,
+    21
+   ],
+   "from": [
+    67,
+    22
+   ],
+   "t": 417.5,
+   "today": 0,
+   "seed": 4279814535,
+   "map": "near",
+   "pos": [
+    117.54526683490964,
+    27.96381332425094
+   ],
+   "stars": {
+    "last": [
+     417.5,
+     117.75,
+     27.279800219209818
+    ],
+    "pass": {
+     "t": 229.14166666666668,
+     "d": 3.44,
+     "day": 10,
+     "hour": 13.14
+    },
+    "paid": 260.16666666666663,
+    "how": "a sleep begun 31 hours after the pass",
+    "shown": true
+   },
+   "rv": [
+    "mile",
+    15
+   ],
+   "todayHex": 0,
+   "zone": "north",
+   "snootSign": {},
+   "pushing": false,
+   "clear": 0,
+   "count": 27.5,
+   "metRef": [
+    "r7-7",
+    "gwl2-274"
+   ],
+   "svAt": {
+    "site": "silverton",
+    "since": 409.5
+   }
+  },
+  "at": {
+   "town": "silverton",
+   "gate": "south",
+   "sq": [
+    23,
+    44
+   ],
+   "dir": "down"
+  },
+  "made": 1795281176941,
+  "saved": 1795510896525,
+  "staged": false,
+  "snootRoad": {
+   "day": 18,
+   "boardDay": 14,
+   "bands": [
+    {
+     "id": "gk1",
+     "tribe": "gray",
+     "hex": [
+      15,
+      21
+     ],
+     "offset": [
+      25,
+      21
+     ],
+     "of": 18,
+     "left": {
+      "gloryseekergray": 3,
+      "gnollgray": 9,
+      "hyena": 6
+     },
+     "gone": false,
+     "busy": false,
+     "burned": 14
+    },
+    {
+     "id": "sg1",
+     "tribe": "skull",
+     "hex": [
+      13,
+      21
+     ],
+     "offset": [
+      23,
+      21
+     ],
+     "of": 18,
+     "left": {
+      "gloryseeker": 3,
+      "gnoll": 9,
+      "hyena": 6
+     },
+     "gone": false,
+     "busy": false,
+     "burned": 7
+    },
+    {
+     "id": "sg2",
+     "tribe": "skull",
+     "hex": [
+      15,
+      19
+     ],
+     "offset": [
+      24,
+      19
+     ],
+     "of": 18,
+     "left": {
+      "gloryseeker": 3,
+      "gnoll": 9,
+      "hyena": 6
+     },
+     "gone": false,
+     "busy": false,
+     "burned": 5
+    },
+    {
+     "id": "wl2",
+     "tribe": "wall",
+     "hex": [
+      13,
+      19
+     ],
+     "offset": [
+      22,
+      19
+     ],
+     "of": 12,
+     "left": {
+      "gnoll": 8,
+      "hyena": 4
+     },
+     "gone": false,
+     "busy": false,
+     "burned": 1
+    }
+   ],
+   "burned": [
+    "s192",
+    "s126",
+    "s148",
+    "s168",
+    "s257",
+    "s170",
+    "s201",
+    "s169",
+    "s193",
+    "s171",
+    "s182",
+    "s203",
+    "s235",
+    "s127",
+    "s139",
+    "s140",
+    "s149",
+    "s224",
+    "s202",
+    "s184",
+    "s185",
+    "s194",
+    "s76",
+    "s205",
+    "s260",
+    "s123",
+    "s128"
+   ],
+   "atBoard": {
+    "day": 14,
+    "boardDay": 14,
+    "bands": [
+     {
+      "id": "gk1",
+      "tribe": "gray",
+      "hex": [
+       15,
+       21
+      ],
+      "offset": [
+       25,
+       21
+      ],
+      "of": 18,
+      "left": {
+       "gloryseekergray": 3,
+       "gnollgray": 9,
+       "hyena": 6
+      },
+      "gone": false,
+      "busy": true,
+      "burned": 14
+     },
+     {
+      "id": "sg1",
+      "tribe": "skull",
+      "hex": [
+       13,
+       21
+      ],
+      "offset": [
+       23,
+       21
+      ],
+      "of": 18,
+      "left": {
+       "gloryseeker": 3,
+       "gnoll": 9,
+       "hyena": 6
+      },
+      "gone": false,
+      "busy": false,
+      "burned": 7
+     },
+     {
+      "id": "sg2",
+      "tribe": "skull",
+      "hex": [
+       15,
+       19
+      ],
+      "offset": [
+       24,
+       19
+      ],
+      "of": 18,
+      "left": {
+       "gloryseeker": 3,
+       "gnoll": 9,
+       "hyena": 6
+      },
+      "gone": false,
+      "busy": true,
+      "burned": 5
+     },
+     {
+      "id": "wl2",
+      "tribe": "wall",
+      "hex": [
+       13,
+       19
+      ],
+      "offset": [
+       22,
+       19
+      ],
+      "of": 12,
+      "left": {
+       "gnoll": 8,
+       "hyena": 4
+      },
+      "gone": false,
+      "busy": false,
+      "burned": 1
+     }
+    ],
+    "burned": [
+     "s192",
+     "s126",
+     "s148",
+     "s168",
+     "s257",
+     "s170",
+     "s201",
+     "s169",
+     "s193",
+     "s171",
+     "s182",
+     "s203",
+     "s235",
+     "s127",
+     "s139",
+     "s140",
+     "s149",
+     "s224",
+     "s202",
+     "s184",
+     "s185",
+     "s194",
+     "s76",
+     "s205",
+     "s260",
+     "s123",
+     "s128"
+    ]
+   }
+  },
+  "trail": [
+   {
+    "k": "talk",
+    "s": "meal",
+    "t": 380,
+    "at": "2026-11-23T07:31:22.151Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: supper: later, day 16, renown 9, the table warm",
+    "t": 380,
+    "at": "2026-11-23T07:31:22.152Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Doran's first supper home: the Pit's people took them; the Snoot getting worse",
+    "t": 380,
+    "at": "2026-11-23T07:31:22.152Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen: (Eat quietly.)",
+    "t": 380,
+    "at": "2026-11-23T07:31:40.385Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Lymen History 7 - 1 = 6 vs DC 10, missed (silent)",
+    "t": 380,
+    "at": "2026-11-23T07:31:41.919Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Aurdin History 12 + 4 = 16 vs DC 10, made (silent)",
+    "t": 380,
+    "at": "2026-11-23T07:31:41.919Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: Aurdin Arcana 12 + 6 = 18 vs DC 13, made (silent)",
+    "t": 380,
+    "at": "2026-11-23T07:31:41.919Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: to bed upstairs: the road-end room",
+    "t": 380,
+    "at": "2026-11-23T07:31:51.619Z"
+   },
+   {
+    "k": "rest",
+    "s": "short rest",
+    "t": 389,
+    "at": "2026-11-23T07:31:52.129Z"
+   },
+   {
+    "k": "check",
+    "s": "THE MEAL: the morning upstairs done (the gift not owed)",
+    "t": 389,
+    "at": "2026-11-23T07:31:52.585Z"
+   },
+   {
+    "k": "talk",
+    "s": "elsbeth",
+    "t": 389,
+    "at": "2026-11-23T07:32:08.469Z"
+   },
+   {
+    "k": "act",
+    "s": "THE SECOND ACT: the rowboat: pushed out and sounded the deep",
+    "t": 389,
+    "at": "2026-11-23T07:32:35.552Z"
+   },
+   {
+    "k": "act",
+    "s": "THE SECOND ACT: the thing in the lake killed",
+    "t": 389,
+    "at": "2026-11-23T07:35:26.288Z"
+   },
+   {
+    "k": "talk",
+    "s": "elsbeth",
+    "t": 389.25,
+    "at": "2026-11-23T07:35:56.288Z"
+   },
+   {
+    "k": "talk",
+    "s": "elsbeth",
+    "t": 389.25,
+    "at": "2026-11-23T07:36:05.305Z"
+   },
+   {
+    "k": "talk",
+    "s": "doranIn",
+    "t": 389.25,
+    "at": "2026-11-23T07:36:11.338Z"
+   },
+   {
+    "k": "walk",
+    "s": "click 258,90 at zoom 1/9 on the area map: picked 68,21 (silverton), from 52,49, 31 hexes planned -- stopped at 55,40 on the area map after 4.5 h, morning: an encounter on the way",
+    "t": 389.25,
+    "at": "2026-11-23T07:36:36.239Z"
+   },
+   {
+    "k": "town",
+    "s": "webgulch by the south gate",
+    "t": 393.75,
+    "at": "2026-11-23T07:36:40.422Z"
+   },
+   {
+    "k": "walk",
+    "s": "click 303,91 at zoom 9/9 on the area map: picked 56,40, from 55,41, 1 hex planned -- stopped at 56,40 on the area map after 0.5 h, morning: an encounter on the way",
+    "t": 393.75,
+    "at": "2026-11-23T07:36:43.722Z"
+   },
+   {
+    "k": "fight",
+    "s": "won in 1 rounds: Giant Spider",
+    "t": 394.25,
+    "at": "2026-11-23T07:37:01.335Z"
+   },
+   {
+    "k": "walk",
+    "s": "click 275,82 at zoom 8/9 on the area map: picked 57,39, from 56,40, 1 hex planned -- stopped at 57,39 on the area map after 0.5 h, midday: the walk done",
+    "t": 394.5,
+    "at": "2026-11-23T07:37:02.439Z"
+   },
+   {
+    "k": "walk",
+    "s": "click 245,123 at zoom 4/9 on the area map: picked 58,37, from 57,39, 2 hexes planned -- stopped at 58,37 on the area map after 1 h, midday: the walk done",
+    "t": 395,
+    "at": "2026-11-23T07:37:06.606Z"
+   },
+   {
+    "k": "walk",
+    "s": "click 257,52 at zoom 1/9 on the area map: picked 68,21 (silverton), from 58,37, 19 hexes planned -- stopped at 58,34 on the area map after 1.5 h, midday: a card up",
+    "t": 396,
+    "at": "2026-11-23T07:37:09.522Z"
+   },
+   {
+    "k": "walk",
+    "s": "the walk taken up again from 58,34 -- stopped at 68,21 on the area map (Silverton) after 12 h, night: a card up",
+    "t": 397.5,
+    "at": "2026-11-23T07:37:12.039Z"
+   },
+   {
+    "k": "town",
+    "s": "silverton by the south gate",
+    "t": 409.5,
+    "at": "2026-11-23T07:37:27.156Z"
+   },
+   {
+    "k": "talk",
+    "s": "percy",
+    "t": 409.5,
+    "at": "2026-11-23T07:37:55.556Z"
+   },
+   {
+    "k": "talk",
+    "s": "marta",
+    "t": 409.5,
+    "at": "2026-11-23T07:38:45.874Z"
+   },
+   {
+    "k": "talk",
+    "s": "marta",
+    "t": 409.5,
+    "at": "2026-11-23T07:38:51.990Z"
+   },
+   {
+    "k": "talk",
+    "s": "marta",
+    "t": 409.5,
+    "at": "2026-11-23T07:38:56.090Z"
+   },
+   {
+    "k": "talk",
+    "s": "marta",
+    "t": 409.5,
+    "at": "2026-11-23T07:38:59.374Z"
+   },
+   {
+    "k": "talk",
+    "s": "winters",
+    "t": 409.5,
+    "at": "2026-11-23T07:39:18.808Z"
+   },
+   {
+    "k": "save",
+    "s": "slot 3",
+    "t": 409.5,
+    "at": "2026-11-23T07:39:28.158Z"
+   },
+   {
+    "k": "town",
+    "s": "silverton by the south gate",
+    "t": 409.5,
+    "at": "2026-11-23T16:25:31.780Z"
+   },
+   {
+    "k": "talk",
+    "s": "aldwin",
+    "t": 409.5,
+    "at": "2026-11-23T16:26:13.071Z"
+   },
+   {
+    "k": "rest",
+    "s": "long rest",
+    "t": 417.5,
+    "at": "2026-11-23T16:26:15.425Z"
+   },
+   {
+    "k": "save",
+    "s": "slot 3",
+    "t": 417.5,
+    "at": "2026-11-23T16:26:39.388Z"
+   },
+   {
+    "k": "town",
+    "s": "silverton by the south gate",
+    "t": 417.5,
+    "at": "2026-11-24T00:20:08.905Z"
+   },
+   {
+    "k": "save",
+    "s": "slot 3",
+    "t": 417.5,
+    "at": "2026-11-24T00:20:21.420Z"
+   },
+   {
+    "k": "town",
+    "s": "silverton by the south gate",
+    "t": 417.5,
+    "at": "2026-11-24T09:01:27.132Z"
+   },
+   {
+    "k": "save",
+    "s": "slot 3",
+    "t": 417.5,
+    "at": "2026-11-24T09:01:36.525Z"
+   }
+  ],
+  "restEnd": 417.5,
+  "fog": {
+   "webgulch": "1120:0007ff0000001fffc000003fffe000007ffff80001fffffe0003ffffff800fffffffc00fffffffc00fffffffe0ffffffffe0ffffffffe0ffffffffe0ffffffffe00fffffffe00fffffffe00fffffffe00fffffffe00fffffffe00fffffffe00fffffffc007ffffffc007ffffffc007ffffffc003ffffff8003ffffff8003ffffff8003ffffff8001ffffff0001ffffff0001ffffff0001fffffe0001fffffe0000fffffe0000fffffe0000fffffc00007ffffc00007ffff800007ffff800007ffff000003ffff000003ffff000003ffff000003ffff000003ffff000003ffff000003ffff000003ffff000003ffff000003ffff000003ffff800003ffff800003ffffc00003ffffc00003ffffc00003ffffc00007ffffc00007ffffc00007ffffc00007fffffff00ffffffff00ffffffff00ffffffff007ffffe0000fffffe0000fffffe0000ffffff0001ffffff8001ffffff8001ffffff8000ffffff8000ffffff8000ffffff8000ffffff8000ffffffc0007fffffc0007fffffc0007fffffc0003fffffc00001ffffc00001ffff800fe1ffff801ff1ffff803ff9ffff807ffdffff007ffdffff007fffffff007fffffff007fffffff007fffffff007ffdffff007ffdffff003ff9ffff001ff1fffe000fe1ffff000001ffff000000ffff000000ffff000000ffff000000ffff000000fffe000000ffff000000ffff000000ffff000000ffff000000ffff000000ffff000000ffff0000007ffe0000007ffe0000007ffc0000003ffc0000003ff800"
+  }
+ }
+}

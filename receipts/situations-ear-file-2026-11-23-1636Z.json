@@ -1,0 +1,59 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "Sylvia Swann's table (deep16/?cards), its SAVE"
+ },
+ "saved_at": "2026-11-23T16:36:50.215Z",
+ "previous_save": "2026-11-21T01:12:48.729Z",
+ "items": [
+  {
+   "id": "eyes-lake-thing-alone-1121b",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE THING IN THE LAKE ALONE: no frog, 20 more hit points than the SRD's (113) (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat, second run; deep16/js/secondact.js A.lakeThing; data/fights.js chuul)",
+   "url": "deep16/?show=secondact&beat=risenoring&lvl=3&fresh=1121h",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-23T16:30:11.195Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-kat-boards-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "KATARINA WALKS TO THE WAGON after Doran's drive, as the card says she goes up on the bench (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/inn.js In.yardAfter)",
+   "url": "deep16/?innshow&beat=wagonseen&lvl=3&fresh=1121a",
+   "verdict": "",
+   "note": "passed",
+   "at": "2026-11-23T16:27:14.348Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-lake-take-hands-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE TAKE: hands held till it has her, then yours -- wound it, or it goes down with her (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/secondact.js A.lakeFight, the show's hold)",
+   "url": "deep16/?show=secondact&beat=take&lvl=3&fresh=1121d",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-11-23T16:36:42.103Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-gennet-reached-1121",
+   "eyes": true,
+   "pri": 1,
+   "title": "GENNET DOWN IN ITS CLAWS, AND REACHED: heal her before the fight ends; a click on its square finds her (11-21)",
+   "pt": "the Halfway Inn lane, 2026-11-21 (the inn-notes seat; deep16/js/secondact.js A.lakeFight; deep16/js/ui.js heldIn)",
+   "url": "deep16/?show=secondact&beat=offerwater&lvl=3&fresh=1121e",
+   "verdict": "unclear",
+   "note": "wouldn't a bench with pinned numbers solve this? i failed to keep her alive",
+   "at": "2026-11-23T16:36:32.696Z",
+   "new_since_last_save": true
+  }
+ ]
+}
