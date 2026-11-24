@@ -12,6 +12,33 @@
   // write was the one refused -- and grimgriz.github.io is one origin for every game on his Pages, so the room is shared)
   var KEY = 'deep16.plays', KEEP = 40, ROOM = 1500000;
   var REC = D.rec = {};
+  // THE SNOOT'S GRID FIGHTS, KEPT APART (11-24, Griz, day 16 of a play: "any of the snoot make it into play records?"): a Snoot day sends the grid many battles
+  // (deep16/js/headless.js H.serve, H.record: `fight: 'snoot-headless'`), and forty of them in deep16.plays would push every story fight out of it. So they keep in
+  // a store of their own, SNOOT, with its own count and its own room, written straight to the browser's storage -- never through D.store.set, whose refusals
+  // are made room for out of deep16.plays (js/core.js) -- and they are the first to give way: a save or a story fight the browser refuses takes their oldest
+  // half before it takes a story fight (REC.room, write below). R's file carries them after the story's fights, each marked by its `fight`; CLEAR RECORD takes
+  // them with the rest of what that file holds; REC.count counts them (it is what R would write)
+  var SNOOT = 'deep16.plays.snoot', SNOOT_KEEP = 40, SNOOT_ROOM = 600000;
+  REC.SNOOT_KEY = SNOOT; REC.SNOOT_KEEP = SNOOT_KEEP; REC.SNOOT_ROOM = SNOOT_ROOM;
+  function snootAll() { try { var v = window.localStorage.getItem(SNOOT); var a = v ? JSON.parse(v) : []; return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function snootSet(all) { try { if (all.length) window.localStorage.setItem(SNOOT, JSON.stringify(all)); else window.localStorage.removeItem(SNOOT); return true; } catch (e) { return false; } }
+  // the Snoot's oldest half gone, for a write refused elsewhere (false: it had none to give)
+  function snootGive() { var a = snootAll(); if (!a.length) return false; a.splice(0, Math.ceil(a.length / 2)); if (!snootSet(a)) snootSet([]); return true; }
+  REC.snootAll = snootAll;
+  REC.keepSnoot = function (r) {
+    if (!r || !r.started) return false;
+    r = JSON.parse(JSON.stringify(r)); r.fight = r.fight || 'snoot-headless';
+    var all = snootAll().filter(function (f) { return !(f && f.fight === r.fight && f.started === r.started); });
+    all.push(r);
+    while (all.length > SNOOT_KEEP) all.shift();
+    var sizes = all.map(function (f) { return JSON.stringify(f).length; }), total = sizes.reduce(function (a, b) { return a + b; }, 0);
+    while (total > SNOOT_ROOM && all.length > 1) { total -= sizes.shift(); all.shift(); }
+    if (total > SNOOT_ROOM) all.forEach(function (f) { if (f.log && f.log.length > 400) f.log = f.log.slice(0, 200).concat(['... (' + (f.log.length - 400) + ' lines cut: the Snoot\'s room is ' + SNOOT_ROOM + ' characters) ...']).concat(f.log.slice(-200)); }); // (one fight past the whole room: its log's head and tail)
+    var ok = snootSet(all);
+    while (!ok && all.length > 1) { all.shift(); ok = snootSet(all); }
+    if (!ok) { all.forEach(function (f) { delete f.log; }); ok = snootSet(all); }
+    return ok;
+  };
 
   function logText(e) { return typeof e === 'string' ? e : (e && e.text) || ''; }
   function isUnit(v) { return v && typeof v === 'object' && v.id != null && v.side && v.hp != null; }
@@ -285,14 +312,18 @@
     var sizes = all.map(function (f) { return JSON.stringify(f).length; }), total = sizes.reduce(function (a, b) { return a + b; }, 0);
     while (total > ROOM && all.length > 1) { total -= sizes.shift(); all.shift(); }
     if (total > ROOM) all.forEach(function (f) { delete f.log; });
-    while (!D.store.set(KEY, all) && all.length > 1) all.shift();
-    if (!D.store.set(KEY, all)) { all.forEach(function (f) { delete f.log; }); D.store.set(KEY, all); }
+    // (11-24: refused by the browser, the Snoot's grid fights give way before a story fight does -- his "any of the snoot make it into play records?" kept them, apart; SNOOT above)
+    var wrote = D.store.set(KEY, all);
+    while (!wrote && snootGive()) wrote = D.store.set(KEY, all);
+    while (!wrote && all.length > 1) { all.shift(); wrote = D.store.set(KEY, all); }
+    if (!wrote) { all.forEach(function (f) { delete f.log; }); D.store.set(KEY, all); }
   }
-  REC.count = function () { return (D.store.get(KEY) || []).length; };
+  REC.count = function () { return (D.store.get(KEY) || []).length + snootAll().length; }; // (the Snoot's too since 11-24: what R would write)
   REC.ROOM = ROOM;
   // room for a save the browser refused (D.store.set, js/core.js): the oldest half of the kept fights go, and the save is tried again --
   // a roster, a camp or a ladder is worth more than an old fight's record (false: nothing left to give)
   REC.room = function () {
+    if (snootGive()) return true; // (11-24: the Snoot's grid fights first -- worth less than a story fight's record; SNOOT above)
     var all = D.store.get(KEY) || [];
     if (!all.length) return false;
     all.splice(0, Math.ceil(all.length / 2));
@@ -308,14 +339,16 @@
   // how many of the kept fights the last save holds (0: nothing saved yet, or all cleared)
   REC.clearable = function () {
     if (!fileHas) return 0;
-    return (D.store.get(KEY) || []).filter(function (f) { return fileHas.tags.indexOf(tag(f)) >= 0; }).length;
+    return (D.store.get(KEY) || []).concat(snootAll()).filter(function (f) { return fileHas.tags.indexOf(tag(f)) >= 0; }).length; // (the Snoot's grid fights in the file too, 11-24)
   };
   // the fights the last save holds leave the browser; { gone, kept (played since), file }, or false (nothing saved, or the browser refused)
   REC.clear = function () {
     if (!fileHas) return false;
     var all = D.store.get(KEY) || [], keep = all.filter(function (f) { return fileHas.tags.indexOf(tag(f)) < 0; });
+    var sn = snootAll(), snKeep = sn.filter(function (f) { return fileHas.tags.indexOf(tag(f)) < 0; }); // (11-24: the Snoot's that file holds go with the rest)
     if (!D.store.set(KEY, keep)) return false;
-    var r = { gone: all.length - keep.length, kept: keep.length, file: fileHas.name };
+    if (snKeep.length !== sn.length) snootSet(snKeep);
+    var r = { gone: all.length - keep.length + sn.length - snKeep.length, kept: keep.length + snKeep.length, file: fileHas.name };
     fileHas = null;
     return r;
   };
@@ -330,11 +363,11 @@
   REC.SAVED_KEY = 'deep16.plays.saved';
   // R on the tester ladder: every kept fight to one file (a download: the browser asks where, or drops it in Downloads)
   REC.saveBody = function (d) {
-    var all = D.store.get(KEY) || [];
+    var sn = snootAll(), all = (D.store.get(KEY) || []).concat(sn); // (11-24, his "any of the snoot make it into play records?": the Snoot's grid fights after the rest, `fight: 'snoot-headless'`)
     if (!all.length) return null;
     d = d || new Date(); var pad = function (n) { return (n < 10 ? '0' : '') + n; }, mk = REC.marks(all, REC.SAVED_KEY, d.toISOString());
     var name = 'deep16-play-record-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
-    return { name: name, all: all, keep: mk.keep, file: { what: 'DEEP16 play record: every fight this browser kept at this address -- the tester ladder played (P), ?fight=, ?npc= (the class floor, since 10-06), the Pocket DM, the story inside the 8-bit (js/record.js)', saved: d.toISOString(), since: mk.since, fresh: mk.fresh, fights: mk.fights } };
+    return { name: name, all: all, keep: mk.keep, file: { what: 'DEEP16 play record: every fight this browser kept at this address -- the tester ladder played (P), ?fight=, ?npc= (the class floor, since 10-06), the Pocket DM, the story inside the 8-bit (js/record.js); and after them the Snoot\'s grid fights, fought unseen (fight \'snoot-headless\', kept apart since 11-24: deep16/js/headless.js H.record)', saved: d.toISOString(), since: mk.since, fresh: mk.fresh, snoot: sn.length, fights: mk.fights } };
   };
   REC.save = function () {
     var sb = REC.saveBody();

@@ -269,14 +269,55 @@
     return B;
   };
   // the whole fight unseen: what it came to
-  H.run = function (spec) {
-    var B = H.make(spec, { bench: true }), v, guard = 0, err = null; D.battle = B; B.enter();
-    while (B.co && guard++ < 600000 && !(B.round > 60)) {
-      var r; try { r = B.co.next(v); } catch (e) { err = String(e && e.stack || e).slice(0, 600); break; }
-      v = undefined; if (r.done) break;
-      var y = r.value; if (typeof y === 'number' || !y) continue;
-      if (y.prompt) v = y.prompt.opts[0].value; else if (y.turn) v = { do: 'end' };
+  // IN SLICES (11-24, Griz, day 16 of a play: "got browser timeouts running the grid fights - waiting and they resolved"): the fight was fought in one call, and
+  // the Snoot's page -- the same page's thread as its hidden frame -- froze 2 to 4 s a fight (the gap probe of 11-24, on the gate's seed 3), long enough for the
+  // browser to ask about a page that does not answer. Now H.begin seats it, H.step fights it for a slice (`ms`; Infinity: to its end) and H.end says what it came to.
+  // H.run is the three in one breath, as before; H.runSliced (H.serve, below) gives the page back between slices. The fight's dice are its own between slices --
+  // D.seed is put back to where its last slice left it as each slice opens -- so a seed fights the same fight sliced or whole (dev/bench16.js mode=snootrec1124).
+  // The slice, 100 ms (the runner's call, measured 11-24 on the gate's seed 3 in headless Chromium): the longest the page now waits is the fight's seating (Battle.enter,
+  // 0.25 to 0.45 s, one call) or its longest turn (0.1 to 0.25 s), whatever the slice; at 30 ms the Snoot page's own frames between slices made a fight half again as
+  // long, at 100 ms a sixth
+  H.SLICE_MS = 100;
+  var now = function () { return window.performance && performance.now ? performance.now() : Date.now(); };
+  H.begin = function (spec) {
+    var seed0 = spec.seed != null ? spec.seed | 0 : D.seed, t = new Date().toISOString(); // (seed0: where its dice began, for its play record -- the Snoot sends one)
+    var B = H.make(spec, { bench: true }); D.battle = B; B.enter();
+    return { B: B, v: undefined, guard: 0, err: null, done: false, seed: D.seed, seed0: seed0, slices: 0, started: t };
+  };
+  H.step = function (S, ms) {
+    var B = S.B, t0 = now(); D.battle = B; D.seed = S.seed; S.slices++;
+    while (!S.done) {
+      if (!(B.co && S.guard++ < 600000 && !(B.round > 60))) { S.done = true; break; }
+      var r; try { r = B.co.next(S.v); } catch (e) { S.err = String(e && e.stack || e).slice(0, 600); S.done = true; break; }
+      S.v = undefined; if (r.done) { S.done = true; break; }
+      var y = r.value;
+      if (y && typeof y !== 'number') { if (y.prompt) S.v = y.prompt.opts[0].value; else if (y.turn) S.v = { do: 'end' }; }
+      if (now() - t0 >= ms) break;
     }
+    S.seed = D.seed;
+    return S.done;
+  };
+  H.run = function (spec) { var S = H.begin(spec); H.step(S, Infinity); return H.end(S); };
+  // the page given back between slices: a MessageChannel's task, not setTimeout -- a timer in a tab out of sight is held to one a second, and a fight of a hundred
+  // slices would outrun the Snoot's wait for its answer (snoot-mode/js/headless.js HL.RUN_MS). o.ms the slice; o.defer(fn) another way to wait (a bench's)
+  var chan = null, waiting = [];
+  var later = function (fn) {
+    if (typeof MessageChannel !== 'function') { setTimeout(fn, 0); return; }
+    if (!chan) { chan = new MessageChannel(); chan.port1.onmessage = function () { var f = waiting.shift(); if (f) f(); }; } // (made at the first slice: no page but the Snoot's frame opens it)
+    waiting.push(fn); chan.port2.postMessage(0);
+  };
+  H.runSliced = function (spec, done, o) {
+    o = o || {}; var ms = o.ms || H.SLICE_MS, defer = o.defer || later, S;
+    var fail = function (e) { done(null, S, e); };
+    try { S = H.begin(spec); } catch (e) { fail(e); return; }
+    var tick = function () {
+      try { if (!H.step(S, ms)) { defer(tick); return; } var res; D.seed = S.seed; res = H.end(S); } catch (e) { fail(e); return; }
+      done(res, S);
+    };
+    defer(tick);
+  };
+  H.end = function (S) {
+    var B = S.B, err = S.err; D.battle = B;
     if (B.hl.close) B.hl.close();
     if (B.hl.frames) B.hl.frames.push({ end: true, at: H.frame(B) });
     (B.hl.beats || []).forEach(function (bt) { bt.turns.forEach(function (tn) { delete tn.last; }); });
@@ -284,15 +325,44 @@
     if (!err && !H.men(B, 'a').some(up) && !H.men(B, 'b').some(up)) res = 'both'; // (the last of each down or away in the one round: nobody's)
     return { result: err ? 'error' : res || 'unended', error: err, rounds: B.round, gapFt: B.hl.gap, field: B.hl.w + 'x' + B.hl.h, a: H.tally(B, 'a'), b: H.tally(B, 'b'), morale: B.hl.lines, charged: B.hl.charged || 0, frames: B.hl.frames || null, beats: B.hl.beats || [], log: B.log || [] };
   };
+  // THE PLAY RECORD (11-24, Griz, day 16 of a play: "any of the snoot make it into play records?" -- none did: the grid's fight was a bench's, with no o.record,
+  // and the record.js machinery would checkpoint every round and keep the log three times over): each fight the Snoot asks for is kept as a play record of
+  // its own when it ends, `fight: 'snoot-headless'`, in the Snoot's own store (js/record.js REC.keepSnoot, deep16.plays.snoot) -- a Snoot day runs many
+  // battles, and they must never push his story fights out of deep16.plays -- and R's file carries both. Its `sides` are the units as the grid got them (each
+  // unit's `words` H.words reads back) and its `seed` where its dice began: H.run({ a, b, level, seed, surprised }) fights it again
+  H.REC_FIGHT = 'snoot-headless';
+  var squeeze = function (list) { var out = [], i = 0; while (i < list.length) { var j = i; while (j < list.length && list[j] === list[i]) j++; out.push(list[i] + (j - i > 1 ? '*' + (j - i) : '')); i = j; } return out.join(','); }; // (['guard','guard','paladin:4'] -> 'guard*2,paladin:4')
+  H.record = function (spec, res, S) {
+    var sideOf = function (sd) { return { name: sd.name, units: (sd.units || []).map(function (x) { var o = {}; Object.keys(x).forEach(function (k) { if (k !== 'list' && k !== 'seat') o[k] = x[k]; }); /* (seat: where H.make sat it, written onto the unit) */ o.words = squeeze(x.list || []); return o; }) }; };
+    return { v: 1, fight: H.REC_FIGHT, name: 'The Snoot, on the grid: ' + spec.a.name + ' against ' + spec.b.name, level: spec.level, simple: false,
+      started: S && S.started || new Date().toISOString(), ended: new Date().toISOString(), result: res.result, rounds: res.rounds, seed: S ? S.seed0 : spec.seed, surprised: spec.surprised || null,
+      gapFt: res.gapFt, field: res.field, charged: res.charged, error: res.error || null, slices: S ? S.slices : null, sides: { a: sideOf(spec.a), b: sideOf(spec.b) }, a: res.a, b: res.b, morale: res.morale || [],
+      steps: [], party: [], log: (res.log || []).slice() };
+  };
   // THE SNOOT'S ASK (deep16/?headlessrun, in a frame nobody sees: snoot-mode/js/headless.js HL.ask): 'd16h:ready' up to the page that holds the frame; its
-  // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought whole and answered 'd16h:done' with H.run's result, the log left off
+  // 'snh:fight' (two of the board's units as HL.pack sends them, a seed, a level) is fought and answered 'd16h:done' with what it came to, the log left off.
+  // Fought in slices since 11-24 (his "got browser timeouts running the grid fights - waiting and they resolved"; H.runSliced, above), one fight at a time
+  // (a second ask waits its turn: the dice are the frame's one D.seed), and kept as a play record as it ends (H.record, above)
+  H.side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover, charge: !!u.charge, glory: !!u.glory, bless: !!u.bless }; }) }; };
+  // one 'snh:fight' answered through post(msg) -- H.serve's, or a bench's (o.defer: its own way to wait between slices); asks wait their turn in `asks`
+  var asks = [], busy = false;
+  H.answer = function (m, post, o) { asks.push({ m: m, post: post, o: o || {} }); nextAsk(); };
+  function nextAsk() {
+    if (busy || !asks.length) return;
+    var it = asks.shift(), m = it.m, spec; busy = true;
+    var over = function (msg) { busy = false; try { it.post(msg); } finally { nextAsk(); } };
+    try { spec = { a: H.side(m.a), b: H.side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }; } catch (err) { over({ type: 'd16h:crash', id: m.id, msg: String(err && err.message || err).slice(0, 200) }); return; }
+    H.runSliced(spec, function (r, S, err) {
+      if (!r) { over({ type: 'd16h:crash', id: m.id, msg: String(err && err.message || err).slice(0, 200) }); return; }
+      try { if (D.rec && D.rec.keepSnoot) D.rec.keepSnoot(H.record(spec, r, S)); } catch (eR) { /* (the record must never stop the answer) */ }
+      delete r.log; delete r.frames; over({ type: 'd16h:done', id: m.id, res: r });
+    }, it.o);
+  }
   H.serve = function () {
     var post = function (m) { try { window.parent.postMessage(m, '*'); } catch (e) { } };
-    var side = function (x) { var us = Array.isArray(x) ? x : [x]; return { name: us.map(function (u) { return u.name; }).join(' and '), units: us.map(function (u) { return { id: u.id, name: u.name, list: H.listOf(u), nh: H.heroWords(u).length, morale: u.rating, never: !!u.never, form: u.form || null, asp: u.asp || null, cover: !!u.cover, charge: !!u.charge, glory: !!u.glory, bless: !!u.bless }; }) }; };
     window.addEventListener('message', function (e) {
       var m = e.data; if (!m || m.type !== 'snh:fight' || e.source !== window.parent) return;
-      try { var r = H.run({ a: side(m.a), b: side(m.b), level: m.level || 4, seed: m.seed, surprised: m.surprised || null }); delete r.log; delete r.frames; post({ type: 'd16h:done', id: m.id, res: r }); }
-      catch (err) { post({ type: 'd16h:crash', id: m.id, msg: String(err && err.message || err).slice(0, 200) }); }
+      H.answer(m, post);
     });
     setTimeout(function () { post({ type: 'd16h:ready' }); }, 0);
     return { update: function () { }, draw: function () { } };
