@@ -744,6 +744,18 @@
     }
     ctx.restore();
   };
+  // A WEB over a figure or a portrait (11-24, his "light gray web-looking restrained"): seven strands from a knot a little off its middle out past the edge of (rx, ry), three
+  // rings across them, the outer one sagging a little as the strands sway; pale grey, one pixel. (cx, cy) the middle, a the alpha (0.75)
+  LK.web = function (ctx, cx, cy, rx, ry, t, a) {
+    var n = 7, sp = [], X = function (v) { return Math.round(v) + 0.5; }, kx = cx + rx * 0.12, ky = cy - ry * 0.1;
+    for (var i = 0; i < n; i++) { var an = 0.35 + i * Math.PI * 2 / n + 0.2 * Math.sin(i * 2.3); sp.push([Math.cos(an), Math.sin(an)]); }
+    ctx.save(); ctx.globalAlpha = a == null ? 0.75 : a; ctx.strokeStyle = P('bone', 1); ctx.lineWidth = 1; ctx.beginPath();
+    sp.forEach(function (s) { ctx.moveTo(X(kx), X(ky)); ctx.lineTo(X(kx + s[0] * rx * 1.08), X(ky + s[1] * ry * 1.08)); });
+    [0.32, 0.62, 0.92].forEach(function (k, j) {
+      sp.concat([sp[0]]).forEach(function (s, i) { var sag = j === 2 ? 0.8 * Math.sin((t || 0) / 24 + i) : 0, x = X(kx + s[0] * rx * k), y = X(ky + s[1] * ry * k + sag); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+    });
+    ctx.stroke(); ctx.restore();
+  };
   LK.over = function (ctx, B, u, p) {
     var c = u.conds, t = B.t, top = D.spr.unitTop(u), hx = p.x, hy = p.y - Math.max(top, LK.flameTop(u, B)) - 11, E; // (the marks over the head clear of a smouldering troll's flames: LK.flameTop, 10-07)
     if (u.hp <= 0) { if (c.oiled && !u.dead) oilMarks(ctx, B, u, p, top); return; } // (down at 0: ui.js asks only for the oil -- 10-06, a troll oiled where it lies)
@@ -796,6 +808,9 @@
       var tent = (B.grounds || []).some(function (g) { return g.kind === 'tentacles' && g.sq.some(function (q) { return q[0] === u.x && q[1] === u.y; }); }), VE = tent ? FX.EL.shadow : FX.EL.nature;
       for (var vi = 0; vi < 3; vi++) for (var vk = 0; vk < 22; vk++) { var vq = vk / 22, vx = p.x + Math.sin(vq * 9 + vi * 2.1 + t / 20) * (7 - vq * 2), vy = p.y - vk * 1.1; px(ctx, vx, vy, tent ? (vq > 0.8 ? VE.c[1] : P('outline', 0)) : vq > 0.7 ? VE.c[1] : VE.c[2], 2); }
     }
+    // WEBBED (11-24, the seat eyes-1124, his "light gray web-looking restrained"): a web over the figure (LK.web), pale grey -- not one held in a grip (the clamps, overMore) nor
+    // wound in vines or tentacles (above); the grid's bone tint under it (js/ui.js), and the menu's portrait wears the same web (js/menu.js)
+    else if (D.ui && D.ui.webbed && D.ui.webbed(u)) LK.web(ctx, p.x, p.y - top * 0.5, 11 * (u.size || 1), Math.max(10, top * 0.52), t, 0.8);
     // Faerie Fire: violet motes crawling the outline (the tint is ui.js's)
     if (c.faerie) { E = FX.EL.charm; for (var fm = 0; fm < 8; fm++) { var fa = t / 14 + fm * 0.785; px(ctx, p.x + Math.cos(fa) * 10, p.y - top / 2 + Math.sin(fa) * (top / 2), (fm + (t >> 2)) % 2 ? P('violet', 5) : P('violet', 4), 2); } }
     // Heroism: a gold glint now and then; Fire Shield: flames about it

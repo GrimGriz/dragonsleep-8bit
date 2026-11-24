@@ -1482,6 +1482,7 @@
         : D.house && D.house.cardNow && D.house.cardNow() ? function () { D.house.cardNotes(); } : null, // (a card of Sylvia's with neither: the house's box, stamped with the card -- js/house.js H.cardNotes, 11-19) // (a Pocket DM fight's: the same box on the table's own notes -- js/pocketdm.js PD.notes, 11-12, Griz: "still looking for the 'same menu' (with a notes section) on the 'm' key")
       wait: calm && D.hours && D.hours.canWait(B) ? function () { D.hours.wait(B); } : null, // (WAIT to the next bell on Silverton's street: deep16/js/hours.js, 10-28)
       walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
+      unit: function (h) { return unitOf(h); }, // (the hero's figure on the grid: its conditions as they stand in the fight -- the menu's tints and EFFECTS, js/menu.js, 11-24)
       whyNot: function () { return ''; },
       famForms: houseFloor && D.house.famForms ? function (h, sp) { return D.house.famForms(h, sp, B); } : null, // (Find Familiar's WHAT SHAPE? on the house's floor: js/house.js, 10-31)
       famHad: houseFloor && D.house.famHad ? function (h) { return D.house.famHad(h, B); } : null, // (A NEW SHAPE? first when one serves already: js/house.js, 11-03 night)
@@ -2111,7 +2112,8 @@
         if (u.flash > 0) { var fe = u.flashEl && FX.EL && FX.EL[u.flashEl]; o.tint = fe ? fe.c[1] : R('bone', 2); o.tintAlpha = fe ? 0.55 : 0.85; } // (a blow of an element flashes its colour: js/looks.js)
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
-        else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
+        else if (u.conds.poisoned && !down) { var tP = UI.condTint(u, B.t); o.tint = tP[0]; o.tintAlpha = tP[1]; } // (poisoned, a tint of its own: UI.condTint, 11-24)
+        else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; } // (webbed, its web over the figure too: js/looks.js LK.web)
         if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head' || u.perch === 'over'))) {
           var s = u.size || 1, gp = p;
           if (G.aloft(u) && !u.tween) { var gc = D.iso.center(u.x + (s - 1) / 2, u.y + (s - 1) / 2, G.groundAt(u, u.x, u.y)); gp = D.iso.toScreen(gc.x, gc.y); ctx.strokeStyle = 'rgba(214,220,232,.5)'; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(gp.x, gp.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.setLineDash([]); } // (aloft: its shadow on the ground under it, a faint line up to it -- flight at a height, 10-08)
@@ -2817,7 +2819,7 @@
     ctx.fillStyle = 'rgba(10,8,16,.82)'; ctx.fillRect(x, y, ww + 8, lines.length * 9 + 4);
     lines.forEach(function (l, i) { D.text(ctx, l, x + 4, y + 2 + i * 9, R('bone', 1)); });
   }
-  function conds(w) {
+  function conds(w, all) {
     var c = [];
     if (w.madeState === 'withered') c.push('{g}WITHERED{/}'); else if (w.madeState === 'charged') c.push('{p}CHARGED{/}'); // (a made thing's state: js/seep.js THE MADE THINGS' STATES, 11-14)
     if (w.under) c.push('{o}under the ground{/}'); // (a burrower: out of reach till it comes up, js/ai.js)
@@ -2931,6 +2933,7 @@
     if (q.oiled) tail.push('{o}oiled: the next fire burns 5 more{/}');
     if (w.conc) tail.push('{y}conc: ' + w.conc.name + '{/}');
     if (w.hp <= 0 && !w.dead) tail.push('{r}down{/}');
+    if (all) return c.concat(tail); // (the whole list, one word a thing: the menu's EFFECTS page, UI.condList -- 11-24)
     // one row on a 480-px screen: what will not fit gives way to a count (the concentration and the down are kept)
     var left = 0;
     while (c.length > 1 && D.textWidth(c.concat(tail).join(' ')) > 300) { c.pop(); left++; }
@@ -2939,6 +2942,22 @@
     return c.length ? '  ' + c.join(' ') : '';
   }
   UI.condText = conds; // (the inspect's and the hover's words for a figure's state; the bench reads them)
+  // the same words untrimmed, a list (11-24, the menu's EFFECTS on STATUS -- RULED, his "EFFECTS instead of ON HIM", on his "barley seems to be a light source - can we get 'spells
+  // carried' on the menu-status display": read from conds as the inspect reads them, so the two agree; js/menu.js MN effects)
+  UI.condList = function (w) { return w && w.conds ? conds(w, true) : []; };
+  // THE CONDITION TINTS for a hero's portrait on the menu, as the grid lays them on the figure (11-24, the seat eyes-1124 -- his "still want the fight effect applied to the
+  // portrait (i think its' purple if poisoned, light gray web-looking restrained) - quick visual notification without reading when the menu opens"): paralyzed or stunned violet
+  // (the grid's own); POISONED a tint of its own, here and on the grid (drawFigure) -- the poison's green, a slow pulse (its bubbles are green and violet, FX.EL.poison, and the
+  // violet is paralyzed's: the purple remembered is the paralysis a spider's poison lays at 0 HP); restrained bone, a web's with its web (UI.webbed, js/looks.js LK.web).
+  // [colour, alpha] or null
+  UI.condTint = function (u, t) {
+    var c = (u && u.conds) || {};
+    if (c.paralyzed || c.stunned) return [R('violet', 4), 0.35];
+    if (c.poisoned) return [R('orc', 3), 0.3 + 0.06 * Math.sin((t || 0) / 11)];
+    if (c.restrained) return [R('bone', 1), 0.3];
+    return null;
+  };
+  UI.webbed = function (u) { var r = u && u.conds && u.conds.restrained; return !!r && !r.grapple && !(u.conds.stoning && r.kind === 'stone'); }; // (a web's hold: not a grip, not stone)
 
   // ------------------------------------------------------------------ the bottom bar: portrait, HP, BARM, the keys, END TURN
   function bar(ctx, B, hero) {

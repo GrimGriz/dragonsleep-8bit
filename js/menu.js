@@ -338,7 +338,7 @@
       var k = ps + r, h = rows[k]; if (!h) break;
       var y = 10 + r * 40, ok = !picking || this.pick.ok(h) === true, guest = k >= np;
       var spr = null; try { spr = host.walker && host.walker(h); } catch (e) { spr = null; }
-      if (spr) ctx.drawImage(spr, 10, y + 4);
+      if (spr) drawFace(ctx, spr, 10, y + 4, spr.width, spr.height, lookOf(host, h, m.t), m.t); // (the grid's tint for what is on the hero, 11-24: drawFace below)
       text(ctx, h.name, 32, y + 2, ok ? C.gold : C.dim);
       text(ctx, clsName(h) + ' ' + h.lvl, 96, y + 2, ok ? C.pale : C.dim);
       var col = h.ko ? C.grey : h.hp < h.maxhp / 4 ? C.red : C.white;
@@ -881,7 +881,11 @@
   // fight, one gone a throw; nothing leaves the pack for it. Out of a fight only; "(its own)" puts back what the hero carried before
   function isThrown(it) { var wd = it && it.weapon; return !!(wd && ((wd.props || []).indexOf('thrown') >= 0 || wd.thrown)); }
   function packN(host, id) { var n = 0; host.pack().forEach(function (s) { if (s.id === id) n += s.n || 0; }); return n; }
-  function altRow(h, host, fight) { var it = item(h.alt); return { label: 'ALT', right: it ? fit(it.name + (h.altPack ? ' x' + packN(host, h.alt) : ''), 128) : '—', value: 'alt', disabled: fight }; }
+  // (THROWN, 11-24, the seat eyes-1124 -- his "what is that 'alt' below wand on the equip character menu", the desk's lean RULED by his "leans otherwise approved": the row named
+  // for what it is, the weapon THROW uses, and its note said under the list while it is picked -- MN.ALT_NOTE)
+  MN.ALT_LABEL = 'THROWN';
+  MN.ALT_NOTE = 'The weapon THROW takes, from the pack\'s own stack. NONE: nothing to throw.';
+  function altRow(h, host, fight) { var it = item(h.alt); return { label: MN.ALT_LABEL, right: it ? fit(it.name + (h.altPack ? ' x' + packN(host, h.alt) : ''), 128) : '—', value: 'alt', disabled: fight, note: MN.ALT_NOTE }; }
   function altCands(h, host) {
     var rows = [];
     if (h.alt) rows.push({ label: 'NONE', right: 'nothing carried to throw', value: '__none' }); // (his "lacked a 'none' option to prevent accidental throwing", 11-11: the card's `noalt`, js/classes.js NPC.wear)
@@ -897,7 +901,7 @@
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
     // (ARMOR in a fight, either game: the SRD's minutes -- RULED 10-07, Griz: "SRD everywhere", "(not in a fight) is plenty")
-    if (r === 'refused' && this.list.cur().value === 'alt') { m.say('ALT: chosen out of a fight -- a thrown weapon from the pack.'); return; }
+    if (r === 'refused' && this.list.cur().value === 'alt') { m.say(MN.ALT_LABEL + ': chosen out of a fight -- a thrown weapon from the pack.'); return; }
     if (r === 'refused') { m.say(m.host.fight && this.list.cur().value === 'armor' ? 'Armour: not in a fight.' : this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the off hand only.') : emptyWhy(m, h)); return; }
     if (r !== 'pick') return;
     var slot = this.list.cur().value;
@@ -915,8 +919,12 @@
     this.list.draw(ctx, 22, 37, 210, active, this.m.t);
     var y = 42 + n * 12, c = R0.CLASSES[h.cls], nb = (h.attuned || []).length;
     win(ctx, 14, y, 228, 52);
-    text(ctx, fit('Armor: ' + (c && c.armor.length ? c.armor.join(', ') : 'none'), 210), 22, y + 7, C.grey);
-    text(ctx, fit('Weapons: ' + (c ? c.weapons.join(', ') : ''), 210), 22, y + 18, C.grey);
+    var curE = this.list.cur();
+    if (curE && curE.value === 'alt' && curE.note) wrap(curE.note, 210).slice(0, 2).forEach(function (l, i) { text(ctx, l, 22, y + 7 + i * 11, C.tan); }); // (THROWN's words while it is picked, 11-24)
+    else {
+      text(ctx, fit('Armor: ' + (c && c.armor.length ? c.armor.join(', ') : 'none'), 210), 22, y + 7, C.grey);
+      text(ctx, fit('Weapons: ' + (c ? c.weapons.join(', ') : ''), 210), 22, y + 18, C.grey);
+    }
     var bx = 22 + text(ctx, 'BONDS ' + nb + '/' + (R0.ATTUNE_MAX || 3) + '   ', 22, y + 29, C.magic);
     bx += text(ctx, '◆ bonded   ', bx, y + 29, C.pale); text(ctx, '◆ bonds at a rest', bx, y + 29, C.dim);
     if (fight) text(ctx, this.fo ? 'In a fight: each change costs the action.' : 'In a fight: weapon, shield, before acting.', 22, y + 40, C.gold);
@@ -1076,10 +1084,64 @@
     });
   }
   MN.featureLines = featureLines; MN.StatusPage = StatusPage; // (dev/bench16.js bugfix1110 reads the page's lines and their colours)
+  // ------------------------------------------------------------------ WHAT RUNS ON A HERO: the portraits' tints and STATUS's EFFECTS (11-24, the seat eyes-1124)
+  // the hero as it stands: its figure on the grid in a fight (host.unit, deep16/js/ui.js), else its own record -- what lasts out of a fight is on the record's conds (poisoned
+  // and paralyzed with their hours, a Light's hour on the walk, the morning's Mage Armor; deep16/js/roam.js R.lasting)
+  function liveOf(host, h) { var u = null; try { u = host && host.unit ? host.unit(h) : null; } catch (e) { u = null; } return u || { conds: h.conds || {}, hp: h.hp, maxhp: h.maxhp, name: h.name, id: h.id, torch: h.torch || null }; }
+  function gridUI() { var D16 = window.D16; return D16 && D16.ui && D16.ui.condTint ? D16.ui : null; }
+  // the grid's own look for the conditions on it (his "still want the fight effect applied to the portrait (i think its' purple if poisoned, light gray web-looking restrained) -
+  // quick visual notification without reading when the menu opens"): the tint the grid lays on the figure (deep16/js/ui.js UI.condTint), a web's web, the poison's bubbles
+  function lookOf(host, h, t) {
+    var UI = gridUI(); if (!UI) return null;
+    var w = liveOf(host, h), tn = UI.condTint(w, t), web = UI.webbed ? UI.webbed(w) : false, psn = !!(w.conds && (w.conds.poisoned || w.conds.sickened));
+    return tn || web || psn ? { tint: tn, web: web, poison: psn } : null;
+  }
+  MN.lookOf = lookOf; // (dev/bench16.js mode=eyes1124 reads it)
+  var TINTCV = null;
+  function drawFace(ctx, spr, x, y, w, hh, lk, t) {
+    if (!lk || !lk.tint) ctx.drawImage(spr, x, y, w, hh);
+    else { // (the figure's own pixels tinted, as the grid's sprite tint: source-atop on a scratch canvas)
+      var cv = TINTCV || (TINTCV = document.createElement('canvas')); if (cv.width !== w || cv.height !== hh) { cv.width = w; cv.height = hh; }
+      var g = cv.getContext('2d'); g.clearRect(0, 0, w, hh); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.drawImage(spr, 0, 0, w, hh);
+      g.globalCompositeOperation = 'source-atop'; g.globalAlpha = lk.tint[1]; g.fillStyle = lk.tint[0]; g.fillRect(0, 0, w, hh); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+      ctx.drawImage(cv, x, y);
+    }
+    var LK = window.D16 && window.D16.looks;
+    if (lk && lk.web && LK && LK.web) LK.web(ctx, x + w / 2, y + hh * 0.55, w * 0.46, hh * 0.4, t, 0.85);
+    if (lk && lk.poison) { var P0 = window.D16 && window.D16.PAL ? window.D16.PAL.ramps : null; for (var b = 0; b < 2; b++) { var ph = ((t || 0) * 0.5 + b * 13) % 26; ctx.globalAlpha = 1 - ph / 26; ctx.fillStyle = P0 ? (b ? P0.violet[4] : P0.orc[3]) : C.green; ctx.fillRect(Math.round(x + w * (0.3 + b * 0.4)), Math.round(y + hh * 0.5 - ph * 0.7), 2, 2); } ctx.globalAlpha = 1; } // (its bubbles rising, green and violet, as on the grid: js/looks.js)
+  }
+  // EFFECTS (RULED 11-24, his "EFFECTS instead of ON HIM", on his note "barley seems to be a light source - can we get 'spells carried' on the menu-status display"): what runs on
+  // the hero -- spells carried, conditions, the concentration it holds -- in the words the grid's inspect gives them, read from the same conds (deep16/js/ui.js UI.condList), one
+  // a line, with who laid it where the record says; then the lights it gives, each with its reach (deep16/js/light.js L.carried)
+  var EFCOL = { n: C.green, p: C.magic, o: C.orange, y: C.gold, c: C.cyan, w: C.white, r: C.red, g: C.grey };
+  function plainOf(s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, '').trim(); }
+  function nameOfId(host, id) {
+    if (!id) return null; if (typeof id === 'object') id = id.id || id.name;
+    var hs = (host.party ? host.party() : []).concat(host.guests ? host.guests() : []), hit = hs.filter(function (x) { return x.id === id || x.key === id; })[0];
+    if (hit) return hit.name;
+    var B = window.D16 && window.D16.battle, u = B && (B.units || []).filter(function (x) { return x.id === id; })[0];
+    return u ? u.name : null;
+  }
+  function effectsOf(host, h) {
+    var UI = gridUI(), w = liveOf(host, h), q = w.conds || {}, out = { on: [], lights: [] }; if (!UI || !UI.condList) return out;
+    var words = []; try { words = UI.condList(w); } catch (e) { words = []; }
+    var byWord = {}; // (each laid thing's own word, the list's way: one condition alone, and who laid it)
+    Object.keys(q).forEach(function (k) {
+      var r = q[k], by = r && typeof r === 'object' ? r.by : null; if (!by || by === w.id || by === h.id) return;
+      var one = {}; one[k] = r; var ws = []; try { ws = UI.condList({ conds: one, hp: 1 }); } catch (e) { ws = []; }
+      var nm = nameOfId(host, by); if (ws.length && nm) byWord[plainOf(ws[0])] = nm;
+    });
+    words.forEach(function (s) { var t = plainOf(s); if (!t) return; var cm = /^\{([a-z])\}/.exec(String(s)); out.on.push({ t: t, c: (cm && EFCOL[cm[1]]) || C.pale, by: byWord[t] || null }); });
+    var L = window.D16 && window.D16.light, ls = []; try { ls = L && L.carried ? L.carried(Object.assign({ x: 0, y: 0 }, w)) : []; } catch (e) { ls = []; }
+    var KW = { torch: 'a torch in hand', lantern: 'a lantern in hand', glow: 'its own glow', light: 'the Light cantrip', mote: 'a mote of light pinned to it', daylight: 'Daylight', sacred: 'Sacred Weapon\'s glow', flame: 'a Continual Flame', weapon: 'its weapon\'s own light' };
+    ls.forEach(function (l) { var mk = l.maker ? nameOfId(host, l.maker) : null; out.lights.push({ t: (KW[l.kind] || (L.word ? L.word(l) : l.kind)) + (mk && mk !== h.name ? ', from ' + mk : '') + ': bright ' + l.bright + ' ft, dim ' + l.dim + ' more' }); });
+    return out;
+  }
+  MN.effectsOf = effectsOf;
   function StatusPage(m, h) {
     this.m = m; this.h = h; this.scroll = 0;
     var guest = m.host.party().indexOf(h) < 0;
-    this.pages = (guest ? [{ k: 'guest', g: 'GUEST' }] : []).concat([{ k: 'feat', g: 'FEATURES' }], levelsOf(h).map(function (lv) { return { k: 'spells', lv: lv, g: 'SPELLS' }; }), [{ k: 'gear', g: 'GEAR' }]);
+    this.pages = (guest ? [{ k: 'guest', g: 'GUEST' }] : []).concat([{ k: 'feat', g: 'FEATURES' }, { k: 'effects', g: 'EFFECTS' }], levelsOf(h).map(function (lv) { return { k: 'spells', lv: lv, g: 'SPELLS' }; }), [{ k: 'gear', g: 'GEAR' }]); // (EFFECTS, 11-24: what runs on the hero, effectsOf)
     this.p = 0; this.guest = guest;
   }
   StatusPage.prototype.lines = function () { // [{ t, c }] for the page shown
@@ -1092,6 +1154,12 @@
       fs.forEach(function (f) { add('· ' + f.t, f.ours ? MN.OURS_COLOR : f.use ? C.gold : C.pale); });
       if (fs.some(function (f) { return f.ours; })) { out.push({ t: '', c: C.dim }); add('In blue: ours, past the SRD 5.1.', MN.OURS_COLOR); } // (the key to the colour, under the list -- 11-10)
       if (d.note) { out.push({ t: '', c: C.dim }); add(d.note, C.dim); }
+    }
+    if (pg.k === 'effects') {
+      var ef = effectsOf(hostS, h);
+      if (!ef.on.length && !ef.lights.length) add('Nothing runs on ' + h.name + ' now: no spell carried, no condition, no light.', C.grey);
+      ef.on.forEach(function (e) { add('· ' + e.t + (e.by ? '  (from ' + e.by + ')' : ''), e.c); });
+      if (ef.lights.length) { if (ef.on.length) out.push({ t: '', c: C.dim }); add(h.name + ' gives light:', C.gold); ef.lights.forEach(function (l) { add('· ' + l.t, C.tan, 6); }); }
     }
     if (pg.k === 'spells') {
       var lv = pg.lv;
@@ -1122,7 +1190,7 @@
     var h = this.h, m = this.m, R0 = R(), d = DS.DATA.heroes[h.id] || {}, self = this;
     win(ctx, 2, 2, 252, 236);
     var spr = null; try { spr = m.host.portrait && m.host.portrait(h); } catch (e) { spr = null; }
-    if (spr) ctx.drawImage(spr, 12, 10, 32, 48);
+    if (spr) drawFace(ctx, spr, 12, 10, 32, 48, lookOf(m.host, h, m.t), m.t); // (the grid's tint for what is on the hero, 11-24)
     text(ctx, h.name, 52, 10, C.gold);
     text(ctx, clsName(h) + ' ' + h.lvl + (h.subclass ? ' · ' + h.subclass : ''), 52, 21, C.pale);
     text(ctx, fit((d.race || h.race || '') + (d.background ? ' · ' + d.background : ''), 196), 52, 32, C.grey);
@@ -1136,7 +1204,8 @@
     // the tabs: the page's group lit; a spell page names its level
     var groups = [], gi = 0;
     this.pages.forEach(function (pg, i) { if (!groups.length || groups[groups.length - 1].g !== pg.g) groups.push({ g: pg.g, first: i }); if (i === self.p) gi = groups.length - 1; });
-    drawTabs(ctx, groups.map(function (g) { return { label: g.g }; }), gi, 8, 100, 240, groups.map(function (g) { return g.first; })); // (a click on a group: its first page)
+    var nEf = 0; if (this.pages.some(function (pg) { return pg.k === 'effects'; })) { var ef0 = effectsOf(m.host, h); nEf = ef0.on.length + ef0.lights.length; }
+    drawTabs(ctx, groups.map(function (g) { return { label: g.g, count: g.g === 'EFFECTS' && nEf ? nEf : null }; }), gi, 8, 100, 240, groups.map(function (g) { return g.first; })); // (a click on a group: its first page; EFFECTS counts what runs on the hero)
     var pg = this.pages[this.p];
     if (pg.k === 'spells') { text(ctx, lvWord(pg.lv), 12, 114, C.pale); if (pg.lv && h.slotsMax) right(ctx, 'slots ' + (h.slots[pg.lv - 1] || 0) + '/' + (h.slotsMax[pg.lv - 1] || 0), 244, 114, C.magic); }
     var ls = this.lines(), y0 = pg.k === 'spells' ? 126 : 116;
@@ -1247,19 +1316,24 @@
   function OptionsPage(m) { this.m = m; this.grid = MN.gridRows(m.host); this.list = new List({ visible: 12 }); this.refresh(); }
   OptionsPage.prototype.rows = function () {
     var A = DS.audio || {}, extra = this.grid, mv = Math.round((A.musicVol || 0) * 10);
-    return [{ label: 'MUSIC', right: mv ? 'ON  ' + mv : 'OFF', value: { k: 'music' } }, { label: 'SOUND', right: Math.round((A.sfxVol || 0) * 10), value: { k: 'sound' } }]
+    var sv = Math.round((A.sfxVol || 0) * 10);
+    return [{ label: 'MUSIC', right: mv ? 'ON  ' + mv : 'OFF', value: { k: 'music' } }, { label: 'SOUND', right: sv ? 'ON  ' + sv : 'OFF', value: { k: 'sound' } }] // (SOUND at 0 reads OFF, as MUSIC: 11-24)
       .concat(extra.map(function (o) { return { label: o.label, right: o.get(), value: { k: 'opt', o: o } }; }))
       .concat([{ label: 'SUPPORT THE EXPANSION', value: { k: 'kofi' }, color: C.pink }, { label: 'DONE', value: { k: 'done' } }]);
   };
   OptionsPage.prototype.refresh = function () { this.list.set(this.rows()); };
-  // MUSIC: E turns it off, and back on where it was (his "music off", 10-09); left/right the volume as before
+  // MUSIC and SOUND: E or a click goes up a step and past 10 to OFF -- off, 1 to 10, off again (11-24, the seat eyes-1124, his note "menu-options-mouseclick - music and sound
+  // both cycle through off and settings (clicking music turns off, sound only increases on left-click), i.e. off, vol 1-10, return to off"; MUSIC's E had turned it off and back
+  // on where it was since his "music off" of 10-09, and SOUND's climbed to 10 and stopped); left/right the volume as before, stopping at the ends
   var musicWas = 0.55;
-  OptionsPage.prototype.musicToggle = function () {
+  OptionsPage.prototype.cycle = function (k) {
     var A = DS.audio; if (!A) return;
-    if (A.musicVol > 0) { musicWas = A.musicVol; A.musicVol = 0; } else A.musicVol = musicWas || 0.55;
+    var key = k === 'music' ? 'musicVol' : 'sfxVol', n = Math.round((A[key] || 0) * 10) + 1;
+    A[key] = n > 10 ? 0 : n / 10; if (k === 'music' && A.musicVol > 0) musicWas = A.musicVol;
     if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs();
     this.refresh();
   };
+  OptionsPage.prototype.musicToggle = function () { this.cycle('music'); }; // (the old name, kept for a reader: the cycle now)
   OptionsPage.prototype.step = function (v, d) {
     var A = DS.audio;
     if (v.k === 'music' && A) { A.musicVol = clamp(Math.round((A.musicVol + d * 0.1) * 10) / 10, 0, 1); if (A.musicVol > 0) musicWas = A.musicVol; if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs(); }
@@ -1278,7 +1352,7 @@
     if (r !== 'pick') return;
     if (v.k === 'kofi') this.m.act('kofi');
     else if (v.k === 'done') this.m.pop();
-    else if (v.k === 'music') this.musicToggle();
+    else if (v.k === 'music' || v.k === 'sound') this.cycle(v.k);
     else this.step(v, 1);
   };
   OptionsPage.prototype.draw = function (ctx, active) {
@@ -1303,9 +1377,9 @@
       win(ctx, 4, 196, 248, 40);
       var nowM = o.now(), W_ = function (s) { return MENUW[s] || 'RING'; };
       wrap(MENUW[readOpts().menu] ? 'Every 16-bit fight on ' + MENUW[readOpts().menu] + ', the Mascot games too.' : 'Each fight its own: the classes on ' + W_(nowM.style) + ', a Mascot game on ' + W_(nowM.mpStyle) + '.', 236).slice(0, 3).forEach(function (l, i) { text(ctx, l, 10, 203 + i * 10, C.tan); });
-    } else if (v && v.k === 'music') {
+    } else if (v && (v.k === 'music' || v.k === 'sound')) {
       win(ctx, 4, 196, 248, 40);
-      text(ctx, 'E turns the music off, and back on where it was', 10, 203, C.tan);
+      text(ctx, 'A click or E: up a step, and past 10 to OFF', 10, 203, C.tan);
       text(ctx, '◀ ▶ the volume', 10, 213, C.grey);
     }
   };
