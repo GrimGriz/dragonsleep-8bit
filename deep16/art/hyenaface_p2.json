@@ -1,0 +1,26 @@
+{
+ "image": "art/hyenaface_p2.png",
+ "fw": 288,
+ "fh": 240,
+ "ax": 144,
+ "ay": 216,
+ "top": 132,
+ "up": 3.0,
+ "of": "hyena_p2",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 288,
+   "fh": 240,
+   "ax": 144,
+   "ay": 216,
+   "frames": 1,
+   "fps": 5,
+   "drawn": [
+    0
+   ]
+  }
+ },
+ "faceAt": 0.4,
+ "source": "the close-up of hyena_p2 for the joke egg's still face (js/grimoire.js joke): the art desk's ART-30 S Hurt 1 (H3P1, the hyena standing square to the eye), cut at 3.0 times the grid sheet by tools/hyena-sheet.py face(), toned as its page is on the sheet; S only"
+}

@@ -1646,6 +1646,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // living gnoll's face, its yawn with its laugh and the line, back out -- then the field's effects, and the egg
       var beatsJ = scenes.map(function (s) { return (s.joke || s.egg || '?') + (s.who ? ':' + (s.who.kind || s.who.id) : ''); }).join(' ');
       okJ('the cutscene, then the egg: ' + beatsJ, beatsJ === 'waist:aurdin down:aurdin hyena:hyena gnoll:gnoll yawn:gnoll joke' && !!eggS && eggS.frames >= 180 && eggS.frames <= 300 && scenes[1].frame === D.spr.proneFrame(au3.sheet) && scenes[2].frame === 0 && scenes[4].anim === 'laugh' && scenes[4].frame === 0 && scenes[4].outro > 0);
+      // the faces from their CLOSE-UPS (11-24, cutter-1124 -- Griz: "what about recut of gnoll laugh at a prettier scale?"): the hyena's beat and the gnoll's two draw a
+      // close-up sheet `of` the figure's own grid sheet, larger (`up`), holding the row the beat plays with the grid's frame count (js/ui.js scene `sheet`); Aurdin's two keep his
+      var cuOk = function (s) { var C = s.sheet && D.SHEETS[s.sheet], an = s.anim || 'idle'; return !!(C && C.of === s.who.sheet && C.up > 1 && D.spr.anim(s.sheet, an) && (s.frame === 0 || D.spr.anim(s.sheet, an).frames === D.spr.anim(s.who.sheet, an).frames)); };
+      okJ('the faces from their close-ups: ' + scenes.slice(0, 5).map(function (s) { return s.joke + ' ' + (s.sheet ? s.sheet + ' x' + (D.SHEETS[s.sheet] || {}).up : 'its own sheet'); }).join(', '),
+        !scenes[0].sheet && !scenes[1].sheet && [2, 3, 4].every(function (i) { return cuOk(scenes[i]); }));
       // one per customer: the egg came up, so his own square is no target of it now, here or in a save that has it
       var sAfter = selfJ(B3), sSaved = selfJ(mkJ({ eggFound: true }));
       okJ('one per customer: the flag for the save ' + JSON.stringify(B3.flags8) + '; himself after the egg ' + sAfter.self + ' (still castable at a foe ' + sAfter.listed + '); in a save that found it ' + sSaved.self, B3.flags8 && B3.flags8.eggJoke === 1 && !sAfter.self && sAfter.listed && !sSaved.self);

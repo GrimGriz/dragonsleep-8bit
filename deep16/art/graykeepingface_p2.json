@@ -1,0 +1,37 @@
+{
+ "image": "art/graykeepingface_p2.png",
+ "fw": 280,
+ "fh": 224,
+ "ax": 140,
+ "ay": 201,
+ "top": 145,
+ "up": 2.3333,
+ "of": "graykeeping_p2",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 280,
+   "fh": 224,
+   "ax": 140,
+   "ay": 201,
+   "frames": 8,
+   "fps": 5,
+   "drawn": [
+    0
+   ]
+  },
+  "laugh": {
+   "y": 224,
+   "fw": 280,
+   "fh": 224,
+   "ax": 140,
+   "ay": 201,
+   "frames": 9,
+   "fps": 6,
+   "drawn": [
+    0
+   ]
+  }
+ },
+ "source": "the close-up of graykeeping_p2 for the joke egg's faces (js/grimoire.js joke): the art desk's ART-29 S Idle (its redraw) and S Laugh, cut at 2.333 times the grid sheet by tools/gnoll-sheet.py face(), toned and recoloured as the sheet is; S only"
+}

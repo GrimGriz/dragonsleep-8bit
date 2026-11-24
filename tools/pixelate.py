@@ -117,6 +117,29 @@ def write_sheet(name, frames, fw, fh, ax, ay, top, sizes=None):
     print('  %s: %dx%d, %s' % (name, sheet.shape[1], sheet.shape[0], ', '.join('%s %d' % (a, len(frames[a][0])) for a in anims)))
 
 
+def write_closeup(name, rows, fw, fh, ax, ay, up, of, fps, source, face_at=None):
+    """a CLOSE-UP sheet (11-24, the joke egg's faces, Griz: "The cutter makes what is sent smaller, what about recut of gnoll laugh at a prettier
+    scale?"): the S view alone, `up` times the grid sheet `of`'s size, cut from the art desk's own pages; rows {anim: [frames]}, one strip each.
+    Every row is `drawn` [0], so js/sprites.js never looks for the seven facings the image does not hold. A cutscene draws it at its scale over
+    `up` (js/ui.js scene `sheet`), framed by `of`'s own top: the same figure, the art desk's detail. `face_at`: where a face beat frames this drawing
+    when its face sits otherwise than the grid's (the scene's `faceAt`: the hyena's, its head low)."""
+    anims = list(rows)
+    width = max(len(rows[a]) * fw for a in anims)
+    sheet = np.zeros((fh * len(anims), width, 4), dtype=np.uint8)
+    meta = {'image': 'art/%s.png' % name, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'top': top_of(rows[anims[0]], ay), 'up': up, 'of': of, 'anims': {}}
+    if face_at is not None:
+        meta['faceAt'] = face_at
+    for j, anim in enumerate(anims):
+        meta['anims'][anim] = {'y': j * fh, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(rows[anim]), 'fps': fps.get(anim, 8), 'drawn': [0]}
+        for i, fr in enumerate(rows[anim]):
+            sheet[j * fh:(j + 1) * fh, i * fw:(i + 1) * fw] = fr[:fh, :fw]
+    meta['source'] = source
+    os.makedirs(ART, exist_ok=True)
+    Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '.png'), optimize=True)
+    json.dump(meta, open(os.path.join(ART, name + '.json'), 'w'), indent=1)
+    print('  %s: %dx%d, %s (S only, %.3f x %s)' % (name, sheet.shape[1], sheet.shape[0], ', '.join('%s %d' % (a, len(rows[a])) for a in anims), up, of))
+
+
 def top_of(frames, ay):
     """How far the figure rises above its foot (for labels and HP bars): the highest opaque row over all idle frames."""
     best = 0

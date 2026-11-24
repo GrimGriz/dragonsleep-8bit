@@ -381,13 +381,13 @@ def planted(seq):
     return [place(a, x1 + feet_x(a) - f1) for a in seq]
 
 
-def place(a, x_ref, dy=0, fh=FH, ay=AY):
-    out = np.zeros((fh, FW, 4), dtype=np.uint8)
+def place(a, x_ref, dy=0, fh=FH, ay=AY, fw=FW, ax=AX):
+    out = np.zeros((fh, fw, 4), dtype=np.uint8)
     rows = np.where(a[..., 3].any(axis=1))[0]
-    ox, oy = int(round(AX - x_ref)), ay - rows[-1] + dy
+    ox, oy = int(round(ax - x_ref)), ay - rows[-1] + dy
     h, w = a.shape[:2]
     y0, x0 = max(0, oy), max(0, ox)
-    y1, x1 = min(fh, oy + h), min(FW, ox + w)
+    y1, x1 = min(fh, oy + h), min(fw, ox + w)
     out[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
     return out
 
@@ -470,8 +470,9 @@ def build(name, recolour):
             if fr[:, 0, 3].any() or fr[:, -1, 3].any() or fr[0, :, 3].any()]
     if lost:
         raise SystemExit('cut off at the frame edges: ' + ', '.join(lost))
-    for extra in ('laugh', 'getup'):                                      # (named here, not in pixelate.py: this cutter's own rows)
-        if extra not in pix.ANIM_ORDER: pix.ANIM_ORDER.append(extra)
+    for extra in ('laugh', 'getup'):                                      # (named here, not in pixelate.py: this cutter's own rows -- and placed here,
+        if extra in pix.ANIM_ORDER: pix.ANIM_ORDER.remove(extra)          # laugh then getup, since pixelate.py's ANIM_ORDER took `getup` for the green
+        pix.ANIM_ORDER.append(extra)                                      # hag on 11-15 and a re-run here swapped the two rows on the sheets, 11-24)
     if 'longbow' in frames:                                               # (the longbow last: ANIM_ORDER's place for it is before laugh and getup,
         pix.ANIM_ORDER.remove('longbow'); pix.ANIM_ORDER.append('longbow')  # and every other row keeps its y -- in this run only)
     pix.write_sheet(name, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY),
@@ -490,6 +491,33 @@ def build(name, recolour):
                       gray_cloth: ', the cloth recoloured to the Gray Keeping\'s ash-gray'}[recolour] + (
                       '; the longbow from ART-29\'s longbow facings (2026-11-10)' if 'longbow' in frames else '')
     json.dump(meta, open(meta_p, 'w'), indent=1)
+    if name in FACES:
+        face(name, recolour, cuts, K, TONE)
+
+
+# THE JOKE EGG'S CLOSE-UPS (11-24, the cutter seat cutter-1124, on the lanes desk's message carrying Griz's "The cutter makes what is sent smaller,
+# what about recut of gnoll laugh at a prettier scale?"): js/grimoire.js's joke shows the gnoll's face at 7 times its grid sheet, every game pixel a
+# block of 49. The art desk drew the S Idle (the redraw's H3P2) at 3.16 page px a game px and the S Laugh (H3P1) at 2.75, so the close-up is cut from
+# those same pages at FACE_UP (7/3) times the grid's size -- no page enlarged -- at each page's own scale (K), toned and recoloured as the sheet
+# is, every frame on its torso and its lowest pixel on the foot line as the grid's are; the scene draws it at 3 (js/ui.js scene `sheet`) where it
+# drew the grid's at 7. S alone: the joke's faces look south. The grid's sheets do not change.
+FACES = {'gnoll_p2': 'gnollface_p2', 'gloryseeker_p2': 'gloryseekerface_p2', 'graykeeping_p2': 'graykeepingface_p2'}
+FACE_UP = 7 / 3.0
+
+
+def face(name, recolour, cuts, K, TONE):
+    fw, fh, ax, ay = int(round(FW * FACE_UP)), int(round(FH * FACE_UP)), int(round(AX * FACE_UP)), int(round(AY * FACE_UP))
+    rows = {}
+    for row, L in (('idle', 'H3P2'), ('laugh', 'H3P1')):
+        assert K[L] / FACE_UP >= 1, (L, K[L])                                   # (a page is only ever brought down, never enlarged)
+        rows[row] = [place(a, torso_x(a), 0, fh, ay, fw, ax) for a in (fit(im, K[L] / FACE_UP, recolour, TONE[L]) for _, im, _ in cuts[L][row])]
+    lost = ['%s %d' % (r, i) for r, seq in rows.items() for i, fr in enumerate(seq) if fr[:, 0, 3].any() or fr[:, -1, 3].any() or fr[0, :, 3].any()]
+    if lost:
+        raise SystemExit('close-up cut off at the frame edges: ' + ', '.join(lost))
+    pix.write_closeup(FACES[name], rows, fw, fh, ax, ay, round(FACE_UP, 4), name, {'idle': 5, 'laugh': 6},
+                      'the close-up of %s for the joke egg\'s faces (js/grimoire.js joke): the art desk\'s ART-29 S Idle (its redraw) and S Laugh, cut at %.3f '
+                      'times the grid sheet by tools/gnoll-sheet.py face(), toned%s as the sheet is; S only' % (
+                          name, FACE_UP, {None: '', red_cloth: ' and recoloured', gray_cloth: ' and recoloured'}[recolour]))
 
 
 FN = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']

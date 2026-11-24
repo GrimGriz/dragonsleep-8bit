@@ -417,8 +417,38 @@ def facings(frames):
     print('  wrote', d)
 
 
+# THE JOKE EGG'S CLOSE-UP (11-24, the cutter seat cutter-1124, on the lanes desk's message carrying Griz's "The cutter makes what is sent smaller, what
+# about recut of gnoll laugh at a prettier scale?"): js/grimoire.js's joke holds the hyena's still face at 9 times its grid sheet. The grid's S idle is
+# the turnaround's Front still from his 09-29 sheet, which holds only about 1.9 page px a game px; the art desk's S page (H3P1) draws the same hyena
+# square to the eye at 3.98, and its Hurt 1 -- the first frame of the sheet's own S flinch -- is that hyena standing still, its face level. So the
+# close-up is that frame, at HYFACE_UP times the grid's size (the page brought down, never enlarged), toned as its page is on the sheet, its torso on
+# the anchor and its feet on the foot line; the scene draws it at 3 (js/ui.js scene `sheet`). One frame: the scene holds it.
+HYFACE, HYFACE_UP = 'hyenaface_p2', 3.0
+HYFACE_AT = 0.40   # (its face beat's framing: Hurt 1 carries its head low, the face 37-80% down the figure where the still's head-up face was framed at 0.68)
+
+
+def face():
+    s = PAGES['H3P1']
+    cuts = SR.cut_sheet(os.path.join(s.get('dir', ART30), s['file']), s, overlay=None, tag='H3P1')
+    k = K30['H3P1'] / HYFACE_UP
+    assert k >= 1, k
+    a = fit(toned(cuts['hurt'][0][1], TONE30['H3P1']), k)
+    a = a[:np.where(a[..., 3].any(axis=1))[0][-1] + 1]                        # (its lowest opaque row: the feet's outline)
+    fw, fh, ax, ay = int(FW * HYFACE_UP), int(FH * HYFACE_UP), int(AX * HYFACE_UP), int(AY * HYFACE_UP)
+    out = np.zeros((fh, fw, 4), dtype=np.uint8)
+    ox, oy = int(round(ax - torso_x(a))), ay - (a.shape[0] - 1)
+    assert ox >= 0 and oy >= 0 and ox + a.shape[1] <= fw, (ox, oy, a.shape)  # (nothing cut off at the frame's edges)
+    out[oy:oy + a.shape[0], ox:ox + a.shape[1]] = a
+    pix.write_closeup(HYFACE, {'idle': [out]}, fw, fh, ax, ay, HYFACE_UP, NAME, {'idle': 5},
+                      'the close-up of hyena_p2 for the joke egg\'s still face (js/grimoire.js joke): the art desk\'s ART-30 S Hurt 1 (H3P1, the hyena standing '
+                      'square to the eye), cut at %.1f times the grid sheet by tools/hyena-sheet.py face(), toned as its page is on the sheet; S only' % HYFACE_UP,
+                      face_at=HYFACE_AT)
+
+
 if __name__ == '__main__':
     arg = sys.argv[1] if len(sys.argv) > 1 else ''
+    if arg == 'face':                                    # (the close-up alone: hyena_p2 untouched)
+        face(); sys.exit(0)
     fr = build(check=arg == 'check')
     if arg == 'preview':
         preview(fr)
@@ -426,3 +456,4 @@ if __name__ == '__main__':
         facings(fr)
     else:
         write(fr)
+        face()

@@ -1679,6 +1679,10 @@
   function scene(ctx, B, sc) {
     if (sc.draw) { sc.draw(ctx, sc.t || 0, D.W, D.H); if ((sc.t || 0) > 60 && ((sc.t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5)); return; } // (a picture drawn by its own hand: the landlord's, js/wet.js)
     var t = sc.t || 0, u = sc.who, k = sc.scale || 3, red = sc.tone === 'red', blue = sc.tone === 'blue', top = D.spr.top(u.sheet); // (tone: red, or blue for the dunking booth -- 10-05)
+    // `sheet` (11-24, the joke egg's faces -- Griz: "what about recut of gnoll laugh at a prettier scale?"): a CLOSE-UP sheet of the figure, cut `up` times its
+    // grid sheet's size from the art desk's own pages (tools/pixelate.py write_closeup), drawn at the beat's scale over `up` and framed by the figure's own
+    // sheet -- the same figure, the art desk's detail, where the grid's 53-px figure blown up 7 times was blocks of 49
+    var sh = sc.sheet && D.SHEETS && D.SHEETS[sc.sheet] ? sc.sheet : u.sheet, up = sh !== u.sheet ? (D.SHEETS[sh].up || 1) : 1;
     // `outro` (10-02, Aurdin's joke: "then zoomed back out"): over the beat's last ticks the backdrop thins, the figure shrinks and fades, and the
     // fight comes up behind it
     var oq = sc.outro ? Math.max(0, Math.min(1, (t - ((sc.frames || 120) - sc.outro)) / sc.outro)) : 0;
@@ -1690,11 +1694,12 @@
     // `zoomFrom` (Griz, 09-29: the change from the cloak to the monster "could be smoother"): the scene opens at that scale and eases
     // into its own over the first half second, the foot going with it, so a cut from the last scene's figure becomes a push-in
     var zf = sc.zoomFrom, ez = zf ? (function (x) { return x * x * (3 - 2 * x); })(Math.min(1, t / 34)) : 1;
-    var footNow = sc.face ? Math.round(D.H / 2 + top * k * (sc.faceAt || 0.72)) : Math.round(D.H / 2 + top * k / 2 - 8);
+    var fAt = (up !== 1 && D.SHEETS[sh].faceAt) || sc.faceAt || 0.72; // (a close-up whose face sits otherwise carries its own framing: the hyena's, its head low)
+    var footNow = sc.face ? Math.round(D.H / 2 + top * k * fAt) : Math.round(D.H / 2 + top * k / 2 - 8);
     var foot = zf ? Math.round((D.H / 2 + top * zf / 2 - 8) + (footNow - (D.H / 2 + top * zf / 2 - 8)) * ez) : footNow;
     if (zf) k = zf + (k - zf) * ez;
     var o = {}; if (sc.hit && t < 44 && ((t >> 2) & 1)) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
-    var anim = sc.anim === 'fly' && D.spr.anim(u.sheet, 'swoop') ? 'swoop' : sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle'; // (the cloaker's flight in is its `swoop` row since 10-28: `fly` is the row a flier plays aloft)
+    var anim = sc.anim === 'fly' && D.spr.anim(sh, 'swoop') ? 'swoop' : sc.anim && D.spr.anim(sh, sc.anim) ? sc.anim : 'idle'; // (the cloaker's flight in is its `swoop` row since 10-28: `fly` is the row a flier plays aloft)
     if (anim === 'attack' || anim === 'reveal' || (sc.swoop && (anim === 'fly' || anim === 'swoop'))) { o.once = true; }
     var tA = Math.max(0, t - (sc.animAt || 0)); // (`animAt`: the tick its animation starts from -- the reveal plays from its own first frame)
     // `swoop` (Griz, 09-29: the sheet "looks like a sequence to play at the end of the easter egg"): the figure flies in from the right,
@@ -1707,16 +1712,16 @@
     if (sc.swoop) { var pr = Math.min(1, t / Math.max(1, (sc.frames || 84) - 24)), ee = pr * pr * (3 - 2 * pr); px0 = D.W + 90 - (D.W + 90 - D.W * 0.24) * ee; py0 = foot - 46 + 72 * ee; kk = k * (0.75 + 0.95 * ee); }
     // `morph` { from, at, dur }: the figure starts as another of its animations (the cloaker hung as a cloak) and dissolves into its own
     // over `dur` ticks from `at`, trembling as it changes -- the unfurling
-    var ma = sc.morph && D.spr.anim(u.sheet, sc.morph.from) ? Math.max(0, Math.min(1, (t - sc.morph.at) / sc.morph.dur)) : 1, shake = sc.morph && ma > 0 && ma < 1 ? Math.sin(t * 2.3) * 2.2 * Math.sin(Math.PI * ma) : 0;
-    ctx.save(); ctx.translate(px0 + shake, py0); ctx.scale(kk, kk);
+    var ma = sc.morph && D.spr.anim(sh, sc.morph.from) ? Math.max(0, Math.min(1, (t - sc.morph.at) / sc.morph.dur)) : 1, shake = sc.morph && ma > 0 && ma < 1 ? Math.sin(t * 2.3) * 2.2 * Math.sin(Math.PI * ma) : 0;
+    ctx.save(); ctx.translate(px0 + shake, py0); ctx.scale(kk / up, kk / up);
     // `morph.animAt`: the target plays from that tick; `morph.hold`: the figure it leaves is held on its last frame; `over` { anim, alpha }:
     // a faint second drawing laid over the figure, pulsing and swelling (the cloaker's Moan, the phantasm heads)
-    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al, tt, once) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; if (once) oo.once = true; if (sc.frame != null && an === anim) oo.frame = sc.frame; /* (`frame`: one pose held -- Aurdin down, the hyena's still face, the gnoll's yawn: 10-02) */ D.spr.draw(ctx, u.sheet, an, facing, an === 'attack' ? Math.min(tt, 60) : tt, 0, 0, oo); };
+    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al, tt, once) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; if (once) oo.once = true; if (sc.frame != null && an === anim) oo.frame = sc.frame; /* (`frame`: one pose held -- Aurdin down, the hyena's still face, the gnoll's yawn: 10-02) */ D.spr.draw(ctx, sh, an, facing, an === 'attack' ? Math.min(tt, 60) : tt, 0, 0, oo); };
     if (sc.morph && ma < 1) { one(sc.morph.from, 1 - ma * ma, sc.morph.hold ? 99999 : t, sc.morph.hold); if (ma > 0) one(anim, ma, tA); } else one(anim, 1, tA);
-    if (sc.over && D.spr.anim(u.sheet, sc.over.anim)) {
+    if (sc.over && D.spr.anim(sh, sc.over.anim)) {
       var pu = 0.5 + 0.5 * Math.sin(t / 5), fade = Math.min(1, t / 20);
       ctx.save(); ctx.scale(1.05 + 0.1 * pu, 1.05 + 0.1 * pu); ctx.globalAlpha = (sc.over.alpha || 0.65) * fade * (0.75 + 0.25 * pu);
-      D.spr.draw(ctx, u.sheet, sc.over.anim, facing, t, 0, 0, {}); ctx.restore();
+      D.spr.draw(ctx, sh, sc.over.anim, facing, t, 0, 0, {}); ctx.restore();
     }
     ctx.restore();
     if (sc.hit) for (var i = 0; i < 3; i++) { // the darts landing: three bursts up the body, in turn
