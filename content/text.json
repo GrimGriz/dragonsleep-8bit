@@ -264,7 +264,7 @@
   "g4.ranUp": { "t": "You go up the ladder into the lamp-lit gallery. It will not follow you into the light. The hands will respect the party that came up.", "src": "GalleriesModule/guano-galleries-DM.md §8 (run from the cloaker: the out is up)" },
 
   "gulch.snared": { "t": "A shape wrapped tight in silk hangs between two stunted trees. It moves. Something else moves toward it.", "src": "road table Web Gulch d8-6 (snared traveler, still wrapped)" },
-  "gulch.snaredFree": { "t": "You cut the traveler down. They press a few coins on you and go north at a run.", "src": "invented: connective" },
+  "gulch.snaredFree": { "t": "You cut the traveler down. They press a few coins on you and go off down the road at a run.", "src": "invented: connective; 11-24, his NOTES of 11-22 in the gulch, 'traveler ran south instead of north, text change or run change': the words follow the run (js/gulch.js Gu.LAD.runTo, south)" },
   "gulch.ettercap": { "t": ["The far end of the gulch, strung rim to rim. On a thick strand something sits braiding a three-strand cord, even-handed, patient.", "It stops braiding when it sees you."], "src": "wiki/web-gulch.md (the braiding ettercap; always mystery)" },
   "gulch.fangs": { "t": ["Received: Ettercap Fangs. Hessle's board pays.", "There is a braided cord in the web. You cut it down and take it; nobody will ever say why it was braiding.", "Received: Braided Cord."], "src": "wiki/web-gulch.md; wiki/the-road.md (the braiding, always mystery, 09-11c); the cord taken for Ned's wand, RULED 2026-11-16 (the items-story seat, invented.json ned-wand-1116)" },
 

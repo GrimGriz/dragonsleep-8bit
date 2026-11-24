@@ -105,8 +105,40 @@
       noon: ['"Cut it clean and roll it tight. Dirty silk sells for rope."'],
       night: ['"Sleeping at our fire? Then you stand a watch like the rest of us. Anything comes up out of the silk, I\'m in it with you."'] }
   };
+  // THE CAMP'S NEWS (11-24, world-1124 -- his NOTES of 11-23, day 13 20:00, Web Gulch 11,10: "post ettercap dialog, vs snoot and fleeing farmer activity"; the lean RULED on his
+  // "leans otherwise approved", the desk's list E9): the two keepers' words by the hour, as before, and after them the newest of what the camp has heard -- the Snoot's bands out on
+  // THE WORLD (js/snootroad.js SR.bands), the word of the burned farms come up the road (SR.rumorDay at the gulch), the glory-seekers broken on the Pit road (snootDone), the
+  // ettercap dead at the strung end (Gu.alive) -- the first of those that holds, one line. With the ettercap dead the crew boss's day line no longer sends you to its fangs.
+  // The words the seat's drafts (invented.json web-gulch-camp-news-1124)
+  Gu.KEEPER_NEWS = {
+    gulchguard: { snoot: '"Gnolls out on the road south. You can hear them laughing of a night. They don\'t come down the cut -- not with the silk in it."',
+      farms: '"Farm folk on the road at all hours this week, north with what they could carry. They don\'t stop to talk, and I don\'t make them."',
+      snootDone: '"They say you broke the laughing ones on the Pit road. The road\'s quieter for the saying of it."',
+      ettercap: '"Nothing braiding at the strung end now. The cutters sing going past it."' },
+    gulchboss: { snoot: '"The laughing ones are out south. I send the skeins up the hill with four now, not two."',
+      farms: '"Burnt farms down the Pit road, they tell me. Nobody\'s buying silk to mend a roof that isn\'t there."',
+      snootDone: '"Heard you put the gnolls off the road. Good. Skeins don\'t sell in a ditch."',
+      ettercap: '"Quiet at the far end since you went down it. The silk\'s going slack where nothing braids it."' },
+    bossDayDone: '"Skeins go up to Silverton every third day. The far end\'s yours to walk now; we\'ll cut it come spring."'
+  };
+  Gu.news = function (B) { // (the camp's newest word: 'snoot', 'farms', 'snootDone', 'ettercap', or null)
+    var f = (D.counter && D.counter.state(B) || {}).flags || (B.roam && B.roam.flags) || {}, SR = D.snootroad, Wd = D.world, out = null;
+    try {
+      if (SR && SR.on && Wd.house && Wd.house()) {
+        if (SR.bands && SR.bands().length) return 'snoot';
+        var rd = SR.rumorDay && SR.rumorDay(Gu.KEY); if (rd != null && Wd.day && Wd.day() >= rd) return 'farms';
+      }
+    } catch (e) { } // (THE WORLD not about -- a test door: the camp has heard nothing of it)
+    if (f.snootDone) out = 'snootDone'; else if (!Gu.alive(f)) out = 'ettercap';
+    return out;
+  };
   Object.keys(Gu.KEEPER_LINES).forEach(function (id) {
-    M.SCENES[id] = function* (sc, B) { var Ls = Gu.KEEPER_LINES[id]; yield sc.say(Ls[Gu.phase(M.hourNow(D.roam.q, B))] || Ls.day); };
+    M.SCENES[id] = function* (sc, B) {
+      var Ls = Gu.KEEPER_LINES[id], ph = Gu.phase(M.hourNow(D.roam.q, B)), f = (D.counter && D.counter.state(B) || {}).flags || {}, nw = Gu.news(B);
+      var ls = [].concat(id === 'gulchboss' && ph === 'day' && !Gu.alive(f) ? [Gu.KEEPER_NEWS.bossDayDone] : Ls[ph] || Ls.day);
+      if (nw && Gu.KEEPER_NEWS[id][nw]) ls.push(Gu.KEEPER_NEWS[id][nw]);
+      yield sc.say(ls);
+    };
   });
   // the first game's shape of a map for the hour (js/mines.js M.floor reads it as it reads theirs): the people where the hour puts them, the fights by the hour, the dark by night
   Gu.map = function (hour, flags) {
@@ -136,9 +168,12 @@
     rate: Gu.RATE, phase: Gu.phase, phaseLine: Gu.line, // (save: false, as the first game's gulch -- no bed here, his lean 5)
     gates: { north: [17, 1, [0, 1]], south: [22, 110, [0, -1]], west: [1, 10, [1, 0]], east: [38, 59, [-1, 0]] } }; // (the road's two mouths; the silk-cutters' descent west, a way up the east bank)
   var floor0 = M.floor;
-  M.floor = function (key) {
+  M.floor = function (key, q) {
     var def = floor0.apply(this, arguments); if (key !== Gu.KEY) return def;
     def.people.forEach(function (p) { if (Gu.KINDS[p.id]) p.kind = Gu.KINDS[p.id]; });
+    // (in by a side gate with no square of its own: at the foot of that gate's way down, not its top at the map's edge -- Gu.FOOT, 11-24; a door's &at= or a square given wins)
+    var ft = Gu.FOOT[def.gate], gq0 = ft && M.FLOORS[Gu.KEY].gates[def.gate];
+    if (ft && gq0 && def.entry && def.entry[0] && def.entry[0][0] === gq0[0] && def.entry[0][1] === gq0[1] && !/[?&]at=/.test(String(q || ''))) { def.entry = [[ft[0], ft[1]]]; def.face = ft[2].slice(); }
     // (a player's words, the hour added by js/roam.js R.script as on every floor's line: 11-16, the words-and-boxes seat -- not "on the grid's diamonds, north up the screen's right (40 x 112 squares)")
     def.hello = ['{y}WEB GULCH{/}, the road down the cut.', Gu.LINES.hello,
       '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
@@ -271,7 +306,10 @@
     minGap: 4
   };
   // its spoils (the first game's): the fangs for Hessle's board, its braid the Braided Cord (Ned's wand, 11-16 -- js/counter.js C.nedWand), said on a card
-  Gu.ettercapSpoils = function* (B) { var st2 = D.counter.state(B); D.counter.give(st2, 'ettercapfangs', 1); D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); B.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; };
+  // (ONE BRAID, 11-24 -- his NOTES day 8 12:25, Silverton 45,32: "braided cord didn't go to Ned?" -- his save had one in the pack after Ned took one: the fight in place pays its foes'
+  // spoils first, and the first game's ettercap drops its cord every time (content/monsters.json ettercap drops, js/rules.js R.spoils through js/roam.js R.spoils); the braid given
+  // here only when the pack has none)
+  Gu.ettercapSpoils = function* (B) { var st2 = D.counter.state(B); D.counter.give(st2, 'ettercapfangs', 1); if (!D.counter.count(st2, 'cord')) D.counter.give(st2, 'cord', 1); st2.flags.cordTaken = 1; D.sfx('chest'); B.card(D.roam.wrap([].concat(L('gulch.fangs'))), 360); yield 30; };
   Gu.lairInPlace = function* (B, step) {
     var R = D.roam, R0 = B.roam, t = R0.token, f = R0.flags, F0 = D.fight && D.fight('ettercap'); if (!Gu.alive(f)) return;
     D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
@@ -353,6 +391,54 @@
       } };
     return st;
   };
+  // THE WATCH FOUGHT AT THE FIRE (11-24, world-1124 -- his NOTES of 11-23, in the fight "Web Gulch: the first watch, at the cutters' fire" at 13,9: "can we use the actual camp/roam
+  // map for this fight? - dialog 'the boy needs his sleep'?"; the lean RULED on his "leans otherwise approved", the desk's list E8: "the gulch's watch fight in place at the
+  // cutters' fire, the drawn fire"): a watch's fight is the floor's own (js/mines.js M.inPlace, as the lad's and the lair's), where the party lies down by the fire -- the tents,
+  // the fire from the art desk's campfire (M.sheetFire), the cutters asleep round it -- the spiders coming up out of the gully on the road south of the camp. Kept from the field
+  // (Gu.watchSet, its words and its record's name): the sleepers' armour off (Gu.sleepersOff, the caller's), the crew boss lent -- his figure by the fire stood down for the fight
+  // and a fighting one in his place, the SRD's thug (data/foes.js crewboss) -- and if he falls the drummer boy running to him with a healer's kit behind the VICTORY panel, its
+  // DM line on it (Gu.boyToBoss). No drum: the boy is asleep, and the crew boss won't have him woken -- "The boy needs his sleep." (his words, the boss's line on the watch's
+  // card; the drum is THE DRUMMER'S AURA's, for the gully's own fights). Fallen, the crew boss lies by the fire with the boy beside him till the morning (Gu.night stands his own
+  // figure back up), and the later watches go without him (night.bossDown)
+  Gu.LINES.camp.sleepBoy = 'The crew boss is up with his club. "Leave the boy. The boy needs his sleep."';
+  Gu.watchFight = function* (B, k, list, names, lit, night, off) {
+    var R = D.roam, R0 = B.roam, t = R0.token, G = D.grid, st = Gu.watchSet(B, k, list, names, lit, night, off);
+    var npc = night.bossDown ? null : B.units.filter(function (u) { return u.npc === 'gulchboss' && u.look; })[0] || null, boss = null;
+    if (npc) {
+      boss = B.makeFoe({ id: 'gulchbosswatch' + k, kind: 'crewboss', at: [npc.x, npc.y], side: 'party', ally: true }); boss.name = 'The crew boss'; boss.npc = 'gulchbosslent'; boss.facing = npc.facing; boss.anim = 'idle'; boss.animT = B.t;
+      if (npc.sheet) boss.sheet = npc.sheet; if (Gu.showBossHp) boss.hp = Gu.showBossHp; // (the show's crew boss comes to the fire hurt: the ISO beat's pin)
+      B.units = B.units.filter(function (w) { return w !== npc; }); B.units.push(boss); G.setup(G.map, B.units); B.cache = null;
+    }
+    st.boss = boss; st.npc = npc;
+    var at = Gu.roadAt(Math.min(Gu.ZONE[3] - 1, t.y + 9)) || [t.x, t.y + 9]; // (up out of the gully: the road some 45 ft south of where the party lies)
+    var line = 'THE ' + Gu.WATCH[k - 1] + ' WATCH: ' + window.DS.stripCodes(st.set.line) + (boss ? ' ' + Gu.LINES.camp.sleepBoy : '');
+    var set = { list: list, at: at, how: 'up out of the gully', line: line }, out = { st: st, res: null, line: line, foes: null };
+    var sp0 = R.spoils, rs0 = D.rec && D.rec.start, nd0 = B.noDrum;
+    R.spoils = function (B2, fell) { var r = sp0.apply(this, arguments); if (boss && (boss.hp <= 0 || boss.dead) && !st.fell) { st.fell = true; Gu.boyToBoss(B2, boss); r = r.concat(['{g}' + Gu.LINES.camp.boy + '{/}']); } return r; }; // (his "playing on screen behind victory card": the run starts as the panel's lines are made)
+    if (rs0) D.rec.start = function (B2, o) { if (o && B2 === B) o.name = st.set.recName; return rs0.apply(this, arguments); }; // (the play record's name, as the field's had it)
+    B.noDrum = true;
+    try { yield* M.inPlace(B, 'watch', set); }
+    finally { R.spoils = sp0; if (rs0) D.rec.start = rs0; B.noDrum = nd0; }
+    out.res = R0.lastOutcome; out.foes = (R0.last && R0.last.kinds) || null; out.lent = !!boss;
+    if (boss && (boss.hp <= 0 || boss.dead)) { st.fell = true; boss.look = true; boss.bystander = true; boss.noArea = true; night.bossLying = boss; night.bossNpc = npc; } // (he lies by the fire till the morning)
+    else if (boss) { B.units = B.units.filter(function (w) { return w !== boss; }); if (npc) B.units.push(npc); }
+    G.setup(G.map, B.units); B.cache = null;
+    return out;
+  };
+  // the drummer boy, woken, to the fallen crew boss's side behind the VICTORY panel: the floor's own boy, a square a beat (js/battle.js frame's B.ambient), kneeling there
+  Gu.boyToBoss = function (B, boss) {
+    var G = D.grid, u = Gu.drummer(B); if (!u) return null;
+    var near = D.Battle.nearSq(u, [boss.x, boss.y]) || [boss.x, boss.y], path = D.Battle.route(u, near) || [], f = 0, amb0 = B.ambient;
+    u.kit = true; u.run = { path: path, to: near, from: [u.x, u.y], done: false };
+    B.ambient = function (bb) {
+      if (amb0) amb0(bb);
+      if (u.run.done || ++f % 8) return;
+      var q = u.run.path.shift();
+      if (!q) { u.run.done = true; u.anim = D.spr.anim(u.sheet, 'kneel') ? 'kneel' : 'idle'; u.facing = D.spr.facingFor(boss.x - u.x, boss.y - u.y); u.animT = bb.t; bb.ambient = amb0 || null; return; }
+      u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: 8, mode: null }; u.facing = D.spr.facingFor(q[0] - u.x, q[1] - u.y); u.anim = 'walk'; u.x = q[0]; u.y = q[1]; G.setup(G.map, bb.units);
+    };
+    return u;
+  };
   // a square beside the party's lineup on the field just cut (D.MAPS['mine-field']): the crew boss stands in it
   Gu.besideEntry = function () {
     var md = D.MAPS['mine-field']; if (!md) return null;
@@ -416,14 +502,16 @@
       var names = party.filter(function (u) { return asg[u.key || u.id] === k; }).map(function (u) { return u.name; }); // (keyed as H.watchDefault keys them)
       var lit = nt ? 'the dark' : M.night((hk + 1) % 24) || M.night((hk + 23) % 24) ? 'the half-light' : 'the daylight';
       var off = Gu.sleepersOff(B, party.filter(function (u) { return asg[u.key || u.id] !== k; }));
-      var st = Gu.watchSet(B, k, p.list, names, lit, night, off), lent = !night.bossDown;
+      var lent = !night.bossDown, wf = null;
       night.bare = (night.bare || []).concat([off.map(function (o) { return o.u.name + ' ' + o.armor + ' ' + (o.u.armored ? 'on' : 'off') + ' ' + o.u.baseAC; })]); // (for a bench: each fight's sleepers in order, who fought it without their armour, and their AC so)
-      try { yield* M.fieldFight(B, 'watch', st.set); }
+      try { wf = yield* Gu.watchFight(B, k, p.list, names, lit, night, off); } // (on the floor at the fire since 11-24: Gu.watchFight -- till then M.fieldFight's field)
       finally { Gu.sleepersOn(B, off); }
-      night.fights.push({ k: k, zone: zone, list: p.list.slice(), lent: lent && !!(st.fb && st.boss), bossFell: st.fell, res: R0.pulled });
+      var st = wf.st;
+      night.fights.push({ k: k, zone: zone, list: p.list.slice(), lent: lent && !!st.boss, bossFell: st.fell, res: wf.res, inPlace: true, foes: wf.foes, line: wf.line });
       if (st.fell) night.bossDown = true;
-      if (R0.pulled !== 'won' && R0.pulled !== 'escaped') return; // (lost: the field's own end, as any floor fight's)
+      if (wf.res !== 'won' && wf.res !== 'escaped') return; // (lost: the floor's own end, as any floor fight's)
     }
+    if (night.bossLying) { var G0 = D.grid; B.units = B.units.filter(function (w) { return w !== night.bossLying; }); if (night.bossNpc) B.units.push(night.bossNpc); G0.setup(G0.map, B.units); B.cache = null; } // (the crew boss off the ground by the morning: his own figure back by the fire -- Gu.watchFight)
     R0.clockFights = R0.fights; // (the watches' fights are inside the night's eight hours, not on top of them: M.tick)
     B.card(R.wrap([Gu.LINES.camp.sleep]), 200); yield 30;
     var house = !!(R.house() && D.house && D.house.playing), h1 = (h0 + Gu.CAMP.restHours) % 24, wk = M.wakeAt(h1), ln = null;
@@ -448,6 +536,10 @@
     pin: function () { Gu.TRY.fog = true; } });
   // a random fight on the gully, shown (?isoshow&beat=gulchrandom&lvl=3): by night midway down, the next few steps bringing one (the count pinned short) -- walking in out of the dark
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchrandom', label: 'A RANDOM FIGHT ON THE GULLY, by night (the try)', note: 'Midway down the gully by night, the fog on. Walk south a few steps: spiders come out of the dark and walk in, and the fight is where you meet them -- no field.', key: 'webgulch', at: [20, 40], hour: 22,
+    pin: function () { Gu.TRY.fog = true; Gu.encSoon = 3; } });
+  // the drummer's aura, shown (?isoshow&beat=gulchdrum&lvl=3 -- the eyes row's door, 11-24): just south of the camp by night, the boy by the fire six squares north, the next fight
+  // a few steps off (the count pinned short); spiders come, the boy drums, and the four walked back into his ring sends them running
+  if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchdrum', label: 'THE DRUMMER BOY\'S DRUM, by night at the camp (11-24)', note: 'Just south of the cutters\' camp by night, the boy by the fire. Walk south a few steps: spiders come, and the boy starts drumming -- a warm ring round him on the floor. Walk all four back inside it: the spiders run, and the fight is over.', key: 'webgulch', at: [14, 16], hour: 22,
     pin: function () { Gu.TRY.fog = true; Gu.encSoon = 3; } });
   // the fog kept, shown (?isoshow&beat=gulchfog&lvl=3): at the north mouth by day in a game -- walk a way down, out by the north mouth onto the road, and back in: what was seen stays
   if (M.ISO_BEATS) M.ISO_BEATS.push({ id: 'gulchfog', label: 'THE FOG REMEMBERED, out and back in (the try)', note: 'At the north mouth by day. Walk down past the camp, go back up out of the north mouth, then step back in: the gully you walked is still uncovered; only the new is black.', key: 'webgulch', at: [17, 3], hour: 10,
@@ -505,15 +597,23 @@
   // north end, by the south mouth onto the hex beyond the south end, by a side trail or the rim onto the bank hex beside the cut's hex at that row -- the next hex over, not two
   Gu.rowOf = function (sp, key, h) { var i = -1; sp.hexes.forEach(function (q, j) { if (q[0] + ',' + q[1] === key) i = j; }); if (i < 0 || sp.hexes.length < 2) return null; return Math.max(2, Math.min(h - 3, Math.round((1 - i / (sp.hexes.length - 1)) * (h - 1)))); };
   Gu.roadAt = function (y) { var r = Gu.ROWS[y] || '', x = r.indexOf(','); return x < 0 ? null : [x, y]; };
-  Gu.entrySq = function (sp, from, at) { // (null: by a mouth, the road's own way in)
+  // BY A GATE, AT ITS OWN WAY DOWN (11-24, world-1124 -- his NOTES of 11-22, day 6 08:40, in by the east gate and set at 19,56 on the road: "that dump onto the roam map at the road
+  // instead of here, 28, 59; 28, 60", then "and check the rest of the hex entry drop off points"; the gulch lane's 2026-11-22 section: "Put every arrival by a gate at that gate's
+  // own way down"): a step in off the east bank is the east gate, and the party stands where the east trail's dirt ends on the gravel, 28,59, facing down into the cut; off the
+  // west bank the west gate, at the foot of the silk-cutters' descent beside their fire, 9,10. The two mouths as ever (the gate's own square on the road, rows 1 and 110), and
+  // a step into the cut along the road from a hex of the road's own that is not its end (north or south, not off a bank) on the road at that hex's row, as ruled 11-20. Every way
+  // in by a gate takes it: the area's step (W.onStep below: Gu.entrySq null, the gate's square) and THE WORLD's door (js/world.js offerDoor, the gate by the side) alike -- the
+  // floor's gate square moved to its foot as the floor is laid (M.floor above, Gu.FOOT)
+  Gu.FOOT = { east: [28, 59, [-1, 0]], west: [9, 10, [1, 0]] };
+  Gu.entrySq = function (sp, from, at, gate) { // (null: by a mouth or a side gate -- the gate's own way in)
     var fk = from[0] + ',' + from[1], ends = [sp.north, sp.south].filter(Boolean).map(function (q) { return q[0] + ',' + q[1]; });
-    if (ends.indexOf(fk) >= 0) return null;
+    if (ends.indexOf(fk) >= 0 || Gu.FOOT[gate]) return null;
     var y = Gu.rowOf(sp, at[0] + ',' + at[1], Gu.ROWS.length); return y == null ? null : Gu.roadAt(y);
   };
   var step0 = W.onStep;
   W.onStep = function (scene, st) { // (THE WORLD's step and the top-down view's: true stops the walk)
     var m = W.M(), S = W.state(), sp = m && m.near ? Gu.span(m) : null; // (on the area only: THE WORLD alone keeps the site's door, offered where a walk ends)
-    if (sp && S.from && sp.set[S.at[0] + ',' + S.at[1]]) { Gu.enter(Gu.gateFrom(S.from, S.at), Gu.entrySq(sp, S.from, S.at)); return true; }
+    if (sp && S.from && sp.set[S.at[0] + ',' + S.at[1]]) { var gIn = Gu.gateFrom(S.from, S.at); Gu.enter(gIn, Gu.entrySq(sp, S.from, S.at, gIn)); return true; }
     return step0.apply(this, arguments);
   };
 
@@ -650,7 +750,7 @@
   var encGu0 = D.roam.encounter;
   D.roam.encounter = function* (B, why, set) {
     var def = D.roam.def;
-    if (!set && def && def.key === Gu.KEY) { yield* M.inPlace(B, why, set); return; }
+    if (!set && def && def.key === Gu.KEY) { yield* Gu.drumPlacing(B, M.inPlace(B, why, set)); return; } // (set down outside the drum's reach where the boy hears it: Gu.drumPlacing)
     yield* encGu0.apply(this, arguments);
   };
   var fightGu0 = D.roam.fight;
@@ -658,7 +758,93 @@
     var def = D.roam.def, t = B.roam && B.roam.token;
     if (!def || def.key !== Gu.KEY || !t || (B.webs || []).some(function (w) { return /gully/.test(w.by); })) { return yield* fightGu0.apply(this, arguments); } // (the lad's fight lays its own: Gu.snaredInPlace)
     var w0 = B.webs; B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.webSq(t.x, t.y, Gu.RANDOM.webReach), dc: Gu.RANDOM.webDC, ground: true }]);
-    try { return yield* fightGu0.apply(this, arguments); } finally { B.webs = w0 || []; }
+    var dr = B.noDrum ? null : Gu.drumNear(B), fm0 = B.floorMarks, ht0 = B.heroTurn; // (the camp's own watches: the boy asleep, no drum -- Gu.watchFight)
+    if (dr) {
+      B.drum = dr; Gu.drumB = B; dr.foes = foes; Gu.drumLast = dr;
+      B.floorMarks = function (c) { if (fm0) fm0.apply(this, arguments); Gu.drawDrum(c, B); };
+      B.heroTurn = function* (u) { yield* ht0.call(this, u); if (Gu.drumAllIn(B)) yield* Gu.drumFlee(B); }; // (the last of them in: the flight at once, before the next turn)
+      if (D.house && D.house.trail && D.roam.house && D.roam.house()) D.house.trail('fight', 'Web Gulch: the drummer boy drums (at ' + dr.at[0] + ',' + dr.at[1] + ', ' + dr.ft + ' ft)');
+      D.sfx('popup'); B.card(D.roam.wrap(['{y}' + Gu.LINES.drum.on + '{/}']), 300);
+    }
+    try { return yield* fightGu0.apply(this, arguments); }
+    finally { B.webs = w0 || []; if (dr) { B.drum = null; Gu.drumB = null; B.floorMarks = fm0; B.heroTurn = ht0; } }
+  };
+  // ---------------------------------------------------------------- THE DRUMMER'S AURA (11-24, world-1124 -- his design of 11-22, verbatim, to the lanes desk on his note "discuss
+  // fights drawn into camp range": "something like if there's a fight triggered the drummer boy goes to work and during the fight the drum radiates an aura the spiders won't enter
+  // and if the players all move into that aura the monsters flee down the gulch and the fight ends"; the gulch lane's 2026-11-22 section). The open details are the seat's leans,
+  // built so, his to overrule:
+  //   THE REACH: 30 ft round the boy (Gu.DRUM.ft), wherever the hour has him -- by the fire by night, by the tents by day, out at the near webs with the cutters at noon -- drawn on
+  //     the floor as a warm wash that beats with the drum (Gu.drawDrum);
+  //   DAY AND NIGHT ALIKE: any fight on the gully called within his hearing -- the party within Gu.DRUM.earFt (90 ft) of him as it begins -- sets him drumming, at any hour; not
+  //     the camp's own watches (the boy asleep with his drum for a pillow: Gu.watchFight) nor the lad's or the ettercap's (fought far down the gully, out of his hearing);
+  //   WON'T ENTER: no foe of the fight is set down inside the reach (Gu.drumPlacing), and none steps into it or deeper into it (js/grid.js G.canStand and G.canPass, below);
+  //     one already inside as the drum starts may only go out; what it does from outside -- a bite at the edge, a web thrown in -- is its own;
+  //   "ALL": every one of the party standing -- the fallen are carried; a familiar, a summoning, one lent by the camp don't count;
+  //   THE FLIGHT: once all of them stand inside it, at the end of that turn or the start of the next foe's, the fight's foes break off and run south down the gully, off the
+  //     screen (Gu.drumFlee), and the fight ends as a getaway does: the party gathers, the fled pay no XP and leave nothing (js/roam.js R.fallen), what fell before pays as ever.
+  // The words the seat's drafts (invented.json web-gulch-drum-1124)
+  Gu.DRUM = { ft: 30, earFt: 90, runRows: 16, runSteps: 14 };
+  Gu.LINES.drum = { on: 'The drummer boy is up and at it: the drum carries the length of the cut, and nothing from the silk will come inside the sound of it.',
+    flee: 'The drum does not stop. The spiders break off and run, away down the gulch.' };
+  Gu.drummer = function (B) { return ((B && B.units) || []).filter(function (u) { return u.npc === 'drummer' && u.look && !u.dead && u.x >= 0; })[0] || null; };
+  Gu.drumNear = function (B) { // (the boy, if the party is in his hearing: the drum's ring, else null)
+    var u = Gu.drummer(B), t = B && B.roam && B.roam.token; if (!u || !t) return null;
+    return Math.max(Math.abs(u.x - t.x), Math.abs(u.y - t.y)) * 5 <= Gu.DRUM.earFt ? { at: [u.x, u.y], ft: Gu.DRUM.ft, boy: u, t0: B.t } : null;
+  };
+  Gu.drumFt = function (dr, u, x, y) { var n = (u && u.size) || 1, best = 1e9; for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) best = Math.min(best, Math.max(Math.abs(x + i - dr.at[0]), Math.abs(y + j - dr.at[1])) * 5); return best; };
+  Gu.drumBars = function (u, x, y) { // (true: a foe of the fight may not set foot here -- into the reach, or deeper in it)
+    var B = Gu.drumB, dr = B && B.drum; if (!dr || dr.fled || !u || u.side !== 'foe' || u.look || u.bystander || D.battle !== B) return false;
+    if (x === u.x && y === u.y) return false; // (where it stands it may stay: it is going out)
+    var to = Gu.drumFt(dr, u, x, y); if (to > dr.ft) return false;
+    var on = typeof u.x === 'number' && u.x >= 0 ? Gu.drumFt(dr, u, u.x, u.y) : 1e9;
+    return to <= on;
+  };
+  var standGu0 = D.grid.canStand, passGu0 = D.grid.canPass;
+  D.grid.canStand = function (u, x, y, o) { if (Gu.drumB && Gu.drumBars(u, x, y)) return false; return standGu0.apply(this, arguments); };
+  D.grid.canPass = function (u, x, y, o) { if (Gu.drumB && Gu.drumBars(u, x, y)) return false; return passGu0.apply(this, arguments); };
+  // the group's squares chosen with the drum already in mind (js/roam.js R.encounter's first step, before anything is drawn): none inside the reach
+  Gu.drumPlacing = function* (B, g) {
+    var dr = Gu.drumNear(B), r, v;
+    if (dr) { dr.placing = true; B.drum = dr; Gu.drumB = B; }
+    try { r = g.next(); } finally { if (dr && B.drum === dr) { B.drum = null; Gu.drumB = null; } }
+    while (!r.done) { v = yield r.value; r = g.next(v); }
+    return r.value;
+  };
+  Gu.drumWho = function (B) { return ((B.roam && B.roam.members) || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.familiar && !u.summon && !u.ally && u.x >= 0; }); };
+  Gu.drumAllIn = function (B) {
+    var dr = B && B.drum; if (!dr || dr.fled || dr.placing) return false;
+    var who = Gu.drumWho(B); if (!who.length) return false;
+    var live = (dr.foes || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.fled; }); if (!live.length) return false;
+    return who.every(function (u) { return Gu.drumFt(dr, u, u.x, u.y) <= dr.ft; });
+  };
+  Gu.drumFlee = function* (B) {
+    var dr = B.drum, G = D.grid, R = D.roam; dr.fleeing = true; // (the bars kept while they run: away from the drum, never through it -- lifted once they are gone)
+    var run = (dr.foes || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left && !u.fled; }).map(function (u) {
+      var up = u.y < dr.at[1], ty = up ? Math.max(1, u.y - Gu.DRUM.runRows) : Math.min(Gu.ROWS.length - 3, Math.max(u.y, dr.at[1]) + Gu.DRUM.runRows), to = Gu.roadAt(ty) || [u.x, ty]; // (away from him: down the gully from south of the drum, up and out by the north mouth from north of it)
+      delete u.conds.hidden; return { u: u, from: [u.x, u.y], path: (D.Battle.route(u, to) || []).slice(0, Gu.DRUM.runSteps) };
+    });
+    D.sfx('cancel'); B.card(R.wrap(['{y}' + Gu.LINES.drum.flee + '{/}']), 260);
+    for (var s = 0; s < Gu.DRUM.runSteps; s++) {
+      var moved = 0;
+      run.forEach(function (r) { var q = r.path.shift(), u = r.u; if (!q) return; u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: 5, mode: null }; u.facing = D.spr.facingFor(q[0] - u.x, q[1] - u.y); if (u.anim !== 'walk') { u.anim = 'walk'; u.animT = B.t; } u.x = q[0]; u.y = q[1]; moved++; });
+      G.setup(G.map, B.units); if (!moved) break; yield 5; // (a square every five frames: at a run)
+    }
+    dr.fled = true; run.forEach(function (r) { r.u.fled = true; r.u.left = true; r.u.dead = true; }); // (off the floor: R.fight's foes standing are none, the fight over; R.fallen pays nothing for one that left)
+    B.units = B.units.filter(function (w) { return !run.some(function (r) { return r.u === w; }); }); G.setup(G.map, B.units); B.cache = null;
+    dr.ran = run.map(function (r) { return r.u.kind + ' ' + r.from[0] + ',' + r.from[1] + '>' + r.u.x + ',' + r.u.y; });
+    if (D.house && D.house.trail && R.house && R.house()) D.house.trail('fight', 'Web Gulch: the drum held -- the party inside it, the spiders ran down the gully (' + run.length + ')');
+    yield 20;
+  };
+  if (D.ai && D.ai.turn) { var aiTurnGu0 = D.ai.turn; D.ai.turn = function* (B, u) { if (B && B.drum && u && u.side === 'foe' && Gu.drumAllIn(B)) { yield* Gu.drumFlee(B); return; } yield* aiTurnGu0.apply(this, arguments); }; } // (a foe's turn with the party all inside: the flight, not the turn)
+  // the reach on the floor, under the figures (js/ui.js drawBattle's B.floorMarks): a warm wash on every square of it the party could stand on, brighter on the drum's beat
+  Gu.drawDrum = function (c, B) {
+    var dr = B.drum; if (!dr || dr.fled || dr.placing || !B.map) return;
+    var iso = D.iso, n = dr.ft / 5, beat = ((B.t - (dr.t0 || 0)) % 30) / 30, a = 0.10 + 0.10 * Math.max(0, 1 - beat * 3);
+    for (var y = dr.at[1] - n; y <= dr.at[1] + n; y++) for (var x = dr.at[0] - n; x <= dr.at[0] + n; x++) {
+      var s = B.map.at(x, y); if (!s || !s.walk) continue;
+      var edge = Math.max(Math.abs(x - dr.at[0]), Math.abs(y - dr.at[1])) === n;
+      iso.rhombus(c, x, y, B.map.gz(x, y), 1); c.globalAlpha = edge ? a + 0.12 : a; c.fillStyle = 'rgb(240,190,90)'; c.fill(); c.globalAlpha = 1;
+    }
   };
   // ---------------------------------------------------------------- THE DUSK (RULED 11-20, Griz: "1 lean" -- the seat's lean, "a dusk tint as a look only, not the dark's rules"): the
   // gully is dark by night alone (20:00 to 05:00, M.night); at dusk (17:00 to 20:00, W.todAt) it drew as full day. Now a dusk tint lies over the floor as drawn -- a look:
