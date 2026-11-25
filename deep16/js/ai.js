@@ -1580,10 +1580,14 @@
       // no free square in reach of the nearest (11-14, the AI lane's giant bat: the last bat in found every square beside the heroes held by the other bats' 2 x 2 bodies and
       // "paces: it cannot get at anyone" with heroes 10 ft off -- Griz, "Giant bat pacing is what they think it is, don't burn usage confirming"): a square to strike another
       // from, the nearest such; else, standing where it is, the free square nearest any of them to wait at
-      if (!belowIt(u, tgt) && T.move > 0 && hs.length > 1 && (!e || G.dist(u, tgt, e.x, e.y) > reachOf(u, hs))) {
+      // (THE COPE, 11-25 -- RULED ~17:20Z, Griz: "yeah, just give the AI a cope - any problems that it causes are likely to be before a reload anyway", on the lanes desk's lean: the
+      // fallback runs with one hero standing too -- till then it was `hs.length > 1`, and round a lone hero whose squares were held by bodies every foe without one "paced": his
+      // Pocket DM RUNG 4 of 10-09, GreyFang alone in a corner, eleven pacing turns; his BUGBEAR AMBUSH fight 2, Ingrith alone at 10,13 with two of ours down beside her. A body
+      // keeps its square (SRD 5.1, a hostile creature's space) and no one strikes the down, as built; the waiting itself is below, where it would have paced)
+      if (!belowIt(u, tgt) && T.move > 0 && hs.length > 0 && (!e || G.dist(u, tgt, e.x, e.y) > reachOf(u, hs))) {
         var rmP = G.reach(u, T.move), rP = reachOf(u, hs), strikeP = null, waitP = null, wd = e ? G.dist(u, tgt, e.x, e.y) : Infinity;
         hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); }).forEach(function (w) {
-          if (w === tgt) return;
+          if (w === tgt && hs.length > 1) return;
           var eP = approach(u, w, rmP, rP); if (!eP) return;
           var dP = G.dist(u, w, eP.x, eP.y);
           if (dP <= rP) { if (!strikeP || eP.cost < strikeP.e.cost) strikeP = { e: eP, w: w }; }
@@ -1600,6 +1604,13 @@
         if (alt) { yield* alt.go(); return; }
         if (B.focus) B.focus(u); var churn = D.spr && D.spr.anim && D.spr.anim(u.sheet, 'flinch'); if (churn) { u.anim = 'flinch'; u.animT = B.t; }
         B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}'], 260); yield 60; if (churn) { u.anim = 'idle'; u.animT = B.t; }
+      }
+      else if (!ranged.length && !belowIt(u, tgt) && !G.winged(u) && T.action && !T.attacksLeft && !u.ready && !u.conds.disarmed && G.dist(u, tgt) <= (u.speed || 30) + reachOf(u, hs) + 10 && D.postures && D.postures.readyAtk && D.postures.readyAtk(u)) {
+        // (THE COPE's wait, 11-25: a walker with one it could reach in a stride but no room beside it -- bodies, or its own side, on every square -- waits at the nearest free
+        // square with its blow readied for the first that comes into its reach (SRD 5.1, the Ready action), where it paced. A flier circles as before (11-14); a throw went first)
+        var kW = D.postures.readyAtk(u);
+        B.card(['{g}' + the(B, u) + ' waits for an opening: no room beside ' + (tgt.side === 'party' ? tgt.name : the(B, tgt)) + '.{/}'], 200); yield 10;
+        yield* B.exec(u, { do: 'ready', pick: 'attack', atk: kW }); return;
       }
       else if (!ranged.length) { B.card(['{g}' + the(B, u) + (belowIt(u, tgt) ? ' holds the edge: no one below in reach.' : G.winged(u) && G.dist(u, tgt) <= T.move + reachOf(u, hs) + 10 ? ' circles, waiting for an opening: no room beside anyone.' : ' paces: it cannot get at anyone.') + '{/}']); yield 20; } // (at the lip over the fight, held to the roof: said as what it is doing -- 10-05)
       if (u.dead || u.hp <= 0) return;

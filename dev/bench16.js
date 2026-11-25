@@ -21654,6 +21654,23 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var sf8 = sfAt8(SEED8);
       okAB('8 eyes-garrison-saves-1125b\'s door (seed ' + SEED8 + ', watched), round one: a Sacred Flame on a trooper -- "' + (sf8 || 'none') + '" (want one, its save one d20)', !!sf8 && !/Trooper: d20 \[/.test(sf8));
     } catch (eAB8) { repAB.errors.push('8: ' + String(eAB8 && eAB8.stack || eAB8).slice(0, 900)); }
+    try {
+      // 9. THE COPE (RULED 11-25 ~17:20Z, Griz: "yeah, just give the AI a cope - any problems that it causes are likely to be before a reload anyway"; the AI lane's ~17:05Z find):
+      // a lone fighter standing, the eight squares round him held by eight of ours down (a body keeps its square); two worgs and an ogre 20-25 ft off. Two rounds of their turns
+      var B9 = mkAB('?npc=worg,worg,ogre&vs=fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3,fighter:3&lvl=3'), hs9 = B9.units.filter(function (u) { return u.side === 'party'; }), fs9 = B9.units.filter(function (u) { return u.side === 'foe'; });
+      var ring9 = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]], lay9 = [[hs9[0], 3, 2]].concat(ring9.map(function (d, i) { return [hs9[i + 1], 3 + d[0], 2 + d[1]]; })).concat([[fs9[0], 7, 0], [fs9[1], 7, 4], [fs9[2], 0, 4]]);
+      D.d = function (s) { return Math.min(s, 10); };
+      if (!layAB(B9, lay9)) okAB('9 the ring laid', false);
+      else {
+        hs9.slice(1).forEach(function (h) { h.hp = 0; h.ko = true; }); hs9[0].hp = hs9[0].maxhp = 999;
+        var l9 = []; for (var r9 = 2; r9 <= 3; r9++) { B9.round = r9; fs9.forEach(function (f) { if (!f.dead && f.hp > 0) l9.push('R' + r9 + ' ' + f.name + ' at ' + f.x + ',' + f.y + ': ' + aiTurnB9(f).replace(/\{\/?[a-z]*\}/g, '').slice(0, 120)); }); }
+        var paced9 = l9.filter(function (l) { return /paces: it cannot get at anyone/.test(l); }).length, wait9 = l9.filter(function (l) { return /waits for an opening/.test(l); }).length;
+        var ready9 = fs9.filter(function (f) { return f.kind === 'worg' && !!f.ready; }).length, onDown9 = l9.filter(function (l) { return / > Fighter 3/.test(l) && !/Javelin/.test(l); }).length, jav9 = l9.filter(function (l) { return /Ogre > .*Javelin/.test(l); }).length;
+        okAB('9 a lone fighter ringed by eight of ours down, two worgs and an ogre, rounds 2-3: "paces" ' + paced9 + ', "waits for an opening" ' + wait9 + ', the worgs\' bites readied ' + ready9 + ' of 2, the ogre\'s javelins ' + jav9 + ', blows at anyone down ' + onDown9 + ' -- ' + l9.join(' || ').slice(0, 700) + ' (want 0, 2, 2, 2, 0)', paced9 === 0 && wait9 === 2 && ready9 === 2 && jav9 === 2 && onDown9 === 0);
+      }
+      D.d = dAB;
+    } catch (eAB9) { D.d = dAB; repAB.errors.push('9: ' + String(eAB9 && eAB9.stack || eAB9).slice(0, 900)); }
+    function aiTurnB9(u) { var Bx = D.battle, n = (Bx.log || []).length; D.rules.startTurn(u); Bx.active = u; drAB(D.ai.turn(Bx, u), null, 4000); Bx.active = null; return (Bx.log || []).slice(n).map(function (l) { return String(l).replace(/^R\d+ /, ''); }).join(' | '); }
     try { /* (the next sections) */ } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
     D.d = dAB;
     var preAB = document.createElement('pre'); preAB.id = 'out'; preAB.textContent = 'BENCH16 ' + JSON.stringify(repAB);
