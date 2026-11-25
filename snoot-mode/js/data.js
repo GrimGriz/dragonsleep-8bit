@@ -177,9 +177,9 @@
       groups: [
         { cls: 'HF', def: 'HF', n: 4, name: 'line soldiers', grid: 'dominion', sheets: ['dominion_p1'] },
         { cls: 'LF', def: 'LF', n: 4, name: 'draggers', grid: 'dragger', sheets: ['dragger_p2'] },
-        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', sheets: ['dominion_p1'] }, // (on the line soldier's figure till the sergeant's sheet: art-wanted 97)
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', sheets: ['dominion_p1'] }, // (on the line soldier's figure till the sergeant's sheet: art-wanted 99)
         { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', sheets: ['dominion_p1'] },
-        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['npccleric_p0'] } // (on the stock cleric's figure till hers: art-wanted 98)
+        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['npccleric_p0'] } // (on the stock cleric's figure till hers: art-wanted 100)
       ],
       comp: { dominion: 4, dragger: 4, sergeantblade: 1, sergeantledger: 1, mender: 1 },
       heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: missile }], sheets: ['npcwarlock_p0', 'dominion_p1'] };

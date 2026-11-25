@@ -326,7 +326,7 @@
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the
   // page's (`buildAC`: the game's items have no full plate). Trained in Soldiering: the Ledger's shield joins the wall. On the line soldier's figure till their own
-  // sheets come back (art-wanted 97)
+  // sheets come back (art-wanted 99)
   // SERGEANT OF THE RIGHT HAND, "the Blade": fighter 3, the Champion as the page has him, Great Weapon Fighting, the greatsword; the handaxe to throw
   sergeantblade: {
     name: 'Sergeant (the Blade)', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, soldiering: true, cr: '2', ac: 18, metalArmor: 'plate', hp: 28, speed: 30, size: 1, reach: 5,
@@ -350,7 +350,7 @@
   // THE MENDER (the page's GLASS-CLERIC, cleric 3, "her holy symbol is a small mirror on a cord"; Kat's book 03:21, "a mender of my office is addressed Mender";
   // dominion.md, "MENDERS OUTRANK SERGEANTS", clerics of Tronu): the page's Trickery Domain is the PHB's -- read as our own, the Window, Tronupholen's menders'
   // (Katarina's; js/classes.js NPC.SUBS -- its Doubling is the page's Invoke Duplicity, the Hand on the Neck its blessing), built by the class with the page's list.
-  // AC 15: breastplate 14 + DEX 1 (the page's 16 does not add up; the game has no breastplate: `buildAC`). On the stock cleric's figure till her own comes back (art-wanted 98)
+  // AC 15: breastplate 14 + DEX 1 (the page's 16 does not add up; the game has no breastplate: `buildAC`). On the stock cleric's figure till her own comes back (art-wanted 100)
   mender: {
     name: 'Mender', type: 'humanoid', sheet: 'npccleric_p0', humanoid: true, cr: '1', ac: 15, metalArmor: 'breastplate', hp: 24, speed: 30, size: 1, reach: 5,
     abil: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 }, init: 1, perception: 12,
