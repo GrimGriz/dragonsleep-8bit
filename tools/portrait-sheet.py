@@ -430,6 +430,20 @@ PEOPLE['tobin'] = (os.path.dirname(_TB), 'ART-157', 'no one yet: the tariff\'s c
 _HK = 'hask/2026-11-21-ART-156-PORTRAITS/portrait/originals/ART-156-PT-HASK-HEAD-%d-%s.png'
 PEOPLE['hask'] = (os.path.dirname(_HK), 'ART-156', 'no one yet: the night crew\'s scenes (deep.crewCatch to deep.crewDown) and the wheelwright\'s door are not built', {'edge': True, 'noledge': True, 'cutline': True, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['fire', 'skin', 'red'], 'layout':
                   [(_HK % (1, 'IDLE'), [3, 3], ['idle'] * 6)] + [(_HK % (h, m.upper()), [1], [m]) for h, m in enumerate(['attentive', 'sneer', 'menace', 'dismissive', 'laugh'], 2)]})
+# THE DOMINION'S MENDER AND SERGEANT, THEIR IDLES (11-25, the cutter seat cutter-1125; art-wanted 100 and 99, his "request dominion sergeant and cleric art"): PAGE 1
+# of each ask, Idle 6 at a counter rail (the rail cut at its top, the vendors' way -- the screen draws its own), the moods to come from these approved idles. The
+# mender's from the art desk's ART-164 CUTTER-REVIEW, its untouched 1672x941 original (approved/ART-164-P01-PORTRAIT-SOURCE.png, not the 1440x810 review page),
+# sorted to deep16/_src/mender/2026-11-25-ART-164-COMBAT/: the small mirror on its cord at her breastplate, the cap; she glances down on 4. The sergeant's from
+# ART-163's GREATSWORD handoff (portrait/ART-163_HEAD-1_PAGE-1.png, 1440x810; the only copy sent), sorted to deep16/_src/dmsergeant/2026-11-25-ART-163-GREATSWORD/:
+# grey at the temples, the scar, black plate and the plum sash; his eyes close on 4. One sergeant, one face: both kits' sergeants are this man (art-wanted 99).
+# Worn by no one yet: no scene speaks to the patrol (the grid's bottom bar shows a foe's figure, not a talking portrait)
+# (`bevel`: the rail's top face stood a sliver under her hands, as Aldwin's stills. Her `avoid` her fight figure's, tools/mender-sheet.py AVOID: the 64 have
+# no plum, and her robe went navy on silver's darkest)
+for _key, _pg, _av in [('dmmender', 'mender/2026-11-25-ART-164-COMBAT/approved/ART-164-P01-PORTRAIT-SOURCE.png', ['fire', 'blue', '#14171e', '#20252f', '#313846']),
+                       ('dmsergeant', 'dmsergeant/2026-11-25-ART-163-GREATSWORD/portrait/ART-163_HEAD-1_PAGE-1.png', ['fire'])]:
+    PEOPLE[_key] = (os.path.dirname(_pg), 'ART-164' if _key == 'dmmender' else 'ART-163',
+                    'no one yet: no scene speaks to the Dominion\'s patrol (art-wanted %s)' % ('100' if _key == 'dmmender' else '99'),
+                    {'edge': True, 'avoid': _av, 'bevel': (_pg,), 'layout': [(_pg, [3, 3], ['idle'] * 6)]})
 
 
 def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):

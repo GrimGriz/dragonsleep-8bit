@@ -258,13 +258,13 @@
     // swapped). Their armour's AC is the block's (`buildAC`: the game's items have no full plate or breastplate); the kit here is what they swing and what weighs.
     // Keyed apart from the bestiary's words, as patrolladyw is, so ?npc=sergeantblade finds the block (its HP, its AC) and not a bare build
     bladesergeant: { name: 'Sergeant (the Blade)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'Champion', style: 'gwf', abil: { str: 16, dex: 10, con: 14, int: 9, wis: 11, cha: 12 },
-      equip: { weapon: 'greatsword', armor: 'splint', shield: null }, alt: 'handaxe', noPrecast: true, look: 'dominion_p1' },
+      equip: { weapon: 'greatsword', armor: 'splint', shield: null }, alt: 'handaxe', noPrecast: true, look: 'dmsergeant_p2' }, // (his own figure in each kit since 11-25, ART-163: art-wanted 99)
     ledgersergeant: { name: 'Sergeant (the Ledger)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'Champion', style: 'dueling', abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 },
-      equip: { weapon: 'longsword', armor: 'splint', shield: 'shield' }, alt: 'handaxe', noPrecast: true, look: 'dominion_p1' },
+      equip: { weapon: 'longsword', armor: 'splint', shield: 'shield' }, alt: 'handaxe', noPrecast: true, look: 'dmsergeantshield_p2' },
     // the mender, cleric 3 of the Window (Katarina's domain, Tronupholen's menders): the page's list but Thaumaturgy (not in the game's spells) -- its Trickery's own
     // four are the Window's always-prepared here
     wagonmender: { name: 'Mender', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', abil: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 },
-      equip: { weapon: 'mace', armor: 'scalemail', shield: null }, look: 'npccleric_p0',
+      equip: { weapon: 'mace', armor: 'scalemail', shield: null }, look: 'mender_p2', // (her own figure since 11-25, ART-164: art-wanted 100)
       known: ['sacredflame', 'guidance', 'bless', 'healingword', 'sanctuary', 'shieldoffaith', 'holdperson', 'spiritualweapon'] },
     // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently

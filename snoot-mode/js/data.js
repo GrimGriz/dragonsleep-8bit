@@ -177,16 +177,16 @@
   var WAGON = function (id, missile) {
     return { id: id, side: 'dominion', name: 'a Dominion wagon', kind: 'the Dominion', cls: 'HF', def: 'HF', wagon: true, rides: true, move: 3, cleric: true,
       groups: [
-        { cls: 'HF', def: 'HF', n: 2, name: 'the Blade\'s line soldiers', grid: 'dominion', squad: 1, sheets: ['dominion_p1'] },
-        { cls: 'LF', def: 'LF', n: 2, name: 'the Blade\'s draggers', grid: 'dragger', squad: 1, sheets: ['dragger_p2'] },
-        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', squad: 1, sheets: ['dominion_p1'] }, // (on the line soldier's figure till the sergeant's sheet: art-wanted 99)
-        { cls: 'HF', def: 'HF', n: 2, name: 'the Ledger\'s line soldiers', grid: 'dominion', squad: 2, sheets: ['dominion_p1'] },
-        { cls: 'LF', def: 'LF', n: 2, name: 'the Ledger\'s draggers', grid: 'dragger', squad: 2, sheets: ['dragger_p2'] },
-        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', squad: 2, sheets: ['dominion_p1'] },
-        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['npccleric_p0'] } // (on the stock cleric's figure till hers: art-wanted 100)
+        { cls: 'HF', def: 'HF', n: 2, name: 'the Blade\'s line soldiers', grid: 'dominion', squad: 1, sheets: ['dominion_p2'] }, // (each group on its grid kind's own sheet, 11-25,
+        { cls: 'LF', def: 'LF', n: 2, name: 'the Blade\'s draggers', grid: 'dragger', squad: 1, sheets: ['dragger_p2'] },        //  the cutter seat cutter-1125: the line soldier's
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', squad: 1, sheets: ['dmsergeant_p2'] }, // ART-159 as the grid's dominion
+        { cls: 'HF', def: 'HF', n: 2, name: 'the Ledger\'s line soldiers', grid: 'dominion', squad: 2, sheets: ['dominion_p2'] },          // wears it, the sergeant in each kit
+        { cls: 'LF', def: 'LF', n: 2, name: 'the Ledger\'s draggers', grid: 'dragger', squad: 2, sheets: ['dragger_p2'] },               // (ART-163: art-wanted 99), the mender
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', squad: 2, sheets: ['dmsergeantshield_p2'] }, // (ART-164: art-wanted 100) --
+        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['mender_p2'] }  // till then dominion_p1 and the stock cleric's npccleric_p0)
       ],
       comp: { dominion: 4, dragger: 4, sergeantblade: 1, sergeantledger: 1, mender: 1 },
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: missile }], sheets: ['npcwarlock_p0', 'dominion_p1'] };
+      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: missile }], sheets: ['npcwarlock_p0', 'dominion_p2'] };
   };
   SN.DOMINION = [WAGON('dm1', 'fireball'), WAGON('dm2', 'lightning'), WAGON('dm3', 'fireball')];
   SN.DAY0 = 14; SN.HUNT = 18; SN.LAST = 28; // (the Pit two days after the Skylights, Day 14; the exchange ~18-21 -- the clock lane; the battle stops at Day 28 whatever stands)

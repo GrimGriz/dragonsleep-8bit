@@ -1,0 +1,94 @@
+{
+ "image": "art/mender_p2.png",
+ "fw": 30,
+ "fh": 96,
+ "ax": 15,
+ "ay": 76,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 30,
+   "fh": 96,
+   "ax": 15,
+   "ay": 76,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 768,
+   "fw": 36,
+   "fh": 96,
+   "ax": 18,
+   "ay": 76,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 54,
+   "fh": 96,
+   "ax": 27,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  },
+  "cast": {
+   "y": 2304,
+   "fw": 36,
+   "fh": 96,
+   "ax": 18,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "castup": {
+   "y": 3072,
+   "fw": 32,
+   "fh": 96,
+   "ax": 16,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 3840,
+   "fw": 34,
+   "fh": 96,
+   "ax": 17,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 4608,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 5376,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 76,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Mender",
+ "hold": [
+  "walk: S drawn; SE, E, NE and N (and their mirrors) play her own idle twice -- the art desk held those four walks (frames 1 and 5 the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come",
+  "prone: S, SE, E and NE as drawn, matched by width to their Fall 6; N is N Fall 6 held -- its own Prone was held, propped higher than the Fall's end (the art desk's own note)",
+  "attack: the mace home on frame 3 (`release` 2, as katarina_p2's)",
+  "cast: the mirror held out on its cord on frame 4; castup: the mirror lifted overhead on 4 -- no glow drawn, the engine's spells are the light",
+  "the mirror's cord is fine at game size: check it reads (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (ART-164, 11-25: art-wanted section 100, the Dominion's mender, her mace and her mirror on its cord, in five views), cut by tools/mender-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

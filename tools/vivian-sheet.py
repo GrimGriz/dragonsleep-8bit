@@ -123,7 +123,7 @@ def to1x(rgb, mask, k, avoid=None):
 
 def cut(look):
     L = LOOKS[look]
-    pages, crops, pageof, gnd = {}, {}, {}, {}
+    pages, crops, pageof, gnd, cwin = {}, {}, {}, {}, {}
     src = os.path.join(pix.SRC, L['src']) if L.get('src') else SRC      # (`src`: another figure's folder under _src -- Katarina's)
     for w in windows(look):
         batch, view, row, i, fn, (x0, y0, x1, y1) = w[:6]
@@ -135,6 +135,8 @@ def cut(look):
         sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
         if len(w) > 7 and w[7] is not None:   # (a window's 8th: the ground line's y on the page -- brann_p2's jumping chop, 11-20: a frame off the floor stands above it, not on its lowest pixel)
             gnd[(FACE[view], row, i)] = w[7] - y0 - sl[0].start
+        if len(w) > 8 and w[8] is not None:   # (a window's 9th: the crown's y on the page, read by its tool -- dmsergeant_p2, 11-25: the greatsword held up before his helmet
+            cwin[(FACE[view], row, i)] = w[8] - y0 - sl[0].start   #  fills a row as wide as `crownw` asks; the tool reads the helmet's first run that is not steel)
         crops[(FACE[view], row, i)] = (a[sl], m[sl]); pageof[(FACE[view], row, i)] = (batch, fn, view) if L.get('perview') else (batch, fn)   # (`perview`: a page of several views drawn at several sizes -- one scale a view)
     # one scale a page: by its idle to TALL, else by its stagger to STAG
     scale = {}
@@ -142,6 +144,7 @@ def cut(look):
     TG = L.get('tallground')   # (`tallground`: a frame's height is its crown to its ground line, not its drawing's -- trooperpike_p2, 11-20: the pike past the boots in S and N)
     CW = L.get('crownw')       # (`crownw`: the crown is the first row at least this many source px wide, not the drawing's top -- dragger_p2, 11-24: the pike's tip over his head in N)
     crown = {c: int(np.where(m.sum(1) >= CW)[0][0]) for c, (_, m) in crops.items()} if CW else {}
+    crown.update(cwin)
     HT = lambda c: (gnd[c] if TG and c in gnd else crops[c][1].shape[0]) - crown.get(c, 0)
     for pg in set(pageof.values()):
         mine = [c for c, p in pageof.items() if p == pg]

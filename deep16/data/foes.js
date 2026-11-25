@@ -326,14 +326,15 @@
   },
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the
-  // page's (`buildAC`: the game's items have no full plate). Trained in Soldiering: the Ledger's shield joins the wall. On the line soldier's figure till their own
-  // sheet comes back: ONE sergeant figure with both kits as its rows (art-wanted 99; RULED 11-24, Griz: "I don't want to art request a sergeant variant - we could add
-  // combat rows to the sergeant we're already requesting"). Each leads four men, two line soldiers and two draggers (RULED 11-24: "I like the sergeant for every 4 men (2
+  // page's (`buildAC`: the game's items have no full plate). Trained in Soldiering: the Ledger's shield joins the wall. ONE sergeant figure with both kits as its rows
+  // (art-wanted 99; RULED 11-24, Griz: "I don't want to art request a sergeant variant - we could add combat rows to the sergeant we're already requesting"): the art
+  // desk's ART-163, cut 11-25 (tools/dmsergeant-sheet.py) as dmsergeant_p2, the greatsword, and dmsergeantshield_p2, the longsword and shield with the wall's `push`
+  // -- one man, one face, each kit a sheet (they stood on the line soldier's dominion_p1 till then). Each leads four men, two line soldiers and two draggers (RULED 11-24: "I like the sergeant for every 4 men (2
   // and 2 dragger)"): the wagon's squads, snoot-mode/js/data.js and data/fights.js snootwagon. Both Champions within the SRD (RULED 11-24: "3 - we can Champion within
   // SRD for both sergeants and file the need for his feat with the leveling lane" -- the Ledger's trip, menace and riposte wait there as a feat)
   // SERGEANT OF THE RIGHT HAND, "the Blade": fighter 3, the Champion as the page has him, Great Weapon Fighting, the greatsword; the handaxe to throw
   sergeantblade: {
-    name: 'Sergeant (the Blade)', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, soldiering: true, cr: '2', ac: 18, metalArmor: 'plate', hp: 28, speed: 30, size: 1, reach: 5,
+    name: 'Sergeant (the Blade)', type: 'humanoid', sheet: 'dmsergeant_p2', humanoid: true, soldiering: true, cr: '2', ac: 18, metalArmor: 'plate', hp: 28, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 10, con: 14, int: 9, wis: 11, cha: 12 }, init: 0, perception: 10, athletics: 5,
     saves: { str: 5, dex: 0, con: 4, int: -1, wis: 0, cha: 1 },
     attacks: { greatsword: { name: 'Greatsword', atk: 5, dice: '2d6', mod: 3, type: 'slashing', reach: 5, gwf: true } },
@@ -344,7 +345,7 @@
   // Menacing, Riposte) left off; the Dueling style, the longsword and shield. His javelins (+5 1d6+3 30/120) are thrown as the kit's handaxes (+5 1d6+3 20/60): the game
   // has no javelin
   sergeantledger: {
-    name: 'Sergeant (the Ledger)', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, soldiering: true, cr: '2', ac: 20, metalArmor: 'plate', shield: true, hp: 28, speed: 30, size: 1, reach: 5,
+    name: 'Sergeant (the Ledger)', type: 'humanoid', sheet: 'dmsergeantshield_p2', humanoid: true, soldiering: true, cr: '2', ac: 20, metalArmor: 'plate', shield: true, hp: 28, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 }, init: 0, perception: 12, athletics: 5,
     saves: { str: 5, dex: 0, con: 4, int: 1, wis: 1, cha: 0 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 5, type: 'slashing', reach: 5 } },
@@ -355,9 +356,10 @@
   // dominion.md, "MENDERS OUTRANK SERGEANTS", clerics of Tronu): the page's Trickery Domain is the PHB's -- read as our own, the Window, Tronupholen's menders'
   // (Katarina's; js/classes.js NPC.SUBS -- its Doubling is the page's Invoke Duplicity, the Hand on the Neck its blessing), built by the class with the page's list.
   // AC 16 (RULED 11-24, Griz: "4 - with you on 4", on the desk's lean): the page's 16 kept as HALF PLATE, 15 + DEX 1, the Dominion's issue as the line soldiers wear it
-  // -- her look stays the page's tailored black breastplate (the game has no half plate item: `buildAC`). On the stock cleric's figure till her own (art-wanted 100)
+  // -- her look stays the page's tailored black breastplate (the game has no half plate item: `buildAC`). Her own figure since 11-25 (art-wanted 100): the art desk's
+  // ART-164, cut as mender_p2 (tools/mender-sheet.py) -- the mace, the mirror held out (`cast`) and lifted (`castup`); she stood on the stock cleric's npccleric_p0 till then
   mender: {
-    name: 'Mender', type: 'humanoid', sheet: 'npccleric_p0', humanoid: true, cr: '1', ac: 16, metalArmor: 'half plate', hp: 24, speed: 30, size: 1, reach: 5,
+    name: 'Mender', type: 'humanoid', sheet: 'mender_p2', humanoid: true, cr: '1', ac: 16, metalArmor: 'half plate', hp: 24, speed: 30, size: 1, reach: 5,
     abil: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 }, init: 1, perception: 12,
     saves: { str: 0, dex: 1, con: 2, int: 0, wis: 4, cha: 3 },
     attacks: { mace: { name: 'Mace', atk: 2, dice: '1d6', mod: 0, type: 'bludgeoning', reach: 5 } }, // ("She would rather not")

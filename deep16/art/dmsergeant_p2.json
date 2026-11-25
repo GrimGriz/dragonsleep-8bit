@@ -1,0 +1,73 @@
+{
+ "image": "art/dmsergeant_p2.png",
+ "fw": 38,
+ "fh": 96,
+ "ax": 19,
+ "ay": 76,
+ "top": 52,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 38,
+   "fh": 96,
+   "ax": 19,
+   "ay": 76,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 768,
+   "fw": 38,
+   "fh": 96,
+   "ax": 19,
+   "ay": 76,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 88,
+   "fh": 96,
+   "ax": 44,
+   "ay": 76,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2304,
+   "fw": 42,
+   "fh": 96,
+   "ax": 21,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3072,
+   "fw": 78,
+   "fh": 96,
+   "ax": 39,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3840,
+   "fw": 78,
+   "fh": 96,
+   "ax": 39,
+   "ay": 76,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Sergeant (the Blade)",
+ "hold": [
+  "walk: S and N drawn; SE, E and NE (and their mirrors) play his own idle twice -- the art desk held those three walks (frames 1 and 5 the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come",
+  "attack: the greatsword two-handed over the greataxe guide, contact on frame 4",
+  "the handaxe stowed at his right hip throughout (the art desk's own note): data/foes.js sergeantblade throws none yet",
+  "prone: the last Fall cel held (the art desk's Prone is a literal crop of it)"
+ ],
+ "source": "drawn by the art desk (ART-163 PAGE 3, 11-25: art-wanted section 99, the Dominion's sergeant with the greatsword in five views), cut by tools/dmsergeant-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

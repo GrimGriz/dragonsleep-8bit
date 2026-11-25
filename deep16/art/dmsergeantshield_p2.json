@@ -1,0 +1,83 @@
+{
+ "image": "art/dmsergeantshield_p2.png",
+ "fw": 44,
+ "fh": 96,
+ "ax": 22,
+ "ay": 76,
+ "top": 52,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 44,
+   "fh": 96,
+   "ax": 22,
+   "ay": 76,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 768,
+   "fw": 44,
+   "fh": 96,
+   "ax": 22,
+   "ay": 76,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 82,
+   "fh": 96,
+   "ax": 41,
+   "ay": 76,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "push": {
+   "y": 2304,
+   "fw": 78,
+   "fh": 96,
+   "ax": 39,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 3072,
+   "fw": 54,
+   "fh": 96,
+   "ax": 27,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3840,
+   "fw": 78,
+   "fh": 96,
+   "ax": 39,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 4608,
+   "fw": 78,
+   "fh": 96,
+   "ax": 39,
+   "ay": 76,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Sergeant (the Ledger)",
+ "hold": [
+  "walk: S drawn; SE, E, NE and N (and their mirrors) play his own idle twice -- the art desk held those four walks (frames 1 and 5 the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come",
+  "attack: the longsword over the longsword-and-shield guide, contact on frame 4",
+  "push: the shield wall's shove, home on frame 4 -- deep16/js/features.js THE PUSH plays a sheet's `push`, as the line soldier's",
+  "prone: the last Fall cel held (the art desk's Prone is a literal crop of it)"
+ ],
+ "source": "drawn by the art desk (ART-163 PAGE 4, 11-25: art-wanted section 99, the Dominion's sergeant with the longsword and shield and the shield wall's Push, in five views), cut by tools/dmsergeant-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+}

@@ -1,0 +1,31 @@
+{
+ "image": "art/pt_dmsergeant.png",
+ "fw": 197,
+ "fh": 155,
+ "ax": 98,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 197,
+   "fh": 155,
+   "ax": 98,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-163",
+ "door": "no one yet: no scene speaks to the Dominion's patrol (art-wanted 99)",
+ "source": "deep16/_src/dmsergeant/2026-11-25-ART-163-GREATSWORD/portrait (the art desk's ART-163, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
