@@ -937,27 +937,61 @@
   // DISENGAGE, THEN OUT OF REACH (RULED 2026-11-16, Griz: "1 - yes", on the bug seat's lean from his play records -- "the party's AI runs through opportunity attacks with
   // Disengage to hand"): the action spent on Disengage and the walk taken out of every foe's reach, weighed against the action's other plans by what the swings it spares would
   // cost (each foe beside it, able to react: half a round of its blows, as weaponPlans prices a walk off) -- worth it only when those swings are half or more of what it has left.
-  // Not for a rogue with Cunning Action (its bonus Disengage, js/features.js) nor one held; the walk to the square farthest from them that no foe reaches
+  // Not for a rogue with Cunning Action (its bonus Disengage, js/features.js) nor one held; the walk to the square farthest from them that no foe reaches.
+  // PRICED BY WHETHER THE FOE CAN FOLLOW (RULED 11-22, Griz: "3 - yes to both", on the Code tab's "should the AI ... score Disengage by whether the foe can follow?"): a foe that can be
+  // on the new square by its next turn -- a stride of its speed and a swing of its reach, or a shot from where it stands (TX.follows) -- strikes within the round all the same, so its
+  // swings are spared by nothing; only those that cannot follow are counted, and the square taken is the one the fewest can follow to. In his BUGBEAR AMBUSH fight 2 (11-22) Drill
+  // and wut Disengaged five times from the Sect Blade (speed 30) and were followed and struck four times; the Blade, never struck, made 8 of the 10 downs
+  TX.follows = function (u, w, x, y) {
+    if ((w.weapon && w.weapon.ranged) || (w.alt && w.alt.ranged && !w.conds.disarmed) || TX.caster(w)) return true;
+    if (w.attacks && typeof w.attacks === 'object' && Object.keys(w.attacks).some(function (k) { var a = w.attacks[k]; return a && a.ranged && a.dice && !a.holdOnly; })) return true;
+    var sp = w.conds.restrained || w.conds.grappled ? 0 : RU.speedNow ? RU.speedNow(w) : (w.speed || 30);
+    return G.dist(u, w, x, y) <= G.reachOf(w) + (sp || 0);
+  };
   TX.ACTIONS.push(function (B, u, fs) {
     var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft || T.disengaged || !T.move || u.conds.restrained || (u.cls === 'rogue' && u.lvl >= 2)) return null; // (the party's AI: his word was about ours)
     var press = G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w) && w.reaction !== 0; }); if (!press.length) return null;
-    var risk = press.reduce(function (s, w) { return s + TX.dpr(w) * 0.5; }, 0); if (risk < u.hp * 0.5) return null;
+    var all = press.reduce(function (s, w) { return s + TX.dpr(w) * 0.5; }, 0); if (all < u.hp * 0.5) return null;
     var rm = G.reach(u, T.move), best = null, live = fs.filter(function (w) { return G.standing(w); });
-    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var near = Math.min.apply(null, live.map(function (w) { return G.dist(u, w, e.x, e.y) - G.reachOf(w); }).concat([999])); if (near <= 0) return; if (!best || near > best.near || (near === best.near && e.cost < best.cost)) best = { x: e.x, y: e.y, cost: e.cost, stand: true, near: near }; });
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k]; if (!e.stand) return; var near = Math.min.apply(null, live.map(function (w) { return G.dist(u, w, e.x, e.y) - G.reachOf(w); }).concat([999])); if (near <= 0) return;
+      var free = press.filter(function (w) { return !TX.follows(u, w, e.x, e.y); }), spared = free.reduce(function (s, w) { return s + TX.dpr(w) * 0.5; }, 0);
+      if (!best || spared > best.spared || (spared === best.spared && (near > best.near || (near === best.near && e.cost < best.cost)))) best = { x: e.x, y: e.y, cost: e.cost, stand: true, near: near, spared: spared, free: free.length };
+    });
     if (!best) return null;
-    return { kind: 'disengage', why: 'disengages from ' + press.length + ' and steps out of reach (the swings spared ' + risk.toFixed(1) + ' of ' + u.hp + ' hp)', score: risk * (risk >= u.hp ? 1.5 : 1), go: function* () { yield* B.exec(u, { do: 'disengage' }); if (u.turn.disengaged) yield* walk(B, u, best); } };
+    var risk = best.spared; if (risk < u.hp * 0.5) return null; // (every one beside it can follow: nothing is spared -- it stands and fights)
+    return { kind: 'disengage', why: 'disengages from ' + press.length + ' and steps out of reach, ' + best.free + ' of them unable to follow (the swings spared ' + risk.toFixed(1) + ' of ' + u.hp + ' hp)', score: risk * (risk >= u.hp ? 1.5 : 1), go: function* () { yield* B.exec(u, { do: 'disengage' }); if (u.turn.disengaged) yield* walk(B, u, best); } };
   });
   TX.AFTER = [];   // function* (B, u)
   TX.IDLE = [];    // function* (B, u, fs) -> true when it spent the turn (nothing worth doing: before the class turn's Ready and its Dash to close)
 
-  // the bonus-action spells worth casting first (a Healing Word to the fallen, a mark, the floating weapon), by the same weighing
+  // the bonus-action spells worth casting first (a Healing Word to the fallen, a mark, the floating weapon), by the same weighing -- and AGAINST THE ACTION'S BEST LEVELLED SPELL
+  // (RULED 11-22, Griz: "3 - yes to both", on the Code tab's "should the AI weigh a bonus-action heal against its best action spell"): a bonus-action spell leaves the action a
+  // cantrip or a blow (SRD 5.1: "You can't cast another spell during the same turn, except for a cantrip with a casting time of 1 action"; M.list greys the rest while T.bonusSpell),
+  // so it goes first only where it and the best action left after it come to as much as the best action as the turn stands (TX.bonusFirst). In his BUGBEAR AMBUSH fight 2 (11-22)
+  // Ingrith's Hold Person on the Sect Blade (34.95) lost each of rounds 1-4 to a Healing Word on whoever the Blade had dropped, and a Sacred Flame after it. The levelled spell
+  // taken, the bonus spell waits for TX.AFTER, which M.list greys after a levelled one -- as Shillelagh's own weighing does (js/grimoire.js E.shillelagh.ai)
   TX.FIRST.push(function* (B, u) {
     var T = u.turn;
     if (!T.bonus) return;
     var fs = foesOf(B, u), allies = alliesOf(B, u);
     var plans = spellPlans(B, u, fs, allies).filter(function (p) { return p.bonus; }).sort(function (a, b) { return b.score - a.score; });
-    if (plans[0] && plans[0].score > 2) yield* plans[0].go();
+    if (!(plans[0] && plans[0].score > 2)) return;
+    var w = TX.bonusFirst(B, u, plans[0]);
+    if (B.o && B.o.bench && w.base) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ' bonus first? ' + plans[0].why + ' ' + plans[0].score.toFixed(1) + ' + ' + (w.after ? w.after.why : '-') + ' ' + w.a.toFixed(1) + ' against ' + w.base.why + ' ' + w.b.toFixed(1) + ': ' + (w.first ? 'the bonus first' : 'the action\'s'));
+    if (w.first) yield* plans[0].go();
   });
+  // { first, base, after, a, b }: `bp`, the best bonus-action spell, against the action -- the best plan as the turn stands (base, b) and the best one left after a bonus-action spell
+  // (after, a); first when bp + a >= b. Nothing to trade (no action, the Attack under way, a bonus spell already cast): first
+  TX.bonusFirst = function (B, u, bp) {
+    var T = u.turn, keep = T.bonusSpell, base = null, after = null;
+    if (TX._bonusW || !T.action || T.attacksLeft || T.bonusSpell) return { first: true, a: 0, b: 0 };
+    TX._bonusW = true;
+    try { base = TX.plans(B, u)[0]; T.bonusSpell = true; after = TX.plans(B, u)[0]; }
+    finally { T.bonusSpell = keep; TX._bonusW = false; }
+    var b = base && base.score > 0.5 ? base.score : 0, a = after && after.score > 0.5 ? after.score : 0;
+    return { first: bp.score + a >= b, base: base, after: after, a: a, b: b };
+  };
   // the Dash for the bonus action (Expeditious Retreat's, the rogue's Cunning Action): when nothing is worth doing from here and a plan is once the feet are doubled
   TX.FIRST.push(function* (B, u) {
     if (!TX.bonusDash(u) || !TX.dashBuys(B, u)) return;

@@ -7010,20 +7010,21 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       webOnP(fi, et); var hp0 = fi.hp; B2.hurt(fi, 2, 'fire', {}); var a2 = fi.conds.restrained ? 'still webbed' : 'free'; fi.hp = hp0;
       webOnP(fi, et); D.magic.burnWebs(B2, [[fi.x + 3, fi.y + 3]], wz.id); var a3 = fi.conds.restrained ? 'still webbed' : 'free';
       okP('FIRE ON A WEBBED HERO off the field\'s webs: a fire area over him -- ' + a1 + '; 2 fire on him -- ' + a2 + '; a fire area elsewhere -- ' + a3, a1 === 'free' && a2 === 'free' && a3 === 'still webbed');
-      // 3. DISENGAGE: the wizard between two hobgoblins at 4 hp -- the plan offered (the swings spared against what it has left), taken: out of reach and no swing; at full hit
-      // points beside one hobgoblin -- not offered
+      // 3. DISENGAGE: the wizard between two gray oozes at 4 hp -- the plan offered (the swings spared against what it has left), taken: out of reach and no swing; at full hit
+      // points beside one hobgoblin -- not offered. (Since 11-25 the Disengage is priced by whether the foe can follow -- RULED 11-22, Griz: "3 - yes to both"; js/tactics.js
+      // TX.follows: the oozes' 10 ft a turn cannot; two hobgoblins, a stride of 30 and a longbow, can, and it was offered between them till then: now it is not, mode ambush1125 3)
       var turnOf = function (B, u) { var v; for (var k = 0; k < 4000; k++) { var r = B.co.next(v); v = undefined; if (r.done) return false; var y = r.value; if (typeof y === 'number' || !y) continue; if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; } if (y.turn) { if (y.turn === u) return true; v = { do: 'end' }; } } return false; };
-      var B3 = mkP('?npc=hobgoblin,hobgoblin&lvl=3&vs=wizard:3'), w3 = B3.units.filter(function (u) { return u.side === 'party'; })[0], o3 = B3.units.filter(function (u) { return u.side === 'foe'; });
+      var B3 = mkP('?npc=grayooze,grayooze&lvl=3&vs=wizard:3'), w3 = B3.units.filter(function (u) { return u.side === 'party'; })[0], o3 = B3.units.filter(function (u) { return u.side === 'foe'; });
       var got3 = turnOf(B3, w3);
       o3[0].x = w3.x + 1; o3[0].y = w3.y; o3[1].x = w3.x; o3[1].y = w3.y + 1; o3.forEach(function (o) { o.tween = null; }); D.grid.setup(B3.map, B3.units); w3.hp = 4;
       var pl3 = got3 ? TXP.plans(B3, w3) : [], dg3 = pl3.filter(function (p) { return p.kind === 'disengage'; })[0];
-      var hpB = w3.hp, out3 = '-'; if (dg3) { drainP(dg3.go()); var still = o3.filter(function (o) { return D.grid.dist(w3, o) <= D.grid.reachOf(o); }).length; out3 = (w3.turn.disengaged ? 'disengaged' : 'NOT disengaged') + ', at ' + w3.x + ',' + w3.y + ', in ' + still + ' hobgoblins\' reach, ' + hpB + ' > ' + w3.hp + ' hp'; }
+      var hpB = w3.hp, out3 = '-'; if (dg3) { drainP(dg3.go()); var still = o3.filter(function (o) { return D.grid.dist(w3, o) <= D.grid.reachOf(o); }).length; out3 = (w3.turn.disengaged ? 'disengaged' : 'NOT disengaged') + ', at ' + w3.x + ',' + w3.y + ', in ' + still + ' oozes\' reach, ' + hpB + ' > ' + w3.hp + ' hp'; }
       var B4 = mkP('?npc=hobgoblin&lvl=3&vs=wizard:3'), w4 = B4.units.filter(function (u) { return u.side === 'party'; })[0], o4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0];
       var got4 = turnOf(B4, w4); o4.x = w4.x + 1; o4.y = w4.y; o4.tween = null; D.grid.setup(B4.map, B4.units); w4.hp = w4.maxhp;
       var dg4 = got4 ? TXP.plans(B4, w4).filter(function (p) { return p.kind === 'disengage'; })[0] : null;
-      repP.notes.push('the wizard at 4 hp between two hobgoblins, the plans: ' + pl3.slice(0, 4).map(function (p) { return p.kind + ' ' + p.score.toFixed(1); }).join(' | '));
-      okP('DISENGAGE: the wizard at 4 hp between two hobgoblins -- ' + (dg3 ? 'offered (' + dg3.why + ', ' + dg3.score.toFixed(1) + '), taken: ' + out3 : 'NOT OFFERED' + (got3 ? '' : ' (no turn)')) + '; at full hit points (' + w4.maxhp + ') beside one hobgoblin -- ' + (dg4 ? 'OFFERED' : 'not offered'),
-        !!dg3 && /^disengaged, .*, in 0 hobgoblins' reach, (\d+) > \1 hp$/.test(out3) && got4 && !dg4);
+      repP.notes.push('the wizard at 4 hp between two gray oozes, the plans: ' + pl3.slice(0, 4).map(function (p) { return p.kind + ' ' + p.score.toFixed(1); }).join(' | '));
+      okP('DISENGAGE: the wizard at 4 hp between two gray oozes -- ' + (dg3 ? 'offered (' + dg3.why + ', ' + dg3.score.toFixed(1) + '), taken: ' + out3 : 'NOT OFFERED' + (got3 ? '' : ' (no turn)')) + '; at full hit points (' + w4.maxhp + ') beside one hobgoblin -- ' + (dg4 ? 'OFFERED' : 'not offered'),
+        !!dg3 && /^disengaged, .*, in 0 oozes' reach, (\d+) > \1 hp$/.test(out3) && got4 && !dg4);
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     D.d = d0P;
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
@@ -21490,7 +21491,49 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var S4 = ambAB([29, 26, 27, 28], { wut: 11, Drill: 11, Aurdin: 9, Ingrith: 15, made: 11, owl: 13 }, 1, { decoy: true });
       var h4 = S4.head.join(' | '), held4 = S4.fs.every(function (u) { return !u.postBroke && u.conds.hidden; }), plain4 = /plainly/.test(h4);
       okAB('1f a goblin in plain sight, the four noticed by no one: ours see the goblin plainly (' + plain4 + '), the ambush intact (' + held4 + ') (want true, true)', plain4 && held4);
-    } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
+    } catch (eAB) { repAB.errors.push('1: ' + String(eAB && eAB.stack || eAB).slice(0, 900)); }
+    // a bench fight on the class floor, driven to its first turn, its units laid on an open stretch: `lay` [[unit, dx, dy], ...]
+    function mkAB(q) { D.scenes.length = 0; var Bx = D.npcFight(q, { bench: true }); D.push(Bx); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; Bx.benchLog = []; return Bx; }
+    function openAB(w, h) { var m = GAB.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function layAB(Bx, lay) { var o = openAB(8, 5); if (!o) return false; Bx.units.forEach(function (u) { u.x = -50; u.y = -50; }); lay.forEach(function (l) { l[0].x = o[0] + l[1]; l[0].y = o[1] + l[2]; }); Bx.units = Bx.units.filter(function (u) { return u.x >= 0; }); GAB.setup(GAB.map, Bx.units); Bx.cache = null; return true; }
+    function turnAB(Bx, u) { var n = (Bx.log || []).length; D.rules.startTurn(u); Bx.active = u; drAB(D.tactics.turn(Bx, u), null, 4000); Bx.active = null; return (Bx.log || []).slice(n).map(function (l) { return String(l).replace(/^R\d+ /, ''); }); }
+    try {
+      // 2. HOLD PERSON UNDER THE HEALING WORD (RULED 11-22, "3 - yes to both"): Ingrith at 3, Drill down beside the Sect Blade (the SRD Assassin, a humanoid), Ingrith 15 ft off with
+      // her slots whole -- her bonus-action Healing Word on Drill and a Sacred Flame after it, against Hold Person on the Blade: the greater taken. The dice at 10
+      D.d = function (s) { return Math.min(s, 10); };
+      var B2 = mkAB('?npc=assassin&vs=ingrith:3,fighter:3&lvl=3'), ing = B2.units.filter(function (u) { return /^Ingrith/.test(u.name); })[0], dr = B2.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], bl = B2.units.filter(function (u) { return u.side === 'foe'; })[0];
+      if (!ing || !dr || !bl || !layAB(B2, [[ing, 2, 2], [dr, 5, 2], [bl, 6, 2]])) okAB('2 the fight laid (Ingrith ' + !!ing + ', a fighter ' + !!dr + ', the Blade ' + !!bl + ')', false);
+      else {
+        dr.hp = 0; dr.ko = true; if (ing.feats) ing.feats.channel = 0; // (her Channel Divinity spent: Preserve Life, an action and no spell, would take the turn with the Word beside it)
+        var l2 = turnAB(B2, ing).join(' | '), hp2 = /HOLD PERSON/i.test(l2), hw2 = /HEALING WORD/i.test(l2), why2 = (B2.benchLog || []).filter(function (s) { return /bonus first\?/.test(s); }).join(' / ');
+        okAB('2a Ingrith, Drill down beside the Blade: Hold Person on the Blade (' + hp2 + '), no Healing Word with it (' + !hw2 + ') -- the weighing: ' + why2.slice(0, 360) + ' -- "' + l2.slice(0, 220) + '" (want true, true)', hp2 && !hw2);
+        // 2b. the same with nothing levelled worth more (a beast in the Blade's place -- Hold Person names a humanoid -- and no Cure Wounds known: with it the weighing gives the action
+        // to Cure Wounds on the fallen, 14 healed against the Word's 10 and a swing at the wolf -- the scorer's call): the Healing Word goes first, as before
+        var B2b = mkAB('?npc=wolf&vs=ingrith:3,fighter:3&lvl=3'), ingb = B2b.units.filter(function (u) { return /^Ingrith/.test(u.name); })[0], drb = B2b.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], wf = B2b.units.filter(function (u) { return u.side === 'foe'; })[0];
+        if (layAB(B2b, [[ingb, 2, 2], [drb, 5, 2], [wf, 6, 2]])) { drb.hp = 0; drb.ko = true; if (ingb.feats) ingb.feats.channel = 0; ingb.known = (ingb.known || []).filter(function (id) { return id !== 'curewounds'; }); var l2b = turnAB(B2b, ingb).join(' | '); okAB('2b a wolf in the Blade\'s place (no humanoid to hold): the Healing Word on the fighter first (' + /HEALING WORD/i.test(l2b) + ') -- "' + l2b.slice(0, 200) + '" (want true)', /HEALING WORD/i.test(l2b)); }
+        else okAB('2b the wolf\'s fight laid', false);
+      }
+      D.d = dAB;
+    } catch (eAB2) { D.d = dAB; repAB.errors.push('2: ' + String(eAB2 && eAB2.stack || eAB2).slice(0, 900)); }
+    try {
+      // 3. THE DISENGAGE A FOE FOLLOWS (RULED 11-22, "3 - yes to both"): a fighter 3 at 9 hp beside the Sect Blade (speed 30, reach 5): every square out of its reach is in its
+      // stride, so the Disengage spares nothing -- not the plan. Beside an ochre jelly (speed 10, reach 5), at 4 hp: a square 20 ft off it cannot follow to -- still priced
+      var B3 = mkAB('?npc=assassin&vs=fighter:3&lvl=3'), f3 = B3.units.filter(function (u) { return u.side === 'party'; })[0], a3 = B3.units.filter(function (u) { return u.side === 'foe'; })[0];
+      if (!layAB(B3, [[f3, 3, 3], [a3, 4, 3]])) okAB('3a the fight laid', false);
+      else {
+        f3.hp = 9; D.rules.startTurn(f3); B3.active = f3; var p3 = D.tactics.plans(B3, f3), dg3 = p3.filter(function (p) { return p.kind === 'disengage'; })[0];
+        okAB('3a a fighter at 9 hp beside the Sect Blade: the pick "' + (p3[0] && p3[0].why) + '" ' + (p3[0] ? p3[0].score.toFixed(1) : '') + '; a Disengage plan ' + (dg3 ? '"' + dg3.why + '" ' + dg3.score.toFixed(1) : 'none') + ' (want no Disengage: the Blade follows)', !dg3 && p3[0] && p3[0].kind !== 'disengage');
+        B3.active = null;
+      }
+      var B3b = mkAB('?npc=ochrejelly&vs=fighter:3&lvl=3'), f3b = B3b.units.filter(function (u) { return u.side === 'party'; })[0], v3 = B3b.units.filter(function (u) { return u.side === 'foe'; })[0];
+      if (!layAB(B3b, [[f3b, 3, 3], [v3, 4, 3]])) okAB('3b the fight laid', false);
+      else {
+        f3b.hp = 4; D.rules.startTurn(f3b); B3b.active = f3b; var p3b = D.tactics.plans(B3b, f3b), dg3b = p3b.filter(function (p) { return p.kind === 'disengage'; })[0];
+        okAB('3b a fighter at 4 hp beside an ochre jelly (speed ' + v3.speed + ', reach ' + D.grid.reachOf(v3) + '): a Disengage plan ' + (dg3b ? '"' + dg3b.why + '" ' + dg3b.score.toFixed(1) : 'none') + '; the pick "' + (p3b[0] && p3b[0].why) + '" (want a Disengage priced: it cannot follow)', !!dg3b);
+        B3b.active = null;
+      }
+    } catch (eAB3) { repAB.errors.push('3: ' + String(eAB3 && eAB3.stack || eAB3).slice(0, 900)); }
+    try { /* (the next sections) */ } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
     D.d = dAB;
     var preAB = document.createElement('pre'); preAB.id = 'out'; preAB.textContent = 'BENCH16 ' + JSON.stringify(repAB);
     document.body.appendChild(preAB);
