@@ -200,18 +200,25 @@ def text_of(r, c, where):
 
 
 def notes_since(since):
+    """each NOTES file's new lines against the last file of the SAME box (its `from`: the second game's M menu, the Pocket DM's SITUATIONS, the scene simulator
+    -- deep16/scenes.html, 11-25): three boxes write the one file name, and a file read against another box's draft reads as his own clear, written whole"""
     fs = []
     for p in glob.glob(os.path.join(DIR, 'hero_situations_feedback-*.json')):
         d = load(p)
-        if isinstance(d, dict) and isinstance(d.get('notes'), str): fs.append((d.get('at') or saved_of(p, d), os.path.basename(p), d['notes']))
-    fs.sort()
-    out, prev = [], ''
-    for at, name, txt in fs:
-        new = txt[len(prev):] if prev and txt.startswith(prev) else txt
-        cleared = bool(prev) and not txt.startswith(prev)
+        if isinstance(d, dict) and isinstance(d.get('notes'), str): fs.append((d.get('at') or saved_of(p, d), os.path.basename(p), d['notes'], d.get('from') or 'the second game', d.get('scenes')))
+    fs.sort(key=lambda f: (f[0], f[1]))
+    out, prev = [], {}
+    for at, name, txt, box, scenes in fs:
+        pv = prev.get(box, '')
+        new = txt[len(pv):] if pv and txt.startswith(pv) else txt
+        cleared = bool(pv) and not txt.startswith(pv)
         if at >= since and new.strip():
-            out.append('#' * 100 + '\nNOTES %s  (%s)%s\n%s\n' % (at, name, '  -- his own clear: the box whole' if cleared else '  -- the new lines', new.strip('\n')))
-        prev = txt
+            one = '#' * 100 + '\nNOTES %s  (%s, %s)%s\n%s\n' % (at, name, box, '  -- his own clear: the box whole' if cleared else '  -- the new lines', new.strip('\n'))
+            fresh = [s for s in (scenes if isinstance(scenes, list) else []) if isinstance(s, dict) and s.get('stamp') and s['stamp'] in new]
+            if fresh: # (the scene simulator's: each new note's scene, line and marks, for the desk -- its stamp in the notes says the same in words)
+                one += '  THE SCENES NOTED: ' + json.dumps([{k: s.get(k) for k in ('scene', 'line', 'who', 'said', 'marks', 'note')} for s in fresh], ensure_ascii=False) + '\n'
+            out.append(one)
+        prev[box] = txt
     return out
 
 
