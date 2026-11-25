@@ -508,6 +508,36 @@ window.D16.MAPS.snootroad = {
   wave: null
 };
 
+// A Dominion wagon on the Road South (11-25, the seat nets-1125, on Griz's "2 - c" to the lanes desk -- the wagon on the map as the prison cell the patrol fills with NPC
+// recruits, his 12:05Z "I don't have it in my head why the wagon would be offscreen for the encounter"; the heroes are dragged to the flank and never caged): the Road South
+// square for square, the wagon standing on the road at its north end, under its cover (W), behind the patrol lady and the mender. Nothing goes in it yet: the recruits' cell
+// is a story beat once a recruiting encounter exists. data/fights.js snootwagon
+window.D16.MAPS.dominionroad = {
+  name: 'The Road South',
+  sub: 'a Dominion wagon on it',
+  step: 10,
+  ground: 'earth',
+  rows: [
+    '########=WW=########',
+    '#####...=WW=...#####',
+    '###.....====.....###',
+    '##....r.====.r....##',
+    '#.......====.......#',
+    '#.......====.......#',
+    '#...rr..====.......#',
+    '#.......====...rr..#',
+    '#.......====.......#',
+    '##......====......##',
+    '###.....====.....###',
+    '####....====....####',
+    '######..====..######',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  foes: [],
+  wave: null
+};
+
 // The Pit road in the open hills (11-24, E11, the world seat; Griz's note from his play of 11-23, the fight "The Pit road: The Glory-Seekers" on the plains hex 51,51: "we at least
 // need to put this on a roaded hills map/one without walls"): the road up the middle through rolling country and no ring of rock -- the field simply ends, every square of its rim a
 // way out (battle.js exits, LEAVE THE FIGHT). The heights as the Gnoll Hills carry them, every slope one step a square, so all of it is walked and none climbed: a hill to the west and

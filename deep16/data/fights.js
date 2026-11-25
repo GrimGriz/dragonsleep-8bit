@@ -133,7 +133,7 @@
     // the bench, a pike either side of the lady and the mender. Their spots come after the flanks', so the Snoot's list seats each squad on its own; `listOnly`: they are seats for
     // the Snoot's list, and the door alone (?fight=snootwagon) fields the patrol of his page as it stood -- the rows and benches on that door (the two walls, Wagon Drill) are
     // written to it (js/battle.js). The lady's spot seats whichever patron's lady the wagon sends (data/foes.js patrolladyfiend, -mirror, -fae: `seatAs`); the door's is the patrol lady
-    { id: 'snootwagon', story: true, level: 3, ladder: false, map: 'snootroad', name: 'A Dominion Wagon', sub: 'the Snoot, by day', music: 'boss',
+    { id: 'snootwagon', story: true, level: 3, ladder: false, map: 'dominionroad', name: 'A Dominion Wagon', sub: 'the Snoot, by day', music: 'boss',
       intro: 'A Dominion wagon on the road: a lady on the bench, her mender beside her, and two sergeants who will not stand together, each with his four -- two shields in front, two pikes behind.',
       from: 'the Snoot mode: snoot-mode/js/deep.js, a Dominion wagon on the grid (his patrol page, The Fare Home)', won: 'THE WAGON\'S MEN ARE DOWN.',
       foes: [{ id: 'lady', kind: 'patrollady', at: [9, 2] },

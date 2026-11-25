@@ -20643,6 +20643,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var cN = function (re) { return LN.filter(function (s) { return re.test(s); }).length; };
         if (get('dbg', '') === String(sN)) repN.log = LN.filter(function (s) { return /Dragger|WAGON|NET|HOOK|net|drags|hold|goes down/.test(s); }).slice(0, 120);
         if (get('dbgall', '') === String(sN)) repN.log = LN.slice(-70); // (the seed's last lines whole)
+        if (get('dbgre', '') && get('dbgs', '') === String(sN)) { var reN = new RegExp(get('dbgre', '')); repN.log = LN.filter(function (s) { return reN.test(s); }).slice(0, 120); } // (&dbgs=N&dbgre=<regex>: seed N's lines that match)
+        if (get('logsum', '')) { var hN = 0, sAll = LN.join('\n'); for (var iN = 0; iN < sAll.length; iN++) hN = (hN * 31 + sAll.charCodeAt(iN)) | 0; (repN.sums = repN.sums || []).push('s' + sN + ' ' + LN.length + ' ' + (hN >>> 0).toString(16)); } // (&logsum=1: each seed's whole log fingerprinted -- a map or AI change seen to move a watched door's beats, or not)
         rowsN.push('s' + sN + ' ' + rN + ' R' + Bw.round + ': nets ' + cN(/  NET  /) + ' (hit ' + cN(/RESTRAINED/) + '), hooks ' + cN(/: HOOK/) + ' (flat ' + cN(/knocked flat/) + '), taken prone ' + cN(/, prone: .*WAGON DRILL/) + ', in the net ' + cN(/, in the net: .*WAGON DRILL/) + ', down ' + cN(/, down: .*WAGON DRILL/) + ', drags ' + cN(/drags .* toward/) + ', escapes ' + cN(/breaks .* hold/) + ', nets off ' + (cN(/The net is/) + cN(/heaves at the net.*FREE/)));
       }
       okN('10 the watched wagon at 3 (informational): ' + rowsN.join('; '), true);
