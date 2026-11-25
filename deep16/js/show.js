@@ -139,6 +139,25 @@
     }
     return near();
   }
+  // none in reach and no square in its move that reaches one (a crowded field -- the line-up's two of every kind round the four, and since the AI's cope round a lone hero
+  // (js/ai.js, 11-25) a creature with no room beside him waits with its blow readied): the nearest watcher brought up beside it, the director's step -- the square in the blow's
+  // reach nearest where that watcher stood (11-25, the seat engulf-1125-show: the green hag's claw shown once on the desk's batch, the show's catch-all blow never coming)
+  function bringUp(B, u, reach, pick) {
+    var watch = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar && (!pick || pick(w)) && !(w.conds && (w.conds.restrained || w.conds.grappled || w.conds.engulfed)) && !w.riding; })
+      .sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); });
+    for (var i = 0; i < watch.length; i++) {
+      var w = watch[i], s = u.size || 1, r = Math.ceil(reach / 5), best = null, bd = Infinity;
+      for (var y = u.y - r; y < u.y + s + r; y++) for (var x = u.x - r; x < u.x + s + r; x++) {
+        if (!D.grid.canStand(w, x, y) || D.grid.dist(u, w, null, null, x, y) > reach) continue;
+        var d = Math.hypot(x - w.x, y - w.y); if (d < bd) { bd = d; best = [x, y]; }
+      }
+      if (!best) continue;
+      w.tween = { fx: w.x, fy: w.y, fz: D.grid.gzAt(w, w.x, w.y), t: 0, dur: B.pace ? B.pace(12, true) : 12, mode: 'walk' }; w.x = best[0]; w.y = best[1];
+      B.card(['{c}THE SHOW{/}: no room to get at anyone -- ' + w.name + ' steps up beside the ' + u.name + '.'], 160);
+      return w;
+    }
+    return null;
+  }
   // u out of every foe's `reach` by the shortest way: a square with no foe within it, familiars too -- the test js/traits.js foretellUp asks
   // (10-15: the Harbinger's Foretell)
   function* clearOf(B, u, reach) {
@@ -332,7 +351,8 @@
     // is one run of dice -- bestiary lane, 11-15: "a beat with the dice pinned for the mound would end it")
     var egK = D.engulf && D.engulf.cfg(u) && Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].engulfPair; })[0];
     if (egK && D.spr.anim(u.sheet, 'engulf') && ((u.showSeen || {}).engulf || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 1 && !u.riding) {
-      var egA = u.attacks[egK], egW = (yield* inReach(B, u, egA.reach || u.reach || 5, function (w) { return !w.conds.engulfed && D.Battle.sizeCat(w) <= D.Battle.SIZE.M && w.hp > 0; }))[0];
+      var egP = function (w) { return !w.conds.engulfed && D.Battle.sizeCat(w) <= D.Battle.SIZE.M && w.hp > 0; }, egA = u.attacks[egK], egW = (yield* inReach(B, u, egA.reach || u.reach || 5, egP))[0];
+      if (!egW) { egW = bringUp(B, u, egA.reach || u.reach || 5, egP); if (egW) yield 12; } // (no room on a crowded field: a watcher brought up beside it -- bringUp)
       if (egW) {
         D.engulf.inside(B, u).forEach(function (w) { B.release(u, w); });
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its engulf twice yet. Both ' + String(egA.name).toLowerCase() + 's at ' + egW.name + ', the dice pinned, to see it.'], 200);
@@ -345,6 +365,7 @@
     var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && r && ((u.showSeen || {})[r] || 0) < 2 && (!a.needsHeld || B.units.some(function (w) { return w !== u && !w.dead && w.hp > 0 && heldBy(w) && D.grid.dist(u, w) <= (a.reach || u.reach || 5); })); })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
       var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5, ma.needsHeld ? heldBy : function (w) { return !(w.conds.engulfed && (w.conds.engulfed.by === u.id || D.engulf.sealedFrom(u, w))); }))[0]; // (not at the one it has engulfed, left for its crush, nor one inside another's cube, out of reach -- js/engulf.js, 11-25)
+      if (!mw && !ma.needsHeld && shown(u)) { mw = bringUp(B, u, ma.reach || u.reach || 5, function (w) { return !w.conds.engulfed; }); if (mw) yield 12; } // (no room, and its last turn -- every row shown once, so down it goes next: a watcher brought up beside it -- bringUp, 11-25)
       if (mw) {
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
         yield* B.attack(u, mw, ma); u.anim = 'idle'; u.animT = B.t;
