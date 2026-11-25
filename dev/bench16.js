@@ -25152,7 +25152,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okW('SELL: his skeptical face; magic items only (RULED 10-21, his "Winters should only buy magic items"): the quest\'s Threshing Flail +1 and the potions, not the simples, the kit, the plain flail or a key (' + sl.join(', ') + ')', sc3.face.anim === 'skeptical' && sl.indexOf('threshingflail1') >= 0 && sl.indexOf('potion') >= 0 && sl.indexOf('estatepapers') < 0 && sl.indexOf('simples') < 0 && sl.indexOf('kit') < 0 && sl.indexOf('threshingflail') < 0 && sl.every(function (id) { return CW.magic(id); }));
       var it1 = window.DS.DATA.items.threshingflail1, s1 = R0.silver, kF = sl.indexOf('threshingflail1'); sc3.scroll = Math.max(0, kF - 3);
       var rF = sc3.buttons().filter(function (q) { return q.row && q.k === kF; })[0]; clickW(sc3, rF);
-      okW('sold: +' + (R0.silver - s1) + ' sp (half of ' + it1.price + '), and his acquisition plays (the work row)', R0.silver - s1 === Math.max(1, Math.floor(it1.price / 2)) && !CW.count(st, 'threshingflail1') && sc3.face.anim === 'work');
+      // (one of a thing asks SELL IT? first since 11-24 -- his "reloading, seems i sold the wrong rope...", RULED: js/counter.js Counter.press, the qty box with `one`; clicked through)
+      var askF = !!(sc3.sub && sc3.sub.one && sc3.sub.id === 'threshingflail1'), heldF = CW.count(st, 'threshingflail1'), okF = sc3.buttons().filter(function (q) { return q.go === 'qok'; })[0]; if (okF) clickW(sc3, okF);
+      okW('sold: SELL IT? asked first (' + askF + ', still held ' + heldF + '), then +' + (R0.silver - s1) + ' sp (half of ' + it1.price + '), and his acquisition plays (the work row)', askF && heldF === 1 && !sc3.sub && R0.silver - s1 === Math.max(1, Math.floor(it1.price / 2)) && !CW.count(st, 'threshingflail1') && sc3.face.anim === 'work');
       CW.take(st, 'estatepapers', 1);
       // the mouse alone: a click on BACK, then on LEAVE
       var bk = sc3.buttons().filter(function (q) { return q.go === 'back'; })[0], mo = D.input.mouse, keep = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside };
