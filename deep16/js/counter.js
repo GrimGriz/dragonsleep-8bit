@@ -185,7 +185,8 @@
   C.MAGIC_USE = ['potion', 'greaterpotion', 'superiorpotion', 'elixir'];
   C.magic = function (id, it) {
     it = it || DS.DATA.items[id]; if (!it) return false;
-    return ((it.weapon && it.weapon.bonus) || (it.armor && it.armor.bonus) || 0) > 0 || !!(it.attune || it.resist || it.immune || it.condImmune || it.adv || it.aura) || C.MAGIC_USE.indexOf(id) >= 0;
+    return ((it.weapon && it.weapon.bonus) || (it.armor && it.armor.bonus) || 0) > 0 || !!(it.attune || it.resist || it.immune || it.condImmune || it.adv || it.aura) || C.MAGIC_USE.indexOf(id) >= 0 ||
+      !!(it.ring && Object.keys(it.ring).length); // (a ring that does something -- the SRD's rings are all magic: the Ring of Water Walking, which no rule above caught; the Charm's empty `ring` not. 11-25, world-1124, with C.WINTERS_KEEP)
   };
 
   // the grid's own lines: the JOURNAL's hint (invented.json winters-journal-grid), the first game's winters.journalHint with the grid's menu key (RULED 10-21, Griz,
@@ -398,8 +399,12 @@
   Counter.prototype.rows = function () {
     var self = this, st = this.st, d = this.shop, v = C.VENDORS[this.id];
     if (this.tab === 'buy') return (d.items || []).map(function (id) { var it = DS.DATA.items[id], p = self.price(id); return { id: id, label: it.name, right: p + ' sp', off: p > st.silver() }; });
-    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + s.n, right: self.offer(it, s.id) + ' sp' }; });
+    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id], his = self.id === 'winters' && s.id === C.WRING; return { id: s.id, label: it.name + ' x' + s.n, right: his ? '--' : self.offer(it, s.id) + ' sp', refuse: his }; });
   };
+  // WINTERS WON'T BUY BACK HIS OWN RING (RULED 2026-11-25, Griz to the lanes desk, asked "don't let him buy that particular ring?" on the desk's lean: "Yes, refuse it"): the
+  // Ring of Water Walking he held for whoever faced the lake (C.WRING, C.wintersRing) shows on his SELL shelf at "--", and offering it is his word, not a sale. The line the
+  // seat world-1124's draft in his voice (invented.json winters-keeps-ring-1125)
+  C.WINTERS_KEEP = '"Not that one. Keep it -- it was always for whoever faced the lake."';
   // what a keeper says, buying a thing a quest wants: Percy, sold a snake tongue while Ned's is asked for, says so -- and buys it anyway, at his fifth (RULED 10-21
   // night, Griz: "looks good - have percy 'Didn't Ned want one of those?' while the quest is active, but will buy them anyway after saying it"; the house lane's
   // THE SCENE item 12 -- the seat had held one back from his list)
@@ -460,6 +465,7 @@
     if (b.go === 'row') {
       var r = this.rows()[b.k]; if (!r) return; this.cur = b.k;
       var it = DS.DATA.items[r.id];
+      if (this.tab !== 'buy' && r.refuse) { this.sub = null; this.msg = C.WINTERS_KEEP; this.setFace('welcoming'); return; } // (his own ring, offered back: his word, no sale -- C.WINTERS_KEEP, RULED 11-25)
       if (this.tab === 'buy') { var p = this.price(r.id); if (stacks(it)) { var mx = Math.min(99, Math.floor(this.st.silver() / p)); if (mx > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: mx, price: p }; return; } } this.buy(r.id, 1); }
       else { var cnt = count(this.st, r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it, r.id), sell: true }; this.setFace('skeptical'); return; } this.sub = { kind: 'qty', id: r.id, n: 1, max: 1, price: this.offer(it, r.id), sell: true, one: true }; this.setFace('skeptical'); } // (one of a thing: SELL IT? and its price, SELL or BACK -- 11-24, his NOTES day 8 15:00, Silverton 45,32: "reloading, seems i sold the wrong rope..."; the lean RULED on his "leans otherwise approved")
       return;

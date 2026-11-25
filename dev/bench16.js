@@ -25155,6 +25155,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // (one of a thing asks SELL IT? first since 11-24 -- his "reloading, seems i sold the wrong rope...", RULED: js/counter.js Counter.press, the qty box with `one`; clicked through)
       var askF = !!(sc3.sub && sc3.sub.one && sc3.sub.id === 'threshingflail1'), heldF = CW.count(st, 'threshingflail1'), okF = sc3.buttons().filter(function (q) { return q.go === 'qok'; })[0]; if (okF) clickW(sc3, okF);
       okW('sold: SELL IT? asked first (' + askF + ', still held ' + heldF + '), then +' + (R0.silver - s1) + ' sp (half of ' + it1.price + '), and his acquisition plays (the work row)', askF && heldF === 1 && !sc3.sub && R0.silver - s1 === Math.max(1, Math.floor(it1.price / 2)) && !CW.count(st, 'threshingflail1') && sc3.face.anim === 'work');
+      // his own ring offered back (RULED 11-25, his "Yes, refuse it", on "don't let him buy that particular ring?"): on the shelf at "--", and a click is his word, not a sale
+      CW.give(st, CW.WRING, 1); var rowsR = sc3.rows(), kR = rowsR.map(function (r) { return r.id; }).indexOf(CW.WRING), sR = R0.silver; sc3.scroll = Math.max(0, kR - 3);
+      var rR = sc3.buttons().filter(function (q) { return q.row && q.k === kR; })[0]; clickW(sc3, rR); if (sc3.sub) { var okR = sc3.buttons().filter(function (q) { return q.go === 'qok'; })[0]; if (okR) clickW(sc3, okR); }
+      okW('his own ring offered back: on the shelf "' + (kR >= 0 ? rowsR[kR].label + ' ' + rowsR[kR].right : 'NOT SHOWN') + '", the click "' + window.DS.stripCodes(sc3.msg || '') + '" -- kept ' + CW.count(st, CW.WRING) + ', silver +' + (R0.silver - sR),
+        kR >= 0 && rowsR[kR].right === '--' && !sc3.sub && /Keep it -- it was always for whoever faced the lake/.test(sc3.msg || '') && CW.count(st, CW.WRING) === 1 && R0.silver === sR);
+      CW.take(st, CW.WRING, 1);
       CW.take(st, 'estatepapers', 1);
       // the mouse alone: a click on BACK, then on LEAVE
       var bk = sc3.buttons().filter(function (q) { return q.go === 'back'; })[0], mo = D.input.mouse, keep = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside };
