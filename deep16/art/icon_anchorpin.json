@@ -1,0 +1,13 @@
+{
+ "image": "art/icon_anchorpin.png",
+ "anims": {},
+ "art": "ART-162",
+ "source": "deep16/_src/anchorpin/ART-162/ (the art desk's ART-162-ANCHOR-PIN-CUTTER-HANDOFF, 11-24), cut by tools/anchorpin-sheet.py",
+ "fw": 32,
+ "fh": 32,
+ "ax": 16,
+ "ay": 32,
+ "top": 0,
+ "icon": true,
+ "door": "none yet: no item list draws a picture (the anchor-pin, content/items.json anchorpin)"
+}

@@ -197,6 +197,11 @@ PEOPLE = {
     'aurdin_ochre': ('aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the hero box in Wizard\'s Robes (js/counter.js C.HERO_PT aurdin_p2)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5]}),
     'aurdin_red': ('aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the hero box out of robes (js/counter.js C.HERO_PT aurdin_p3)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5]}),
     'barley_coat': ('barley/HERO-DIALOGUE-1104/sources', 'BARLEY', 'the hero box in his coat (js/counter.js C.HERO_PT barley_p2)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5]}),
+    # Barley in his chain mail (11-24, the cutter seat cutter-1124c, on Griz's "if we lack the barley chain portrait the regular portrait is better than what we're using
+    # for barley portrait scenes" and his "Outbox sent and stuff in Fresh"): the art desk's ART-161-BARLEY-MAIL-CUTTER-HANDOFF, sorted to deep16/_src/barley/ART-161/ --
+    # its five ImageGen originals, the coat's pages redrawn in the mail (BARLEY-MAIL-P01 his approved Idle 6, the blink on 5; P02-P05 the four moods), cut as the coat
+    # is, at the coat's frame and anchor (`boxas`) so the face holds its place in the hero box when his look turns from the coat to the mail
+    'barley_mail': ('barley/ART-161/originals', 'BARLEY-MAIL', 'the hero box in his chain mail (js/counter.js C.HERO_PT barley_p3)', {'edge': True, 'pat': '%s-P%02d.png', 'bust': 66, 'layout': LAYOUT[:5], 'boxas': 'barley_coat', 'avoid': ['fire']}),
     # Vivian Venn, the party's rogue (11-05, cutter-1105, the character/beast cutter): the art desk's VIVIAN-VENN-DIALOGUE-PORTRAITS, art-wanted section 37 (the
     # Opus lanes desk's deep dive on his "Do a deep dive and put an informed portrait/identity art request in for Vivian in the outbox please") -- HEADs 2 to 7,
     # the generator's originals (VIVIAN-HEAD-02-IDLE.png ...): idle 6, the four moods, and THE COIN 6 (rolled over the knuckles, palmed, the hand opened empty) in
@@ -211,6 +216,7 @@ PEOPLE = {
     'aurdin_ochre_full': ('aurdin/HERO-DIALOGUE-1104/AURDIN-OCHRE-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the open screen in Wizard\'s Robes (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5]}),
     'aurdin_red_full': ('aurdin/HERO-DIALOGUE-1104/AURDIN-RED-DIALOGUE-PORTRAITS/sources', 'AURDIN', 'the open screen out of robes (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5]}),
     'barley_coat_full': ('barley/HERO-DIALOGUE-1104/sources', 'BARLEY', 'the open screen in his coat (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5]}),
+    'barley_mail_full': ('barley/ART-161/originals', 'BARLEY-MAIL', 'the open screen in his chain mail (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-P%02d.png', 'layout': LAYOUT[:5], 'boxas': 'barley_coat_full', 'avoid': ['fire']}),
     'vivian_full': ('vivian/PORTRAITS-1104/originals', 'VIVIAN', 'the open screen, any counter she leads (js/counter.js C.heroFull)', {'edge': True, 'pat': '%s-HEAD-%02d-*.png', 'flip': True,
                'layout': [(2, [3, 3], ['idle'] * 6), (3, [1], ['attentive']), (4, [1], ['welcoming']), (5, [1], ['skeptical']), (6, [1], ['concerned']), (7, [3, 3], ['coin'] * 6)]}),
     # Amara of the wagon and Elsbeth at the tub (11-04, the cutter of 11-04): the art desk's HALFWAY-INN-AMARA-PORTRAITS and -ELSBETH-TUB-PORTRAITS, art-wanted
@@ -807,6 +813,11 @@ def cut_person(name):
     L = max(f[1] for fr in small.values() for f in fr) + 2; R = max(f[0].shape[1] - f[1] for fr in small.values() for f in fr) + 2
     T = max(f[2] for fr in small.values() for f in fr) + 2; B = 2
     if ov.get('cutline'): B = max(2, max(f[0].shape[0] - f[2] for fr in small.values() for f in fr) + 2)   # (room under the cut for what hangs below it)
+    if ov.get('boxas'):   # (`boxas`: another sheet's frame and anchor, grown only where a frame would not fit -- Barley's mail at his coat's, 11-24: the face holds its place as his look turns)
+        rm = json.load(open(os.path.join(ART, 'pt_%s.json' % ov['boxas']), encoding='utf-8'))
+        fits = L <= rm['ax'] and R <= rm['fw'] - rm['ax'] and T <= rm['ay'] and B <= rm['fh'] - rm['ay']
+        L, R, T, B = max(L, rm['ax']), max(R, rm['fw'] - rm['ax']), max(T, rm['ay']), max(B, rm['fh'] - rm['ay'])
+        if not fits: print('  (pt_%s: a frame wider than pt_%s\'s box -- the box grown to it)' % (name, ov['boxas']))
     fw, fh, axx, ayy = int(np.ceil(L + R)), int(np.ceil(T + B)), int(round(L)), int(round(T))
     rows = len(order); cols = max(len(small[a]) for a in order)
     sheet = np.zeros((rows * fh, cols * fw, 4), np.uint8)

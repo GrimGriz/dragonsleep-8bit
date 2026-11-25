@@ -1,0 +1,17 @@
+{
+ "image": "art/pic_anchorpin.png",
+ "anims": {},
+ "art": "ART-162",
+ "source": "deep16/_src/anchorpin/ART-162/ (the art desk's ART-162-ANCHOR-PIN-CUTTER-HANDOFF, 11-24), cut by tools/anchorpin-sheet.py",
+ "fw": 184,
+ "fh": 208,
+ "ax": 0,
+ "ay": 0,
+ "top": 0,
+ "still": true,
+ "counter": [
+  182,
+  208
+ ],
+ "door": "the glory-seekers' fight end, the picture slot (js/trueword.js TW.pic)"
+}

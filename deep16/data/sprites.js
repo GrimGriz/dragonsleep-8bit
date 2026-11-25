@@ -10203,6 +10203,19 @@
 "name": "Ice Mephit",
 "source": "drawn by the art desk (ICE-MEPHIT-ILLUSTRATED-SOURCES, 11-15: ImageGen pages, its own native cut at game size), cut as drawn by tools/icemephit-sheet.py; SW W NW mirrored -- the SRD 5.1 Ice Mephit: deep16/data/foes.js icemephit"
 },
+"icon_anchorpin": {
+"image": "art/icon_anchorpin.png?v=97bff73c24",
+"anims": {},
+"art": "ART-162",
+"source": "deep16/_src/anchorpin/ART-162/ (the art desk's ART-162-ANCHOR-PIN-CUTTER-HANDOFF, 11-24), cut by tools/anchorpin-sheet.py",
+"fw": 32,
+"fh": 32,
+"ax": 16,
+"ay": 32,
+"top": 0,
+"icon": true,
+"door": "none yet: no item list draws a picture (the anchor-pin, content/items.json anchorpin)"
+},
 "idony_p1": {
 "image": "art/idony_p1.png?v=c2537898ed",
 "fw": 26,
@@ -17187,6 +17200,23 @@
 }
 }
 },
+"pic_anchorpin": {
+"image": "art/pic_anchorpin.png?v=6258b7606c",
+"anims": {},
+"art": "ART-162",
+"source": "deep16/_src/anchorpin/ART-162/ (the art desk's ART-162-ANCHOR-PIN-CUTTER-HANDOFF, 11-24), cut by tools/anchorpin-sheet.py",
+"fw": 184,
+"fh": 208,
+"ax": 0,
+"ay": 0,
+"top": 0,
+"still": true,
+"counter": [
+182,
+208
+],
+"door": "the glory-seekers' fight end, the picture slot (js/trueword.js TW.pic)"
+},
 "plainsrider_p1": {
 "image": "art/plainsrider_p1.png?v=c1f857ab6e",
 "fw": 96,
@@ -18297,6 +18327,164 @@ false
 "art": "BARLEY",
 "door": "the open screen in his coat (js/counter.js C.heroFull)",
 "source": "deep16/_src/barley/HERO-DIALOGUE-1104/sources (the art desk's BARLEY, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_barley_mail": {
+"image": "art/pt_barley_mail.png?v=617f243b06",
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"top": 68,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 70,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 140,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 210,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 280,
+"fw": 61,
+"fh": 70,
+"ax": 31,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "BARLEY-MAIL",
+"door": "the hero box in his chain mail (js/counter.js C.HERO_PT barley_p3)",
+"source": "deep16/_src/barley/ART-161/originals (the art desk's BARLEY-MAIL, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_barley_mail_full": {
+"image": "art/pt_barley_mail_full.png?v=589951e9bb",
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 154,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 308,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 462,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 616,
+"fw": 133,
+"fh": 154,
+"ax": 68,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "BARLEY-MAIL",
+"door": "the open screen in his chain mail (js/counter.js C.heroFull)",
+"source": "deep16/_src/barley/ART-161/originals (the art desk's BARLEY-MAIL, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_brann": {
 "image": "art/pt_brann.png?v=9573f5b16d",
