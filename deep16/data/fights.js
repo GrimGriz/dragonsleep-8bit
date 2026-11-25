@@ -128,12 +128,20 @@
     // ... with the draggers behind them; the sergeants each take a flank -- never the same flank". The Blade's squad on the west, the Ledger's on the east, each sergeant at
     // his squad's outer end, his two line soldiers in front and his two draggers behind them; the lady and the mender back on the road by the wagon. The Snoot's list
     // comes squad by squad (SN.band), so each takes its own squad's spots; a second or third wagon's men stand beside the spots of their kind. ?fight=snootwagon&lvl=3&watch
+    // THE LADY'S GUARD (2026-11-25, the seat snoot-1125 -- RULED, Griz: "Snoot wagons get 8 extra troops (6 foot, 2 dragger) (not a recruiting wagon)"): the Snoot's wagons'
+    // third squad, six line soldiers and two draggers under the lady's own word (snoot-mode/js/data.js), across the road in front of the wagon -- the shields a rank before
+    // the bench, a pike either side of the lady and the mender. Their spots come after the flanks', so the Snoot's list seats each squad on its own; `listOnly`: they are seats for
+    // the Snoot's list, and the door alone (?fight=snootwagon) fields the patrol of his page as it stood -- the rows and benches on that door (the two walls, Wagon Drill) are
+    // written to it (js/battle.js). The lady's spot seats whichever patron's lady the wagon sends (data/foes.js patrolladyfiend, -mirror, -fae: `seatAs`); the door's is the patrol lady
     { id: 'snootwagon', story: true, level: 3, ladder: false, map: 'snootroad', name: 'A Dominion Wagon', sub: 'the Snoot, by day', music: 'boss',
       intro: 'A Dominion wagon on the road: a lady on the bench, her mender beside her, and two sergeants who will not stand together, each with his four -- two shields in front, two pikes behind.',
       from: 'the Snoot mode: snoot-mode/js/deep.js, a Dominion wagon on the grid (his patrol page, The Fare Home)', won: 'THE WAGON\'S MEN ARE DOWN.',
       foes: [{ id: 'lady', kind: 'patrollady', at: [9, 2] },
              { id: 'sb', kind: 'sergeantblade', at: [4, 5] }, { id: 'b1', kind: 'dominion', at: [5, 5] }, { id: 'b2', kind: 'dominion', at: [6, 5] }, { id: 'bd1', kind: 'dragger', at: [5, 4] }, { id: 'bd2', kind: 'dragger', at: [6, 4] },
              { id: 'sl', kind: 'sergeantledger', at: [15, 5] }, { id: 'l1', kind: 'dominion', at: [13, 5] }, { id: 'l2', kind: 'dominion', at: [14, 5] }, { id: 'ld1', kind: 'dragger', at: [13, 4] }, { id: 'ld2', kind: 'dragger', at: [14, 4] },
+             { id: 'gu1', kind: 'dominion', at: [7, 3], listOnly: true }, { id: 'gu2', kind: 'dominion', at: [8, 3], listOnly: true }, { id: 'gu3', kind: 'dominion', at: [9, 3], listOnly: true },
+             { id: 'gu4', kind: 'dominion', at: [10, 3], listOnly: true }, { id: 'gu5', kind: 'dominion', at: [11, 3], listOnly: true }, { id: 'gu6', kind: 'dominion', at: [12, 3], listOnly: true },
+             { id: 'gd1', kind: 'dragger', at: [8, 2], listOnly: true }, { id: 'gd2', kind: 'dragger', at: [11, 2], listOnly: true },
              { id: 'md', kind: 'mender', at: [10, 2] }], wave: null },
     { id: 'snoot-ladder', level: 3, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss', // (the ladder's own, 10-28: above, at ettercap-ladder)
       intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',

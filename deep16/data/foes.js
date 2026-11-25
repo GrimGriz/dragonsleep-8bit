@@ -1182,6 +1182,34 @@
     multi: ['blast', 'blast'], mirrorEye: true, build: 'patrolladyw', // (10-17: built as a warlock 5 of the Mirror with the Pact of the Blade and a list of her own, js/classes.js NPC.NAMED; the attack above stands if the build cannot)
     src: 'the Snoot mode\'s Dominion wagons (snoot-mode/js/data.js SN.DOMINION: "the lady a CHAINMAIL warlock", Kat\'s wagon loadout): Amara\'s sheet above, unnamed -- the seat\'s draft, invented.json#patrol-lady-grid -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a warlock in chain mail; passive Perception 10, because 10 + WIS +0'
   },
+  // THE SNOOT'S THREE PATROL LADIES, ONE A PATRON (2026-11-25, the seat snoot-1125 -- RULED, Griz: "1 - we need all 3 patron specific patrol ladys for the snoot, each with
+  // flavored spell list"): the lady above, built each by her patron's list (js/classes.js NPC.NAMED patrolladyfiendw, patrolladymirrorw, patrolladyfaew) -- Savine's wagon
+  // the Fiend's, the Old One's the Mirror's (her eye with her), Tronu's the Fae King's (snoot-mode/js/data.js SN.DOMINION). `seatAs`: a wagon fight's lady's spot seats each
+  // (js/battle.js roster). Today's patrol-lady figure till art-wanted 101 comes back recoloured by patron (his "4 - Let the cutter propose the colors as well")
+  patrolladyfiend: {
+    name: 'Patrol Lady (the Fiend)', type: 'humanoid', sheet: 'npcwarlock_p0', humanoid: true, cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, seatAs: 'patrollady',
+    abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
+    saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
+    attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
+    multi: ['blast', 'blast'], build: 'patrolladyfiendw',
+    src: 'the Snoot mode\'s Dominion wagons: Savine\'s wagon\'s lady, a warlock 5 of the Fiend -- the patrol lady\'s numbers above with her patron\'s list (invented.json#patrol-ladies-by-patron) -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a warlock in chain mail; passive Perception 10, because 10 + WIS +0'
+  },
+  patrolladymirror: {
+    name: 'Patrol Lady (the Mirror)', type: 'humanoid', sheet: 'npcwarlock_p0', humanoid: true, cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, seatAs: 'patrollady',
+    abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
+    saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
+    attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
+    multi: ['blast', 'blast'], mirrorEye: true, build: 'patrolladymirrorw',
+    src: 'the Snoot mode\'s Dominion wagons: the Old One\'s wagon\'s lady, a warlock 5 of the Mirror (its eye, RULED 09-28) -- the patrol lady\'s numbers above with her patron\'s list (invented.json#patrol-ladies-by-patron) -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a warlock in chain mail; passive Perception 10, because 10 + WIS +0'
+  },
+  patrolladyfae: {
+    name: 'Patrol Lady (the Fae King)', type: 'humanoid', sheet: 'npcwarlock_p0', humanoid: true, cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, seatAs: 'patrollady',
+    abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
+    saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
+    attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
+    multi: ['blast', 'blast'], build: 'patrolladyfaew',
+    src: 'the Snoot mode\'s Dominion wagons: Tronu\'s wagon\'s lady, a warlock 5 of the Pact of the Fae King -- the patrol lady\'s numbers above with her patron\'s list (invented.json#patrol-ladies-by-patron) -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), because a warlock in chain mail; passive Perception 10, because 10 + WIS +0'
+  },
   amara: {
     named: true, name: 'Amara', type: 'humanoid', sheet: 'amara_p2', cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, // (sheet: the art desk's HALFWAY-INN-AMARA-COMBAT since 11-04, art-wanted section 35, tools/amara-sheet.py -- idle, walk, run, cast, flinch, fall, prone in eight facings; amara_p1, the old render, kept beside it) (hp: warlock 5 at a max d8+1 a level, RULED 09-28; the speed, size and reach sat behind this comment from e8435b3 to 09-28, so she had none)
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,

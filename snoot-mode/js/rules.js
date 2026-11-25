@@ -158,7 +158,8 @@
   // at level 4): the benches are to rewrite them, here and only here. The words are the grid's (deep16/js/headless.js H.BODY, H.bodyOf -- the same reading).
   SN.WORTH = { guard: 1, bandit: 1, berserker: 6, dominion: 4, patrollady: 10, 'paladin:4': 8, greyfang: 20, katarina: 8, harbinger: 25, mirrorhyena: 2,
     hyena: 0.5, gnoll: 2.5, gloryseeker: 5, gnollgray: 2.5, gloryseekergray: 5, gnollfemale: 3.5, gnollgrayfemale: 3.5, gnollmatriarch: 4, gnollmatriarchguard: 5, gnollmatriarcheldest: 20, gnollmatriarchlama: 10,
-    dragger: 2, sergeantblade: 6, sergeantledger: 6, mender: 6 }; // (the rest of a Dominion wagon, 11-24: the seat's first guess beside the soldier's 4 and the Berserker's 6 -- a wagon was 58, now 52)
+    dragger: 2, sergeantblade: 6, sergeantledger: 6, mender: 6, // (the rest of a Dominion wagon, 11-24: the seat's first guess beside the soldier's 4 and the Berserker's 6 -- a wagon was 58, now 52)
+    patrolladyfiend: 10, patrolladymirror: 10, patrolladyfae: 10 }; // (the three ladies by patron, 11-25, the patrol lady's 10 till the benches -- his "no point in benching til it's finished being built"; a wagon with the lady's guard, 80)
   SN.WORTH_OTHER = 2; SN.WORTH_FOUR = 60; // (a word the table does not have; the four together, who fight their own fight)
   // a hero's word on the grid, and a unit's make-up cut to the men it has left (js/headless.js sends the same)
   SN.gridWord = function (h) { return h.grid || { GreyFang: 'greyfang', Katarina: 'katarina', 'the Harbinger': 'harbinger' }[h.name] || (h.paladin ? 'paladin:4' : h.warlock ? 'patrollady' : h.harbinger ? 'harbinger' : null); };
@@ -310,7 +311,7 @@
     if (st.domDay != null && st.day >= st.domDay && !st.domIn) {
       st.domIn = true;
       SN.DOMINION.forEach(function (f) { var u = SN.make(f, true); u.at = SN.freeNear(st, SN.WEST, u); st.units.push(u); });
-      SN.say(st, 'Three Dominion wagons come along the west road, a lady on each bench and in each a mender, two sergeants and eight men. They have come to watch.', 'dominion', SN.WEST);
+      SN.say(st, 'Three Dominion wagons come along the west road, a lady on each bench and in each a mender, two sergeants and sixteen men. They have come to watch.', 'dominion', SN.WEST); // (sixteen since 11-25: the lady's guard, js/data.js)
       st.events.push({ kind: 'dominion' });
     }
     if (st.huntDay != null && !st.head) { var hb = SN.unit(st, 'harb'); if (hb && hb.beaten && hb.beaten <= st.day) { hb.beaten = 0; SN.say(st, 'The Harbinger walks out of the mirror again on the moot ground.', 'hunt', hb.at); } }
@@ -962,16 +963,21 @@
       g.forEach(function (u) { (u.heroes || []).forEach(function (x, i) { if (!x.dead && x.grid && room > 0) { chiefs[list.length] = [u.id, i]; list.push(x.grid); room--; } }); send(u, u.comp || { gnoll: 1 }); });
       return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, chiefs: chiefs, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
     }
-    // the Dominion: each wagon's patrol lady first -- DEEP16's patrollady, a warlock of the Mirror (his note 10-15: "there wasn't any warlocks when I
+    // the Dominion: each wagon's patrol lady first -- DEEP16's patrollady, a warlock of the Mirror, and since 11-25 each wagon's own by her patron (his note 10-15: "there wasn't any warlocks when I
     // ran the party into a dominion fight": the band sent only the soldiers) -- then its soldiers man for man; `ladies` says whose each list place is
     // -- its men by their kinds since 11-24 (RULED, Griz: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger"; a wagon met on the
     // grid fields the same): the line soldiers, the draggers, the two sergeants and the mender as they stand on the map (SN.compNow, off its groups); till then every
     // man of them went as `trooper`, the dwarven hold's. `whose`: each list place's wagon, word and squad, so who falls there comes off the map man for man (SN.partyResult).
     // SQUAD BY SQUAD (RULED 11-24, Griz: "I like the sergeant for every 4 men (2 and 2 dragger)"): each sergeant, then his two line soldiers and his two draggers, then the
     // next squad, the mender last -- so a band cut short by the grid's room sends whole squads, and the grid's wagon fight stands them together (data/fights.js snootwagon)
-    var ladies = {}, whose = {}, SQ = { sergeantblade: 0, sergeantledger: 0, dominion: 1, dragger: 2 };
-    foes.filter(function (u) { return u.side === 'dominion'; }).forEach(function (u) {
-      if (room > 0 && SN.heroesOf(u).some(SN.isWiz)) { ladies[list.length] = u.id; list.push('patrollady'); room--; }
+    // EVERY WAGON'S LADY BEFORE ANY WAGON'S MEN (11-25, the seat snoot-1125): a wagon is nineteen men and its lady since the lady's guard (js/data.js), so three wagons in a hex
+    // would fill the grid's thirty before the third lady -- each lady goes first, then the men wagon by wagon, squad by squad (as three ladies and 27 men went before)
+    var ladies = {}, whose = {}, SQ = { sergeantblade: 0, sergeantledger: 0, dominion: 1, dragger: 2 }, doms = foes.filter(function (u) { return u.side === 'dominion'; });
+    doms.forEach(function (u) {
+      var lw = SN.heroesOf(u).filter(SN.isWiz)[0]; // (her own on the grid since 11-25: the Fiend's, the Mirror's or the Fae King's -- the hero's `grid`, js/data.js SN.PATRONS)
+      if (room > 0 && lw) { ladies[list.length] = u.id; list.push(SN.gridWord(lw) || 'patrollady'); room--; }
+    });
+    doms.forEach(function (u) {
       if (!u.groups || !u.groups.every(function (g) { return g.grid; })) { var at = list.length; send(u, { dominion: 1 }); for (var i = at; i < list.length; i++) whose[i] = [u.id, list[i], null]; return; }
       var gs = u.groups.slice().sort(function (a, b) { return (a.squad || 9) - (b.squad || 9) || (SQ[a.grid] != null ? SQ[a.grid] : 3) - (SQ[b.grid] != null ? SQ[b.grid] : 3); }), n = 0;
       gs.forEach(function (g) { for (var j = 0; j < g.n && room > 0; j++) { whose[list.length] = [u.id, g.grid, g.squad || null]; list.push(g.grid); room--; n++; } });
@@ -980,7 +986,8 @@
     return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, ladies: ladies, whose: whose, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
   };
   // a Dominion band in words, by its kinds (11-24): "4 line soldiers, 4 draggers, 2 sergeants, a mender and a patrol lady"
-  SN.DOMWORD = { dominion: ['line soldier', 'line soldiers'], dragger: ['dragger', 'draggers'], sergeantblade: ['sergeant', 'sergeants'], sergeantledger: ['sergeant', 'sergeants'], mender: ['mender', 'menders'], patrollady: ['patrol lady', 'patrol ladies'] };
+  SN.DOMWORD = { dominion: ['line soldier', 'line soldiers'], dragger: ['dragger', 'draggers'], sergeantblade: ['sergeant', 'sergeants'], sergeantledger: ['sergeant', 'sergeants'], mender: ['mender', 'menders'], patrollady: ['patrol lady', 'patrol ladies'],
+    patrolladyfiend: ['patrol lady', 'patrol ladies'], patrolladymirror: ['patrol lady', 'patrol ladies'], patrolladyfae: ['patrol lady', 'patrol ladies'] };
   SN.gnollWords = function (st, b) { var cs = Object.keys(b.chiefs || {}).map(function (k) { var c = b.chiefs[k], u = SN.unit(st, c[0]); return u.heroes[c[1]].name; }); return b.enemies.length + ' (' + (cs.length ? cs.join(', ') + ', and ' + (b.enemies.length - cs.length) + ' more' : 'glory-seekers, gnolls, hyenas') + ')'; };
   SN.bandWords = function (b) {
     var n = {}, order = [];

@@ -19323,6 +19323,78 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePy);
     return;
   }
+  // THE SNOOT'S THREE WAGONS (mode=snoot1125; the snoot lane, 2026-11-25 -- the seat snoot-1125, on Griz's "1 - we need all 3 patron specific patrol ladys for the snoot, each
+  // with flavored spell list" and "Snoot wagons get 8 extra troops (6 foot, 2 dragger) (not a recruiting wagon)"; functional only, his "no point in benching til it's finished
+  // being built as far as balance goes, functional benches make sense"): the three ladies' lists -- each her patron's, from the SRD warlock's and her patron's own and nothing
+  // else, the Fiend's own on the Fiend's alone, the three apart; the Fae King's GLAMOUR; the patrol lady's own list as it was; each block built from her list on the grid (?npc=),
+  // the Mirror's eye on the Mirror's alone; each casting from her own list in whole fights beside four line soldiers (&fights=N, 4); the wagon's fight whole by its door (twenty)
+  // and as the Snoot sends it (each squad on its own spots, a patron's lady on the lady's). The Snoot's own half is dev/snoot-probe.py
+  if (get('mode', '') === 'snoot1125') {
+    var repSn = { checks: [], errors: [], casts: {} }, d0Sn = D.d, NPs = D.npc, cast0Sn = D.magic.cast;
+    function okSn(what, v) { repSn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function lvSn(ids) { return ids.filter(function (id) { var s = D.magic.data(id); return s && s.level > 0; }).slice().sort(); }
+    try {
+      D.seed = 1125;
+      var FOs = NPs.FIEND_OWN || [], seenSn = [];
+      // the SRD warlock's own list to 3rd, the built ones (spells-srd-by-class.md, Warlock) and Gnawing Word (ours, on the warlock's list since 10-30)
+      var SRDW = ['eldritchblast', 'chilltouch', 'poisonspray', 'truestrike', 'charmperson', 'expeditiousretreat', 'hellishrebuke', 'gnawingword', 'darkness', 'holdperson', 'invisibility', 'mirrorimage',
+        'mistystep', 'rayofenfeeblement', 'shatter', 'counterspell', 'dispelmagic', 'fear', 'hypnoticpattern', 'vampirictouch'];
+      var LADY = [['patrolladyfiend', 'patrolladyfiendw', 'The Fiend', 'fireball'], ['patrolladymirror', 'patrolladymirrorw', 'The Mirror', 'glasswhisper'], ['patrolladyfae', 'patrolladyfaew', NPs.FAE, 'sleep']], lvS = {};
+      LADY.forEach(function (L) {
+        var sh = NPs.sheet(NPs.spec(L[1])), ex = (NPs.SUBS[L[2]] || {}).expanded || {}, own = [].concat.apply([], Object.keys(ex).map(function (k) { return ex[k]; }));
+        var off = sh.known.filter(function (id) { return SRDW.indexOf(id) < 0 && own.indexOf(id) < 0; }), fiend = L[2] === 'The Fiend' ? [] : sh.known.filter(function (id) { return FOs.indexOf(id) >= 0 && own.indexOf(id) < 0; });
+        var unbuilt = sh.known.filter(function (id) { return !D.magic.data(id); }); lvS[L[0]] = lvSn(sh.known).join(',');
+        okSn(L[0] + ', ' + sh.subclass + ' warlock ' + sh.lvl + ': knows ' + sh.known.join(', ') + ' -- off her patron\'s and the warlock\'s list: ' + (off.join(', ') || 'none') + '; the Fiend\'s own: ' + (fiend.join(', ') || 'none') + '; unbuilt: ' + (unbuilt.join(', ') || 'none') + '; her mark ' + L[3] + ' ' + (sh.known.indexOf(L[3]) >= 0),
+          sh.subclass === L[2] && sh.lvl === 5 && !off.length && !fiend.length && !unbuilt.length && sh.known.indexOf(L[3]) >= 0 && NPs.NAMED[L[1]].known.every(function (id) { return sh.known.indexOf(id) >= 0; }) && lvSn(sh.known).length === 6);
+        if (L[0] === 'patrolladyfae') okSn('the Fae King\'s lady has GLAMOUR (' + !!sh.glamour + ') and not GONE FROM SIGHT at 5 (' + !(sh.feats && sh.feats.goneFromSight) + ')', !!sh.glamour && !(sh.feats && sh.feats.goneFromSight));
+      });
+      okSn('the three lists apart: ' + LADY.map(function (L) { return L[0].replace('patrollady', '') + ' ' + lvS[L[0]]; }).join(' / '), lvS.patrolladyfiend !== lvS.patrolladymirror && lvS.patrolladymirror !== lvS.patrolladyfae && lvS.patrolladyfiend !== lvS.patrolladyfae);
+      var plS = NPs.sheet(NPs.spec('patrolladyw'));
+      okSn('the patrol lady (patrolladyw) as she was, her Scorching Ray with her: ' + plS.known.join(', '), plS.known.join(',') === 'eldritchblast,chilltouch,poisonspray,hellishrebuke,command,holdperson,scorchingray,vampirictouch,mirrorimage' && plS.subclass === 'The Mirror');
+      // each block on the grid, by its word
+      LADY.forEach(function (L) {
+        var B = D.npcFight('?npc=' + L[0] + '&lvl=5&vs=fighter:5', {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 2000) B.co.next();
+        var f = B.units.filter(function (w) { return w.side === 'foe' && !w.object; })[0], fk = f ? lvSn(f.known || []).join(',') : '';
+        okSn('?npc=' + L[0] + ': "' + (f && f.name) + '", ' + (f && f.subclass) + ', AC ' + (f && D.rules.ac(f)) + ', HP ' + (f && f.maxhp) + ', the Mirror\'s eye ' + !!(f && f.mirrorEye) + ', seats as ' + D.FOES[L[0]].seatAs + '; her spells ' + fk,
+          !!f && f.subclass === L[2] && fk === lvS[L[0]] && !!f.mirrorEye === (L[2] === 'The Mirror') && D.FOES[L[0]].seatAs === 'patrollady' && f.maxhp === 45);
+      });
+      // each casting from her own list, whole fights, the class AI's on both sides: a lady and four line soldiers against four at 5
+      D.magic.cast = function* (B, u, id) { if (u && u.side === 'foe' && /^Patrol Lady/.test(u.name || '')) seenSn.push([u.name, id]); return yield* cast0Sn.apply(this, arguments); };
+      var nFs = +get('fights', 4);
+      LADY.forEach(function (L) {
+        var tal = { won: 0, lost: 0, other: 0, errors: 0 }, mine = NPs.sheet(NPs.spec(L[1])).known, name = D.FOES[L[0]].name, s0 = seenSn.length;
+        for (var i = 0; i < nFs; i++) {
+          D.seed = 1125 * 17 + i * 7919 + L[0].length; D.lastError = null; var e0 = errs.length;
+          var Bf = new D.Battle({ npc: { party: ['fighter:5', 'cleric:5', 'rogue:5', 'wizard:5'], foes: [L[0], 'dominion', 'dominion', 'dominion', 'dominion'] }, bench: true, fightDef: D.classFight(5) }); D.battle = Bf; Bf.enter();
+          var res = drive(Bf); if (res === 'won') tal.won++; else if (res === 'lost') tal.lost++; else tal.other++; if (errs.length > e0 || D.lastError) tal.errors++;
+        }
+        var hers = seenSn.slice(s0).filter(function (c) { return c[0] === name; }).map(function (c) { return c[1]; }), by = {}; hers.forEach(function (id) { by[id] = (by[id] || 0) + 1; }); repSn.casts[L[0]] = by;
+        var stray = Object.keys(by).filter(function (id) { return mine.indexOf(id) < 0; }), lvl = Object.keys(by).filter(function (id) { var s = D.magic.data(id); return s && s.level > 0; });
+        okSn(name + ' and four line soldiers against four at 5, ' + nFs + ' fights (' + tal.won + ' the party\'s, ' + tal.lost + ' hers, ' + tal.other + ' other; errors ' + tal.errors + '): she cast ' + (Object.keys(by).map(function (id) { return id + ' x' + by[id]; }).join(', ') || 'nothing') + ' -- off her list: ' + (stray.join(', ') || 'none'),
+          tal.errors === 0 && !stray.length && lvl.length > 0);
+      });
+      D.magic.cast = cast0Sn;
+      // the wagon's fight by its door alone: his patrol page's patrol as it stood -- the lady's guard's spots are the Snoot's list's (`listOnly`), so the two walls' and Wagon
+      // Drill's rows and benches on this door see what they were written to
+      var Bw = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, bench: true }); D.battle = Bw; Bw.enter(); var kw = 0; while (!Bw.order.length && kw++ < 2000) Bw.co.next();
+      var cnt = {}; Bw.units.filter(function (w) { return w.side === 'foe' && !w.object; }).forEach(function (w) { cnt[w.kind] = (cnt[w.kind] || 0) + 1; });
+      var guardIn = Bw.units.filter(function (w) { return /^g[ud]\d$/.test(w.id || ''); }).length;
+      okSn('?fight=snootwagon by its door alone fields the patrol of The Fare Home as before: ' + JSON.stringify(cnt) + '; the lady\'s guard ' + guardIn, cnt.patrollady === 1 && cnt.sergeantblade === 1 && cnt.sergeantledger === 1 && cnt.dominion === 4 && cnt.dragger === 4 && cnt.mender === 1 && !guardIn);
+      // as the Snoot sends Tronu's wagon (snoot-mode/js/rules.js SN.band, squad by squad): the Fae King's lady on the lady's spot, each squad on its own
+      var LS = ['patrolladyfae', 'sergeantblade', 'dominion', 'dominion', 'dragger', 'dragger', 'sergeantledger', 'dominion', 'dominion', 'dragger', 'dragger', 'dominion', 'dominion', 'dominion', 'dominion', 'dominion', 'dominion', 'dragger', 'dragger', 'mender'];
+      var Be = new D.Battle({ embed: { enemies: LS, canRun: false }, fight: 'snootwagon', data: D.save.fixture(3) }); D.battle = Be; Be.enter(); var ke = 0; while (!Be.order.length && ke++ < 3000) { if (Be.co.next().done) break; }
+      var at8 = {}; Be.units.forEach(function (w) { if (w.side === 'foe' && w.i8 != null) at8[w.i8] = w.kind + '@' + w.x + ',' + w.y; });
+      var wantE = { 0: 'patrolladyfae@9,2', 1: 'sergeantblade@4,5', 2: 'dominion@5,5', 6: 'sergeantledger@15,5', 7: 'dominion@13,5', 11: 'dominion@7,3', 16: 'dominion@12,3', 17: 'dragger@8,2', 18: 'dragger@11,2', 19: 'mender@10,2' };
+      var badE = Object.keys(wantE).filter(function (i) { return at8[i] !== wantE[i]; });
+      okSn('Tronu\'s wagon as the Snoot sends it: ' + Object.keys(at8).length + ' on the field; the lady ' + at8[0] + ', the Blade ' + at8[1] + ', the Ledger ' + at8[6] + ', the guard ' + at8[11] + ' to ' + at8[16] + ', its pikes ' + at8[17] + ' ' + at8[18] + ', the mender ' + at8[19] + (badE.length ? ' -- not where it should stand: ' + badE.map(function (i) { return i + ' ' + at8[i]; }).join(', ') : ''),
+        Object.keys(at8).length === 20 && !badE.length);
+    } catch (e) { repSn.errors.push(String(e && e.stack || e)); }
+    D.magic.cast = cast0Sn; D.d = d0Sn;
+    if (errs.length) repSn.errors = repSn.errors.concat(errs.slice(0, 5));
+    var preSn = document.createElement('pre'); preSn.id = 'out'; preSn.textContent = 'BENCH16 ' + JSON.stringify(repSn);
+    document.body.appendChild(preSn);
+    return;
+  }
   // EACH PATRON ITS OWN LIST; ANSWER BACK ONCE A RAGE (mode=patrons1125; the leveling lane, 2026-11-25 -- the beefiness check, Griz: "9 - yes" to the warlock's lists, and "Answer
   // Back seems a little strong, the other two can sit as they are"): the Fiend's warlock knows at 1-9 what the card's list gave it (a sheet with no patron's list is the card's) and
   // its page offers its three the card never carried; the Mirror's known and offered hold its own (to Mislead and Dominate Person at 9) and none of the Fiend's but Command, never its

@@ -174,8 +174,25 @@
   // off the groups. THE SQUADS (RULED 11-24, Griz: "I like the sergeant for every 4 men (2 and 2 dragger)"): each sergeant leads two line soldiers and two draggers,
   // `squad` 1 the Blade's and 2 the Ledger's -- each squad's kinds their own groups, sent to the grid together (js/rules.js SN.band) and standing together there
   // (deep16/data/fights.js snootwagon). A line soldiers' group is first: a hero fights with a unit's first type (the lady fights as her own two Armored Foot)
-  var WAGON = function (id, missile) {
-    return { id: id, side: 'dominion', name: 'a Dominion wagon', kind: 'the Dominion', cls: 'HF', def: 'HF', wagon: true, rides: true, move: 3, cleric: true,
+  // EIGHT MORE MEN A WAGON (2026-11-25, the seat snoot-1125 -- RULED, Griz: "Snoot wagons get 8 extra troops (6 foot, 2 dragger) (not a recruiting wagon)"; how they squad
+  // the builder's to propose): THE LADY'S GUARD, `squad` 3 -- six line soldiers and two draggers who stand at the wagon with the lady and the mender, under her own word; no
+  // sergeant (his "I don't want to art request a sergeant variant"), so the two sergeants' squads stay his "sergeant for every 4 men (2 and 2 dragger)". Sixteen men, the two
+  // sergeants and the mender: nineteen a wagon and its lady (it was eleven). The seat's reading, his to change: the eight split four and four into the sergeants' squads instead.
+  // THE THREE BY PATRON (RULED 11-25: each wagon's lady by her patron -- Savine's the Fiend, the Old One's the Mirror, Tronu's the Fae King; his "1 - we need all 3 patron
+  // specific patrol ladys for the snoot, each with flavored spell list"): `patron`, and the lady's `grid`, her own on DEEP16's grid (deep16/data/foes.js patrolladyfiend,
+  // patrolladymirror, patrolladyfae: each by her patron's list). Which wagon is whose: dm1 Savine's, dm2 the Old One's, dm3 Tronu's -- the seat's call so the three could be
+  // built (the three come on together; the errands, which is which on the board and where each goes, are the lane's, open for him). Each lady's missile stays as it was.
+  // TRONU'S WAGON'S GOAL (RULED 11-25, Griz: "lets have them aim to build the garrison there (but they divert toward the barbarians in the snoot)"): `garrison` -- it
+  // makes for the toll garrison's hex (SN.GARRISON, the map's: one hex up the Coldridge Route from the Galleries junction) and goes for the plains tribes while they are in
+  // the field (js/ai.js AI.tronu)
+  SN.PATRONS = {
+    fiend: { whose: 'Savine', of: 'the Fiend', grid: 'patrolladyfiend' },
+    mirror: { whose: 'the Old One', of: 'the Mirror', grid: 'patrolladymirror' },
+    faeking: { whose: 'Tronu', of: 'the Fae King', grid: 'patrolladyfae' }
+  };
+  var WAGON = function (id, missile, patron, more) {
+    var P = SN.PATRONS[patron];
+    return Object.assign({ id: id, side: 'dominion', name: 'a Dominion wagon', kind: 'the Dominion', cls: 'HF', def: 'HF', wagon: true, rides: true, move: 3, cleric: true, patron: patron, whose: P.whose,
       groups: [
         { cls: 'HF', def: 'HF', n: 2, name: 'the Blade\'s line soldiers', grid: 'dominion', squad: 1, sheets: ['dominion_p2'] }, // (each group on its grid kind's own sheet, 11-25,
         { cls: 'LF', def: 'LF', n: 2, name: 'the Blade\'s draggers', grid: 'dragger', squad: 1, sheets: ['dragger_p2'] },        //  the cutter seat cutter-1125: the line soldier's
@@ -183,12 +200,14 @@
         { cls: 'HF', def: 'HF', n: 2, name: 'the Ledger\'s line soldiers', grid: 'dominion', squad: 2, sheets: ['dominion_p2'] },          // wears it, the sergeant in each kit
         { cls: 'LF', def: 'LF', n: 2, name: 'the Ledger\'s draggers', grid: 'dragger', squad: 2, sheets: ['dragger_p2'] },               // (ART-163: art-wanted 99), the mender
         { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', squad: 2, sheets: ['dmsergeantshield_p2'] }, // (ART-164: art-wanted 100) --
-        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['mender_p2'] }  // till then dominion_p1 and the stock cleric's npccleric_p0)
+        { cls: 'HF', def: 'HF', n: 6, name: 'the lady\'s guard, line soldiers', grid: 'dominion', squad: 3, sheets: ['dominion_p2'] },   // till then dominion_p1 and the stock
+        { cls: 'LF', def: 'LF', n: 2, name: 'the lady\'s guard, draggers', grid: 'dragger', squad: 3, sheets: ['dragger_p2'] },          // cleric's npccleric_p0)
+        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['mender_p2'] }
       ],
-      comp: { dominion: 4, dragger: 4, sergeantblade: 1, sergeantledger: 1, mender: 1 },
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: missile }], sheets: ['npcwarlock_p0', 'dominion_p2'] };
+      comp: { dominion: 10, dragger: 6, sergeantblade: 1, sergeantledger: 1, mender: 1 },
+      heroes: [{ type: 'wizard', name: 'a patrol lady of ' + P.of + ' (warlock)', warlock: true, missile: missile, patron: patron, grid: P.grid }], sheets: ['npcwarlock_p0', 'dominion_p2'] }, more || {});
   };
-  SN.DOMINION = [WAGON('dm1', 'fireball'), WAGON('dm2', 'lightning'), WAGON('dm3', 'fireball')];
+  SN.DOMINION = [WAGON('dm1', 'fireball', 'fiend'), WAGON('dm2', 'lightning', 'mirror'), WAGON('dm3', 'fireball', 'faeking', { garrison: true })];
   SN.DAY0 = 14; SN.HUNT = 18; SN.LAST = 28; // (the Pit two days after the Skylights, Day 14; the exchange ~18-21 -- the clock lane; the battle stops at Day 28 whatever stands)
   SN.STACK = 3; // (units of one side a hex, the Pit excepted)
 
@@ -200,7 +219,8 @@
   // The days are not re-timed: on the world's map the first trial battles (the tables' stand-in, both sides the computer's) still had the head by Day 20,
   // so Day 14, the hunt's Day 18 and the last day 28 stand till he plays it.
   SN.FIXTURE = { name: 'fixture', W: 15, H: 10, rows: ROWS, roads: SN.ROADS, places: SN.PLACES, pit: [9, 8], moot: [3, 5], west: [0, 0], south: [9, 9], inn: [8, 3],
-    seats: { skull: [7, 1], wall: [0, 1] }, roadpt: [8, 5], beside: [7, 6], start: null, farms: {}, other: {}, last: 28 };
+    seats: { skull: [7, 1], wall: [0, 1] }, roadpt: [8, 5], beside: [7, 6], start: null, farms: {}, other: {}, last: 28,
+    garrison: { at: [8, 0], off: true, name: 'the toll garrison up the Coldridge Route' } }; // (the fixture's: the Pit road's north end, the way to the fork and the climb -- the world's map is the real one, tools/snoot-map.py)
   SN.FIND = 35; SN.mapv = 0;
   SN.useMap = function (M) {
     SN.MAPNAME = M.name; SN.W = M.W; SN.H = M.H; SN.ROWS = M.rows; SN.ROADS = M.roads; SN.PLACES = M.places;
@@ -208,6 +228,7 @@
     SN.WEST = M.west; SN.SOUTH = M.south; SN.INN = M.inn; SN.SEATS = M.seats; SN.ROADPT = M.roadpt; SN.BESIDE = M.beside;
     SN.FARMAT = M.farmAt || {}; SN.BOX = M.box || null; SN.START = M.start || null; SN.FORCEOV = M.forces || null; SN.DROP = M.drop || []; SN.FARMS = M.farms || {}; // (FORCEOV, DROP: what a map changes of SN.FORCES, by a unit's id -- js/rules.js SN.make, SN.newGame)
      SN.OTHER = M.other || {}; SN.LAST = M.last || 28; SN.mapv++;
+    SN.GARRISON = M.garrison || null; // (where Tronu's wagon means to build, 11-25: { at, off, name } -- `off`: the hex is beyond the board, and `at` the board's hex on the road to it)
   };
   SN.useMap(SN.FIXTURE);
 })();

@@ -12,7 +12,8 @@
    seen, and ride back to the Verge once the Snoot has gone home.
    A band hunting picks GreyFang if it can reach him in two days (the walking jackpot), else the nearest of ours it can face -- and
    it goes round the four where it can (the Snoot shies from a Lupine's guard; the lane §5.4). The Dominion watches: it walks the
-   west road to the inn and holds there, and strikes only at what is small and next to it. SN.AI.ours is the bench's hand for our
+   west road to the inn and holds there, and strikes only at what is small and next to it -- but Tronu's wagon (11-25) makes for its
+   garrison up the Coldridge Route and goes for the plains tribes while they are in the field (AI.tronu). SN.AI.ours is the bench's hand for our
    side (the gate's whole battle, and &watch). */
 'use strict';
 (function () {
@@ -121,11 +122,29 @@
   };
   AI.dominion = function (st, u) {
     u.order = { type: 'hold' };
+    if (u.garrison && AI.tronu(st, u)) return;
     var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.worth(x) <= 8; })[0]; // (what is small: a handful of men -- eight Line Guards' worth, SN.WORTH)
     if (near) { go(st, u, near.at); return; }
     var inn = SN.INN.slice();
     if (!SN.same(u.at, inn) && SN.dist(u.at, inn) > 1) go(st, u, inn);
     else u.order = { type: 'avoid' }; // (they came to watch, not to fight: Book III's evasion, RULED 10-15)
+  };
+  // TRONU'S WAGON (2026-11-25, the seat snoot-1125 -- RULED, Griz, 11-15: "Tronu thought the wagons were the first part of securing the coldridge route and setting up
+  // toll/customs garrison where the climb starts. He didn't anticipate the barbarians and his wagon will throw in against them"; 11-25: "lets have them aim to build the garrison
+  // there (but they divert toward the barbarians in the snoot)"): while the Snoot is on and a unit of the plains tribes stands in the field, it goes for the nearest of them,
+  // through whoever stands in the way; else it makes for its garrison's hex (SN.GARRISON: on the world's map the fork, where the road north leaves for the Galleries junction
+  // and the climb -- the hex itself, the near map's (63,23), is fifteen miles off the board) and holds there. Where it goes once there is the errands' (the lane, his to call)
+  AI.tronu = function (st, u) {
+    var bb = st.head ? [] : st.units.filter(function (x) { return x.kind === 'the plains' && SN.alive(x) && x.on && SN.hostile(u, x); })
+      .sort(function (a, b) { return SN.dist(a.at, u.at) - SN.dist(b.at, u.at); });
+    if (bb[0]) {
+      if (!u.diverted) { u.diverted = st.day; SN.say(st, 'A Dominion wagon turns off its road and goes for ' + bb[0].name + '.', 'dominion', u.at); }
+      if (!SN.same(bb[0].at, u.at)) go(st, u, bb[0].at); else u.order = { type: 'hold' };
+      return true;
+    }
+    var G = SN.GARRISON; if (!G) return false;
+    if (!SN.same(u.at, G.at)) { if (go(st, u, G.at.slice())) return true; }
+    u.order = { type: 'hold' }; return true;
   };
 
   // ---------------------------------------------------------------- the bench's hand for our side (the probe's whole battle; ?watch)

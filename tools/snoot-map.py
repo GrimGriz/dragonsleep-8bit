@@ -37,6 +37,12 @@ FORCES = {
              'note': "Mr. Ripples' made gnoll, mirror eyes in both sockets, his six mirror hyenas, and the gnolls who have gone over to him: males only, and more as the bands break near him."},
 }
 DROP = ['sg4']
+# TRONU'S GARRISON (RULED 2026-11-25, Griz, told the Coldridge Route now leaves at the Galleries junction: "i like it, but that hex one-step up with 600 ft elevation is
+# more defensible - lets have them aim to build the garrison there (but they divert toward the barbarians in the snoot)"): the Silverton area's hex (deep16/data/world-near.js,
+# a mile and a half across) one step up the Coldridge Route from the junction's (63,24): foothills, 681 ft. Read to THE WORLD's 5-mile hex it lies in; off the Snoot's box,
+# the board's hex Tronu's wagon makes for is the box's road hex nearest it (js/ai.js AI.tronu; SN.GARRISON)
+GARRISON_NEAR = (63, 23)
+S3 = 3 ** 0.5
 GROUND = {'plains': '.', 'verge': 'v', 'farms': 'f', 'hills': 'h', 'foothills': 'h', 'woods': 't', 'bog': 'b', 'gulch': 'g', 'lake': 'w', 'sea': 'w',
           'black': 'x', 'gray': 'x', 'coastal': 'x', 'town': '.', 'rift': 'x'}
 ROADS = [('pitroad', 'the Pit road'), ('castegut', 'the west road (the Castegut road)'), ('pirate', 'the pirate road'), ('newland', 'the south road (to Newland)'), ('mile', 'the mile (to Silverton)')]
@@ -48,6 +54,14 @@ def dist(a, b): p, q = cube(*a), cube(*b); return max(abs(p[0] - q[0]), abs(p[1]
 def nbrs(h):
     d = [[(1, 0), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)], [(1, 0), (1, -1), (0, -1), (-1, 0), (0, 1), (1, 1)]][h[1] & 1]
     return [(h[0] + a, h[1] + b) for a, b in d]
+def at_axial(x, y, w): # (the hex a point in miles is in, axial -- tools/near-build.py axial, for one point)
+    r = y / (w * S3 / 2); X = x / w - r / 2; Z = r; Y = -X - Z
+    rx, ry, rz = round(X), round(Y), round(Z)
+    dx, dy, dz = abs(rx - X), abs(ry - Y), abs(rz - Z)
+    if dx > dy and dx > dz: rx = -ry - rz
+    elif dy > dz: ry = -rx - rz
+    else: rz = -rx - ry
+    return int(rx), int(rz)
 
 
 def main():
@@ -121,7 +135,16 @@ def main():
         {'at': loc(pit), 'name': "Tarlyn's Pit"}, {'at': loc(inn), 'name': 'the Halfway Inn', 'dx': -0.3}, {'at': loc(lake), 'name': 'Halfway Lake', 'dx': 0.35, 'dy': -0.95},
         {'at': loc(gulch), 'name': 'Web Gulch', 'dx': 0.35, 'dy': -0.95}, {'at': loc(moot), 'name': 'the moot ground'}, {'at': loc(SKULL), 'name': 'the Skull-Gate', 'dx': -0.3},
         {'at': loc(WALL), 'name': 'the Wall-Laugh'}, {'at': loc(HOME), 'name': "the Gray Keeping's home"}, {'at': [C1 - C0 - 2, inn[1] - R0], 'name': 'the Verge'}]
-    M = {'name': 'world', 'from': W.get('from'), 'box': [C0, R0, C1, R1], 'W': C1 - C0 + 1, 'H': R1 - R0 + 1, 'rows': rows,
+    # Tronu's garrison: the near map's hex to THE WORLD's, and the board's hex on the way to it
+    tn = io.open(os.path.join(ROOT, 'deep16', 'data', 'world-near.js'), encoding='utf-8').read(); NR = json.loads(tn[tn.index('.WORLD_NEAR = ') + 14:tn.rindex('}') + 1])
+    gn = [e for e in NR['hexes'] if (e[0], e[1]) == GARRISON_NEAR]
+    assert gn and gn[0][2] in ('foothills', 'hills'), ('the garrison hex is not in the foothills', GARRISON_NEAR, gn[:1])
+    gq, gr = at_axial(NR['hexMi'] * (GARRISON_NEAR[0] + GARRISON_NEAR[1] / 2.0), NR['hexMi'] * S3 / 2 * GARRISON_NEAR[1], W['hexMi']); GH = (col(gq, gr), gr)
+    gx, gy = NR['hexMi'] * (GARRISON_NEAR[0] + GARRISON_NEAR[1] / 2.0), NR['hexMi'] * S3 / 2 * GARRISON_NEAR[1]
+    miles = lambda h: ((W['hexMi'] * (h[0] - (h[1] - (h[1] & 1)) // 2 + h[1] / 2.0) - gx) ** 2 + (W['hexMi'] * S3 / 2 * h[1] - gy) ** 2) ** 0.5 # (a hex's middle to the garrison, miles)
+    gat = GH if inbox(GH) and walk(GH) else min(road_hex, key=lambda h: (dist(h, GH), miles(h))) # (the nearest road hex, by hexes and then by miles: the fork, where the road north leaves)
+    garrison = {'at': loc(gat), 'off': not inbox(GH), 'near': list(GARRISON_NEAR), 'world': list(GH), 'ft': gn[0][3], 'name': 'the toll garrison, one hex up the Coldridge Route'}
+    M = {'name': 'world', 'from': W.get('from'), 'box': [C0, R0, C1, R1], 'W': C1 - C0 + 1, 'H': R1 - R0 + 1, 'rows': rows, 'garrison': garrison,
          'roads': [{'name': n, 'hexes': [loc(h) for h in run]} for n, run in roads], 'places': places,
          'pit': loc(pit), 'moot': loc(moot), 'inn': loc(inn), 'west': loc(wend), 'south': loc(send), 'seats': {'skull': loc(SKULL), 'wall': loc(WALL), 'gray': loc(HOME)}, 'mane': loc(HOME), 'forces': FORCES, 'drop': DROP,
          'roadpt': loc(roadpt), 'beside': loc(beside[0]), 'start': {k: loc(h) for k, h in START.items()}, 'farms': farms, 'farmAt': farm_at, 'other': other}
@@ -136,7 +159,7 @@ def main():
         with io.open(out, 'w', encoding='utf-8', newline='\n') as f: f.write(text)
     print('snoot-mode/js/map.js: %d x %d hexes, %d roads, %d farms in %d hexes, from %s' % (M['W'], M['H'], len(M['roads']), sum(farms.values()), len(farms), W.get('from')))
     for r, row in enumerate(rows): print('%2d %s%s' % (r, ' ' if r & 1 else '', ' '.join(row)))
-    print({k: v for k, v in M.items() if k in ('pit', 'moot', 'inn', 'west', 'south', 'seats', 'roadpt', 'beside', 'start')})
+    print({k: v for k, v in M.items() if k in ('pit', 'moot', 'inn', 'west', 'south', 'seats', 'roadpt', 'beside', 'start', 'garrison')})
     for rd in M['roads']: print(rd['name'], rd['hexes'][0], '...', rd['hexes'][-1], len(rd['hexes']))
     return 0
 

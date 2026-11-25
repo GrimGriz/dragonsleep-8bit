@@ -246,28 +246,52 @@
     ok(rj && rj.every(Boolean), 'his rule 10-15, a rout of men: Newland\'s crossbows run to the road patrol two hexes off and join it; Newland\'s heavy foot with no steady friend in reach scatter, their paladin cut free (p.30); a Dominion wagon\'s men scatter and it is gone; GreyFang\'s men scatter and he cuts free; a gnoll band routs as the book has it (' + (rj ? rj.join(' ') : 'threw') + ')');
     // ---- the Dominion on the grid: each wagon's patrol lady goes, and one who falls there falls on the map (his note 10-15: "there wasn't any warlocks")
     var wl = tk(function () { var sw = SN.newGame(70); sw.party8 = null; SN.dawn(sw); var D3 = SN.DOMINION.map(function (f) { var u = SN.make(f, true); u.at = [7, 0]; sw.units.push(u); return u; }), P = SN.unit(sw, 'party');
-      var req = SN.band(sw, D3, [7, 0]), nl = req.enemies.filter(function (e) { return e === 'patrollady'; }).length, i = +Object.keys(req.ladies)[0], ld = {}; ld[req.ladies[i]] = true; sw.beats = [];
+      var req = SN.band(sw, D3, [7, 0]), nl = req.enemies.filter(function (e) { return /^patrollady/.test(e); }).length, i = +Object.keys(req.ladies)[0], ld = {}; ld[req.ladies[i]] = true; sw.beats = [];
       SN.partyResult(sw, P, D3, req, { result: 'won', share: 0.4, dead: 4, ladyDead: ld }, [7, 0]);
-      return [nl === 3, req.enemies[i] === 'patrollady', req.contrib.reduce(function (s, c) { return s + c.n; }, 0) === 27, SN.heroesOf(SN.unit(sw, req.ladies[i])).length === 0, (sw.stats.killed['dominion:wizard'] || 0) === 1]; });
-    ok(wl && wl.every(Boolean), 'his note 10-15, the Dominion on the grid: three wagons send their three patrol ladies and 27 soldiers (thirty a grid), and a lady killed there dies on the map (' + (wl ? wl.join(' ') : 'threw') + ')');
+      // (11-25: each her patron's on the grid, and every lady before any wagon's men -- three wagons of nineteen men would fill the thirty before the third lady)
+      return [nl === 3, req.enemies.slice(0, 3).join() === 'patrolladyfiend,patrolladymirror,patrolladyfae' && req.enemies[i] === 'patrolladyfiend', req.contrib.reduce(function (s, c) { return s + c.n; }, 0) === 27, SN.heroesOf(SN.unit(sw, req.ladies[i])).length === 0, (sw.stats.killed['dominion:wizard'] || 0) === 1]; });
+    ok(wl && wl.every(Boolean), 'his note 10-15, the Dominion on the grid: three wagons send their three patrol ladies -- each her patron\'s, the Fiend\'s, the Mirror\'s, the Fae King\'s (11-25) -- and 27 soldiers (thirty a grid), and a lady killed there dies on the map (' + (wl ? wl.join(' ') : 'threw') + ')');
     // ---- the Dominion's patrol whole (RULED 11-24, Griz: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger")
     var dw = tk(function () {
       var cw = SN.newGame(71); cw.party8 = null; var W1 = SN.make(SN.DOMINION[0], true), G = function (w, q) { return W1.groups.filter(function (g) { return g.grid === w && (q == null || g.squad === q); })[0]; }, N = function (w) { return W1.groups.filter(function (g) { return g.grid === w; }).reduce(function (s, g) { return s + g.n; }, 0); };
-      var shape = SN.DOMINION.every(function (f) { var u = SN.make(f, true), c = SN.compNow(u); return u.figs === 11 && c.dominion === 4 && c.dragger === 4 && c.sergeantblade === 1 && c.sergeantledger === 1 && c.mender === 1 && SN.heroesOf(u).filter(SN.isWiz).length === 1 && SN.mends(u); });
-      // his ruling 11-24, "I like the sergeant for every 4 men (2 and 2 dragger)": two squads, each its sergeant, two line soldiers and two draggers
-      var squads = [1, 2].every(function (q) { return G('dominion', q).n === 2 && G('dragger', q).n === 2 && G(q === 1 ? 'sergeantblade' : 'sergeantledger', q).n === 1; }) && !G('mender').squad;
+      // (11-25, his "Snoot wagons get 8 extra troops (6 foot, 2 dragger)": the lady's guard, squad 3 -- nineteen men a wagon, ten line soldiers and six draggers)
+      var shape = SN.DOMINION.every(function (f) { var u = SN.make(f, true), c = SN.compNow(u); return u.figs === 19 && c.dominion === 10 && c.dragger === 6 && c.sergeantblade === 1 && c.sergeantledger === 1 && c.mender === 1 && SN.heroesOf(u).filter(SN.isWiz).length === 1 && SN.mends(u); });
+      // his ruling 11-24, "I like the sergeant for every 4 men (2 and 2 dragger)": two squads, each its sergeant, two line soldiers and two draggers; and the lady's guard, six and two, no sergeant
+      var squads = [1, 2].every(function (q) { return G('dominion', q).n === 2 && G('dragger', q).n === 2 && G(q === 1 ? 'sergeantblade' : 'sergeantledger', q).n === 1; }) && !G('mender').squad &&
+        G('dominion', 3).n === 6 && G('dragger', 3).n === 2 && !W1.groups.some(function (g) { return g.squad === 3 && /^sergeant/.test(g.grid); });
       var cls = G('dominion').cls === 'HF' && G('dragger').cls === 'LF' && G('sergeantblade').cls === 'AF' && G('sergeantledger').cls === 'AF' && G('mender').cls === 'HF' && W1.def === 'HF';
       W1.form = 'column'; var road = SN.roadBonus(W1) === 2;
       W1.at = [7, 0]; cw.units.push(W1); var req = SN.band(cw, [W1], [7, 0]), en = req.enemies.join(','), words = SN.bandWords(req);
-      var fields = en === 'patrollady,sergeantblade,dominion,dominion,dragger,dragger,sergeantledger,dominion,dominion,dragger,dragger,mender' && req.whose[2][2] === 1 && req.whose[7][2] === 2;
+      var fields = en === 'patrolladyfiend,sergeantblade,dominion,dominion,dragger,dragger,sergeantledger,dominion,dominion,dragger,dragger,dominion,dominion,dominion,dominion,dominion,dominion,dragger,dragger,mender' && req.whose[2][2] === 1 && req.whose[7][2] === 2 && req.whose[12][2] === 3 && req.whose[18][2] === 3;
       // the Ledger's two draggers and the Blade fall on the grid: those men come off the map -- the Ledger's draggers, not the Blade's -- the line untouched
       var at = []; Object.keys(req.whose).forEach(function (i) { var w = req.whose[i]; if ((w[1] === 'dragger' && w[2] === 2) || w[1] === 'sergeantblade') at.push(+i); });
       SN.partyResult(cw, SN.unit(cw, 'party'), [W1], req, { result: 'escaped', share: 0.25, dead: at.length, deadAt: at }, [7, 0]); // (the four got out: the wagon does not break, so its men are as the grid left them)
-      var exact = at.length === 3 && G('dragger', 2).n === 0 && G('dragger', 1).n === 2 && G('sergeantblade').n === 0 && N('dominion') === 4 && G('sergeantledger').n === 1 && G('mender').n === 1 && W1.def === 'HF';
+      var exact = at.length === 3 && G('dragger', 2).n === 0 && G('dragger', 1).n === 2 && G('dragger', 3).n === 2 && G('sergeantblade').n === 0 && N('dominion') === 10 && G('sergeantledger').n === 1 && G('mender').n === 1 && W1.def === 'HF';
       // the mender is the wagon's cleric while she stands; the dusk's mending raises the ranks, never a dead sergeant
       var r0 = SN.rating(W1); G('mender').n = 0; SN.sync(W1); var r1 = SN.rating(W1), short = SN.short(W1) === 2;
-      return [shape, squads, cls, road, fields, words === 'a patrol lady, 2 sergeants, 4 line soldiers, 4 draggers and a mender', exact, r0 - r1 === 1 && !SN.mends(W1), short]; });
-    ok(dw && dw.every(Boolean), 'his rulings 11-24, a Dominion wagon: a patrol lady, a mender, and two sergeants each leading two line soldiers and two draggers -- each type its CHAINMAIL class (HF line and mender, LF draggers, AF sergeants), the wagon\'s road bonus kept (its men ride), the grid fielding the same squad by squad, who falls there coming off the map by kind and squad, the mender the wagon\'s cleric while she stands (' + (dw ? dw.join(' ') : 'threw') + ')');
+      return [shape, squads, cls, road, fields, words === 'a patrol lady, 2 sergeants, 10 line soldiers, 6 draggers and a mender', exact, Math.abs(r0 - r1 - 1) < 1e-9 && !SN.mends(W1), short]; });
+    ok(dw && dw.every(Boolean), 'his rulings 11-24 and 11-25, a Dominion wagon: a patrol lady, a mender, two sergeants each leading two line soldiers and two draggers, and the lady\'s guard of six line soldiers and two draggers (his "8 extra troops") -- each type its CHAINMAIL class (HF line and mender, LF draggers, AF sergeants), the wagon\'s road bonus kept (its men ride), the grid fielding the same squad by squad, who falls there coming off the map by kind and squad, the mender the wagon\'s cleric while she stands (' + (dw ? dw.join(' ') : 'threw') + ')');
+    // ---- THE THREE WAGONS BY PATRON (11-25, his "1 - we need all 3 patron specific patrol ladys for the snoot, each with flavored spell list"): Savine's the Fiend's, the Old
+    // One's the Mirror's, Tronu's the Fae King's -- each wagon's lady goes to the grid as her own (the ladies' lists are DEEP16's: dev/bench16.py mode=snoot1125)
+    ok(tk(function () { var P = SN.DOMINION.map(function (f) { var h = (f.heroes || [])[0] || {}; return [f.id, f.patron, f.whose, h.patron, h.grid, SN.gridWord(h), !!f.garrison].join(':'); }).join(' ');
+      return P === 'dm1:fiend:Savine:fiend:patrolladyfiend:patrolladyfiend:false dm2:mirror:the Old One:mirror:patrolladymirror:patrolladymirror:false dm3:faeking:Tronu:faeking:patrolladyfae:patrolladyfae:true' &&
+        ['patrolladyfiend', 'patrolladymirror', 'patrolladyfae'].every(function (w) { return SN.WORTH[w] === SN.WORTH.patrollady && SN.DOMWORD[w][0] === 'patrol lady'; }); }),
+      'his rulings 11-25: three wagons, three patrons -- dm1 Savine\'s (the Fiend), dm2 the Old One\'s (the Mirror), dm3 Tronu\'s (the Fae King), each lady her own on the grid; only Tronu\'s aims for the garrison');
+    // ---- TRONU'S WAGON (11-25, his "lets have them aim to build the garrison there (but they divert toward the barbarians in the snoot)"): on the world's map it makes for the
+    // fork, the board's hex on the road to the near map's (63,23), while no plains unit is in the field; with one there it goes for it; the Snoot gone home, the garrison again.
+    // The other two still walk to the inn
+    var tr = tk(function () {
+      SN.useMap(SN.WORLDMAP); try {
+        var s = SN.newGame(73); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); SN.DOMINION.forEach(function (f) { var u = SN.make(f, true); u.at = SN.WEST.slice(); s.units.push(u); });
+        var t = SN.unit(s, 'dm3'), d1 = SN.unit(s, 'dm1'), G0 = SN.GARRISON, gar = !!G0 && G0.off && eq(G0.near, [63, 23]) && G0.ft === 681 && eq(G0.at, [18, 0]);
+        SN.AI.dominion(s, t); SN.AI.dominion(s, d1); var toG = t.order.type === 'move' && eq(t.order.to, G0.at), toInn = d1.order.type === 'move' && eq(d1.order.to, SN.INN);
+        var b = SN.unit(s, 'bb3'); b.on = true; b.at = [12, 6]; s.log = []; SN.AI.dominion(s, t);
+        var div = t.order.type === 'move' && eq(t.order.to, [12, 6]) && !!t.diverted && s.log.some(function (l) { return /turns off its road and goes for the festival war-camp/.test(l.text); });
+        s.head = true; SN.AI.dominion(s, t); var back = t.order.type === 'move' && eq(t.order.to, G0.at); s.head = false;
+        t.at = G0.at.slice(); b.on = false; SN.AI.dominion(s, t); var holds = t.order.type === 'hold';
+        return [gar, toG, toInn, div, back, holds];
+      } finally { SN.useMap(SN.FIXTURE); } });
+    ok(tr && tr.every(Boolean), 'his ruling 11-25, Tronu\'s wagon: its garrison\'s hex the near map\'s (63,23), 681 ft, off the board -- it makes for the fork (18,0), the board\'s hex on the road to it, while the other wagons walk to the inn; a unit of the plains in the field and it turns off to go for them (the log says so); the Snoot gone home, back toward the garrison; there, it holds (' + (tr ? tr.join(' ') : 'threw') + ')');
     // ---- the Gray Keeping's matriarchs (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young
     // ones. Give the superhero entangle?"; "all 8 leans are go"): OD&D Book I's clerics -- the Eldest a Patriarch ("Superhero - 1"), the band's a Lama
     var MW = FF('gkw'), MB = FF('gk2'), MY = FF('gk1'), Me = (MW.heroes || [])[0], Ml = (MB.heroes || [])[0];
@@ -331,7 +355,7 @@
       c.at = [4, 5]; var pv = SN.preview(s, c, SN.MOOT); return [w.figs === 4, b.figs === 18, !!pv && pv.warn.some(function (l) { return /Insect Plague/.test(l); }) && pv.warn.some(function (l) { return /Entangle/.test(l); })]; });
     ok(mx && mx.every(Boolean), 'his design 10-16: the witness never fills the death-watch (the seat-tribe\'s women), and the march\'s pop-up warns of Insect Plague and Entangle on the moot (' + (mx ? mx.join(' ') : 'threw') + ')');
     // ---- whole battles, both hands, the party's part on the tables
-    var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
+    var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0, diverts = 0;
     for (var seed = 1; seed <= 8; seed++) {
       var s = SN.newGame(seed * 7919); s.party8 = null; var deeps = [], days = 0;
       while (!s.over && days++ < 40) {
@@ -349,6 +373,7 @@
       fills += s.stats.witness; bands += deeps.filter(function (k) { return k === 'band'; }).length;
       ends.push('seed ' + seed * 7919 + ': ' + (s.over ? 'over Day ' + s.day : 'NOT OVER') + (s.head ? ', head Day ' + s.head.day + ' (' + s.head.how + ')' : ', no head') + ', score ' + (s.tally ? s.tally.score : '?') + ', witness ' + s.stats.witness);
       var txt = s.log.map(function (l) { return l.text; }).join('\n');
+      if (/A Dominion wagon turns off its road and goes for/.test(txt)) diverts++; // (Tronu's wagon, 11-25: js/ai.js AI.tronu)
       if (seed === 1 && /[?&]dump\b/.test(location.search)) s.log.forEach(function (l) { out.push('LOG d' + l.day + ' [' + l.kind + '] ' + l.text); });
       if (/undefined|NaN|\[object/.test(txt)) inv.push(seed + ': the log says ' + (/undefined|NaN|\[object[^\]]*\]/.exec(txt) || [''])[0]);
       if (!s.over) inv.push(seed + ': the battle never ended');
@@ -360,6 +385,7 @@
     ok(domOk && dom0.length >= 6, 'the Dominion comes on the west road two days after the hunt began (' + dom0.length + ' battles)');
     ok(fills > 0, 'the witness fills a winner somewhere (' + fills + ' figures went over in eight battles)');
     ok(bands > 0, 'the four fight a war-band on the grid somewhere (' + bands + ' asks)');
+    ok(diverts > 0, 'Tronu\'s wagon turns off its road for the plains tribes in a whole battle (11-25, his "they divert toward the barbarians in the snoot": ' + diverts + ' of ' + dom0.length + ' battles the Dominion came in)');
     out.push('SNOOTPROBE ' + out.filter(function (l) { return /^(ok|FAIL)/.test(l); }).length + ' checks, ' + (bad ? bad + ' FAILED' : 'all ok'));
     return out;
   };
