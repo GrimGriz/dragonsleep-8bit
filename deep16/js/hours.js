@@ -1217,9 +1217,9 @@
     var ask = H16.waitAsk(S.t), W8 = H16.WAIT, keyOf = { 0: 'n1', 1: 'n2', 2: 'n3', 4: 'n4', 3: 'b' };
     var go = function (a) {
       var tillAt = a === 4 ? Hs.longFrom(Hs.LONG_HOURS) : null, hrs = H16.waitHours(a, S.t), rest = H16.waitRests(a, hrs);
-      S.t += hrs; var mbSaid = H16.marchSaid(H16.marchBack(a, hrs)); Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null, mbSaid].filter(function (s) { return !!s; });
+      S.t += hrs; var mbSaid = H16.marchSaid(H16.marchBack(a, hrs)); Wd.save(); var said = [a === 4 ? W8.tillDone.replace('{when}', Hs.clockAt(tillAt)) : a === 0 ? W8.off.replace('{band}', H16.band(S.t)) : a === 1 ? W8.hour : null].filter(function (s) { return !!s; });
       if (rest) { said = said.concat(Hs.shortRest(Hs.cur.party, a === 2 ? null : W8.restToo)); if (Hs.secondDraft) Hs.secondDraft(Hs.cur.party); }
-      said = said.concat(Hs.lightsOut(null));
+      said = said.concat(Hs.lightsOut(null)); if (mbSaid) said.push(mbSaid); // (the march given back last, after the wait's and the rest's words: H16.marchSaid)
       Hs.trail('rest', 'WAIT on THE WORLD: ' + (a === 4 ? W8.till : W8.opts[a]) + ', ' + (Math.round(hrs * 100) / 100) + ' h' + (rest ? ', a short rest' : ''));
       // (TILL A LONG REST at a camp, 11-06 -- his NOTES, "waiting til that long-rest didn't do the long rest nor offer me a camping option after?", RULED to the lanes desk: "at a
       // camp, not the aldwin pointer. players will learn the time limit on a long rest fairly quickly": on THE WORLD, the camp, the night it waited for offered on the wait's
