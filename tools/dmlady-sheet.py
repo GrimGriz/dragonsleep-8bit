@@ -22,11 +22,14 @@ Fall 6) over tools/vivian-sheet.py.
 
 THE TRIMS (his "4 - Let the cutter propose the colors as well, it has the palette"): at 1x her shaded trim and her steel snap to the same silvers, so
 the trim is found on the SOURCE pages (trim_mask(): the exact #FFFFFF key, grown at most REACH page px through light, neutral-or-slate pixels -- never
-warm, her face's highlights), painted MARK, cut again by the same windows and page scales, and read back where the green landed; each patron's sheet is
-dmlady_p2 with those pixels moved, by their own lightness, to a ramp of the 64 (TRIM): the Fiend (Savine's) red, the Mirror (the Old One's) the glass's
-cyan, the Fae King (Tronupholen's, the Trickster, "Purple-skinned", TarlynsPit/wiki/dominion.md) violet. dmlady_p2 keeps the white. Known: on her E and
-SE Fall's last frames and Prone the fallen rapier's highlights are drawn in the key's exact white, so the blade takes the patron's colour there (the
-dream list).
+warm, her face's highlights), painted MARK -- her cuffs apart, CUFF_MARK (the compact white pieces at her wrists, CUFF) -- cut again by the same
+windows and page scales, and read back where each mark landed. RULED 11-25, Griz, on the first trims (the whole trim in the patron's colour) set beside
+the sergeant: "the patron flavor is too much. It kinda feels like just the cuffs should patron - something small, with more dominion unity overall". So
+each patron's sheet is dmlady_p2 with her sash, collar and piping in the sergeant's crimson (DOMINION) and only her cuffs, by their own lightness, in a
+ramp of the 64 (TRIM): the Fiend (Savine's) red, the Mirror (the Old One's) the glass's cyan, the Fae King (Tronupholen's, the Trickster,
+"Purple-skinned", TarlynsPit/wiki/dominion.md) violet. dmlady_p2 keeps the white. Known: where her rapier's highlights are drawn in the key's exact
+white -- lying beside her at the end of her E and SE falls, and its tip raised on her NE attack's first frame -- the blade takes the crimson; and a cuff
+that runs into her piping reads crimson in a few frames (the dream list).
 """
 import csv, importlib.util, json, os, sys
 import numpy as np
@@ -66,6 +69,12 @@ TRIM = {'dmladyfiend_p2': ('Patrol Lady (the Fiend)', 'red', ['#e8624a', '#b8342
         'dmladymirror_p2': ('Patrol Lady (the Mirror)', 'glow', ['#a8e8ff', '#3cbcfc', '#1a5c80']),
         'dmladyfae_p2': ('Patrol Lady (the Fae King)', 'violet', ['#bb96e0', '#8a5cb4', '#62398a'])}
 MARK = (0, 255, 0)   # (her trim painted on the source copies: it snaps to the 64's greens, which nothing of hers wears)
+CUFF_MARK = (0, 255, 255)   # (her cuffs painted apart: they snap to the glow ramp's cyans, which nothing of hers wears either)
+DOMINION = ['#801c1c', '#4c1010', '#240808']   # (her sash, collar and piping: the sergeant's crimson, dmsergeant_p2's sash -- Griz, 11-25: "the patron
+                                               #  flavor is too much. It kinda feels like just the cuffs should patron - something small, with more
+                                               #  dominion unity overall")
+CUFF = (60, 0.5, 1.8)       # (source: a cuff is a white piece of at least this many px, filling at least this much of its box, at most this long for its
+                            #  width -- two compact bands at her wrists; the sash runs diagonal (fill ~0.37), the piping long and thin)
 LIGHT = 120          # (source: the slate shade joined to the white key -- at least this light at its darkest channel, within 70 between its channels)
 REACH = 30           # (source px: how far that shade reaches from the white -- across the sash at ~6 page px a game px; at 48 it ran along her rapier where the blade crosses the sash)
 LIT, MID, SHADE = 200, 130, 80   # (1x, a trim pixel's mean channel: the patron's lit, mid and shade)
@@ -110,11 +119,19 @@ def trim_mask():
                                                                    #  fallen rapier on the SE Fall took the patron's colour its whole length)
         light = (mn >= LIGHT) & (mx - mn <= 70) & (rgb[..., 2] >= rgb[..., 0] - 12)   # (neutral or slate, never warm: her face's pale highlights join her
                                                                                      #  white collar, and the first mask took a patch of her cheek)
-        trim, edge = white.copy(), white.copy()
-        for _ in range(REACH):                                    # (the shade grown from the white through light pixels, at most REACH page px: where
-            edge = ndimage.binary_dilation(edge, np.ones((3, 3), bool)) & light & ~trim   #  her fallen rapier lies against a cuff, only its touching end goes)
-            trim |= edge
-        a[trim, :3] = MARK
+        lab, n = ndimage.label(white, structure=np.ones((3, 3)))
+        cuffw = np.zeros_like(white)
+        for i, sl in enumerate(ndimage.find_objects(lab), 1):
+            pc = lab[sl] == i; h, w = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
+            if pc.sum() >= CUFF[0] and pc.sum() >= CUFF[1] * h * w and max(h, w) <= CUFF[2] * min(h, w):
+                cuffw[sl] |= pc
+        done = np.zeros_like(white)
+        for seed, col in ((cuffw, CUFF_MARK), (white & ~cuffw, MARK)):   # (the cuffs grown first, then the rest of her trim)
+            trim, edge = seed.copy(), seed.copy()
+            for _ in range(REACH):                                # (the shade grown from the white through light pixels, at most REACH page px: where
+                edge = ndimage.binary_dilation(edge, np.ones((3, 3), bool)) & light & ~trim & ~done   #  her fallen rapier lies against a cuff, only its
+                trim |= edge                                      #  touching end goes)
+            a[trim & ~done, :3] = col; done |= trim
         os.makedirs(os.path.dirname(os.path.join(d1, fn)), exist_ok=True)
         Image.fromarray(a, 'RGBA').save(os.path.join(d1, fn))
     shutil.copy(os.path.join(d0, 'FRAME-MAP.csv'), d1)
@@ -130,29 +147,34 @@ def trim_mask():
         shutil.rmtree(tmp, ignore_errors=True)
     im = np.asarray(Image.open(os.path.join(art, 'dmlady_p2.png')).convert('RGBA'))
     assert mk.shape == im.shape and ((mk[..., 3] > 0) == (im[..., 3] > 0)).all(), 'the marked cut is not registered with the plain one'
-    g = mk[..., :3].astype(int)
-    return (mk[..., 3] > 0) & (g[..., 1] - np.maximum(g[..., 0], g[..., 2]) >= 8)   # (where the mark landed: the 64's greens, the orc and moss ramps and
-                                                                                   #  #2a7a70 -- not "differs", since the snap shifts her coat's darks too)
+    g = mk[..., :3].astype(int); on = mk[..., 3] > 0
+    rest = on & (g[..., 1] - np.maximum(g[..., 0], g[..., 2]) >= 8)   # (where the mark landed: the 64's greens, the orc and moss ramps and #2a7a70 --
+                                                                      #  not "differs", since the snap shifts her coat's darks too)
+    cuff = on & (g[..., 2] - g[..., 0] >= 60) & (g[..., 1] - g[..., 0] >= 50)   # (the cuffs' mark: the glow cyans; her silvers are 30 bluer than red at most)
+    return cuff, rest & ~cuff
 
 
 def trims():
     """the three patron sheets from deep16/art/dmlady_p2: her trim (trim_mask()) moved to each patron's ramp by its own lightness -- lit, mid, shade;
     a trim pixel darker than SHADE (its edge blended into her coat) left as it is"""
     art = os.path.join(ROOT, 'deep16', 'art')
-    m = trim_mask()
+    cuff, rest = trim_mask()
     im = np.asarray(Image.open(os.path.join(art, 'dmlady_p2.png')).convert('RGBA')).copy()
     meta = json.load(open(os.path.join(art, 'dmlady_p2.json')))
     L = im[..., :3].astype(int).mean(-1)
-    lv = [m & (L >= LIT), m & (L >= MID) & (L < LIT), m & (L >= SHADE) & (L < MID)]
+    lv = lambda m: [m & (L >= LIT), m & (L >= MID) & (L < LIT), m & (L >= SHADE) & (L < MID)]
     for name, (label, ramp, cols) in TRIM.items():
         o = im.copy()
-        for k, c in zip(lv, cols):
+        for k, c in zip(lv(rest), DOMINION):
+            o[k, :3] = hexrgb(c)
+        for k, c in zip(lv(cuff), cols):
             o[k, :3] = hexrgb(c)
         Image.fromarray(o, 'RGBA').save(os.path.join(art, name + '.png'), optimize=True)
-        m2 = dict(meta, name=label, source=meta.get('source', '') + ' -- her trim (the white key and its slate shade, found on the source pages) moved to the '
-                  '%s ramp %s for %s, by tools/dmlady-sheet.py trims()' % (ramp, ', '.join(cols), label.split('(')[1].rstrip(')')))
+        m2 = dict(meta, name=label, source=meta.get('source', '') + ' -- her trim (the white key and its slate shade, found on the source pages) in the '
+                  'Dominion\'s crimson %s, her cuffs in the %s ramp %s for %s, by tools/dmlady-sheet.py trims()' % (', '.join(DOMINION), ramp, ', '.join(cols),
+                  label.split('(')[1].rstrip(')')))
         json.dump(m2, open(os.path.join(art, name + '.json'), 'w'), indent=1)
-    print('  trims: %d trim px (%s lit, mid, shade) recoloured into %s' % (int(sum(k.sum() for k in lv)), '/'.join(str(int(k.sum())) for k in lv), ', '.join(TRIM)))
+    print('  trims: %d px crimson, %d px cuffs, into %s' % (int(sum(k.sum() for k in lv(rest))), int(sum(k.sum() for k in lv(cuff))), ', '.join(TRIM)))
 
 
 LOOK = dict(src=SRC, name='Patrol Lady', trim=False, tall=TALL, avoid=AVOID, bgtol=BGTOL,
