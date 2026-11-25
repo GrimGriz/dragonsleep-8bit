@@ -21251,7 +21251,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     var atkS = function (a) { return a ? a.atk + ' ' + a.dice + '+' + a.mod + (a.range ? ' ' + a.range.join('/') : '') + (a.count != null ? ' x' + a.count : '') : 'none'; };
     // 1. THE SHEETS, by the SRD (srd/20-npcs.md Guard, Thug, Veteran, Scout; srd/04-equipment.md the weapons and the armour; srd/01-races.md the Dwarf)
     var WANT = {
-      gatewatch: { cr: '1/8', ac: 16, hp: 11, armor: 'chain shirt', shield: true, atk: { spear: '3 1d6+1' }, multi: 1 },
+      gatewatch: { cr: '1/8', ac: 14, hp: 11, armor: 'chain shirt', shield: false, atk: { spear: '3 1d6+1' }, multi: 1 }, // (the Guard without its shield since 11-25, Griz: "5 - take the shield off" -- his drawn figure bears none)
       trooper: { cr: '1/4', ac: 18, hp: 11, armor: 'chain mail', shield: true, atk: { battleaxe: '3 1d8+1', handaxe: '3 1d6+1 20/60 x2' }, multi: 1 },
       trooperxbow: { cr: '1/4', ac: 16, hp: 11, armor: 'chain mail', shield: false, atk: { battleaxe: '3 1d8+1', crossbow: '3 1d10+1 100/400' }, multi: 1 },
       fileleader: { cr: '1', ac: 18, hp: 32, armor: 'chain mail', shield: true, atk: { battleaxe: '4 1d8+2', handaxe: '4 1d6+2 20/60 x2' }, multi: 'battleaxe,battleaxe' },

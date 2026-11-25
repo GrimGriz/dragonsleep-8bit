@@ -667,13 +667,16 @@
   // SOLDIERING (11-20, Griz: "'Soldiering' is the feat name. Give it to the dwarves for now and see if it impacts combat art asks"): `soldiering: true` on the six dwarven
   // troop blocks here -- the gate watch, the trooper, the crossbow trooper, the file leader, the drill-sergeant, the road patrol -- the feat as a trait (js/features.js
   // F.soldiering: WHEEL with a trained friend; the shield wall where a shield is borne; the pike rank). Torvald, a named cleric, is not a troop and is left out
-  // THE GATE WATCH: the trooper as he was till 11-12 -- the SRD 5.1 Guard as a dwarf, the spear -- so the gate watch's drawn spear (`gatewatch_p2`) has a row of its own
+  // THE GATE WATCH: the trooper as he was till 11-12 -- the SRD 5.1 Guard as a dwarf, the spear -- so the gate watch's drawn spear (`gatewatch_p2`) has a row of its own.
+  // NO SHIELD since 11-25 (RULED, Griz: "5 - take the shield off", on the cutter seat cutter-1125's find that his drawn figure, ART-141, holds the spear in both hands and
+  // bears no shield while the block gave him the Guard's): AC 14, the chain shirt 13 + DEX 1, so he no longer stands in a shield wall (js/features.js F.bearsShield);
+  // his Soldiering stays (WHEEL with a trained friend). CR 1/8 kept: the Guard's own, two AC under it
   gatewatch: {
-    name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, soldiering: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Gate Watch', type: 'humanoid', sheet: 'gatewatch_p2', humanoid: true, soldiering: true, cr: '1/8', ac: 14, metalArmor: 'chain shirt', hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
-    multi: 1, resist: ['poison'], resilient: true, src: 'SRD 5.1 Guard (CR 1/8: AC 16 chain shirt and shield, 11 HP, the spear +3 1d6+1), a dwarf of the garrison at the gate; the trooper\'s row before 11-12 (content/npcs.json gatewatch)'
+    multi: 1, resist: ['poison'], resilient: true, src: 'SRD 5.1 Guard (CR 1/8: AC 16 chain shirt and shield, 11 HP, the spear +3 1d6+1) without its shield (AC 14: his drawn figure bears none, RULED 11-25 "5 - take the shield off"), a dwarf of the garrison at the gate; the trooper\'s row before 11-12 (content/npcs.json gatewatch)'
   },
   // THE TROOPER, the rank and file: the Guard's body (srd/20-npcs.md: STR 13 DEX 12 CON 12, 11 HP, +3 to hit) in the hold's kit -- chain mail and a shield, AC 18; the battleaxe in one hand,
   // +3 1d8+1; two handaxes to throw, +3 1d6+1 20/60, two and then none (battle.js spendThrow). CR 1/4, set beside the SRD's blocks: the Guard (1/8) is this body at AC 16 and 1d6+1; the
