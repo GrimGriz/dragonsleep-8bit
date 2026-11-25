@@ -1347,6 +1347,12 @@
     // (a Twin Strike hand: OFF HAND only after a one-weapon ATTACK -- his "the bonus attack appearing on the ring if they do use the single attack", 11-03 night)
     if (twO && twO.ok && !(twinC && (!T.attacked || T.twinDone))) { var reachO = this.foeInReach(u), thrO = Battle.handThrow(bhO.id), mainO = bhO.hand === 'main'; out.push({ id: 'offhand', label: (mainO ? 'BONUS ATTACK: ' : 'OFF HAND: ') + bhO.w.name.toUpperCase() + (mainO ? ' (MAIN HAND)' : ''), cost: 'B', icon: bhO.w.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + bhO.w.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(bhO.id)).mod) + ' ' + bhO.w.type + (mainO ? ' -- the main hand: the Attack action threw from the off hand' : '') + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
     if (u.conds.restrained && !u.conds.restrained.pin && u.conds.restrained.kind !== 'stone') out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
+    // ESCAPE THE HOLD (SRD 5.1, Escaping a Grapple: "A grappled creature can use its action to escape ... your Strength (Athletics) or Dexterity (Acrobatics) check contested by the
+    // grappler's Strength (Athletics)") -- a hero held awake by a dragger's Wagon Drill (js/features.js, nets-1125: till then only one at 0 was held); a pin is BREAK FREE's
+    if (u.conds.grappled && !(u.conds.restrained && u.conds.restrained.pin)) out.push({ id: 'escapegrip', label: 'ESCAPE THE HOLD', cost: 'A', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', icon: 'free', note: 'your action: your Athletics or Acrobatics against the holder\'s Athletics -- free, you may stand and walk' });
+    // FREE FROM THE NET (SRD 5.1, the net: "A creature can use its action to make a DC 10 Strength check, freeing itself or another creature within its reach"): a friend's
+    var netFr = D.features && D.features.freeNetFor ? D.features.freeNetFor(this, u) : [];
+    if (netFr.length) out.push({ id: 'freenet', label: 'FREE FROM THE NET', cost: 'A', icon: 'free', tool: 'freenet', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC 10: the net off ' + netFr[0].name + ' (or 5 slashing to the net, AC 10)' });
     var spells = D.magic.list(this, u);
     // (greyed with its reason, 11-03 -- the desk's read of his record: "SPELLS: not now." when the slots were spent and nothing said so. Every spell's own `why` is in the list, js/magic.js M.list: one reason
     // they all share is the command's; else the action gone says so; else the slots -- and for which levels)
@@ -1522,15 +1528,16 @@
   // THE WEBBING ON ONE WEBBED (SRD 5.1, the ettercap's and the giant spider's Web; 11-16, the bug seat): a thing as the tendril is -- AC 10, 5 hit points, vulnerable to fire,
   // immune to bludgeoning, poison and psychic -- on the webbed one's square; at 0 it is cut away and the webbed one is free (webGone). Its maker need not be standing
   Battle.webStub = function (held, maker) {
-    var t = held.conds.restrained.webbing, s = { tendril: true, web: true, held: held, by: maker, name: 'the webbing on ' + held.name, side: maker ? maker.side : 'foe', size: 1, hp: t.hp, maxhp: t.max, ac: t.ac, conds: {}, abil: {}, blindsight: 999, immune: t.immune, vuln: t.vuln };
+    var t = held.conds.restrained.webbing, s = { tendril: true, web: true, net: !!t.net, held: held, by: maker, name: (t.net ? 'the net on ' : 'the webbing on ') + held.name, side: maker ? maker.side : 'foe', size: 1, hp: t.hp, maxhp: t.max, ac: t.ac, conds: {}, abil: {}, blindsight: 999, immune: t.immune, vuln: t.vuln }; // (t.net: a dragger's net, the SRD's -- AC 10, 5 HP, only slashing cuts it: js/features.js F.netOn, nets-1125)
     Object.defineProperty(s, 'x', { get: function () { return held.x; }, enumerable: true }); Object.defineProperty(s, 'y', { get: function () { return held.y; }, enumerable: true });
     return s;
   };
   Battle.prototype.webGone = function (held, how) {
+    var netG = !!(held.conds.restrained && held.conds.restrained.net); // (a dragger's net: js/features.js, nets-1125)
     delete held.conds.restrained;
     if (this.active === held && held.turn) { var T0 = held.turn; T0.move = held.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : held.speed) - (T0.moved || 0)); } // (cut on its own turn: the walk the turn would have had)
     FX.sparkle(held, 'bone', 10); D.sfx('hit');
-    this.card(['{n}The webbing is ' + how + ':{/} ' + nameOf(held) + ' is free.'], 260);
+    this.card(['{n}The ' + (netG ? 'net' : 'webbing') + ' is ' + how + ':{/} ' + nameOf(held) + ' is free.'], 260);
   };
   // the held ones u could break the tendril off (BREAK THE TENDRIL: the one held, or anyone beside it -- SRD 5.1, "a creature takes an action"); not the webbing, whose STR check is the webbed one's own (BREAK FREE)
   Battle.breakable = function (u, units) { return units.filter(function (w) { var st = (w === u || (!G.hostile(u, w) && G.dist(u, w) <= 5)) && Battle.tendrilOn(u, w, units); return !!st && !st.web; }); };
@@ -2223,6 +2230,8 @@
         if (plE) { var raE = D.roll(plE.dice); this.card(['{y}' + u.name + '{/}\'s arm in the ooze: ' + plE.dice + ' ' + RU.fmtRolls(raE.rolls) + ' = {r}' + raE.total + '{/} ' + plE.type], 220); this.hurt(u, raE.total, plE.type, {}); }
         yield 30; return;
       }
+      case 'escapegrip': { if (u.conds.grappled && T.action > 0 && !T.attacksLeft) yield* D.ai.escapeGrip(this, u); return; } // ESCAPE THE HOLD (SRD 5.1, Escaping a Grapple -- js/ai.js escapeGrip; nets-1125)
+      case 'freenet': { var nw = c.target; if (nw && D.features && D.features.freeNetFor(this, u).indexOf(nw) >= 0 && !u.conds.restrained) yield* D.features.freeNet(this, u, nw); return; } // FREE FROM THE NET (SRD 5.1, the net's DC 10 STR check -- js/features.js F.freeNet; nets-1125)
       case 'breaktendril': { // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
         // the one it holds (at disadvantage on STR checks while held: `weak`) or anyone beside; Athletics, as breakFree and PULL IT OFF read it. 10-02
         var hw = c.target, st2 = hw && Battle.tendrilOn(u, hw, this.units); if (!st2 || st2.web) return;
@@ -3329,13 +3338,14 @@
     if ((t.immune || []).indexOf(atk.type) >= 0) { parts.push('{g}immune to ' + atk.type + '{/}'); dmg = 0; }
     if ((t.vuln || []).indexOf(atk.type) >= 0) { dmg *= 2; parts.push('{o}vulnerable to ' + atk.type + ': x2{/}'); } // (the webbing and fire, 11-16)
     if (fire && (t.vuln || []).indexOf('fire') >= 0) { fire *= 2; parts.push('{o}the webbing burns: fire x2{/}'); }
+    if (fire && (t.immune || []).indexOf('fire') >= 0) { fire = 0; parts.push('{g}the flame does not cut it{/}'); } // (a net: only slashing -- js/features.js F.netOn, nets-1125)
     var all = dmg + fire;
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + all + '{/}'], 300, cid);
     if (melee) FX.slash(held, crit ? D.PAL.ramps.gold[4] : null);
     t.hp = Math.max(0, t.hp - all);
     FX.float('-' + all, held, D.PAL.ramps.bone[2]);
     if (t.hp <= 0) { if (web) this.webGone(held, 'cut away'); else this.tendrilGone(holder, held, 'cut through'); }
-    else this.card(['{g}' + (web ? 'the webbing' : 'the tendril') + ': ' + t.hp + ' of ' + t.max + ' left{/}'], 200);
+    else this.card(['{g}' + (web ? (t.net ? 'the net' : 'the webbing') : 'the tendril') + ': ' + t.hp + ' of ' + t.max + ' left{/}'], 200);
     yield o.oa ? 18 : 26;
     att.anim = 'idle';
   };

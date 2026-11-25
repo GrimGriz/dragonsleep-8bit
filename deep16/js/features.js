@@ -1893,8 +1893,110 @@
   //   UP AGAIN: the one it holds back on its feet, it lets go and takes the pike up (a standing foe is fought at pike-reach).
   // Not built: giving ground before a standing foe; the footmen and sergeants turning on the dragged (his 01:00Z "the footmen and sergeants to focus dragged heroes" -- the 12:40Z
   // ruling makes the flank the danger; their own choice of target is unchanged)
+  // THE DRAGGERS' NETS AND HOOKED PIKES (2026-11-25, the seat nets-1125; the road and its rewards lane, "THE DRAGGERS' NETS AND HOOKED PIKES"). His words: "seems like you're only
+  // dragging zero hp heroes"; "lane the draggers get nets a hooked piked, and with a prone-inducing move, drag prone not 0 hp"; and of the wagons, "they'll net and drag recruits to
+  // the foot/sgt who incapacitate them, fill the wagon with recruits and return them to training"; his answers to the seat's three, to the lanes desk: "1 - table stuff, won't
+  // apply in grid (i.e. full damage attacks)" (no knock-out on the grid), "2 - c" (as built: heroes dragged to the flank, never caged; the wagon the NPC recruits' cell once a
+  // recruiting encounter exists -- not built), "3 - not in shops" (the net the Dominion's alone).
+  // Each dragger carries one net and a hooked pike (the block's `net`):
+  //   THE NET (SRD 5.1, srd/04-equipment.md: martial ranged, thrown 5/15, no damage -- "A Large or smaller creature hit by a net is restrained until it is freed. A net has no effect
+  //   on creatures that are formless, or creatures that are Huge or larger. A creature can use its action to make a DC 10 Strength check, freeing itself or another creature within its
+  //   reach on a success. Dealing 5 slashing damage to the net (AC 10) also frees the creature without harming it, ending the effect and destroying the net. When you use an action,
+  //   bonus action, or reaction to attack with a net, you can make only one attack"): thrown once a fight, the Attack action whole; the long range and a foe beside it are the
+  //   ranged attack's disadvantages (rules.js RU.edges). The restraint is the webbing's (battle.js Battle.webStub: struck at on the netted one's square) marked `net`: only slashing
+  //   cuts it (every other kind is in its `immune`); BREAK FREE is the netted one's own check (magic.js breakFree, DC 10), FREE FROM THE NET a friend's within its reach (F.freeNet)
+  //   THE HOOK (ours, after the page's "shove, grapple, drag"; the SRD's Shove "either to knock it prone or push it away", "within your reach"): the pike's hook -- the Shove to knock
+  //   prone, made at the pike's 10 ft; one attack of the Attack action, its Athletics against the other's Athletics or Acrobatics (js/ai.js shoveOff). Hooked when a fellow dragger,
+  //   free of cargo, can come beside the one it fells this round; else the pike is thrust as before
+  //   THE PRONE AND THE NETTED ARE CARGO TOO ("drag prone not 0 hp"): a dragger takes hold of one down, prone or netted -- against one awake the SRD's grapple contest (its Athletics
+  //   against the better of the other's Athletics and Acrobatics: D.ai.grappleCheck), against one down none, as built -- and drags it as it drags the downed. Held, its speed is 0,
+  //   so one prone cannot stand (SRD 5.1: standing costs half its speed -- rules.js RU.canRise); ESCAPE THE HOLD (battle.js) is its action. Up on its feet and out of the net, the
+  //   one held is let go and the pike taken up (as UP AGAIN above)
   F.wagonDrill = function (u) { return !!(u && !u.dead && u.kind && D.FOES && D.FOES[u.kind] && D.FOES[u.kind].wagonDrill); };
   function downedOne(w) { return !!w && !w.dead && w.hp <= 0 && !w.object && !w.left && !w.fled && !w.familiar && !w.summon; }
+  F.netted = function (w) { var r = w && w.conds && w.conds.restrained; return !!(r && r.net); };
+  // what the drill takes hold of: one down, or one awake and prone or netted (not a familiar, a summoned thing or an object -- as the downed); one awake, no more than one size
+  // larger and not beyond holding (SRD 5.1, Grappling)
+  function cargoOne(w, u) {
+    if (downedOne(w)) return true;
+    if (!w || w.dead || w.hp <= 0 || w.object || w.left || w.fled || w.familiar || w.summon || w.ethereal) return false;
+    if (!(w.conds.prone || F.netted(w))) return false;
+    return !(u && D.Battle && D.Battle.sizeCat(w) > D.Battle.sizeCat(u) + 1) && !RU.immuneTo(w, 'grappled');
+  }
+  F.cargoOne = cargoOne;
+  // the net: one of the other side it could land on (Large or smaller; not formless -- an ooze, the SRD's amorphous ones; not one held fast already)
+  var NET_IMMUNE = ['acid', 'bludgeoning', 'cold', 'fire', 'force', 'lightning', 'necrotic', 'piercing', 'poison', 'psychic', 'radiant', 'thunder']; // (only slashing cuts it)
+  function formless(w) { var f = D.FOES && w.kind && D.FOES[w.kind]; return w.type === 'ooze' || !!(f && f.type === 'ooze'); }
+  F.netCan = function (u, w) { return !!(w && D.Battle && D.Battle.sizeCat(w) <= D.Battle.SIZE.L && !formless(w) && !RU.immuneTo(w, 'restrained') && !w.conds.restrained && !w.object); };
+  F.netOf = function (u) { var f = u && !u.dead && u.kind && D.FOES && D.FOES[u.kind]; return f && f.net || null; }; // (read off the block: the net is the dragger's kit, not a unit field)
+  F.netOn = function (B, u, w) { w.conds.restrained = { dc: 10, by: u.id, net: true, webbing: { ac: 10, hp: 5, max: 5, immune: NET_IMMUNE.slice(), net: true } }; FX.ring(w, 'bone', 26); FX.sparkle(w, 'bone', 12); };
+  F.throwNet = function* (B, u, w) {
+    var N = F.netOf(u), T = u.turn; if (!N || u.netGone) return false;
+    T.action = 0; T.attacksLeft = 0; u.netGone = true; // ("you can make only one attack": the Attack action whole)
+    var shot = { name: 'Net', atk: N.atk, dice: '0', mod: 0, type: 'net', range: N.range || [5, 15], ranged: true, fx: 'bolt' };
+    u.facing = B.faceTo(u, w); u.anim = D.spr && D.spr.anim(u.sheet, 'net') ? 'net' : 'attack'; u.animT = B.t; // (a sheet's own `net` row when it comes: art-wanted 106)
+    FX.projectile(u, w, 'bolt'); yield { fx: 1 };
+    var e = RU.edges(u, w, shot), r = RU.d20(e.net, u), tot = r.pick + N.atk + (e.pen || 0), ac = RU.ac(w) + G.los(u, w).cover, hit = r.pick === 20 || (r.pick !== 1 && tot >= ac);
+    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '') + (e.pen ? '  {o}' + e.penWhy + ' ' + e.pen + '{/}' : '');
+    B.card(['{r}' + Nm(B, u) + '{/} > {y}' + nm(B, w) + '{/}  NET  {g}(Wagon Drill: thrown, 5/15 ft){/}', 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + r.pick + ' ' + RU.sign(N.atk) + ' = ' + tot + '  vs AC ' + ac + '  ' + (hit ? '{n}HIT{/}: {o}RESTRAINED{/} {g}(free: a DC 10 STR check, an action -- or 5 slashing to the net, AC 10){/}' : '{g}MISS{/}') + why], 360);
+    D.sfx(hit ? 'hit' : 'miss');
+    if (hit) F.netOn(B, u, w); else FX.float('MISS', w, D.PAL.ramps.silver[5]);
+    yield 34; u.anim = 'idle';
+    return hit;
+  };
+  // the net's chance on w from where u stands: its +4 against w's AC and cover, with the ranged attack's edges (the seat's: thrown at 1 in 5 or better, F.NET_FAIR)
+  F.NET_FAIR = 0.2;
+  F.pNet = function (u, w) {
+    var N = F.netOf(u); if (!N) return 0;
+    var shot = { name: 'Net', atk: N.atk, dice: '0', mod: 0, type: 'net', range: N.range || [5, 15], ranged: true }, e = RU.edges(u, w, shot);
+    var net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0, p = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(w) + G.los(u, w).cover - N.atk - (e.pen || 0))) / 20));
+    return net > 0 ? 1 - (1 - p) * (1 - p) : net < 0 ? p * p : p;
+  };
+  // FREE FROM THE NET (the SRD's "freeing itself or another creature within its reach"): the netted within u's reach, its own side's (BREAK FREE is the netted one's own)
+  F.freeNetFor = function (B, u) { return B.units.filter(function (w) { return w !== u && F.netted(w) && !G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u); }); };
+  F.freeNet = function* (B, u, w) {
+    var r = w && w.conds.restrained; if (!r || !r.net || !u.turn || !(u.turn.action > 0)) return false;
+    var en = u.conds.enlarged, ce = RU.checkEdges(u, 'str'), adv = !!(en && !en.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (en && en.down)) || ce.dis.length > 0;
+    var a = D.d(20), b = D.d(20), d20 = adv && !dis ? Math.max(a, b) : dis && !adv ? Math.min(a, b) : a;
+    var own = u.athletics, bonus = (own != null ? own : D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0)) - RU.shaken(u), tot = d20 + bonus; // (Athletics, as breakFree and PULL OUT read it)
+    u.turn.action = 0; RU.spendHelp(u); u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
+    B.card([(u.side === 'foe' ? '{r}' + Nm(B, u) : '{y}' + u.name) + '{/} pulls at the net on ' + nm(B, w) + ': STR d20 ' + d20 + (adv !== dis ? (adv ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(bonus) + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still caught{/}')], 260);
+    D.sfx(tot >= r.dc ? 'confirm' : 'miss'); yield 20; u.anim = 'idle';
+    if (tot >= r.dc) { B.webGone(w, 'pulled off'); return true; }
+    return false;
+  };
+  // THE HOOK: the Shove to knock prone at the pike's reach (js/ai.js shoveOff, how 'prone')
+  F.hook = function* (B, u, w) {
+    var T = u.turn; if (!T || !(T.action > 0) || !u.attacks || !u.attacks.pike) return false;
+    B.card(['{r}' + Nm(B, u) + '{/} reaches the pike\'s hook for ' + nm(B, w) + ': {o}HOOK{/}  {g}(Wagon Drill: the Shove, to knock prone, at the pike\'s 10 ft){/}'], 200);
+    yield 8;
+    yield* D.ai.shoveOff(B, u, w, { how: 'prone', anim: 'hook' }); // (its sheet's `hook` row when it comes: art-wanted 106)
+    T.action = 0; T.attacksLeft = 0;
+    return !!w.conds.prone;
+  };
+  // a fellow dragger free of cargo that could come beside w this round (the hook's reason: the one felled is taken before it stands)
+  function mateFor(B, u, w) { return B.units.some(function (x) { return x !== u && x.side === u.side && F.wagonDrill(x) && !x.dead && x.hp > 0 && RU.canAct(x) && !F.cargoOf(B, x) && !x.sharing && G.dist(x, w) <= (x.speed || 30) + 5; }); }
+  // the quarry (the page's "the draggers pick their target: the smallest, the hurt, the one standing apart"): the most hurt, then the nearest
+  function quarry(list, u) { return list.slice().sort(function (a, b) { return (a.hp / Math.max(1, a.maxhp)) - (b.hp / Math.max(1, b.maxhp)) || G.dist(u, a) - G.dist(u, b); })[0] || null; }
+  function* netOrHook(B, u) {
+    var T = u.turn; if (!(T.action > 0)) return false;
+    yield* F.aiWall(B, u); // (the rank first, as a piker takes it -- the walk and SET PIKES, the bonus action; then the hook or the net with the action, from there)
+    if (u.dead || u.hp <= 0 || !(T.action > 0) || !RU.canAct(u)) return false;
+    // (not one the patrol holds already: "two draggers break for the body while the line screens; the other two circle wide for the next drop" -- his page, the quarry logic)
+    var hs = B.units.filter(function (w) { var g = w.conds.grappled, hd = g && B.units.filter(function (x) { return x.id === g.by; })[0]; return G.hostile(u, w) && G.standing(w) && !w.object && !w.dead && w.hp > 0 && !RU.charmedBy(u, w) && !(hd && hd.side === u.side); });
+    // the hook first, where a fellow can take the one it fells (a contest, about even); then the net (a ranged attack, at disadvantage beside a foe and past 5 ft: the SRD's)
+    if (u.attacks && u.attacks.pike) {
+      var hq = quarry(hs.filter(function (w) { return !w.conds.prone && !w.noProne && !RU.immuneTo(w, 'prone') && (w.size || 1) <= (u.size || 1) + 1 && G.dist(u, w) <= G.reachOf(u, u.attacks.pike.reach) && mateFor(B, u, w); }), u);
+      if (hq) { yield* F.hook(B, u, hq); return true; }
+    }
+    var N = F.netOf(u);
+    if (N && !u.netGone) { // (thrown where it is likeliest to land -- the soft one, then the hurt -- and only at a fair chance, F.NET_FAIR: else the pike, as before)
+      var nq = hs.filter(function (w) { return F.netCan(u, w) && G.range(u, w) <= (N.range || [5, 15])[1] && G.los(u, w).clear !== false; }).map(function (w) { return { w: w, p: F.pNet(u, w) }; })
+        .filter(function (o) { return o.p >= F.NET_FAIR; }).sort(function (a, b) { return b.p - a.p || (a.w.hp / Math.max(1, a.w.maxhp)) - (b.w.hp / Math.max(1, b.w.maxhp)); })[0];
+      if (nq) { yield* F.throwNet(B, u, nq.w); return true; }
+    }
+    return false;
+  }
   F.cargoOf = function (B, u) { var w = u && u.grappling ? B.units.filter(function (x) { return x.id === u.grappling; })[0] : null; return w && !w.dead && w.conds.grappled && w.conds.grappled.by === u.id ? w : null; };
   function drillRanks(B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && !w.dead && w.hp > 0 && !w.object && !F.wagonDrill(w) && F.soldiering(w); }); }
   function dropPike(B, u) {
@@ -1948,8 +2050,8 @@
   F.aiWagonDrill = function* (B, u) {
     if (!F.wagonDrill(u) || mine(u) || !u.turn || u.dead || u.hp <= 0 || !RU.canAct(u)) return false;
     var T = u.turn, held = F.cargoOf(B, u);
-    if (held && !downedOne(held)) { B.letGo(u, held, 'release'); takePike(B, u); return false; } // (up again: a standing foe, fought at pike-reach)
-    if (!held && u.sharing) { var shd = B.units.filter(function (x) { return x.id === u.sharing; })[0]; if (shd && downedOne(shd) && shd.conds.grappled && shd.conds.grappled.share === u.id && G.dist(u, shd) <= 5) return true; delete u.sharing; } // (the second's turn: it keeps its side)
+    if (held && !cargoOne(held, u)) { B.letGo(u, held, 'release'); takePike(B, u); return false; } // (up again -- on its feet and out of the net: a standing foe, fought at pike-reach)
+    if (!held && u.sharing) { var shd = B.units.filter(function (x) { return x.id === u.sharing; })[0]; if (shd && cargoOne(shd, u) && shd.conds.grappled && shd.conds.grappled.share === u.id && G.dist(u, shd) <= 5) return true; delete u.sharing; } // (the second's turn: it keeps its side)
     var mvAll = function () { return Math.max(T.move || 0, T.pikeMove || 0); }; // (a set pike's move is held in pikeMove)
     if (held) {
       var two = held.conds.grappled.share && B.units.some(function (x) { return x.id === held.conds.grappled.share && !x.dead && x.hp > 0 && G.dist(x, held) <= 5; });
@@ -1958,21 +2060,26 @@
       if (!moved) { var foeBy = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G.dist(u, w) <= 5; })[0]; T.move = 0; return !foeBy; } // (delivered: it holds on, and strikes a standing foe beside it with the cestus)
       return true;
     }
-    // no cargo yet: the downed, nearest first -- one held by no one, or one a fellow dragger holds alone (the other side)
-    var downs = B.units.filter(function (w) { if (!downedOne(w) || !G.hostile(u, w)) return false; var g = w.conds.grappled; if (!g) return true; var hd = B.units.filter(function (x) { return x.id === g.by; })[0]; return !!(hd && F.wagonDrill(hd) && hd.side === u.side && !g.share); });
+    // no cargo yet: the downed, the prone and the netted, nearest first -- one held by no one, or one a fellow dragger holds alone (the other side)
+    var downs = B.units.filter(function (w) { if (!cargoOne(w, u) || !G.hostile(u, w)) return false; var g = w.conds.grappled; if (!g) return true; var hd = B.units.filter(function (x) { return x.id === g.by; })[0]; return !!(hd && F.wagonDrill(hd) && hd.side === u.side && !g.share); });
     var pick = null, mvNow = mvAll();
     downs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); }).some(function (w) { var q = besideSq(B, u, w, mvNow); if (q) pick = { w: w, q: q }; return !!q; });
-    if (!pick) { if (u.pikeDown) takePike(B, u); return false; } // (none it can come beside this turn: the pike in hand, it fights as it can)
+    if (!pick) { if (u.pikeDown) takePike(B, u); return yield* netOrHook(B, u); } // (none it can come beside this turn: the pike in hand -- the net, the hook, or it fights as it can)
     dropPike(B, u); // (out of the pike wall at no cost, its held move given back)
     if (T.move < mvNow) T.move = mvNow;
     if (pick.q[0] !== u.x || pick.q[1] !== u.y) yield* B.exec(u, { do: 'move', x: pick.q[0], y: pick.q[1] });
-    var w = pick.w; if (G.dist(u, w) > 5 || !downedOne(w)) return true;
+    var w = pick.w; if (G.dist(u, w) > 5 || !cargoOne(w, u)) return true;
     var g0 = w.conds.grappled;
     if (g0) { g0.share = u.id; u.sharing = w.id; T.move = 0; B.card(['{y}' + u.name + '{/} takes the other side of ' + nm(B, w) + '  {g}(Wagon Drill: two on one body carry it at full speed){/}'], 200); return true; }
     if (!(T.action > 0 || T.attacksLeft > 0)) return true;
     T.action = 0; T.attacksLeft = 0;
+    var awake = w.hp > 0, how = w.hp <= 0 ? 'down' : F.netted(w) ? 'in the net' : 'prone';
+    if (awake) { // (one awake: the SRD's grapple, its Athletics against the better of the other's -- lost, the attack is spent and the drill waits a turn)
+      var won = yield* D.ai.grappleCheck(B, u, w, 'WAGON DRILL'); u.anim = 'idle';
+      if (!won || w.dead) return true;
+    }
     w.conds.grappled = { by: u.id }; u.grappling = w.id; D.sfx('confirm');
-    B.card(['{y}' + u.name + '{/} takes hold of ' + nm(B, w) + ', down: {o}WAGON DRILL{/}  {g}(the Attack; no contest from one unconscious; dragged at half speed){/}'], 240);
+    B.card(['{y}' + u.name + '{/} takes hold of ' + nm(B, w) + ', ' + how + ': {o}WAGON DRILL{/}  {g}(the Attack; ' + (awake ? 'held, its speed 0' + (w.conds.prone ? ': it cannot stand' : '') : 'no contest from one unconscious') + '; dragged at half speed){/}'], 240);
     yield 10;
     yield* drillDrag(B, u, w, 5 * Math.floor((T.move || 0) / 10));
     return true;

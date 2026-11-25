@@ -314,16 +314,21 @@
   // it exciting without a rescue", "6 - yes"): the downed first, the pike dropped, dragged into the patrol's flank. Before 11-25 it was NOT built: the dragger fought as a piker (RULED 11-24, Griz: "that's good for an encounter lane (though the footmen and sergeants to
   // focus dragged heroes), but these snoot wagons are on special assignment and aren't in 'dominion recruiting mode'" -- filed by the desk for a recruiting-mode encounter). CR 1/4 beside the SRD's Guard (1/8: AC 16, 11 HP, +3 1d6+1) and the pike trooper
   // (1/4: AC 16, 11 HP, +3 1d10+1) -- the seat's, the DMG's table not being the SRD's. His sheet dragger_p2 (ART-159, 66966123)
+  // THE NET AND THE HOOKED PIKE (2026-11-25, the seat nets-1125; Griz: "lane the draggers get nets a hooked piked, and with a prone-inducing move, drag prone not 0 hp"): one net
+  // each (`net`, the SRD 5.1's: thrown 5/15, +4 -- DEX 2 and the fighter's proficiency with a martial ranged weapon -- a hit restrains, DC 10 STR to get free, 5 slashing to the net,
+  // AC 10), and the pike a hooked one (the same SRD pike's numbers; its hook the Shove to knock prone at its 10 ft -- js/features.js F.hook). The drill takes the prone and the
+  // netted as it takes the downed (F.aiWagonDrill)
   dragger: {
     name: 'Dragger', type: 'humanoid', sheet: 'dragger_p2', humanoid: true, soldiering: true, wagonDrill: true, cr: '1/4', ac: 15, armor: 'studded leather', hp: 12, speed: 30, size: 1, reach: 10, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
     abil: { str: 15, dex: 14, con: 14, int: 9, wis: 11, cha: 10 }, init: 2, perception: 10, athletics: 4,
     saves: { str: 4, dex: 2, con: 4, int: -1, wis: 0, cha: 0 }, // (the fighter's STR and CON, +2)
     attacks: {
-      pike: { name: 'Pike', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 10, kind: 'pike', props: ['heavy', 'reach', 'two-handed'] },
+      pike: { name: 'Hooked Pike', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 10, kind: 'pike', props: ['heavy', 'reach', 'two-handed'] }, // (the hook: F.hook, the Shove to knock prone at this reach -- nets-1125)
       cestus: { name: 'Cestus', atk: 4, dice: '1d4', mod: 2, type: 'bludgeoning', reach: 5 } // ("the spiked wrap leaves the hand free: a dragger can grapple and still strike")
     },
+    net: { atk: 4, range: [5, 15] }, // (the SRD 5.1 net, one, thrown once a fight -- js/features.js F.throwNet; nets-1125)
     multi: 1, secondWind: '1d10+1',
-    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill built 11-25 (js/features.js F.aiWagonDrill); his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
+    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill built 11-25 (js/features.js F.aiWagonDrill); the net (SRD 5.1, thrown 5/15) and the pike\'s hook (ours: the SRD Shove to knock prone at its reach) 11-25 on his "lane the draggers get nets a hooked piked, and with a prone-inducing move, drag prone not 0 hp"; his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
   },
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the

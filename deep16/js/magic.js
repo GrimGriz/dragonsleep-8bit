@@ -1298,7 +1298,7 @@
     u.turn.action = 0; RU.spendHelp(u); // (a friend's Help on it, spent on this check -- 10-01c)
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     // (11-21, the reader of his 11-20 record: "The Willem tears at the web: STR d20 18 = 17" -- a named foe's own name with no article (Battle.nm), and the check's bonus shown between the die and the sum)
-    B.card([(u.side === 'foe' ? '{r}' + D.Battle.nm(u, true) + '{/}' : '{y}' + u.name + '{/}') + (r.engulf ? (r.str ? ' heaves against the ooze: ' : ' wrenches at the vines: ') : r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : r.kind === 'tentacles' ? ' wrestles the tentacles: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (lk.bonus ? (lk.bonus > 0 ? ' +' : ' ') + lk.bonus : '') + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    B.card([(u.side === 'foe' ? '{r}' + D.Battle.nm(u, true) + '{/}' : '{y}' + u.name + '{/}') + (r.engulf ? (r.str ? ' heaves against the ooze: ' : ' wrenches at the vines: ') : r.grapple ? ' wrenches at the grip: ' : r.net ? ' heaves at the net: ' : r.kind === 'vines' ? ' tears at the vines: ' : r.kind === 'tentacles' ? ' wrestles the tentacles: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (lk.bonus ? (lk.bonus > 0 ? ' +' : ' ') + lk.bonus : '') + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot < r.dc && D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due: a failed check, a Due -- 10-30)
     if (tot >= r.dc) {
       // (torn free: it goes on through the web this turn, with what the turn would have left it -- the walking startTurn set (Haste's double, Slow's half, Ray of Frost's
@@ -1331,7 +1331,7 @@
     // THE WEBBING ON ONE WEBBED BURNS TOO (RULED 2026-11-16, Griz: "if area burns the webs the monsters are in, should for players too"): the ettercap's and the spider's webbing
     // on a creature (js/battle.js Battle.webStub: vulnerable to fire) caught in the fire burns away and frees it, wherever it stands -- on the field's web or off it
     if (B && sqs && sqs.length) {
-      var webbedF = (B.units || []).filter(function (w) { var r0 = w.conds && w.conds.restrained; return !!(r0 && r0.webbing && !w.dead && G.inArea(w, sqs)); });
+      var webbedF = (B.units || []).filter(function (w) { var r0 = w.conds && w.conds.restrained; return !!(r0 && r0.webbing && !r0.net && !w.dead && G.inArea(w, sqs)); }); // (not a dragger's net: only slashing frees one -- SRD 5.1; nets-1125)
       webbedF.forEach(function (w) { delete w.conds.restrained; FX.sparkle(w, 'fire', 10); });
       if (webbedF.length) { D.sfx('fire'); B.card(['{o}The webbing burns away{/}: {y}' + webbedF.map(function (w) { return w.side === 'foe' ? B.shortName(w) : w.name; }).join(', ') + ' ' + (webbedF.length > 1 ? 'are' : 'is') + ' free.{/}']); }
     }

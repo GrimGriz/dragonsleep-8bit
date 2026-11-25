@@ -573,7 +573,7 @@
   S.roostOf = function (B, txt) { if (!(B.fight && B.fight.roost)) return false; var t = ''; try { t = txt() || ''; } catch (e) { } return /UNDER THE ROOST/.test(t); };
   // ---- SKILL: the grid's commands with no walk in them (battle.js commands) -- a feature aimed at one creature picks it
   var NOT = { attack: 1, skipattack: 1, spells: 1, items: 1, offhand: 1, end: 1, leave: 1, dash: 1, cdash: 1, disengage: 1, cdisengage: 1, ready: 1, stand: 1, land: 1, passage: 1, rope: 1, takerope: 1, ropeclimb: 1, cutrope: 1, bucketrope: 1, barreltorch: 1, throwtorch: 1, droptorch: 1, pickuptorch: 1, dashmove: 1, move: 1, drawoffhand: 1, putaway: 1 };
-  var TOOLS = { shove: 'foe', grapple: 'foe', throw: 'foe', help: 'any', detach: 'friend', breaktendril: 'friend', pullout: 'friend', lay: 'friend' };
+  var TOOLS = { shove: 'foe', grapple: 'foe', throw: 'foe', help: 'any', detach: 'friend', breaktendril: 'friend', pullout: 'friend', freenet: 'friend', lay: 'friend' }; // (freenet: FREE FROM THE NET, a dragger's -- nets-1125)
   S.skills = function (B, u) {
     var out = [];
     (function add(cs) { cs.forEach(function (c) { if (c.items) return add(c.items); if (!NOT[c.id] && !c.sub) out.push(c); }); })(B.commands(u));

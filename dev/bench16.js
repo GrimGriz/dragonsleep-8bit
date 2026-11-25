@@ -20561,6 +20561,97 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preH);
     return;
   }
+  // THE SEAT nets-1125 (mode=nets1125; the road and its rewards lane, 2026-11-25 (later) -- his "seems like you're only dragging zero hp heroes", "lane the draggers get nets a
+  // hooked piked, and with a prone-inducing move, drag prone not 0 hp"): THE NET by the SRD 5.1 (js/features.js F.throwNet, F.netOn: restrained, DC 10, AC 10 and 5 HP, only
+  // slashing), BREAK FREE and FREE FROM THE NET (magic.js breakFree, F.freeNet, battle.js), THE HOOK (F.hook: the Shove to knock prone at the pike's reach), the prone and the
+  // netted taken and dragged (F.aiWagonDrill), ESCAPE THE HOLD (battle.js), let go when up and out of the net. On the wagon's own fight, snootwagon. &wseeds=N (6)
+  if (get('mode', '') === 'nets1125') {
+    var repN = { checks: [], errors: [] }, d0N = D.d, RUn = D.rules, GGn = D.grid, Fn = D.features, Bt = D.Battle, q20 = [], pinN = {};
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runN(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    D.d = function (n) { if (n === 20 && q20.length) return q20.shift(); if (pinN[n]) return pinN[n]; return d0N.apply(this, arguments); }; // (the d20s queued, other dice pinned where a check wants them)
+    function mkN() { var B = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, bench: true }); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; B.round = 2; return B; }
+    function byN(B, id) { return B.units.filter(function (w) { return w.id === id; })[0]; }
+    function heroesN(B) { return B.units.filter(function (w) { return w.side === 'party'; }); }
+    function setN(B, list) { list.forEach(function (e) { e[0].x = e[1]; e[0].y = e[2]; }); GGn.setup(GGn.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; }
+    function logN(B, n) { return (B.log || []).slice(n).join(' / ').replace(/R\d+ /g, ''); }
+    function cmdN(B, u, id) { RUn.startTurn(u); B.active = u; return (B.commands(u) || []).filter(function (c) { return c.id === id; })[0] || null; }
+    function ranksN(B, near) { return Math.min.apply(null, B.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.hp > 0 && !Fn.wagonDrill(w) && Fn.soldiering(w); }).map(function (w) { return GGn.dist(w, near); })); }
+    try {
+      // 1. THE NET: the west dragger, one of the four 15 ft off -- past the hook's reach (the rest far east) -- a hit restrains; the net AC 10, 5 HP, only slashing; thrown once
+      var B1 = mkN(), d1 = byN(B1, 'bd1'), d2 = byN(B1, 'bd2'), P1 = heroesN(B1).sort(function (a, b) { return RUn.ac(a) - RUn.ac(b); }), h1 = P1[0], h2 = P1[1]; // (the softest first: the net goes where it lands)
+      P1.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B1, [[h1, d1.x, d1.y + 3]]);
+      var p1 = Fn.pNet(d1, h1);
+      var n1 = (B1.log || []).length; q20 = [18, 18]; RUn.startTurn(d1); B1.active = d1; var did1 = runN(Fn.aiWagonDrill(B1, d1)); q20 = [];
+      var r1 = h1.conds.restrained, l1 = logN(B1, n1), w1 = r1 && r1.webbing;
+      okN('1 the net thrown 15 ft at ' + h1.name + ' (AC ' + RUn.ac(h1) + ', its chance ' + p1.toFixed(2) + ') (' + did1 + '): ' + h1.name + ' restrained ' + !!r1 + ' (net ' + !!(r1 && r1.net) + ', DC ' + (r1 && r1.dc) + ', the net AC ' + (w1 && w1.ac) + ' HP ' + (w1 && w1.hp) + ', slashing cuts it ' + !!(w1 && w1.immune.indexOf('slashing') < 0) + ', bludgeoning not ' + !!(w1 && w1.immune.indexOf('bludgeoning') >= 0) + '); its action spent ' + (d1.turn.action === 0) + ', the net gone ' + !!d1.netGone + '; "' + l1.slice(0, 260) + '"',
+        did1 === true && !!r1 && r1.net && r1.dc === 10 && w1.ac === 10 && w1.hp === 5 && w1.immune.indexOf('slashing') < 0 && w1.immune.indexOf('bludgeoning') >= 0 && d1.turn.action === 0 && !!d1.netGone && /NET/.test(l1) && /RESTRAINED/.test(l1) && /dis: long range/.test(l1));
+      var again1 = runN(Fn.throwNet(B1, d1, h2)), huge = { size: 3, conds: {}, kind: 'nobody' }, ooze = { size: 1, conds: {}, type: 'ooze' };
+      okN('1b thrown once (a second throw: ' + again1 + '); a Huge one beyond it (' + Fn.netCan(d1, huge) + '), a formless one (' + Fn.netCan(d1, ooze) + '), one netted already (' + Fn.netCan(d1, h1) + '); ' + h1.name + ' cannot stand while netted (' + !RUn.canRise(h1) + ')',
+        again1 === false && !Fn.netCan(d1, huge) && !Fn.netCan(d1, ooze) && !Fn.netCan(d1, h1) && !RUn.canRise(h1));
+      // 1c. the hardest of the four alone at 15 ft: the net's chance under the fair line -- not thrown (the pike, as before)
+      var B1c = mkN(), c1 = byN(B1c, 'bd1'), P1c = heroesN(B1c).sort(function (a, b) { return RUn.ac(b) - RUn.ac(a); }), hc = P1c[0];
+      P1c.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B1c, [[hc, c1.x, c1.y + 3]]);
+      var pc = Fn.pNet(c1, hc), n1c = (B1c.log || []).length; RUn.startTurn(c1); B1c.active = c1; var did1c = runN(Fn.aiWagonDrill(B1c, c1)); var l1c = logN(B1c, n1c);
+      okN('1c ' + hc.name + ' (AC ' + RUn.ac(hc) + ') alone at 15 ft: the net\'s chance ' + pc.toFixed(2) + ' (fair at ' + Fn.NET_FAIR + ') -- not thrown (' + did1c + ', net in hand ' + !c1.netGone + ', ' + hc.name + ' free ' + !hc.conds.restrained + ')',
+        pc < Fn.NET_FAIR && did1c === false && !c1.netGone && !hc.conds.restrained && !/  NET  /.test(l1c));
+      // 2. BREAK FREE: the netted one's own DC 10 STR check (on the ring); the card names the net
+      var bf2 = cmdN(B1, h1, 'breakfree'), n2 = (B1.log || []).length; q20 = [15]; runN(D.magic.breakFree(B1, h1)); q20 = []; var l2 = logN(B1, n2);
+      okN('2 BREAK FREE on ' + h1.name + '\'s ring (' + !!(bf2 && bf2.ok) + '); DC 10, a 15: free ' + !h1.conds.restrained + ' -- "' + l2.slice(0, 160) + '"', !!bf2 && bf2.ok && !h1.conds.restrained && /heaves at the net/.test(l2) && /vs DC 10/.test(l2));
+      // 3. CUT: the net struck on the netted one's square -- a mace does nothing, a sword's 5 slashing frees him
+      Fn.netOn(B1, d1, h1); RUn.startTurn(h2); B1.active = h2; setN(B1, [[h2, h1.x + 1, h1.y]]);
+      var mace = { name: 'Mace', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning' }, sword = { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing' }, st3 = Bt.tendrilOn(h2, h1, B1.units), n3 = (B1.log || []).length;
+      q20 = [15]; runN(B1.strikeTendril(h2, st3, mace)); var hp3 = h1.conds.restrained && h1.conds.restrained.webbing.hp;
+      q20 = [15]; pinN[8] = 4; runN(B1.strikeTendril(h2, Bt.tendrilOn(h2, h1, B1.units), sword)); pinN = {}; q20 = []; var l3 = logN(B1, n3);
+      okN('3 the net struck (' + (st3 && st3.name) + '): a mace\'s hit leaves it ' + hp3 + ' of 5; a longsword\'s 7 slashing cuts it away -- free ' + !h1.conds.restrained + '; "' + l3.replace(/.*(The net is[^/]*).*/, '$1') + '"',
+        !!st3 && /the net on/.test(st3.name) && hp3 === 5 && /immune to bludgeoning/.test(l3) && !h1.conds.restrained && /The net is cut away/.test(l3));
+      // 4. FREE FROM THE NET: a friend within reach, his action and a DC 10 STR check (on his ring); the netted one's own ring has BREAK FREE
+      Fn.netOn(B1, d1, h1); var fn4 = cmdN(B1, h2, 'freenet'), n4 = (B1.log || []).length; q20 = [15]; runN(B1.exec(h2, { do: 'freenet', target: h1 })); q20 = []; var l4 = logN(B1, n4);
+      okN('4 FREE FROM THE NET on ' + h2.name + '\'s ring beside him (' + !!(fn4 && fn4.ok) + ', "' + (fn4 && fn4.note) + '"); a 15 frees ' + h1.name + ' (' + !h1.conds.restrained + '), the action spent ' + (h2.turn.action === 0) + '; "' + l4.slice(0, 200) + '"',
+        !!fn4 && fn4.ok && !h1.conds.restrained && h2.turn.action === 0 && /pulls at the net/.test(l4) && /The net is pulled off/.test(l4));
+      // 5. THE HOOK: the west dragger's net spent, a hero standing 10 ft off and its fellow dragger free -- the Shove to knock prone, at the pike's reach
+      var B5 = mkN(), e1 = byN(B5, 'bd1'), e2 = byN(B5, 'bd2'), P5 = heroesN(B5), k5 = P5[0];
+      P5.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B5, [[k5, e1.x, e1.y + 2]]); e1.netGone = true;
+      var n5 = (B5.log || []).length; q20 = [18, 2]; RUn.startTurn(e1); B5.active = e1; var did5 = runN(Fn.aiWagonDrill(B5, e1)); q20 = []; var l5 = logN(B5, n5);
+      okN('5 THE HOOK from 10 ft (' + did5 + '): ' + k5.name + ' prone ' + !!k5.conds.prone + ', the dragger where it stood (' + GGn.dist(e1, k5) + ' ft), its action spent ' + (e1.turn.action === 0) + ', the pike in hand ' + !!e1.attacks.pike + '; "' + l5.slice(0, 240) + '"',
+        did5 === true && !!k5.conds.prone && GGn.dist(e1, k5) === 10 && e1.turn.action === 0 && !!e1.attacks.pike && /HOOK/.test(l5) && /knocked flat/.test(l5));
+      // 6. THE PRONE TAKEN: the fellow dragger comes beside, the grapple's contest (one awake), holds and drags at half speed; held, he cannot stand
+      var nr6 = ranksN(B5, k5), at6 = k5.x + ',' + k5.y, n6 = (B5.log || []).length; q20 = [18, 2]; RUn.startTurn(e2); B5.active = e2; var did6 = runN(Fn.aiWagonDrill(B5, e2)); q20 = []; B5.sweep(); var l6 = logN(B5, n6);
+      okN('6 the prone taken (' + did6 + '): held by the second ' + !!(k5.conds.grappled && k5.conds.grappled.by === e2.id) + ', still prone ' + !!k5.conds.prone + ', cannot stand ' + !RUn.canRise(k5) + '; dragged ' + at6 + ' -> ' + k5.x + ',' + k5.y + ', nearest of the ranks ' + nr6 + ' -> ' + ranksN(B5, k5) + ' ft; "' + l6.slice(0, 300) + '"',
+        did6 === true && !!k5.conds.grappled && k5.conds.grappled.by === e2.id && !!k5.conds.prone && !RUn.canRise(k5) && /GRAPPLE|WAGON DRILL/.test(l6) && /prone: .*WAGON DRILL/.test(l6) && (ranksN(B5, k5) < nr6 || nr6 <= 5));
+      // 7. ESCAPE THE HOLD: on his ring; his Athletics or Acrobatics against the dragger's -- free, he may stand
+      var es7 = cmdN(B5, k5, 'escapegrip'), mv7 = (D.ui && D.ui.moveWhy) ? D.ui.moveWhy(B5, k5) : '', n7 = (B5.log || []).length; q20 = [18, 2]; runN(B5.exec(k5, { do: 'escapegrip' })); q20 = []; var l7 = logN(B5, n7);
+      okN('7 ESCAPE THE HOLD on ' + k5.name + '\'s ring (' + !!(es7 && es7.ok) + '; MOVE greyed "' + mv7 + '"); an 18 against a 2: free ' + !k5.conds.grappled + ', can stand ' + RUn.canRise(k5) + '; "' + l7.slice(0, 200) + '"',
+        !!es7 && es7.ok && /ESCAPE THE HOLD/.test(mv7) && !k5.conds.grappled && RUn.canRise(k5) && /breaks/.test(l7));
+      // 8. THE NETTED TAKEN, THEN UP AND OUT OF IT: netted and held, the net cut away (standing) -- the dragger lets go and takes the pike up
+      var B8 = mkN(), f1 = byN(B8, 'bd1'), P8 = heroesN(B8), m8 = P8[0];
+      P8.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B8, [[m8, f1.x, f1.y + 2]]); Fn.netOn(B8, f1, m8); f1.netGone = true;
+      var n8 = (B8.log || []).length; q20 = [18, 2]; RUn.startTurn(f1); B8.active = f1; var did8 = runN(Fn.aiWagonDrill(B8, f1)); q20 = []; B8.sweep(); var held8 = !!(m8.conds.grappled && m8.conds.grappled.by === f1.id), l8 = logN(B8, n8);
+      B8.webGone(m8, 'cut away'); RUn.startTurn(f1); B8.active = f1; var did8b = runN(Fn.aiWagonDrill(B8, f1));
+      okN('8 the netted taken (' + did8 + ', held ' + held8 + ', "' + (l8.match(/takes hold[^/]*/) || [''])[0].slice(0, 120) + '"); the net cut, on his feet: let go ' + !(m8.conds.grappled && m8.conds.grappled.by === f1.id) + ', the pike up ' + !!f1.attacks.pike + ' (the turn a piker\'s: ' + did8b + ')',
+        did8 === true && held8 && /in the net/.test(l8) && !(m8.conds.grappled && m8.conds.grappled.by === f1.id) && !!f1.attacks.pike && f1.reach === 10);
+      // 9. no fellow free to take him: the dragger thrusts the pike as before (no hook)
+      var B9 = mkN(), g1 = byN(B9, 'bd1'), P9 = heroesN(B9), o9 = P9[0];
+      B9.units.forEach(function (w) { if (w !== g1 && Fn.wagonDrill(w)) { w.hp = 0; w.dead = true; } });
+      P9.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B9, [[o9, g1.x, g1.y + 2]]); g1.netGone = true;
+      var n9 = (B9.log || []).length; RUn.startTurn(g1); B9.active = g1; var did9 = runN(Fn.aiWagonDrill(B9, g1)); var l9 = logN(B9, n9);
+      okN('9 alone, its net spent: no hook (' + did9 + ', "' + l9.slice(0, 80) + '"), ' + o9.name + ' standing ' + !o9.conds.prone, did9 === false && !/HOOK/.test(l9) && !o9.conds.prone);
+      // 10. the watched wagon at 3, seeds 1-N: the drill as it falls in a whole fight (informational)
+      var NWn = +get('wseeds', '6'), rowsN = [];
+      for (var sN = 1; sN <= NWn; sN++) {
+        D.seed = sN; var Bw = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, watch: true, bench: true }); D.battle = Bw; Bw.enter(); var rN = drive(Bw), LN = Bw.log || [];
+        var cN = function (re) { return LN.filter(function (s) { return re.test(s); }).length; };
+        if (get('dbg', '') === String(sN)) repN.log = LN.filter(function (s) { return /Dragger|WAGON|NET|HOOK|net|drags|hold|goes down/.test(s); }).slice(0, 120);
+        if (get('dbgall', '') === String(sN)) repN.log = LN.slice(-70); // (the seed's last lines whole)
+        rowsN.push('s' + sN + ' ' + rN + ' R' + Bw.round + ': nets ' + cN(/  NET  /) + ' (hit ' + cN(/RESTRAINED/) + '), hooks ' + cN(/: HOOK/) + ' (flat ' + cN(/knocked flat/) + '), taken prone ' + cN(/, prone: .*WAGON DRILL/) + ', in the net ' + cN(/, in the net: .*WAGON DRILL/) + ', down ' + cN(/, down: .*WAGON DRILL/) + ', drags ' + cN(/drags .* toward/) + ', escapes ' + cN(/breaks .* hold/) + ', nets off ' + (cN(/The net is/) + cN(/heaves at the net.*FREE/)));
+      }
+      okN('10 the watched wagon at 3 (informational): ' + rowsN.join('; '), true);
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    D.d = d0N;
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
   // THE GRID SEAT grid-1125b, the lanes desk's second and third relays (mode=grid1125c; his answers of 2026-11-25 ~12:40Z and ~13:00Z): THE SPHERE'S OWN RING (js/grimoire.js
   // flamingsphere -- "1 yes"; "in my head the player clicking the FS on the ring swaps to the sphere's ring"); HIDE greyed where a foe's blindsight finds her, and the card's line
   // (battle.js Battle.hideFinders, ui.js inspect -- "2 ... add the blindsight to the inspect card without the hide fail, but grey out with reason"); a cleric's heavy armour by the

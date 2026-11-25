@@ -296,7 +296,7 @@
   // door of 11-24, the same two words with a set shield and no feet): held fast (restrained, grappled: the speed 0), the line's square held, or no feet left this turn
   function moveWhy(B, u) {
     if (u.conds.restrained) return 'held fast: restrained, the speed is 0' + (u.inClaws ? ' (in its claws: BREAK FREE)' : '');
-    if (u.conds.grappled) return 'held fast: grappled, the speed is 0 (BREAK FREE)';
+    if (u.conds.grappled) return 'held fast: grappled, the speed is 0 (ESCAPE THE HOLD)'; // (its own command since nets-1125: BREAK FREE is the restrained's)
     if (D.features && D.features.heldLine && D.features.heldLine(u, B)) return 'the line holds the square: LEAVE it first (a bonus action)';
     return 'no feet left this turn';
   }
@@ -326,7 +326,7 @@
     var out = [moveItem(B, u)];
     ['twinstrike', 'attack', 'throwpick', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (throwpick: THROW <it> beside ATTACK once one is thrown in the fight -- the throw, 11-11) (offhand: two-weapon fighting's swing beside the Attack, 10-15)
     fronts.forEach(function (x) { out.push(x); });
-    ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
+    ['hide', 'breakfree', 'escapegrip', 'freenet', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (pl.length) out.push(playsTab(u, pl));
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     // SHOVE beside GRAPPLE under ACTIONS (RULED 11-16, Griz on the lanes order's 23: "Y - consider whether we need subcategories on the ring."; the menus lane §2.8, found 10-16: SHOVE
@@ -353,7 +353,7 @@
   // beside one, the again, the fronted features), the situational ones (HIDE, BREAK FREE, PULL IT OFF ...), SPELLS, then ACTIONS and BONUSES -- every command that costs the action on
   // the one ring (the yellow A the bar counts), every one that costs the bonus action or is free on the other (the blue B) -- then END TURN. The two labels carry a Mascot's pools. The
   // ring wears the colour while it is open (cmdRing). The classes keep the first ring under RING ("I don't think the class ones are monster party weird"); RING2 in the menu puts them on it
-  var FIRST2 = { attack: 1, throwpick: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1 }; // (SPELLS on ACTIONS and BONUSES since 10-15: cmds2)
+  var FIRST2 = { attack: 1, throwpick: 1, hide: 1, breakfree: 1, escapegrip: 1, freenet: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1 }; // (SPELLS on ACTIONS and BONUSES since 10-15: cmds2)
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
@@ -386,7 +386,7 @@
     var out = [moveItem(B, u)];
     ['twinstrike', 'attack', 'throwpick', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
-    ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['hide', 'breakfree', 'escapegrip', 'freenet', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (pl.length) out.push(playsTab(u, pl)); // (RING2: the PLAYS on the first ring too -- they ride the swing, not one pool)
     if (A.length) out.push({ id: 'actions', label: 'ACTIONS' + poolTag(u, 'A'), cost: 'A', ok: A.some(function (x) { return x.ok; }), why: 'nothing to do with the action now', sub: 'actions', icon: 'actions2', items: A, ring2: 'A', note: 'everything that costs the action, the yellow A on the bar' });
     if (Bn.length) out.push({ id: 'bonuses', label: 'BONUSES' + poolTag(u, 'B'), cost: 'B', ok: Bn.some(function (x) { return x.ok; }), why: 'nothing to do with the bonus action now', sub: 'bonuses', icon: 'bonuses', items: Bn, ring2: 'B', note: 'everything that costs the bonus action, the blue B -- and the free moves' });
@@ -1135,6 +1135,7 @@
     if (!s || !s.open) return 'no';
     if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
     if (tool === 'pullout') return pullPick(B, u, w) ? 'ok' : 'no'; // (PULL OUT: a friend the water elemental holds, it beside you -- 10-14; or one inside the gelatinous cube, picked on its square -- js/engulf.js, 11-25)
+    if (tool === 'freenet') return w && D.features && D.features.freeNetFor(B, u).indexOf(w) >= 0 ? 'ok' : 'no'; // (FREE FROM THE NET: a friend netted within your reach -- nets-1125)
     if (tool === 'breaktendril') return w && D.Battle.breakable(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (BREAK THE TENDRIL: the one it holds -- you, or a friend beside you -- 10-02)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       // a rope's square (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it (unless someone is on it - in which case I think they'll
@@ -1333,6 +1334,7 @@
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
     if (tool === 'pullout') { if (v === 'ok') return UI.command(B, u, { do: 'pullout', target: pullPick(B, u, w) }); return B.card(['{o}Pull out: a friend the water elemental or the gelatinous cube holds, it beside you.{/}'], 120); } // (the cube's: js/engulf.js, 11-25)
+    if (tool === 'freenet') { if (v === 'ok') return UI.command(B, u, { do: 'freenet', target: w }); return B.card(['{o}Free from the net: a friend netted within your reach.{/}'], 120); }
     if (tool === 'breaktendril') { if (v === 'ok') return UI.command(B, u, { do: 'breaktendril', target: w }); return B.card(['{o}Break the tendril: the one it holds -- yourself, or a friend beside you.{/}'], 120); }
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (v === 'cut') return UI.command(B, u, { do: 'cutrope', x: x, y: y }); // (a rope a foe hangs on: struck from its top -- 10-04 night)
@@ -2697,7 +2699,8 @@
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
     if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
     if (tool === 'detach') D.Battle.pullable(u, B.units).forEach(function (r) { lineSq(ctx, r.master.x, r.master.y, R('moss', 3), 0.9); });
-    if (tool === 'pullout') D.Battle.whelmed(u, B.units).forEach(function (w) { lineSq(ctx, w.x, w.y, R('blue', 3), 0.9); }); // (a friend the water elemental holds: blue) // (a friend with a darkmantle on: green)
+    if (tool === 'pullout') D.Battle.whelmed(u, B.units).forEach(function (w) { lineSq(ctx, w.x, w.y, R('blue', 3), 0.9); }); // (a friend the water elemental holds: blue)
+    if (tool === 'freenet' && D.features) D.features.freeNetFor(B, u).forEach(function (w) { lineSq(ctx, w.x, w.y, R('moss', 3), 0.9); }); // (a friend in a dragger's net: green -- nets-1125) // (a friend with a darkmantle on: green)
     if (tool === 'lay') B.units.forEach(function (w) { if (w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9); }); });
     if (tool === 'item') B.units.forEach(function (w) { if (B.itemTargetOK(u, B.itemId, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('moss', 2), 0.9); }); });
     if (tool === 'spell') {
