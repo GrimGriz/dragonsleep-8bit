@@ -1182,7 +1182,7 @@
   // eye), unnamed and without her list; she stands with her soldiers (no flight: the Snoot's fight is the road's). The Snoot's band sends one for
   // each wagon whose lady still lives (snoot-mode/js/rules.js SN.band), and one who falls here falls on its map
   patrollady: {
-    name: 'Patrol Lady', type: 'humanoid', sheet: 'npcwarlock_p0', humanoid: true, cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5,
+    name: 'Patrol Lady', type: 'humanoid', sheet: 'dmladymirror_p2', humanoid: true, cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5,
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },

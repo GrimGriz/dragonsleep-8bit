@@ -1,0 +1,84 @@
+{
+ "image": "art/dmlady_p2.png",
+ "fw": 46,
+ "fh": 96,
+ "ax": 23,
+ "ay": 76,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 46,
+   "fh": 96,
+   "ax": 23,
+   "ay": 76,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 768,
+   "fw": 46,
+   "fh": 96,
+   "ax": 23,
+   "ay": 76,
+   "frames": 8,
+   "fps": 10
+  },
+  "cast": {
+   "y": 1536,
+   "fw": 56,
+   "fh": 96,
+   "ax": 28,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "attack": {
+   "y": 2304,
+   "fw": 68,
+   "fh": 96,
+   "ax": 34,
+   "ay": 76,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "flinch": {
+   "y": 3072,
+   "fw": 56,
+   "fh": 96,
+   "ax": 28,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3840,
+   "fw": 66,
+   "fh": 96,
+   "ax": 33,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 4608,
+   "fw": 66,
+   "fh": 96,
+   "ax": 33,
+   "ay": 76,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Patrol Lady (the Fae King)",
+ "hold": [
+  "walk: SE, E and rear NE (and their mirrors) as drawn, held by the art desk (the lead change between 1 and 5 ambiguous after redraws), cut on his \"yes - cut what we have, dreamlist what needs revised\"; their gaits on deep16-dream-polish.md",
+  "cast: the mirror lifted from her left hip and presented by her left hand on frame 4 (`release` 3) -- every spell of hers plays it; no flash drawn",
+  "attack: the rapier in her right hand, home on frame 4 (`release` 3)",
+  "prone: as drawn, matched by width to her Fall 6",
+  "her trim white here; tools/dmlady-sheet.py trims() writes her three patrons' sheets from this one"
+ ],
+ "source": "drawn by the art desk (ART-165, 11-25: art-wanted section 101, the Dominion's patrol lady, rapier and mirror, her trim in white, five views), cut by tools/dmlady-sheet.py over tools/mender-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- her trim (the white key and its slate shade, found on the source pages) moved to the violet ramp #bb96e0, #8a5cb4, #62398a for the Fae King, by tools/dmlady-sheet.py trims()"
+}

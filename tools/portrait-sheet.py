@@ -444,6 +444,12 @@ for _key, _pg, _av in [('dmmender', 'mender/2026-11-25-ART-164-COMBAT/approved/A
     PEOPLE[_key] = (os.path.dirname(_pg), 'ART-164' if _key == 'dmmender' else 'ART-163',
                     'no one yet: no scene speaks to the Dominion\'s patrol (art-wanted %s)' % ('100' if _key == 'dmmender' else '99'),
                     {'edge': True, 'avoid': _av, 'bevel': (_pg,), 'layout': [(_pg, [3, 3], ['idle'] * 6)]})
+# THE DOMINION'S PATROL LADY, HER IDLE (11-25, the cutter seat cutter-1125b; art-wanted 101): ART-165's PAGE 1 (reference/ART-165-PT-DMLADY-PAGE-1-IDLE.png,
+# 1440x810, the only copy sent), sorted to deep16/_src/patrollady/2026-11-25-ART-165-PATROL-LADY/: the black coat, the white sash and cuffs, her eyes down on 4,
+# Idle 6 at the counter rail as the sergeant's. One portrait for her three patrons: her trim stays white here (her fight sheets carry the patron's colour)
+_pg = 'patrollady/2026-11-25-ART-165-PATROL-LADY/reference/ART-165-PT-DMLADY-PAGE-1-IDLE.png'
+PEOPLE['dmlady'] = (os.path.dirname(_pg), 'ART-165', 'no one yet: no scene speaks to the Dominion\'s patrol (art-wanted 101)',
+                    {'edge': True, 'avoid': ['fire', 'blue', '#14171e', '#20252f', '#313846'], 'bevel': (_pg,), 'layout': [(_pg, [3, 3], ['idle'] * 6)]})
 
 
 def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):

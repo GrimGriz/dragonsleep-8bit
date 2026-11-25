@@ -296,30 +296,30 @@
     patrolladyw: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' }, pact: 'blade', pactForm: 'longsword',
       known: ['eldritchblast', 'chilltouch', 'poisonspray', 'hellishrebuke', 'command', 'holdperson', 'scorchingray', 'vampirictouch', 'mirrorimage'],
-      invocations: ['agonizing', 'devilsight'] },
+      invocations: ['agonizing', 'devilsight'], look: 'dmladymirror_p2' }, // (her own figure since 11-25, ART-165: art-wanted 101, her cuffs the Mirror's -- tools/dmlady-sheet.py)
     // THE SNOOT'S THREE PATROL LADIES, ONE A PATRON (2026-11-25, the seat snoot-1125 -- RULED, Griz: "1 - we need all 3 patron specific patrol ladys for the snoot, each with
     // flavored spell list"; each wagon's lady by her patron, the snoot lane 11-25 ~12:05Z: Savine's the Fiend, the Old One's the Mirror, Tronu's the Fae King). Each is
     // patrolladyw's warlock 5 -- her numbers, the Pact of the Blade's longsword, Agonizing Blast and Devil's Sight -- with her patron and a list of six from her patron's own
     // and the SRD warlock's, the built ones only, the Fiend's ten on the Fiend's alone (NPC.SUBS, NPC.FIEND_OWN). patrolladyw stays as she is (his answer: "her Scorching
-    // Ray with her"). The picks are the seat's (invented.json #patrol-ladies-by-patron), his to change. Their look: today's patrol-lady figure (data/foes.js) till art-wanted 101
-    // comes back recoloured by patron
+    // Ray with her"). The picks are the seat's (invented.json #patrol-ladies-by-patron), his to change. Their look: art-wanted 101, ART-165, recoloured by patron (11-25 late, the
+    // cutter seat cutter-1125b, tools/dmlady-sheet.py): the Dominion's crimson trim, her cuffs her patron's -- each build's `look`, each block's `sheet` (data/foes.js)
     // the Fiend's (Savine's wagon): hellfire and brimstone -- the Fiend's own Burning Hands, Command, Scorching Ray, Fireball and Stinking Cloud, and the warlock's Hellish Rebuke
     patrolladyfiendw: { cls: 'warlock', lvl: 5, race: 'human', subclass: 'The Fiend', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' }, pact: 'blade', pactForm: 'longsword',
       known: ['eldritchblast', 'chilltouch', 'poisonspray', 'hellishrebuke', 'burninghands', 'command', 'scorchingray', 'fireball', 'stinkingcloud'],
-      invocations: ['agonizing', 'devilsight'] },
+      invocations: ['agonizing', 'devilsight'], look: 'dmladyfiend_p2' },
     // the Mirror's (the Old One's wagon): the glass and the asking -- the Mirror's own Glass Whisper, Command, Mirror Image and Hypnotic Pattern, and the warlock's Hold Person
     // and Fear; none of the Fiend's
     patrolladymirrorw: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' }, pact: 'blade', pactForm: 'longsword',
       known: ['eldritchblast', 'chilltouch', 'poisonspray', 'glasswhisper', 'command', 'mirrorimage', 'holdperson', 'hypnoticpattern', 'fear'],
-      invocations: ['agonizing', 'devilsight'] },
+      invocations: ['agonizing', 'devilsight'], look: 'dmladymirror_p2' },
     // the Fae King's (Tronu's wagon): glamour, the unseen and the charm -- the pact's own Sleep, Mirror Image and Hypnotic Pattern, and the warlock's Charm Person, Invisibility
     // and Hold Person; none of the Fiend's. GLAMOUR is hers at 1 (the sheet's; nothing on the grid); GONE FROM SIGHT waits for the 6th
     patrolladyfaew: { cls: 'warlock', lvl: 5, race: 'human', patron: 'faeking', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' }, pact: 'blade', pactForm: 'longsword',
       known: ['eldritchblast', 'chilltouch', 'poisonspray', 'sleep', 'charmperson', 'mirrorimage', 'invisibility', 'holdperson', 'hypnoticpattern'],
-      invocations: ['agonizing', 'devilsight'] },
+      invocations: ['agonizing', 'devilsight'], look: 'dmladyfae_p2' },
     // the rest of a Dominion patrol (11-24, the seat dominion-1124, on Griz's "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger"):
     // his patrol page The Fare Home's two sergeants and its cleric, by the SRD (data/foes.js sergeantblade, sergeantledger, mender -- each block's `src` says what was
     // swapped). Their armour's AC is the block's (`buildAC`: the game's items have no full plate or breastplate); the kit here is what they swing and what weighs.
