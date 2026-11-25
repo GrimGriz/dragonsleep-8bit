@@ -4,7 +4,7 @@ the other probes do) and reads what it wrote: the game's own scripts loaded with
 `picks` clicked, its words said, `expect` in them and `mark` among the marks at their backs (the supper's gossip by thread and depth, the renown greeting by band,
 the council's line, Doran's first supper home, Winters keeping his ring); none broke; and the browser's own storage holding nothing of the game's -- the page
 saves nothing to a save (only its notes draft, deep16.scenes.*).
-  python dev/scenes-probe.py          the REVIEW shelf and the kinds (about a minute)
+  python dev/scenes-probe.py          the REVIEW shelf and the kinds (about 30 s; in the full gate since 11-25, his "15-17, sure")
   python dev/scenes-probe.py all      every scene on the front page staged to its first choice (several minutes)"""
 import os, re, sys, json, subprocess, tempfile, shutil, html as H
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
@@ -33,6 +33,14 @@ def main():
     ok(not r['loadErrors'], 'the game\'s own scripts loaded with no error' + ('' if not r['loadErrors'] else ': ' + '; '.join(r['loadErrors'])))
     ok(r['scenes'] >= 100, 'the front page lists the game\'s scenes (%d)' % r['scenes'])
     ok(r['code'] >= 2000 and r['series'] >= 500, 'the marks have their tables: %d strings of the scene files, %d series lines' % (r['code'], r['series']))
+    # the REVIEW shelf (deep16/scenes-review.js, one row a line; RULED 11-25, his "15-17, sure"): its rows well formed, and every one on the page and played below
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('scenes_review', os.path.join(ROOT, 'tools', 'scenes-review.py')); SR = importlib.util.module_from_spec(spec); spec.loader.exec_module(SR)
+    shelf, sbad = [rid for _, rid, _ in SR.rows()], SR.problems()
+    ok(not sbad, 'the REVIEW shelf\'s rows are one a line, each an r- id, a title and a stage (%d rows)%s' % (len(shelf), '' if not sbad else ': ' + '; '.join(sbad)))
+    ran = [x['id'] for x in r['runs']]
+    ok(sorted(r.get('review') or []) == sorted(shelf) and all(i in ran for i in shelf), 'the page holds every row of the shelf and the probe played each' +
+       ('' if sorted(r.get('review') or []) == sorted(shelf) else ': the page has %s, the file %s' % (', '.join(r.get('review') or []) or 'none', ', '.join(shelf))))
     for x in r['runs']:
         why = []
         if x.get('broke'): why.append('it broke')

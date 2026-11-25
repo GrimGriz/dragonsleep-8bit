@@ -70,6 +70,7 @@ ALL_SCRIPTS = [['dev/snoot-headless-probe.py', 'days=5'], ['dev/bench8.py', 'lym
                ['dev/bench8.py', 'story1006'], # (the story walk, 10-06: the spine beat by beat, the journal's door there, in reach from Silverton and played to move the story; every flag read named in content/flags.json)
                ['dev/bench8.py', 'countdown1003'], # (the encounter countdown carried across map loads, RULED 10-03: a load, a warp and the chalk keep it; a new field rolls; a carried count fires)
                ['dev/keeper-probe.py'], # (10-03, the stream's fixes: the Keeper's own probe, its fixes' checks in it -- the retreat, the break-free, the swirl's end, the prone rules, the opener, the log, the card)
+               ['dev/scenes-probe.py'], # (11-25, the scenes seat, his "15-17, sure": the scene simulator, deep16/scenes.html, headless -- every REVIEW row and a scene of each kind played by the game's own code, their words and marks, nothing broke, nothing saved; `all` stays by hand)
                ['dev/walk8.py', 'leg=gulch', 'n=1', 'check']] # (here-to-there, 10-03: one walk of the shortest leg sure to meet a fight -- 35 steps in the gulch's zone against a countdown of at most 26 -- so the walker can't rot)
 
 

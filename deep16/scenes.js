@@ -22,9 +22,8 @@
    --", so js/house.js H.unstamp and dev/records.py read it), and SAVE writes hero_situations_feedback-<UTC>.json -- `from: 'the scene simulator'`, the notes, and
    `scenes`: each note's scene, line, speaker, words, marks and stage, for the desk.
 
-   TO ADD A SCENE TO THE REVIEW SHELF (his "one we add to review later"): a row in SIM.REVIEW below -- id, title, why (whose ask, which lane), and `stage`: { show:
-   '<source id>', beat: '<beat id>' } or { door: 'deep16/?roam=...' } or { sit: '<DS.SIT16 id>' }, `talk` the person to fire once it is laid (an npc id, or a door
-   trigger's id), `use` an item to use from the pack, and `more` the stage's own overrides (flags, renown, day, hour, inv). Cut a row once he has seen it. */
+   TO ADD A SCENE TO THE REVIEW SHELF (his "one we add to review later"): one line in deep16/scenes-review.js -- the recipe is its head; to cut one once he has noted
+   it or said "seen" (RULED 11-25, his "15-17, sure"): python tools/scenes-review.py fold <his NOTES file> (or cut <id>). */
 'use strict';
 (function () {
   var D = window.D16, DS = window.DS, $ = function (id) { return document.getElementById(id); };
@@ -64,24 +63,9 @@
     solskaft: { name: 'SÓLSKAFT', beats: function () { return beatsOf(D.solskaft, 'BEATS'); }, play: function (bt) { D.solskaft.play(bt); } },
     blackegg: { name: 'SOMETHING WENT BY (the black egg)', beats: function () { return beatsOf(D.blackEgg, 'BEATS'); }, play: function (bt) { D.blackEgg.play(bt); } }
   };
-  // THE REVIEW SHELF (his "one we add to review later (i.e. this batch)"): the scenes of 11-24 and 11-25, each staged as its eyes row's door stages it
-  SIM.REVIEW = [
-    { id: 'r-nell', title: 'NELL OUT BACK: her name, her road in pieces, TAKE HER (11-24)', why: 'inn-1124; his "Nell is approved, add the scene". In.nellVisit, In.NELL, In.nellTake. Talk to her a few times: her name first, then a piece of her road a visit.',
-      stage: { door: 'deep16/?roam=halfway&hour=10&day=13&at=42,12&lvl=3&flags=reachedInn,gennetNamed,mealHad,kidAtInn,glamourBroken,glamourSeen' }, talk: 'adoptedKid' },
-    { id: 'r-elsbeth', title: 'ELSBETH IN HER OWN WORDS: one opening a visit, on the flip (11-24)', why: 'inn-1124; his "Elsbeth scene go". In.elsVisit, In.elsFlip, In.ELSV. Vivian leads after the supper\'s counting; her tellings in her own voice.',
-      stage: { door: 'deep16/?roam=halfway&hour=9&day=13&at=32,21&inside&lvl=3&flags=reachedInn,gennetNamed,mealHad,mealWrong' }, talk: 'elsbeth' },
-    { id: 'r-gennet', title: 'GENNET THE MORNING AFTER THE WAGON (11-24)', why: 'inn-1124; his "Gennet scene go". In.gennetAfterVisit, In.GAFTER. Doran\'s drive, the girl out back, her lie read by the best Insight.',
-      stage: { door: 'deep16/?roam=halfway&hour=9&day=13&at=10,16&lvl=3&flags=reachedInn,gennetNamed,mealHad,kidAtInn,glamourBroken,doranAway,doranPit,wagonOutcome,gennetOwed' }, talk: 'gennet' },
-    { id: 'r-doran', title: 'DORAN BACK FROM THE PIT: said once, then one question (11-24)', why: 'inn-1124; his "Doran scene go". In.doranBackVisit, In.DBACK. GreyFang\'s house, the road, the Pit, the night\'s drive.',
-      stage: { door: 'deep16/?roam=halfway&hour=10&day=16&at=16,24&lvl=3&flags=reachedInn,gennetNamed,mealHad,doranPit,kidAtInn,glamourBroken' }, talk: 'doranYard' },
-    { id: 'r-pages', title: 'WILLEM\'S BOOK INTO ITS PAGES (11-24)', why: 'inn-1124; his "Splitting into pages is good". In.willemPages: the book used from the pack (USE below), six sheets; Falstaff\'s prices.',
-      stage: { show: 'inn', beat: 'willempages' }, use: 'willembook' },
-    { id: 'r-ring', title: 'WINTERS REFUSES HIS OWN RING on his SELL shelf (11-25)', why: 'world-1124; his "Yes, refuse it". C.WINTERS_KEEP: the Ring of Water Walking at "--"; offer it and he keeps his word instead.',
-      stage: { sit: 'winters3', more: { inv: [['ringwaterwalking', 1]], flags: { wintersRing: 1 } } }, talk: 'winters' },
-    { id: 'r-renown', title: 'THE TOWN KNOWS YOU: the townsfolk\'s first line by renown (11-24)', why: 'world-1124; his "NPC dialog one-liners changing with renown level". C.RENOWN_SAYS. Change the renown on the left and talk to anyone in costume.',
-      stage: { show: 'trueword', beat: 'council', more: { renown: 3 } } },
-    { id: 'r-doranhome', title: 'DORAN\'S FIRST SUPPER HOME (the Snoot getting worse)', why: 'The supper with Doran\'s two lines before her opener (ruling 56); the gnolls thread at the Pit.', stage: { show: 'inn', beat: 'doranhome' }, talk: 'gennet' }
-  ];
+  // THE REVIEW SHELF (his "one we add to review later (i.e. this batch)"): its rows live in deep16/scenes-review.js, one a line -- the recipe to add one and the fold
+  // that cuts one are that file's head (RULED 2026-11-25, his "15-17, sure"); tools/scenes-review.py reads and cuts them
+  SIM.REVIEW = (Array.isArray(window.SCENES_REVIEW) ? window.SCENES_REVIEW : []).filter(function (r) { return r && r.id && r.stage; });
   SIM.entries = []; SIM.byId = {}; SIM.unreached = [];
   function addEntry(e) { if (SIM.byId[e.id]) return; if (NOT_HERE[e.id]) { SIM.unreached.push(e.id + ': ' + NOT_HERE[e.id]); return; } SIM.entries.push(e); SIM.byId[e.id] = e; }
   function catalog() {
@@ -657,21 +641,13 @@
   // ================================================================ THE PROBE (deep16/scenes.html?probe: dev/scenes-probe.py opens it headless) -- each REVIEW row and a scene of each
   // kind played by a hand of its own: its `picks` clicked in order (a button's words, or 'Hero:answer-id' on the flip; 'E:<name>' for whoever is here), till the
   // picks run out; then what was said is checked: `expect` in the words, `mark` among the marks. ?probe=all stages every scene on the front page to its first choice
-  SIM.PROBES = [
-    { id: 'r-nell', picks: ['Lymen:name'], expect: 'Nell' },
-    { id: 'r-elsbeth', picks: [], expect: 'does not turn round', mark: 'inn\\.js:' },
-    { id: 'r-gennet', picks: [], expect: 'taken the little ones home' },
-    { id: 'r-doran', picks: [], expect: 'GreyFang\'s house at the Pit took them', mark: 'Doran\'s first supper home, line 1 of 2' },
-    { id: 'r-pages', picks: [], expect: 'comes apart at its stitching' },
-    { id: 'r-ring', picks: ['THE SHELVES', '[SELL]', 'Water Walking'], expect: 'Not that one\\. Keep it', mark: 'WINTERS_KEEP' },
-    { id: 'r-renown', picks: ['Gate hand'], mark: 'renown 3 \\(.*\\), greeting 1 of 2' },
-    { id: 'r-doranhome', picks: ['LONG REST'], expect: 'GreyFang\'s house', mark: 'Doran\'s first supper home' },
+  SIM.PROBES = SIM.REVIEW.map(function (r) { return Object.assign({ id: r.id, picks: [] }, r.probe || {}); }).concat([ // (every REVIEW row, by its own `probe`; then a scene of each kind)
     { id: 'inn-room', picks: ['LONG REST', 'Lymen:council', 'Aurdin:news'], mark: 'gossip: the moot, word 1 of 2', expect: 'What brings you down the road' },
     { id: 'inn-meal14', picks: ['LONG REST', 'Lymen:council', 'Lymen:news'], mark: 'gossip: the gnolls since \\(the Snoot at the Pit its last\\), word 4 of 4' },
     { id: 'hours-council1', picks: [], mark: 'the council: notice, line 1 of' },
     { id: 'inn-barnunseen', picks: [], expect: '.' },
     { id: 'inn-katvisit', picks: [], expect: '.' }
-  ];
+  ]);
   function autoHand(queue, end) {
     return { next: function () {
       var spec = queue.shift(); if (spec == null) { end('picks done'); return; }
@@ -706,7 +682,7 @@
     }
     SIM.auto = null; clean();
     var realKeys = []; for (var j = 0; ; j++) { var k = window.SCENES_STORE.real.key.call(window.localStorage, j); if (k == null) break; realKeys.push(k); }
-    var res = { scenes: SIM.entries.length, code: CODE.length, series: Object.keys(SERIES).length, loadErrors: (window.SCENES_LOADERR || []).slice(0, 5), all: !!all, runs: out,
+    var res = { scenes: SIM.entries.length, review: SIM.REVIEW.map(function (r) { return r.id; }), code: CODE.length, series: Object.keys(SERIES).length, loadErrors: (window.SCENES_LOADERR || []).slice(0, 5), all: !!all, runs: out,
       storage: { browser: realKeys, gameKeysOutside: realKeys.filter(function (k) { return !window.SCENES_STORE.mine.test(k); }) }, unreached: SIM.unreached };
     var pre = document.createElement('pre'); pre.id = 'scenes-probe'; pre.textContent = 'SCENES ' + JSON.stringify(res); document.body.appendChild(pre);
     return res;

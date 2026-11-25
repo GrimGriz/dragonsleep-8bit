@@ -193,7 +193,7 @@
       else if (!/D16LOAD/.test(m[2]) && m[2].trim()) list.push({ code: m[2] });
     }
     window.SCENES_SCRIPTS = list.length; window.DS = window.DS || {}; // (the loading check's first line, which the game's scripts lean on)
-    run(list.concat([{ src: 'scenes.js?t=' + Date.now() }]), 0, function () { });
+    run(list.concat([{ src: 'scenes-review.js?t=' + Date.now() }, { src: 'scenes.js?t=' + Date.now() }]), 0, function () { }); // (the REVIEW shelf's rows, then the simulator)
   }).catch(function (e) { st.textContent = 'could not read the game: ' + e.message; st.className = 'bad'; });
 })();
 </script>
