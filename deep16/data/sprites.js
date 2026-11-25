@@ -4558,7 +4558,7 @@
 "source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the idle from the art desk's five-view axe idle page (11-06), the walk from its axe walk page (11-10); every fight he is in (deep16/data/foes.js doran)"
 },
 "dragger_p2": {
-"image": "art/dragger_p2.png?v=fc3a91ef3e",
+"image": "art/dragger_p2.png?v=275f24ecc5",
 "fw": 102,
 "fh": 96,
 "ax": 51,
@@ -4649,6 +4649,28 @@
 "frames": 6,
 "fps": 10,
 "release": 3
+},
+"net": {
+"y": 6912,
+"fw": 114,
+"fh": 96,
+"ax": 57,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3,
+"held": true
+},
+"hook": {
+"y": 7680,
+"fw": 102,
+"fh": 96,
+"ax": 51,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3,
+"held": true
 }
 },
 "name": "Dragger",
@@ -4661,7 +4683,7 @@
 "flinch: NE raises the pike steeply off the idle's angle (the art desk's own \"check the pike angle at the return to Idle\")",
 "prone: the last Fall cel held"
 ],
-"source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored -- the pike wall's rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft's Shove), added by tools/pike-wall-sheet.py"
+"source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored -- rows added by tools/pike-wall-sheet.py (keepback, shove, net, hook), drawn by the art desk (ART-166, ART-168, 11-25)"
 },
 "drider_p1": {
 "image": "art/drider_p1.png?v=a0acd18d15",
@@ -9173,7 +9195,7 @@
 "hurt: N falls away from the viewer, the soles nearest the camera (the art desk's own note)",
 "prone: the Fall 6 crop held"
 ],
-"source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- the pike wall's rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft's Shove), added by tools/pike-wall-sheet.py"
+"source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- rows added by tools/pike-wall-sheet.py (keepback, shove), drawn by the art desk (ART-166, 11-25)"
 },
 "guardwoman_p1": {
 "image": "art/guardwoman_p1.png?v=4f92d49145",
@@ -35783,7 +35805,7 @@ true
 "source": "drawn by the art desk (ART-142-GARRISON-PORTRAITS-AND-TOWN, 11-12: art-wanted section 55 block 4, the garrison trooper's town figure in five views), cut by tools/trooper-town-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "trooper_p2": {
-"image": "art/trooper_p2.png?v=870b92b0aa",
+"image": "art/trooper_p2.png?v=239efcbd94",
 "fw": 46,
 "fh": 80,
 "ax": 23,
@@ -35854,6 +35876,16 @@ true
 "ay": 74,
 "frames": 1,
 "fps": 1
+},
+"push": {
+"y": 4480,
+"fw": 70,
+"fh": 80,
+"ax": 35,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
 }
 },
 "name": "Trooper",
@@ -35861,7 +35893,7 @@ true
 "throw: some wrist loops pass behind the arm or belt, and the release hand overlaps the small axe in projection (the art desk's own note)",
 "attack: the mannequin's guard holds the axe higher than the low combat Idle -- the Idle to Attack and Attack to Idle joins (the art desk's own note); passing steps close in the rear walks"
 ],
-"source": "drawn by the art desk (ART-142-TROOPER-COMBAT, 11-12: art-wanted section 55 block 2, the garrison trooper with battleaxe and shield in five views, the Attack and Throw over the mannequin's guides), cut by tools/trooper-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+"source": "drawn by the art desk (ART-142-TROOPER-COMBAT, 11-12: art-wanted section 55 block 2, the garrison trooper with battleaxe and shield in five views, the Attack and Throw over the mannequin's guides), cut by tools/trooper-fight-sheet.py over tools/vivian-sheet.py; SW W NW mirrored -- rows added by tools/pike-wall-sheet.py (push), drawn by the art desk (ART-167, 11-25)"
 },
 "trooperpike_p2": {
 "image": "art/trooperpike_p2.png?v=6eda2f2610",

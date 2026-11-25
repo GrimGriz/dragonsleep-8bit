@@ -100,5 +100,5 @@
   "hurt: N falls away from the viewer, the soles nearest the camera (the art desk's own note)",
   "prone: the Fall 6 crop held"
  ],
- "source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- the pike wall's rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft's Shove), added by tools/pike-wall-sheet.py"
+ "source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- rows added by tools/pike-wall-sheet.py (keepback, shove), drawn by the art desk (ART-166, 11-25)"
 }

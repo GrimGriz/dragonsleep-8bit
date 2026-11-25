@@ -31,35 +31,70 @@ _sp = importlib.util.spec_from_file_location('mender_sheet', os.path.join(ROOT, 
 MS = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(MS)
 sys.argv = _old
 DG, VS = MS.DG, MS.VS
-SRC, BATCH = 'dragger', '2026-11-25-ART-166-PIKE-WALL'
 FACE = {'S': 0, 'SE': 7, 'E': 6, 'NE': 5, 'N': 4}
 MIRROR = {1: 7, 2: 6, 3: 5}
-ADD = [('keepback', 10, 3), ('shove', 10, 3)]      # (row, fps, release)
-TALL = 52        # (crown row to boots: both sheets' TALL, tools/dragger-sheet.py and tools/guard-soldiering-sheet.py)
-FIG = {'dragger_p2': dict(page='DRAGGER', avoid=['fire'], bgtol=20, crown=20, steel=True),
+ROWS = {'keepback': (10, 3), 'shove': (10, 3), 'net': (10, 3), 'hook': (10, 3), 'push': (10, 3)}   # (row: fps, release -- each page's printed 4)
+PIKE = ('dragger', '2026-11-25-ART-166-PIKE-WALL')
+HELD = {'net', 'hook'}   # (marked `held`: js/show.js SH.wanted passes them by -- the show throws no net; js/sprites.js S.anim still serves them, so the
+                         #  seat nets-1125's F.throwNet and F.hook play them where they land. A cutter may drop this once a show stages the net)
+FIG = {'dragger_p2': dict(avoid=['fire'], bgtol=20, crown=20, steel=True, tall=52, pages=[
+           PIKE + ('sources/ART-166_DRAGGER_HEAD-*_%s.png', ['keepback', 'shove']),
+           ('dragger', '2026-11-25-ART-168-NET-HOOK', 'source/ART-168-H0*-P01-%s-source.png', ['net', 'hook'])]),   # (ART-168, art-wanted 106: js/features.js
+           # F.throwNet plays a sheet's `net`, F.hook's shove its `hook` -- the seat nets-1125's code)
            # (tools/dragger-sheet.py's: his crown the first run CROWN wide that is not steel -- a pike's head is steel. 20, not his 30: ART-166 draws him at
            #  ~0.25 game px a page px against ART-159's ~0.1, so his curls' top runs narrower; at 12 the raised pike's wooden shaft in N read as his crown)
-       'guardpike_p2': dict(page='LINE-GUARD-PIKEMAN', avoid=['red', 'fire', 'violet'], bgtol=20, crown=30, steel=False)}
+       'guardpike_p2': dict(avoid=['red', 'fire', 'violet'], bgtol=20, crown=30, steel=False, tall=52, pages=[
+           PIKE + ('sources/ART-166_LINE-GUARD-PIKEMAN_HEAD-*_%s.png', ['keepback', 'shove'])]),
            # (tools/guard-soldiering-sheet.py's: his crown the first run CROWN wide of any colour -- his kettle hat is steel, which the steel test passes
            #  over (his SE read at the brim and stood 2 px tall); 30 page px is wider than a pike's head or shaft here)
+       'trooper_p2': dict(avoid=['fire'], bgtol=30, crown=30, steel=False, tall=42, pages=[
+           ('trooper', '2026-11-25-ART-167-PUSH', 'source/ART-167-HEAD-*-PAGE-1-%s-PUSH.png', ['push'])])}
+           # (ART-167, art-wanted 103: tools/trooper-fight-sheet.py's tall 42 and avoid; his helmet steel, so any colour; js/features.js THE PUSH plays it)
+TALL = None      # (each sheet's own: crown row to boots, as its tool cut its idle)
 
 
 def read(fig):
-    """{(view, row): [(page, mask, box, ground, crown-to-boots), x6]}"""
+    """{(view, row): [(page, mask, box, ground, crown-to-boots), x6]}, {(view, row): k} -- one scale a page: frame 1 of its tallest row at the sheet's tall"""
     F = FIG[fig]; DG.BGTOL = F['bgtol']; DG.CROWN = F['crown']
-    out, notes = {}, {}
-    for v in FACE:
-        fn = glob.glob(os.path.join(VS.pix.SRC, SRC, BATCH, 'sources', 'ART-166_%s_HEAD-*_%s.png' % (F['page'], v)))
-        assert len(fn) == 1, (fig, v, fn)
-        a, got, nt = MS.read_page(fn[0], 12)
-        notes[os.path.basename(fn[0])] = nt
-        for i in range(12):
-            d, bx = got[i]; x0, y0, x1, y1 = bx
-            sa, sm = a[y0:y1, x0:x1], d[y0:y1, x0:x1]
-            g = y0 + DG.ground(sa, sm) + 1
-            hc = DG.head(sa, sm)[0] if F['steel'] else anycrown(sm, F['crown'])
-            out.setdefault((v, ADD[i // 6][0]), []).append((a, d, bx, g, g - y0 - hc))
-    return out, notes
+    out, notes, ks = {}, {}, {}
+    for src, batch, pat, rows in F['pages']:
+        for v in FACE:
+            fn = glob.glob(os.path.join(VS.pix.SRC, src, batch, pat % v))
+            assert len(fn) == 1, (fig, v, fn)
+            a, got, nt = MS.read_page(fn[0], 6 * len(rows))
+            notes[os.path.basename(fn[0])] = nt
+            for i in range(6 * len(rows)):
+                d, bx = unlabel(a, got[i][0], notes[os.path.basename(fn[0])], i)
+                x0, y0, x1, y1 = bx
+                sa, sm = a[y0:y1, x0:x1], d[y0:y1, x0:x1]
+                g = y0 + DG.ground(sa, sm) + 1
+                hc = DG.head(sa, sm)[0] if F['steel'] else anycrown(sm, F['crown'])
+                out.setdefault((v, rows[i // 6]), []).append((a, d, bx, g, g - y0 - hc))
+            for r in rows:                     # (a thing below his feet -- ART-168's S Net 4, the open net thrown toward us, the figure drawn higher for it:
+                fs = out[(v, r)]; med = float(np.median([f[4] for f in fs]))   #  a frame past its row's median crown-to-boots by 15% stands on its crown + the median)
+                for j, (a, d, bx, g, h) in enumerate(fs):
+                    if h > 1.15 * med:
+                        fs[j] = (a, d, bx, int(round(g - h + med)), int(round(med)))
+                        notes[os.path.basename(fn[0])].append('re-footed: %s %d, %d page px up' % (r, j + 1, int(round(h - med))))
+            k = F['tall'] / float(max(out[(v, r)][0][4] for r in rows))
+            for r in rows:
+                ks[(v, r)] = k
+    return out, notes, ks
+
+
+def unlabel(a, d, notes, i):
+    """(mask, box): a frame with its small light detached pieces dropped -- ART-168's printed "OK" and frame numbers pass mender-sheet's text test (its S
+    Hook kept an "OK" and a "4"); a piece at most 32 x 64 page px, at least 85 at its darkest channel on the mean (the "OK" with its dark rim reads 92, a figure 50 to 60), never the frame's biggest"""
+    lab, n = ndimage.label(d, structure=np.ones((3, 3)))
+    if n > 1:
+        big = 1 + int(np.argmax(ndimage.sum(d, lab, range(1, n + 1))))
+        for j, sl in enumerate(ndimage.find_objects(lab), 1):
+            pc = lab[sl] == j
+            if j != big and sl[0].stop - sl[0].start <= 32 and sl[1].stop - sl[1].start <= 64 and a[sl][pc].min(1).mean() >= 85:
+                d = d.copy(); d[sl] &= ~pc
+                notes.append('label dropped: frame %d, %d px at %s' % (i + 1, int(pc.sum()), (sl[1].start, sl[0].start, sl[1].stop, sl[0].stop)))
+    ys, xs = np.where(d)
+    return d, (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
 
 
 def anycrown(m, w):
@@ -96,8 +131,9 @@ def cut1x(a, d, bx, g, k, F):
     return o, cx, int(round((g - w[1] - sl[0].start) * k)) + 1
 
 
-def add_rows(fig, R, check=False):
+def add_rows(fig, R, K, check=False):
     F = FIG[fig]
+    ADD = [(r,) + ROWS[r] for pg in F['pages'] for r in pg[3]]
     ART = os.path.join(ROOT, 'deep16', 'art')
     base = np.asarray(Image.open(os.path.join(ART, fig + '.png')).convert('RGBA')).copy()
     meta = json.load(open(os.path.join(ART, fig + '.json')))
@@ -111,7 +147,7 @@ def add_rows(fig, R, check=False):
         cells = {}
         for v, f in FACE.items():
             fs = R[(v, row)]
-            k = TALL / float(max(R[(v, r)][0][4] for r, _, _ in ADD))   # (one page, one scale: the taller of the two rows' frame 1 -- the pikeman's E Keep Back
+            k = K[(v, row)]                # (read(): one page, one scale -- the taller of its rows' frame 1 at the sheet's tall: the pikeman's E Keep Back
                                            #  read its crown 20 page px low, 5 px over his idle at 1x); frame 1 stands his sheet's TALL, crown row to boots -- each sheet cut its idle to it. Not idle_height():
                                            #  in N (the dragger) and NE and N (the pikeman) the idle's pike head stands above him, read at 1x as his crown)
             cells[f] = [cut1x(a, d, bx, g, k, F) for a, d, bx, g, h in fs]
@@ -132,6 +168,8 @@ def add_rows(fig, R, check=False):
                 cell = blk[f * FH + max(0, dy):f * FH + max(0, dy) + hh, i * fw + max(0, dx):i * fw + max(0, dx) + ww]
                 on = sub[..., 3] > 0; cell[on] = sub[on]
         meta['anims'][row] = {'y': int(y0), 'fw': fw, 'fh': FH, 'ax': ax, 'ay': AY, 'frames': n, 'fps': fps, 'release': rel}
+        if row in HELD:
+            meta['anims'][row]['held'] = True
         if clip:
             print('  %s %s clipped top or bottom at the cell: %s' % (fig, row, ', '.join(clip)))
         blocks.append((row, blk)); y0 += 8 * FH
@@ -139,9 +177,9 @@ def add_rows(fig, R, check=False):
     sheet = np.zeros((y0, W, 4), np.uint8); sheet[:base.shape[0], :base.shape[1]] = base; y = base.shape[0]
     for _, b in blocks:
         sheet[y:y + b.shape[0], :b.shape[1]] = b; y += b.shape[0]
-    meta['source'] = meta.get('source', '').split(' -- the pike wall\'s rows')[0] + (
-        ' -- the pike wall\'s rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft\'s '
-        'Shove), added by tools/pike-wall-sheet.py')
+    meta['source'] = meta.get('source', '').split(' -- the pike wall\'s rows')[0].split(' -- rows added by tools/pike-wall-sheet.py')[0] + (
+        ' -- rows added by tools/pike-wall-sheet.py (%s), drawn by the art desk (%s, 11-25)' % (', '.join(r for r, _, _ in ADD),
+        ', '.join('ART-' + pg[1].split('-ART-')[1].split('-')[0] for pg in F['pages'])))
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, fig + '.png'), optimize=True)
     json.dump(meta, open(os.path.join(ART, fig + '.json'), 'w'), indent=1)
     print('  %s: %dx%d, + %s; scales %s' % (fig, sheet.shape[1], sheet.shape[0], ', '.join('%s %d@%dpx' % (r, meta['anims'][r]['frames'], meta['anims'][r]['fw']) for r, _, _ in ADD), '; '.join(notes)))
@@ -157,7 +195,7 @@ def add_rows(fig, R, check=False):
 
 if __name__ == '__main__':
     for fig in FIG:
-        R, NT = read(fig)
+        R, NT, K = read(fig)
         if 'frames' in sys.argv:
             for (v, rw), fs in sorted(R.items()):
                 for i, (a, d, bx, g, h) in enumerate(fs):
@@ -165,4 +203,4 @@ if __name__ == '__main__':
             for fn, nt in sorted(NT.items()):
                 print(fn, '|', '; '.join(nt)[:400])
             continue
-        add_rows(fig, R, 'check' in sys.argv)
+        add_rows(fig, R, K, 'check' in sys.argv)

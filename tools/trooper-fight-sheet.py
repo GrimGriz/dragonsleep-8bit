@@ -3,6 +3,8 @@
     python tools/trooper-fight-sheet.py            (writes deep16/art/trooper_p2.png/.json)
     python tools/trooper-fight-sheet.py check      (also the review sheet: every row of every facing at 3x)
 
+    THEN python tools/pike-wall-sheet.py: this writes trooper_p2 whole, and the shield wall's `push` (ART-167, 11-25, art-wanted 103) is added by that tool.
+
 Asked in art-wanted section 55, block 2 (11-12, the lanes desk, on his word: "go on the level and kit for pyros folk, with an art request first to fix this
 portrait (that better not be a battle axe, let's hope not and request one) - and then the combat posings we'll need"); cut 11-13 by the garrison cutter on
 the lanes desk's relay. The art desk's ART-142-TROOPER-COMBAT, sorted out of Fresh to deep16/_src/ART-142-TROOPER-COMBAT/ (the zip beside it): the generic

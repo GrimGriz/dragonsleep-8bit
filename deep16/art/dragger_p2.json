@@ -90,6 +90,28 @@
    "frames": 6,
    "fps": 10,
    "release": 3
+  },
+  "net": {
+   "y": 6912,
+   "fw": 114,
+   "fh": 96,
+   "ax": 57,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3,
+   "held": true
+  },
+  "hook": {
+   "y": 7680,
+   "fw": 102,
+   "fh": 96,
+   "ax": 51,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3,
+   "held": true
   }
  },
  "name": "Dragger",
@@ -102,5 +124,5 @@
   "flinch: NE raises the pike steeply off the idle's angle (the art desk's own \"check the pike angle at the return to Idle\")",
   "prone: the last Fall cel held"
  ],
- "source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored -- the pike wall's rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft's Shove), added by tools/pike-wall-sheet.py"
+ "source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored -- rows added by tools/pike-wall-sheet.py (keepback, shove, net, hook), drawn by the art desk (ART-166, ART-168, 11-25)"
 }
