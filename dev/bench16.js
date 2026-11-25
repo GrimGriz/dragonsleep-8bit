@@ -32196,6 +32196,121 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preQ);
     return;
   }
+  // THE PARTY'S SLOTS (mode=slots1125; the Pocket DM lane, 2026-11-25, Griz: "I'd like to try and turn 'save party' and 'load party' in the pocket DM to a 'save slot' system
+  // (at least 5), prompting a naming (type something that represents the party you're saving) - with the ones in play records as (party 1)"): SAVE THE PARTY's page from THE
+  // PARTY, its name typed by dispatched keys (the pane's typing sends no keydown) and kept from the game's keys; saved to slot 3 and loaded back whole from THE CAMP; a filled
+  // slot asked first, by a bench's ask and by the game's own (D.askTwice); a file of 10-17's shape (no name) imported as "party 1", a named one by its name, a module refused,
+  // a filled slot asked before the picker; a module played through, its party kept and taken back whole, a made character's XP and winnings with it; LOAD with a run under
+  // way asked first; TO A FILE from both pages, the old download's name kept. On a stand-in store
+  if (get('mode', '') === 'slots1125') {
+    var repSl = { checks: [], errors: [] }, okSl = function (c, s) { repSl.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memSl = {}, stGSl = D.store.get, stSSl = D.store.set, sc0Sl = D.scenes.slice(), push0Sl = D.push, text0Sl = D.text, clk0Sl = HTMLAnchorElement.prototype.click, PKs = D.pocket, rj0Sl = PKs.readJSON, saidSl = [], dlSl = [];
+    D.store.get = function (k) { return memSl[k] ? JSON.parse(memSl[k]) : null; }; D.store.set = function (k, v) { memSl[k] = JSON.stringify(v); return true; };
+    HTMLAnchorElement.prototype.click = function () { dlSl.push({ name: this.download, href: this.href }); };
+    var fetchSl = function (href) { var xq = new XMLHttpRequest(); xq.open('GET', href, false); xq.send(); return xq.responseText; };
+    var slotSl = function (n) { return memSl['deep16.pocket.party.' + n] ? JSON.parse(memSl['deep16.pocket.party.' + n]) : null; }, cvLent = false;
+    try {
+      var cvSl = document.createElement('canvas'); cvSl.width = D.W; cvSl.height = D.H; var cxSl = cvSl.getContext('2d'); if (!D.canvas) { D.canvas = cvSl; cvLent = true; } // (the bench page has no game canvas: the field is placed over this one)
+      var Ps = new D.Pocket(); Ps.enter(); var askedSl = [], answerSl = true, askSl = function (q) { askedSl.push(q); return answerSl; }; Ps.ask = askSl; Ps.xpAlways = true;
+      D.scenes.length = 0; D.scenes.push(Ps);
+      var drawSl = function () { saidSl = []; D.text = function (c, s) { saidSl.push(String(s)); return text0Sl.apply(this, arguments); }; try { Ps.btns = []; Ps.draw(cxSl); } finally { D.text = text0Sl; } return Ps.btns.map(function (b) { return b.label; }); };
+      var btnSl = function (re, k) { return Ps.btns.filter(function (b) { return re.test(b.label); })[k || 0] || null; };
+      var saidHas = function (re) { return saidSl.some(function (s) { return re.test(s); }); };
+      var saidRow = function (re) { return saidSl.filter(function (s) { return re.test(s); })[0] || ''; };
+      var make = function (seat, cls, lvl, name) { Ps.makeNew(seat, null); Ps.mk.cls = cls; Ps.kitUp(); Ps.mk.lvl = lvl; Ps.mk.walked = lvl; Ps.mk.name = name; var inf = Ps.spellInfo(); if (inf) Ps.mk.known = inf.defC.concat(inf.def); Ps.saveMade(); return Ps.st.roster[Ps.st.roster.length - 1]; };
+      var wordsSl = function () { return Ps.st.party.map(function (sl) { return PKs.wordOf(Ps.st, sl); }).join(' | '); };
+      var bodySl = function () { var b = PKs.partyBody(Ps.st); delete b.at; delete b.name; return JSON.stringify(b); };
+      Ps.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { w: 'new' }, { w: 'lymen', lvl: 3, loot: [] }]; Ps.st.roster = []; Ps.st.run = null; Ps.st.pack = [{ id: 'potion', n: 3 }]; Ps.st.purse = 250; Ps.st.partySlot = null; Ps.cache = {};
+      var drill = make(2, 'fighter', 3, 'Drill'); Ps.egg = null; // (Denny on the first character made: let go)
+      // 1. THE PARTY's SAVE THE PARTY: the page, five slots, his words over the name's field
+      Ps.go('party'); drawSl(); var svB = btnSl(/^SAVE THE PARTY$/); if (svB) Ps.fire(svB); var L1 = drawSl(), rows1 = L1.filter(function (l) { return /^SLOT \d$/.test(l); });
+      okSl(!!svB && Ps.screen === 'slots' && Ps.slotMode === 'save' && rows1.length === PKs.PARTY_SLOTS && PKs.PARTY_SLOTS >= 5 && !!Ps.field && document.body.contains(Ps.field.el) && saidHas(/type something that represents the party you're saving/) && saidRow(/-- empty --/) !== '' && !!btnSl(/^SAVE IN SLOT 1$/) && !!btnSl(/^TO A FILE$/),
+        '1 THE PARTY, SAVE THE PARTY: the page (' + Ps.screen + ', ' + Ps.slotMode + '), ' + rows1.length + ' slots, a name field over the canvas under "type something that represents the party you\'re saving", SAVE IN SLOT 1, TO A FILE');
+      // 2. the name typed by dispatched keys: the field takes it, the game hears none (X is BACK, E is A, M the menu); Enter lets the field go
+      var elSl = Ps.field.el; elSl.focus(); var focSl = document.activeElement === elSl, typing1 = D.typing;
+      var nameSl = 'Max\'s Road Crew', codeOf = function (ch) { return ch === ' ' ? 'Space' : ch === '\'' ? 'Quote' : 'Key' + ch.toUpperCase(); };
+      for (var ci = 0; ci < nameSl.length; ci++) { var ch = nameSl[ci]; elSl.dispatchEvent(new KeyboardEvent('keydown', { key: ch, code: codeOf(ch), bubbles: true, cancelable: true })); elSl.value += ch; elSl.dispatchEvent(new Event('input', { bubbles: true })); elSl.dispatchEvent(new KeyboardEvent('keyup', { key: ch, code: codeOf(ch), bubbles: true })); Ps.update(); }
+      var stillSl = Ps.screen === 'slots' && !Ps.pm;
+      elSl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true })); Ps.update();
+      okSl(Ps.slotName === nameSl && stillSl && Ps.screen === 'slots' && (!focSl || (typing1 && document.activeElement !== elSl && !D.typing)),
+        '2 typed by dispatched keys: the name reads "' + Ps.slotName + '", the page stayed through its X, E and M (' + stillSl + '); focus ' + (focSl ? 'taken, D.typing on while in it, Enter let it go' : 'not taken in this browser (the value and the keys checked only)'));
+      // 3. saved to slot 3 with that name: no question (empty), the body a party file with its name, back to THE PARTY, the slot the party's own
+      var w3 = wordsSl(), b3 = bodySl(); askedSl = []; drawSl(); var s3 = btnSl(/^SLOT 3$/); if (s3) Ps.fire(s3); var r3 = slotSl(3);
+      okSl(!!s3 && !askedSl.length && !!r3 && r3.kind === 'pocket-party' && r3.game === 'DRAGONSLEEP' && r3.v === 1 && r3.name === nameSl && r3.purse === 250 && r3.roster.length === 1 && r3.roster[0].name === 'Drill' && Ps.screen === 'party' && Ps.st.partySlot === 3 && /saved "Max's Road Crew" to slot 3/.test(Ps.msg && Ps.msg.text || '') && !Ps.field,
+        '3 SLOT 3 picked: kept as a party file named "' + (r3 && r3.name) + '" (' + (r3 && r3.party.length) + ' seats, ' + (r3 && r3.roster.length) + ' made, ' + (r3 && r3.purse) + ' sp), nothing asked, back on THE PARTY: "' + (Ps.msg && Ps.msg.text) + '"');
+      // 4. loaded back whole from THE CAMP: the party scrambled, LOAD A PARTY lists the slot by name and its line, LOAD SLOT 3 brings it back
+      Ps.st.party = [{ w: 'vivian', lvl: 5, loot: [] }]; Ps.st.pack = []; Ps.st.purse = 1; Ps.st.roster = []; Ps.cache = {};
+      Ps.go('hub'); drawSl(); var ldB = btnSl(/^LOAD A PARTY$/); if (ldB) Ps.fire(ldB); var L4 = drawSl(), row3 = saidRow(/Max's Road Crew/), line3 = saidRow(/Drill Fighter 3/), when3 = saidRow(/250 sp/), empties = saidSl.filter(function (s) { return /-- empty --/.test(s); }).length;
+      okSl(!!ldB && Ps.screen === 'slots' && Ps.slotMode === 'load' && Ps.slotSel === 3 && !Ps.field && !!row3 && /Barley Fighter 3/.test(line3) && /Aurdin Wizard 3/.test(line3) && /Lymen \S+ 3/.test(line3) && /\d+\/\d+ \d\d:\d\d/.test(when3) && empties === PKs.PARTY_SLOTS - 1 && !!btnSl(/^IMPORT A FILE$/) && !!btnSl(/^LOAD SLOT 3$/),
+        '4a THE CAMP, LOAD A PARTY: slot 3 picked by name ("' + row3.replace(/\{.\}|\{\/\}/g, '') + '"), its line "' + line3 + '", "' + when3 + '"; ' + empties + ' empty, no field');
+      var ld3 = btnSl(/^LOAD SLOT 3$/); askedSl = []; if (ld3) Ps.fire(ld3);
+      okSl(!!ld3 && Ps.screen === 'hub' && wordsSl() === w3 && bodySl() === b3 && Ps.st.purse === 250 && Ps.st.pack.some(function (s) { return s.id === 'potion' && s.n === 3; }) && !askedSl.length && /loaded "Max's Road Crew"/.test(Ps.msg && Ps.msg.text || ''),
+        '4b LOAD SLOT 3: back whole -- the seats\' words as saved (' + wordsSl() + '), the pack, 250 sp; back at THE CAMP: "' + (Ps.msg && Ps.msg.text) + '"');
+      // 5. a filled slot asked first: NO keeps it; YES writes over it; and the game's own question -- PRESS IT AGAIN -- the second press writes
+      Ps.go('party'); drawSl(); Ps.fire(btnSl(/^SAVE THE PARTY$/)); drawSl(); var preName = Ps.slotName; Ps.slotName = 'Second Crew'; answerSl = false; askedSl = []; Ps.fire(btnSl(/^SLOT 3$/));
+      var no5 = askedSl.length === 1 && /Slot 3 holds "Max's Road Crew"\. Save over it\?/.test(askedSl[0]) && slotSl(3).name === nameSl && Ps.screen === 'slots';
+      answerSl = true; drawSl(); Ps.fire(btnSl(/^SAVE IN SLOT 3$/)); var yes5 = slotSl(3).name === 'Second Crew' && Ps.screen === 'party';
+      okSl(preName === nameSl && no5 && yes5, '5a SAVE over slot 3: the page opened with its name ("' + preName + '"); asked "' + (askedSl[0] || '') + '" -- NO kept it, YES (SAVE IN SLOT 3) wrote "Second Crew" over it');
+      Ps.ask = null; D.askTwice.st = {}; drawSl(); Ps.fire(btnSl(/^SAVE THE PARTY$/)); drawSl(); Ps.slotName = 'Third Crew'; Ps.fire(btnSl(/^SLOT 3$/));
+      var once5 = slotSl(3).name === 'Second Crew' && Ps.screen === 'slots' && /PRESS IT AGAIN TO CONFIRM/.test(Ps.msg && Ps.msg.text || ''), msg5 = Ps.msg && Ps.msg.text;
+      drawSl(); Ps.fire(btnSl(/^SLOT 3$/)); var twice5 = slotSl(3).name === 'Third Crew' && Ps.screen === 'party';
+      Ps.ask = askSl;
+      okSl(once5 && twice5, '5b the game\'s own question: the first press says "' + msg5 + '" and keeps it, the second writes "Third Crew"');
+      // 6. a file of 10-17's shape (no name, written by the old SAVE THE PARTY) imported into the empty slot 1 as "party 1", then loaded; a named file keeps its name; a module refused
+      var made2 = make(0, 'cleric', 3, 'Wut'); Ps.egg = null; var c1 = Ps.st.roster.filter(function (r) { return r.name === 'Drill'; })[0], c2 = made2;
+      var oldF = { game: 'DRAGONSLEEP', kind: 'pocket-party', v: 1, at: '2026-11-10T21:34:44.122Z', party: [{ custom: 0, gear: {} }, { custom: 1, gear: {} }, { w: 'aurdin', lvl: 3, loot: [], xp: 1943, gear: {} }, { w: 'ingrith', lvl: 3, loot: [], xp: 1943, gear: {} }],
+        roster: [{ code: c2.code, name: c2.name, cls: c2.cls, lvl: c2.lvl, made: c2.made, xp: 1943 }, { code: c1.code, name: c1.name, cls: c1.cls, lvl: c1.lvl, made: c1.made, xp: 1943 }], pack: [{ id: 'potion', n: 11 }, { id: 'lantern', n: 1 }], purse: 3073 };
+      var oldT = JSON.stringify(oldF, null, 1), rjN = 0, rjText = oldT, rjName = 'pocket-party-2026-11-10-1534.json'; PKs.readJSON = function (cb) { rjN++; cb(rjText, rjName); };
+      Ps.go('party'); drawSl(); Ps.fire(btnSl(/^LOAD A PARTY$/)); drawSl(); Ps.ksel = 0; drawSl(); var sel6 = Ps.slotSel; askedSl = []; var im6 = btnSl(/^IMPORT A FILE$/); if (im6) Ps.fire(im6); var r1 = slotSl(1); drawSl();
+      okSl(sel6 === 1 && !!im6 && rjN === 1 && !askedSl.length && !!r1 && r1.name === 'party 1' && r1.at === oldF.at && JSON.stringify(r1.party) === JSON.stringify(oldF.party) && JSON.stringify(r1.roster) === JSON.stringify(oldF.roster) && r1.purse === 3073 && saidHas(/party 1/) && !!saidRow(/Wut Cleric 3 · Drill Fighter 3 · Aurdin Wizard 3 · Ingrith Cleric 3/) && /from pocket-party-2026-11-10-1534\.json/.test(Ps.msg && Ps.msg.text || ''),
+        '6a IMPORT A FILE on the empty slot 1, a file of 10-17\'s shape with no name: kept whole as "' + (r1 && r1.name) + '", its line "' + saidRow(/Drill Fighter 3/) + '"; "' + (Ps.msg && Ps.msg.text) + '"');
+      Ps.st.party = PKs.defaultParty(); Ps.cache = {}; var nR = Ps.st.roster.length; drawSl(); Ps.fire(btnSl(/^LOAD SLOT 1$/));
+      var sh6 = Ps.sheets().map(function (s) { return s.h ? s.h.name + ' ' + s.h.lvl : '?'; }).join(', ');
+      okSl(Ps.st.party.length === 4 && Ps.st.party[0].custom != null && Ps.st.roster[Ps.st.party[0].custom].name === 'Wut' && Ps.st.roster[Ps.st.party[1].custom].name === 'Drill' && Ps.st.roster.length === nR && Ps.st.roster[Ps.st.party[1].custom].xp === 1943 && Ps.st.purse === 3073 && /^Wut 3, Drill 3, Aurdin 3, Ingrith 3$/.test(sh6),
+        '6b LOAD SLOT 1: the old file\'s party at the table (' + sh6 + '), its two made found on the roster by when they were made (' + nR + ' still, none doubled), Drill\'s XP the file\'s 1943, 3073 sp');
+      Ps.go('party'); drawSl(); Ps.fire(btnSl(/^LOAD A PARTY$/)); drawSl(); Ps.ksel = 1; drawSl(); rjText = JSON.stringify(Object.assign({}, oldF, { name: 'From A File' })); rjName = 'pocket-party-from-a-file.json'; Ps.fire(btnSl(/^IMPORT A FILE$/)); var r2 = slotSl(2);
+      Ps.ksel = 3; drawSl(); rjText = JSON.stringify({ game: 'DRAGONSLEEP', kind: 'pocket-dm-module', v: 1, name: 'A MODULE', slots: [] }); Ps.fire(btnSl(/^IMPORT A FILE$/)); var r4 = slotSl(4), bad6 = Ps.msg && Ps.msg.bad && /not a party/.test(Ps.msg.text);
+      okSl(!!r2 && r2.name === 'From A File' && !r4 && bad6, '6c a file with a name of its own keeps it in slot 2 ("' + (r2 && r2.name) + '"); a module refused, slot 4 left empty: "' + (Ps.msg && Ps.msg.text) + '"');
+      Ps.ksel = 2; drawSl(); rjN = 0; rjText = oldT; answerSl = false; askedSl = []; Ps.fire(btnSl(/^IMPORT A FILE$/)); var no6 = rjN === 0 && askedSl.length === 1 && /Slot 3 holds "Third Crew"\. Import a file over it\?/.test(askedSl[0]) && slotSl(3).name === 'Third Crew';
+      answerSl = true; drawSl(); Ps.fire(btnSl(/^IMPORT A FILE$/)); var yes6 = rjN === 1 && slotSl(3).name === 'party 3';
+      okSl(no6 && yes6, '6d IMPORT A FILE on the filled slot 3: asked before the picker ("' + (askedSl[0] || '') + '") -- NO opened no picker and kept it, YES took the file in as "' + slotSl(3).name + '"');
+      // 7. a module played through: the party it leaves (XP, the winnings) kept in slot 5 and taken back whole -- the made character's XP and winnings too; LOAD with a run under way asked first
+      Ps.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { custom: Ps.st.roster.map(function (r) { return r.name; }).indexOf('Drill') }, { w: 'lymen', lvl: 3, loot: [] }]; Ps.st.pack = [{ id: 'potion', n: 2 }]; Ps.st.purse = 100; Ps.st.run = null; Ps.cache = {};
+      var dIdx = Ps.st.party[2].custom, dRec = Ps.st.roster[dIdx], xp0 = [Ps.st.party[0].xp || 0, dRec.xp || 0];
+      var idsSl = Ps.mapIds(), setSl = function () { var Bq = null; D.push = function (b) { Bq = b; }; try { Ps.launch(); } finally { D.push = push0Sl; } if (!Bq) return null; D.battle = Bq; Bq.enter(); for (var g = 0; g < 300 && !(Bq.order && Bq.order.length); g++) Bq.co.next(); return Bq; };
+      var winSl = function () { var Bq = setSl(); if (!Bq) return false; Bq.o.onDone('won'); return true; };
+      D.seed = 1125; Ps.startModule({ name: 'THE SLOTS TEST', key: 'test:slots', slots: [{ map: idsSl[0], foes: ['goblin', 'goblin'], rest: { short: false, long: false, market: false } }, { map: idsSl[1], foes: ['goblin', 'goblin'], rest: { short: false, long: false, market: false } }] });
+      var won1 = winSl(); drawSl(); var ct7 = btnSl(/^CONTINUE: FIGHT 2$/); if (ct7) Ps.fire(ct7);
+      // (fight 2 under way: SAVE kept for the mid-run party in slot 4 -- the run is the table's, not the file's)
+      Ps.go('hub'); drawSl(); Ps.fire(btnSl(/^SAVE THE PARTY$/)); drawSl(); Ps.slotName = 'Mid Road'; Ps.fire(btnSl(/^SLOT 4$/)); var mid7 = !!slotSl(4) && slotSl(4).name === 'Mid Road' && !!Ps.st.run;
+      Ps.go('cr'); Ps.foes = Ps.st.run.foes; Ps.fightMap = Ps.st.run.map; var won2 = winSl(); var runEnd = Ps.st.run ? 'rung ' + Ps.st.run.rung : 'none';
+      var xp1 = [Ps.st.party[0].xp || 0, Ps.st.roster[dIdx].xp || 0], loots = Ps.st.party.map(function (sl) { return (sl.loot || []).length; }).join('/') + ' made ' + ((Ps.st.roster[dIdx].loot || []).length);
+      var w7 = wordsSl(), b7 = bodySl(), dSnap = JSON.stringify(Ps.st.roster[dIdx]);
+      Ps.go('hub'); drawSl(); Ps.fire(btnSl(/^SAVE THE PARTY$/)); drawSl(); Ps.slotName = 'After The Road'; answerSl = true; Ps.fire(btnSl(/^SLOT 5$/)); var r5 = slotSl(5);
+      okSl(won1 && !!ct7 && won2 && mid7 && xp1[0] > xp0[0] && xp1[1] > xp0[1] && !!r5 && r5.name === 'After The Road', '7a a module of two fights won (' + xp0.join('/') + ' XP to ' + xp1.join('/') + ' for Barley/Drill; winnings ' + loots + '; the run after: ' + runEnd + '), its party kept in slot 5 "' + (r5 && r5.name) + '"; mid-run, slot 4 "Mid Road"');
+      Ps.st.roster[dIdx].xp = 0; Ps.st.roster[dIdx].loot = []; Ps.st.party = PKs.defaultParty(); Ps.st.pack = []; Ps.st.purse = 0; Ps.cache = {};
+      drawSl(); Ps.fire(btnSl(/^LOAD A PARTY$/)); Ps.ksel = 4; drawSl(); Ps.fire(btnSl(/^LOAD SLOT 5$/));
+      okSl(wordsSl() === w7 && bodySl() === b7 && JSON.stringify(Ps.st.roster[dIdx]) === dSnap, '7b LOAD SLOT 5 after the table was scrambled and Drill\'s XP and winnings wiped: back whole -- the seats\' words, the pack and purse, Drill\'s record as it was saved (XP ' + Ps.st.roster[dIdx].xp + ')');
+      Ps.st.run = { rung: 1, plan: [{ map: idsSl[0], foes: ['goblin'] }], module: { name: 'X', n: 1 }, foes: ['goblin'], map: idsSl[0] }; var runSl = Ps.st.run, w7b = wordsSl();
+      drawSl(); Ps.fire(btnSl(/^LOAD A PARTY$/)); Ps.ksel = 3; drawSl(); answerSl = false; askedSl = []; Ps.fire(btnSl(/^LOAD SLOT 4$/)); var keep7 = Ps.st.run === runSl && wordsSl() === w7b && askedSl.length === 1 && /A module is under way\. Put it away for this party\?/.test(askedSl[0]) && Ps.screen === 'slots';
+      answerSl = true; Ps.fire(btnSl(/^LOAD SLOT 4$/)); var took7 = !Ps.st.run && Ps.screen === 'hub' && Ps.st.partySlot === 4;
+      okSl(keep7 && took7, '7c LOAD with a module under way: asked "' + (askedSl[0] || '') + '" -- NO kept the run and the party, YES put it away and took "Mid Road"');
+      // 8. TO A FILE: the save page's (the party now, by its typed name) and the load page's (the slot picked as it is kept); the old download's name and a file that loads as before
+      dlSl = []; Ps.go('party'); drawSl(); Ps.fire(btnSl(/^SAVE THE PARTY$/)); drawSl(); Ps.slotName = 'Road Crew'; Ps.fire(btnSl(/^TO A FILE$/)); var f8a = dlSl[0], t8a = f8a ? fetchSl(f8a.href) : null, j8a = t8a ? JSON.parse(t8a) : null;
+      Ps.go('party'); drawSl(); Ps.fire(btnSl(/^LOAD A PARTY$/)); Ps.ksel = 4; drawSl(); Ps.fire(btnSl(/^TO A FILE$/)); var f8b = dlSl[1], t8b = f8b ? fetchSl(f8b.href) : null, j8b = t8b ? JSON.parse(t8b) : null;
+      var n8 = Ps.saveParty(), f8c = dlSl[2];
+      Ps.st.party = PKs.defaultParty(); Ps.cache = {}; var tk8 = Ps.takeParty(t8b);
+      okSl(!!j8a && /^pocket-party-road-crew-\d{4}-\d\d-\d\d-\d{4}\.json$/.test(f8a.name) && j8a.name === 'Road Crew' && j8a.kind === 'pocket-party' && !!j8b && /^pocket-party-after-the-road-\d{4}-/.test(f8b.name) && JSON.stringify(j8b) === JSON.stringify(slotSl(5)) && /^pocket-party-\d{4}-\d\d-\d\d-\d{4}\.json$/.test(n8 || '') && !!f8c && !!tk8 && wordsSl() === w7,
+        '8 TO A FILE: ' + (f8a && f8a.name) + ' (the party now, named), ' + (f8b && f8b.name) + ' (slot 5 as kept), and the old download still ' + n8 + '; the slot\'s file loads by the old way too');
+      // 9. BACK: the page goes back where it was opened from
+      Ps.go('hub'); drawSl(); Ps.fire(btnSl(/^LOAD A PARTY$/)); Ps.back(); var bk9 = Ps.screen; Ps.go('party'); drawSl(); Ps.fire(btnSl(/^SAVE THE PARTY$/)); drawSl(); var fl9 = !!Ps.field; Ps.back();
+      okSl(bk9 === 'hub' && Ps.screen === 'party' && fl9 && !Ps.field, '9 BACK: to THE CAMP from its LOAD, to THE PARTY from its SAVE, the name field gone with the page');
+    } catch (eSl) { repSl.errors.push(String(eSl && eSl.stack || eSl).slice(0, 800)); }
+    finally { D.store.get = stGSl; D.store.set = stSSl; D.text = text0Sl; D.push = push0Sl; HTMLAnchorElement.prototype.click = clk0Sl; PKs.readJSON = rj0Sl; try { if (Ps && Ps.dropField) Ps.dropField(); } catch (eD) { } if (cvLent) D.canvas = null; D.scenes.length = 0; sc0Sl.forEach(function (s) { D.scenes.push(s); }); }
+    var preSl = document.createElement('pre'); preSl.id = 'out'; preSl.textContent = 'BENCH16 ' + JSON.stringify(repSl);
+    document.body.appendChild(preSl);
+    return;
+  }
   // A MADE CARD LIKE THE REST OF THE ROSTER (mode=pocketmade1112; the Pocket DM lane, 11-12, Griz: "can we force 'made' spell entry into a box that let's us fix the guess for
   // anything made after today? it'd be really handy to have one interface once the characters are in the roster, I say build"): a made card's level arrows; the box (r.got)
   // written by a level's defaults, by its page and by the maker's save, and a level given back taking exactly it; the guess for a card with no box; EDIT and DROP on THE

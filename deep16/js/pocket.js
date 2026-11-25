@@ -614,6 +614,7 @@
     if (s === 'title') { location.href = './'; return; } // (X: the Story Realm Game's title, as the button -- the 8-bit's till 11-06)
     if (s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
     if (s === 'seat') { this.go('party'); return; } // (a seat's pick from the roster: back to the cards, 11-12)
+    if (s === 'slots') { this.go(this.slotFrom === 'hub' ? 'hub' : 'party'); return; } // (the party's slots: back to THE PARTY or THE CAMP, where SAVE or LOAD was pressed, 11-25)
     if (s === 'modules') { this.keep(); this.go('hub'); return; } // (LOAD MODULE is THE CAMP's)
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go(this.mk && this.mk.villain ? 'villains' : 'party'); return; } // (a villain's maker came from THE VILLAINS, 10-17)
     if (s === 'map') { this.go('hub'); return; } // (THE MAP is SINGLE FIGHT's, from THE CAMP since 10-17)
@@ -1815,7 +1816,7 @@
   Pocket.prototype.dropMade = function (i) {
     var c = this.st.roster[i], ask = this.ask || D.askTwice.bind(null, this); if (!c) return;
     var wins = (c.loot || []).length;
-    if (!ask('Take ' + c.name + ' off the roster for good?' + (wins ? ' ' + (wins > 1 ? 'Their ' + wins + ' winnings go' : 'Their winning goes') + ' to the pack.' : '') + ' Their seat stands empty. (SAVE THE PARTY first keeps them in a file.)')) return;
+    if (!ask('Take ' + c.name + ' off the roster for good?' + (wins ? ' ' + (wins > 1 ? 'Their ' + wins + ' winnings go' : 'Their winning goes') + ' to the pack.' : '') + ' Their seat stands empty. (SAVE THE PARTY first keeps them in a slot.)')) return;
     var r = PK.dropMade(this.st, i);
     if (!r.ok) { D.sfx('error'); this.say(r.why, 300); return; }
     this.cache = {}; this.keep(); D.sfx('cursor'); this.say(r.name + ' is off the roster' + (r.wins.length ? ': ' + r.wins.length + ' to the pack' : ''), 240);
@@ -1892,6 +1893,7 @@
     else if (s === 'fights') this.drawFights(ctx);
     else if (s === 'notes') this.drawNotes(ctx);
     else if (s === 'market') this.drawMarket(ctx);
+    else if (s === 'slots') this.drawSlots(ctx); // (THE PARTY'S SLOTS, 11-25)
     else this.drawMore(ctx, s);
     if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, this.msg.bad ? P('red', 4) : P('gold', 4), 'center'); }
     if (this.egg) this.drawEgg(ctx);
@@ -1969,8 +1971,8 @@
     this.btn(ctx, st.editLevels ? 'LEVEL-UPS: EDIT' : 'LEVEL-UPS: DEFAULTS', 172, 200, 132, 14, function () { st.editLevels = !st.editLevels; self.keep(); D.sfx('cursor'); }, { on: !!st.editLevels, why: 'EDIT: a card\'s level-ups are asked at NEXT; DEFAULTS: it takes its own' }).tip = st.editLevels ? 'EDIT: NEXT walks each level you raised, a page a level' : 'DEFAULTS: a level raised takes its own picks, nothing asked';
     this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', 312, 200, 148, 14, function () { self.openMarket('party'); }); // (10-17)
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    this.btn(ctx, 'SAVE THE PARTY', 88, 236, 114, 15, function () { self.saveParty(); }); // (the party's file, 10-17 -- his "Player saves are current party and pack"; SAVE CAMPAIGN till then, the campaign's file now the roster and the DM's, on the title)
-    this.btn(ctx, 'LOAD A PARTY', 208, 236, 114, 15, function () { self.loadParty(); });
+    this.btn(ctx, 'SAVE THE PARTY', 88, 236, 114, 15, function () { self.openSlots('save'); }); // (the party's file, 10-17 -- his "Player saves are current party and pack"; SAVE CAMPAIGN till then, the campaign's file now the roster and the DM's, on the title; the party's SLOTS since 11-25)
+    this.btn(ctx, 'LOAD A PARTY', 208, 236, 114, 15, function () { self.openSlots('load'); });
     var dues = st.editLevels ? this.duesSaid() : [];
     this.btn(ctx, dues.length ? 'NEXT: THE LEVEL-UPS' : 'NEXT: THE CAMP', D.W - 150, 236, 130, 15, function () { self.keep(); self.partyNext(); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' }); // (THE CAMP at both tables, 10-17: TO THE CAMPAIGN and NEXT: THE MAP till then)
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
@@ -2433,8 +2435,8 @@
     var lx = 20, rx = D.W - 180, rw = 160, by = 116, rest = run && run.atCamp; // (the right column narrower since 10-17: the fire between the two)
     this.btn(ctx, 'THE MENU  (M)', lx, by, 150, 16, function () { self.openMenu(); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
     this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', lx, by + 20, 150, 16, function () { self.openMarket('hub'); }, { dis: !!(rest && !rest.market), why: 'the DM allows no market at this rest' });
-    this.btn(ctx, 'SAVE THE PARTY', lx, by + 40, 150, 15, function () { self.saveParty(); });
-    this.btn(ctx, 'LOAD A PARTY', lx, by + 59, 150, 15, function () { self.loadParty(); });
+    this.btn(ctx, 'SAVE THE PARTY', lx, by + 40, 150, 15, function () { self.openSlots('save'); }); // (the party's slots, 11-25)
+    this.btn(ctx, 'LOAD A PARTY', lx, by + 59, 150, 15, function () { self.openSlots('load'); });
     if (run) {
       var rn = run.module ? run.module.name + ': FIGHT ' + run.rung + ' OF ' + run.plan.length : 'THE LADDER: ' + (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung);
       // (come to the camp from a rest -- 10-17, his "return to camp 'so i can equip after visit market' on long rests": GO ON is the rest's way on, the long rest's day first)
@@ -2622,13 +2624,26 @@
     };
   };
   // the party's own file (his "Player saves are current party and pack"): the seats, the characters made for them, the pack and the purse; loaded, the made ones join
-  // the roster (by their word) and the seats point at them
+  // the roster (by their word) and the seats point at them. Since 11-25 a party is kept in a SLOT (below) and this is its TO A FILE: the same body, a `name` in it
+  // when it has one (an older file has none, and loads as it always did)
   PK.PARTY_KIND = 'pocket-party';
-  Pocket.prototype.saveParty = function () {
-    var st = this.st, used = {}, roster = [], party = JSON.parse(JSON.stringify(st.party)).map(function (slot) { if (slot.custom != null && st.roster[slot.custom]) { if (used[slot.custom] == null) { used[slot.custom] = roster.length; roster.push(st.roster[slot.custom]); } slot.custom = used[slot.custom]; } return slot; });
-    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, name = 'pocket-party-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
-    var body = JSON.stringify({ game: 'DRAGONSLEEP', kind: PK.PARTY_KIND, v: 1, at: d.toISOString(), party: party, roster: JSON.parse(JSON.stringify(roster)), pack: JSON.parse(JSON.stringify(st.pack || [])), purse: st.purse == null ? 100 : st.purse }, null, 1);
-    try { var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' })); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); this.say('saved the party to ' + name, 300); }
+  PK.partyBody = function (st, name) {
+    var used = {}, roster = [], party = JSON.parse(JSON.stringify(st.party)).map(function (slot) { if (slot.custom != null && st.roster[slot.custom]) { if (used[slot.custom] == null) { used[slot.custom] = roster.length; roster.push(st.roster[slot.custom]); } slot.custom = used[slot.custom]; } return slot; });
+    var b = { game: 'DRAGONSLEEP', kind: PK.PARTY_KIND, v: 1, at: new Date().toISOString() };
+    if (name) b.name = String(name).slice(0, PK.PARTY_NAME);
+    b.party = party; b.roster = JSON.parse(JSON.stringify(roster)); b.pack = JSON.parse(JSON.stringify(st.pack || [])); b.purse = st.purse == null ? 100 : st.purse;
+    return b;
+  };
+  // a party's file name: its name made safe for a file (none for an older one), then the minute it was saved, by this browser's clock as before
+  PK.partyFileName = function (body) {
+    var d = new Date(body && body.at || Date.now()); if (isNaN(d)) d = new Date();
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; }, slug = String(body && body.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+    return 'pocket-party-' + (slug ? slug + '-' : '') + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+  };
+  PK.download = function (name, text) { var a = document.createElement('a'), url = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); };
+  Pocket.prototype.saveParty = function (nm) {
+    var body = PK.partyBody(this.st, nm), name = PK.partyFileName(body);
+    try { PK.download(name, JSON.stringify(body, null, 1)); this.say('saved the party to ' + name, 300); }
     catch (e) { this.say('could not save: ' + e); return null; }
     return name;
   };
@@ -2654,7 +2669,12 @@
     var party = f.party.slice(0, 6).map(function (slot) {
       if (slot.custom == null) return slot;
       var c = (f.roster || [])[slot.custom]; if (!c) return { w: 'new' };
-      var k = st.roster.map(function (x) { return x.code; }).indexOf(c.code); if (k < 0) { st.roster.push(c); k = st.roster.length - 1; }
+      // (11-25, the slots -- a party loaded back whole: the same character is found by when it was made and its name, so a level or XP since does not make it a second
+      // one on the roster, else by its word as before; found, it takes the file's own state back -- its word, level, XP, winnings, spell box -- its campaign marks kept)
+      var k = -1; st.roster.forEach(function (x, j) { if (k < 0 && c.made && x && x.made === c.made && x.name === c.name) k = j; });
+      if (k < 0) k = st.roster.map(function (x) { return x.code; }).indexOf(c.code);
+      if (k < 0) { st.roster.push(c); k = st.roster.length - 1; }
+      else { var was = st.roster[k], now = JSON.parse(JSON.stringify(c)); delete now.mark; delete now.dm; if (was.mark) now.mark = was.mark; if (was.dm) now.dm = true; st.roster[k] = now; }
       return Object.assign({}, slot, { custom: k });
     });
     st.party = party; st.pack = Array.isArray(f.pack) ? f.pack : []; st.purse = typeof f.purse === 'number' ? f.purse : 100; st.run = null; st.dayMorning = null;
@@ -2662,7 +2682,124 @@
     this.metalOff(); // (a party file from before 10-21's ruling: a druid's metal to the pack)
     return st.party;
   };
-  Pocket.prototype.loadParty = function () { var self = this; PK.readJSON(function (text) { self.takeParty(text); }); };
+  Pocket.prototype.loadParty = function () { var self = this; PK.readJSON(function (text) { self.takeParty(text); }); }; // (a file straight in, as till 11-25: the slots' IMPORT A FILE is the way now)
+  /* THE PARTY'S SLOTS (2026-11-25, Griz to the lanes desk: "I'd like to try and turn 'save party' and 'load party' in the pocket DM to a 'save slot' system (at least 5),
+     prompting a naming (type something that represents the party you're saving) - with the ones in play records as (party 1)"): SAVE THE PARTY and LOAD A PARTY, on
+     THE PARTY and THE CAMP, open one page of five slots. SAVE: a name typed (the field over the canvas, as the maker's A NAME), then a slot picked -- a filled one asked
+     first, the game's own question (D.askTwice); a name left empty is "party N" by its slot. LOAD: the slots by name, each with its seats' classes and levels, the purse
+     and when it was saved; one picked is taken through takeParty's checks (a run under way asked first). A slot is a party file: the same body (`kind: 'pocket-party'`,
+     its `name` in it), kept in this browser under its own key, as the story game's three slots are (js/house.js H.key) -- so TO A FILE writes it out as it is, and
+     IMPORT A FILE takes any party file in, a file of 10-17 on as well, into the slot picked; a file with no name of its own comes in as "party N" by that slot. The
+     slots live in this browser only: a cache cleared with the site's data takes them, and a file does not go (the page says so) */
+  PK.PARTY_SLOTS = 5; PK.PARTY_NAME = 24; // (24: the field's own length, as the maker's names)
+  PK.partyKey = function (n) { return 'deep16.pocket.party.' + n; };
+  PK.partyOf = function (f) { return f && f.game === 'DRAGONSLEEP' && f.kind === PK.PARTY_KIND && Array.isArray(f.party) && f.party.length ? f : null; };
+  PK.partyRead = function (n) { return PK.partyOf(D.store.get(PK.partyKey(n))); };
+  PK.partyName = function (f, n) { var s = f && typeof f.name === 'string' ? f.name.trim() : ''; return s ? s.slice(0, PK.PARTY_NAME) : 'party ' + n; };
+  // a file's body as a slot keeps it: the party file's own fields, its name set
+  PK.partyClean = function (f, name) {
+    var c = function (v) { return JSON.parse(JSON.stringify(v)); };
+    return { game: 'DRAGONSLEEP', kind: PK.PARTY_KIND, v: 1, at: typeof f.at === 'string' ? f.at : new Date().toISOString(), name: String(name).slice(0, PK.PARTY_NAME), party: c(f.party), roster: Array.isArray(f.roster) ? c(f.roster) : [], pack: Array.isArray(f.pack) ? c(f.pack) : [], purse: typeof f.purse === 'number' ? f.purse : 100 };
+  };
+  // who sits in a slot's seats, read from its own file: { name, cls, lvl } a seat (the ? none)
+  PK.partySeats = function (f, st) {
+    var pst = { roster: f.roster || [], dm: !!(st && st.dm), party: f.party };
+    return f.party.map(function (slot) {
+      if (!slot || slot.w === 'new' || slot.w === '?') return null;
+      if (slot.custom != null) { var c = (f.roster || [])[slot.custom]; return c ? { name: c.name || 'unnamed', cls: c.cls, lvl: c.lvl } : null; }
+      var sp = null; try { sp = PK.specOf(pst, slot); } catch (e) { sp = null; }
+      var w = String(slot.w || '?'), nm = (sp && sp.name) || ((DS.DATA.heroes || {})[w] || {}).name || (w.charAt(0).toUpperCase() + w.slice(1));
+      return { name: nm, cls: sp ? sp.cls : null, lvl: sp ? sp.lvl : slot.lvl };
+    });
+  };
+  // a slot's line: its seats (name, class, level; the names dropped when the row is too narrow for them), and when, by this browser's clock
+  PK.partyLine = function (f, st, w) {
+    var ss = PK.partySeats(f, st), cn = function (s) { return s.cls && R.CLASSES[s.cls] ? R.CLASSES[s.cls].name : '?'; };
+    var full = ss.map(function (s) { return s ? s.name + ' ' + cn(s) + ' ' + s.lvl : 'the ?'; }).join(' · '), bare = ss.map(function (s) { return s ? cn(s) + ' ' + s.lvl : '?'; }).join(', ');
+    var d = new Date(f.at), when = isNaN(d) ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    return { seats: w && D.textWidth(full) > w ? bare : full, full: full, bare: bare, when: when, n: ss.length };
+  };
+  Pocket.prototype.openSlots = function (mode) {
+    var st = this.st, from = this.screen, have = [], n;
+    for (n = 1; n <= PK.PARTY_SLOTS; n++) have[n] = !!PK.partyRead(n);
+    var own = st.partySlot >= 1 && st.partySlot <= PK.PARTY_SLOTS ? st.partySlot : 0, first = function (want) { for (var k = 1; k <= PK.PARTY_SLOTS; k++) if (have[k] === want) return k; return 0; };
+    var sel = mode === 'save' ? own || first(false) || 1 : (own && have[own] ? own : first(true) || 1);
+    this.go('slots'); this.slotMode = mode; this.slotFrom = from === 'hub' ? 'hub' : 'party'; this.slotSel = sel;
+    this.slotName = mode === 'save' && own && have[own] ? PK.partyName(PK.partyRead(own), own) : '';
+    this.ksel = sel - 1; // (the rows are the page's first buttons: the pick starts where the cursor does)
+  };
+  // SAVE into slot n: a filled one asked first; written whole, the slot then the party's own (the pick SAVE opens on next time)
+  Pocket.prototype.saveSlot = function (n, name) {
+    var st = this.st, ask = this.ask || D.askTwice.bind(null, this), old = PK.partyRead(n);
+    var nm = String(name == null ? this.slotName || '' : name).trim().slice(0, PK.PARTY_NAME) || 'party ' + n;
+    if (old && !ask('Slot ' + n + ' holds "' + PK.partyName(old, n) + '". Save over it?')) return false;
+    this.keep();
+    var body = PK.partyBody(st, nm);
+    if (!D.store.set(PK.partyKey(n), body)) { D.sfx('error'); this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. TO A FILE keeps it.', t: 420, bad: true }; return false; }
+    st.partySlot = n; this.keep();
+    this.go(this.slotFrom || 'party'); this.say('saved "' + nm + '" to slot ' + n + (old ? ', over "' + PK.partyName(old, n) + '"' : ''), 360);
+    return body;
+  };
+  // LOAD slot n: takeParty's checks (a file's, and a run under way asked first)
+  Pocket.prototype.loadSlot = function (n) {
+    var f = PK.partyRead(n); if (!f) { D.sfx('error'); this.say('slot ' + n + ' is empty', 240); return null; }
+    var got = this.takeParty(JSON.stringify(f)); if (!got) return null;
+    this.st.partySlot = n; this.keep();
+    this.go(this.slotFrom || 'party'); this.say('loaded "' + PK.partyName(f, n) + '": ' + got.length + ' seats, the pack and ' + this.st.purse + ' sp', 360);
+    return got;
+  };
+  // IMPORT A FILE into slot n: asked first when it is filled (before the browser's picker, so the second press is the one that opens it); a file with no name is "party n"
+  Pocket.prototype.importAsk = function (n) { var old = PK.partyRead(n), ask = this.ask || D.askTwice.bind(null, this); return !old || ask('Slot ' + n + ' holds "' + PK.partyName(old, n) + '". Import a file over it?'); };
+  Pocket.prototype.importSlot = function (n, text, file) {
+    var f = null; try { f = JSON.parse(text); } catch (e) { f = null; }
+    if (!PK.partyOf(f)) { D.sfx('error'); this.msg = { text: 'that file is not a party (a pocket-party file)', t: 300, bad: true }; return null; }
+    var rec = PK.partyClean(f, PK.partyName(f, n));
+    if (!D.store.set(PK.partyKey(n), rec)) { D.sfx('error'); this.msg = { text: 'NOT KEPT: this browser\'s storage is full or shut', t: 360, bad: true }; return null; }
+    this.slotSel = n; this.ksel = n - 1; D.sfx('confirm');
+    this.say('slot ' + n + ': "' + rec.name + '"' + (file ? ' from ' + file : '') + ' -- LOAD SLOT ' + n + ' takes it', 420);
+    return rec;
+  };
+  Pocket.prototype.slotFile = function (n) {
+    var f = PK.partyRead(n); if (!f) { D.sfx('error'); this.say('slot ' + n + ' is empty', 240); return null; }
+    var name = PK.partyFileName(f);
+    try { PK.download(name, JSON.stringify(f, null, 1)); this.say('saved slot ' + n + ' to ' + name + ' -- where your browser puts downloads', 360); }
+    catch (e) { this.say('could not save: ' + e); return null; }
+    return name;
+  };
+  Pocket.prototype.drawSlots = function (ctx) {
+    var self = this, st = this.st, save = this.slotMode === 'save', N = PK.PARTY_SLOTS, y0 = 64, rh = 30, rw = D.W - 40;
+    head(ctx, save ? 'SAVE THE PARTY' : 'LOAD A PARTY', save ? N + ' slots in this browser · a name, then a slot · a filled one is asked first' : N + ' slots in this browser · pick one to take it · IMPORT A FILE brings a saved party in');
+    if (save) {
+      D.text(ctx, '{y}type something that represents the party you\'re saving{/}', D.W / 2, 34, P('bone', 1), 'center'); // (his words, 11-25)
+      var fld = this.useField('slotname', { x: 140, y: 44, w: 200, h: 15 }, this.slotName, function (v) { self.slotName = v; });
+      if (fld && fld.el) fld.el.placeholder = 'party ' + this.slotSel;
+    } else D.text(ctx, 'the slots live in this browser: a cache cleared with the site\'s data takes them -- TO A FILE keeps one', D.W / 2, 40, P('stone', 5), 'center');
+    for (var n = 1; n <= N; n++) (function (n) {
+      var f = PK.partyRead(n), y = y0 + (n - 1) * rh, own = st.partySlot === n;
+      ctx.fillStyle = 'rgba(20,16,30,.85)'; ctx.fillRect(20, y, rw, rh - 2); ctx.strokeStyle = own ? P('gold', 2) : P('stone', 3); ctx.strokeRect(20.5, y + 0.5, rw - 1, rh - 3);
+      var b = self.btn(ctx, 'SLOT ' + n, 20, y, rw, rh - 2, function () { self.slotSel = n; if (save) self.saveSlot(n); else self.loadSlot(n); }, { ghost: true, on: self.slotSel === n });
+      b.slotN = n; b.tip = f ? (save ? 'E: save over "' + PK.partyName(f, n) + '" (asked first)' : 'E: take "' + PK.partyName(f, n) + '" to the table') : (save ? 'E: save the party here' : 'slot ' + n + ' is empty: IMPORT A FILE puts one here');
+      if (!f) { D.text(ctx, '{y}' + n + '{/}   {g}-- empty --{/}', 28, y + 5, P('bone', 1)); return; }
+      var ln = PK.partyLine(f, st, rw - 24), right = (typeof f.purse === 'number' ? f.purse + ' sp  ·  ' : '') + ln.when;
+      var ownW = own ? D.textWidth('   the party\'s slot') : 0;
+      D.text(ctx, '{y}' + n + '{/}   {y}' + fitText(PK.partyName(f, n), rw - 48 - D.textWidth(right) - ownW) + '{/}' + (own ? '   {o}the party\'s slot{/}' : ''), 28, y + 5, P('gold', 4));
+      D.text(ctx, right, 20 + rw - 8, y + 5, P('stone', 5), 'right');
+      D.text(ctx, fitText(ln.seats, rw - 24), 40, y + 16, P('silver', 5));
+    })(n);
+    var kb = this.btns[this.ksel]; if (kb && kb.slotN) this.slotSel = kb.slotN; // (the pick follows the cursor -- the arrows, the mouse over a row -- and stays when it leaves the list)
+    var sn = this.slotSel, sf = PK.partyRead(sn);
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    if (save) {
+      this.btn(ctx, 'TO A FILE', 86, 236, 90, 15, function () { self.saveParty(String(self.slotName || '').trim() || null); }).tip = 'TO A FILE: the party as it is now, to a .json where your browser puts downloads';
+      this.btn(ctx, 'SAVE IN SLOT ' + sn, D.W - 150, 236, 130, 15, function () { self.saveSlot(sn); }, { pri: true }).tip = sf ? 'SAVE: over "' + PK.partyName(sf, sn) + '" in slot ' + sn + ' (asked first)' : 'SAVE: the party in slot ' + sn;
+    } else {
+      this.btn(ctx, 'IMPORT A FILE', 86, 236, 100, 15, function () { if (self.importAsk(sn)) PK.readJSON(function (text, file) { self.importSlot(sn, text, file); }); }).tip = 'IMPORT A FILE: a saved party (pocket-party-*.json) into slot ' + sn + (sf ? ', over "' + PK.partyName(sf, sn) + '" (asked first)' : '');
+      this.btn(ctx, 'TO A FILE', 192, 236, 90, 15, function () { self.slotFile(sn); }, { dis: !sf, why: 'slot ' + sn + ' is empty' }).tip = 'TO A FILE: slot ' + sn + ' to a .json, past a cleared cache';
+      this.btn(ctx, 'LOAD SLOT ' + sn, D.W - 150, 236, 130, 15, function () { self.loadSlot(sn); }, { pri: true, dis: !sf, why: 'slot ' + sn + ' is empty' });
+    }
+    var kt = this.btns[this.ksel];
+    D.hint(ctx, kt && kt.tip ? kt.tip : save ? 'type a name, then a slot: a click or E · up/down choose · X back' : 'up/down choose · E takes the slot · X back', D.W / 2, 224, kt && kt.tip ? P('bone', 1) : P('stone', 4), 'center');
+  };
   // THE LONG REST's page: the casters' day on the left (pick one, its spells on the right), what is cast this morning under them, then what follows (mGo)
   Pocket.prototype.drawMorning = function (ctx) {
     var self = this, mi = this.mInfoNow(), m = this.morning(), cards = mi.cards.filter(function (c) { return c && c.pi; });
