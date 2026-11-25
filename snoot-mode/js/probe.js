@@ -182,6 +182,13 @@
     ok(ev && !SN.same(pe.at, [8, 5]) && !atk1(ev, 'patrol') && !atk1(ev, 'sg1'), 'Book III p.20: a unit under AVOID that a band comes at rolls to slip a hex away -- and no blow is struck' + (pe ? ' (the patrol now at ' + pe.at + ')' : ''));
     ok(tk(function () { var sd = SN.newGame(61); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var w1 = SN.unit(sd, 'dm1'); w1.at = [8, 3]; SN.AI.dominion(sd, w1); return w1.order.type === 'avoid'; }),
       'the Dominion\'s wagons at the inn are under AVOID (the seat\'s lean, ruled)');
+    // (11-25, odds-1125, his "47 yes" on striking the 11-14 reading -- Savine's wagon "will go for him": the Harbinger's pack and the Dominion are enemies, and one hex holding
+    // a wagon and the pack is a fight between them)
+    ok(tk(function () { var sd = SN.newGame(62); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var hb = sd.units.filter(function (u) { return u.harbinger; })[0], w1 = SN.unit(sd, 'dm1');
+      if (!hb || !w1) return false; var both = SN.DOMINION.every(function (f) { var w = SN.unit(sd, f.id); return SN.hostile(w, hb) && SN.hostile(hb, w); });
+      sd.units.forEach(function (u) { if (u !== hb && u !== w1) u.at = [1, 1]; }); [hb, w1].forEach(function (u) { u.at = [9, 9]; u.on = true; u.state = 'ok'; }); var pr = SN.pairAt(sd, [9, 9]);
+      return both && !!pr && pr.indexOf('dominion') >= 0 && pr.indexOf('gnoll') >= 0; }),
+      'the Harbinger\'s pack and every Dominion wagon are enemies, and a hex holding a wagon and the pack is a fight between them (11-25, his "47 yes")');
     // ---- one man a figure, the mixed units, his numbers, COMBINE, the grid beside the four (RULED 10-15)
     var FF = function (id) { return SN.FORCES.filter(function (f) { return f.id === id; })[0]; };
     ok(tk(function () { return FF('greyfang').figs === 40 && FF('greyfang').cls === 'HF' && FF('greyfang').def === 'HF' && !FF('greyfang').morale && FF('patrol').groups.map(function (g) { return g.n + g.cls; }).join() === '12HF,4MH' && FF('patrol').wagon && !FF('bows') &&

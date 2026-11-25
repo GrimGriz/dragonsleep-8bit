@@ -80,8 +80,11 @@
   SN.heroesOf = function (u) { return (u.heroes || []).filter(function (h) { return !h.dead; }); };
   // WHO FIGHTS WHOM (11-14, Griz, 11-13: "honestly i was wrong about the gnolls not engaging dominion, that'd be more glory for them under the circumstances";
   // 11-14, asked whether to make the gnolls and the Dominion hostile on the board: "Yes, build it"): ours against everyone; the tribes against the Dominion too.
-  // The Harbinger's pack is the Mirror's, as the wagons' ladies are (the Dominion lit this): it and the Dominion leave each other be -- the seat's reading.
-  SN.hostile = function (a, b) { if (a.side === b.side) return false; if (a.side === 'ours' || b.side === 'ours') return true; return !(a.harbinger || b.harbinger); };
+  // ~~The Harbinger's pack is the Mirror's, as the wagons' ladies are (the Dominion lit this): it and the Dominion leave each other be -- the seat's reading.~~ STRUCK 11-25
+  // (Griz, 11-15, of the three wagons: "Savine hears it from the Fiend. She thinks the wagons are hunting Mr Ripples, but they're mistakenly chasing the harbinger - her wagon
+  // will go for him"; asked whether to strike the reading, 11-25: "47 yes" -- odds-1125): every side against every other, the Harbinger's pack and the Dominion too. Which
+  // wagon is Savine's, and the Dominion's AI seeking him, wait on the wagons' own errands (the Snoot lane's 11-15/16, "needs work")
+  SN.hostile = function (a, b) { return a.side !== b.side; };
   // a hex's parties are its sides (ours, the gnolls, the Dominion). The grid fights two at a time, so a hex with three is fought in turn: the two the one table
   // weighs heaviest first, then whoever holds the hex against the third (SN.fightHex). In a fight the first party stands where "ours" always stood and the second
   // where "theirs" did (st.fightA, st.fightB): ours when they are in it, else the Dominion -- so the gnolls are always the second, as every rule of theirs expects
@@ -508,7 +511,8 @@
   };
   SN.fightPair = function* (st, h) {
     var A = st.fightA || 'ours', Bs = st.fightB, here = function () { return SN.unitsAt(st, h); };
-    // (only who has an enemy across the hex: the Harbinger's pack stands aside from a band's fight with a wagon)
+    // (only who has an enemy across the hex. Till 11-25 the Harbinger's pack stood aside from a band's fight with a wagon; since SN.hostile's reading was struck, his "47 yes",
+    // it is in it, on the gnolls' side, as any of theirs)
     var ofSide = function (k, other) { return here().filter(function (u) { return u.side === k && here().some(function (x) { return x.side === other && SN.hostile(u, x); }); }); };
     var ours = function () { return ofSide(A, Bs); }, theirs = function () { return ofSide(Bs, A); };
     if (!ours().length || !theirs().length) return;
