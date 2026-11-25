@@ -678,16 +678,35 @@
       return { canvas: c.cv, h: code.h, face: true };
     });
   }
+  // THE ROCK'S RIM (ART-160, 11-24; art-wanted 96 -- Griz in the Crawler Warrens, 11-21: "the tiles south of barley to have a top edge like the one north of barley
+  // to visually differentiate the paths more"; 11-22: "cave tiles - see if we need one for the guano caves as well"): on the mines' floors a rock square's top takes
+  // the art desk's rim along each side a floor lies on -- north, east, west; the outer corner where the floor lies north and to one side, the inner where only the
+  // floor's corner cuts in -- the south side its cliff face as ever. Read a half at a time (the west half by the floor north, west and north-west of it, the east half
+  // by north, east and north-east): where the two halves name one of the art's tiles it is drawn whole, else each half from its own (a rock a square wide between two
+  // floors: the west rim's half and the east rim's). &rims=off on the page's address draws the plain top, to compare. Returns ['<west half>', '<east half>'], '' plain.
+  TV.ART.rims = !/[?&]rims=off\b/.test(QS);
+  TV.RIMWHOLE = { '|': 'rock_top', 'rock_rim_n|rock_rim_n': 'rock_rim_n', 'rock_rim_w|': 'rock_rim_w', '|rock_rim_e': 'rock_rim_e', 'rock_rim_n|rock_rim_ne': 'rock_rim_ne',
+    'rock_rim_nw|rock_rim_n': 'rock_rim_nw', 'rock_rim_in_nw|': 'rock_rim_in_nw', '|rock_rim_in_ne': 'rock_rim_in_ne' };
+  TV.rim = function (m, x, y) {
+    var fl = function (dx, dy) { var q = m.at(x + dx, y + dy); return !!(q && (q.open || q.block)); }, N = fl(0, -1), W = fl(-1, 0), E = fl(1, 0);
+    return [N && W ? 'rock_rim_nw' : W ? 'rock_rim_w' : N ? 'rock_rim_n' : fl(-1, -1) ? 'rock_rim_in_nw' : '',
+            N && E ? 'rock_rim_ne' : E ? 'rock_rim_e' : N ? 'rock_rim_n' : fl(1, -1) ? 'rock_rim_in_ne' : ''];
+  };
+  TV.standAt = function (m, x, y) { var s = m.at(x, y); return s && (!s.open || s.block) ? standCanvas(m, s) : null; }; // (what stands on a square, as drawn: the benches' probe, as TV.artAt is the ground's)
   function artRock(m, s, P) {
     var T = TV.TS, H = TV.CLIFF, sb = m.at(s.x, s.y + 1), faceAt = function (x) { var q = m.at(x, s.y), b = m.at(x, s.y + 1); return !!(q && !q.open && !(m.def.roofs && m.def.roofs[q.ch]) && b && (b.open || b.block)); };
     var face = faceAt(s.x), door = !!(sb && sb.ch === 'd'), n8 = name8(m, s.x, s.y), v = NZ.h2(s.x * 7 + 3, s.y * 3 + 1, 43) * 4 | 0;
     var top = TV.piece(P === 'town' ? 'mountain_rock' : 'rock_top', v, P); if (!top) return null;
+    var rim = P === 'mine' && TV.ART.rims ? TV.rim(m, s.x, s.y) : ['', ''], whole = TV.RIMWHOLE[rim.join('|')], halves = null; // (the rock's rim: TV.rim above)
+    if (whole && whole !== 'rock_top') top = TV.piece(whole, v, P) || top;
+    else if (!whole) { halves = rim.map(function (nm) { return nm ? TV.piece(nm, v, P) : top; }); if (!halves[0] || !halves[1]) halves = null; }
     var fn = !face ? '' : door ? (P === 'town' ? 'cliff_vault_door' : 'outside_mouth') : ({ timber: 'shored_face', runeWall: 'rune_wall', chimney: 'chimney', sealDoor: 'mine_door' })[n8] || (!faceAt(s.x - 1) && !faceAt(s.x + 1) ? 'cliff_middle' : !faceAt(s.x - 1) ? 'cliff_left' : !faceAt(s.x + 1) ? 'cliff_right' : 'cliff_middle');
     var fp = fn && TV.piece(fn, 0, P), lamp = face && n8 === 'lantern' ? TV.piece('wall_lantern_lit', 0, 'mine') : null; if (face && !fp) return null;
     var lad = face && m.def.faceLadders && m.def.faceLadders[s.x + ',' + s.y] ? TV.piece('ladder_up', 0, 'mine') : null; // (a scraper's ladder up the face to the ledge: js/mines.js M.LEDGES, 10-29)
-    return stash(m, 'K' + P + v + fn + (lamp ? 'L' : '') + (lad ? 'U' : ''), function () {
+    return stash(m, 'K' + P + v + fn + (lamp ? 'L' : '') + (lad ? 'U' : '') + (rim[0] || rim[1] ? 'R' + rim.join('|') : ''), function () {
       var c = canvasOf(T, T + (face ? H : 0), P !== 'town'), cx = c.cx;
-      cx.drawImage(top.im, top.x, top.y, top.w, top.h, 0, 0, T, T);
+      if (halves) halves.forEach(function (h, i) { cx.drawImage(h.im, h.x + i * T / 2, h.y, T / 2, h.h, i * T / 2, 0, T / 2, T); }); // (the rim a half at a time)
+      else cx.drawImage(top.im, top.x, top.y, top.w, top.h, 0, 0, T, T);
       if (P !== 'town') { // (in the mines the rock's top two shades down its ramps: the art desk drew it like the cave floor, and the tunnels went into their walls)
         var id = cx.getImageData(0, 0, T, T), d = id.data; for (var o = 0; o < d.length; o += 4) { var c2 = TV.palStep([d[o], d[o + 1], d[o + 2]], -TV.ROCKDARK); d[o] = c2[0]; d[o + 1] = c2[1]; d[o + 2] = c2[2]; } cx.putImageData(id, 0, 0);
       }

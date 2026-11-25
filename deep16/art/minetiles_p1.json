@@ -61,9 +61,16 @@
 "pick_and_shovel": "276,499,32,40,16,40",
 "shoring_post": "308,499,42,53,21,53",
 "crew_bunk": "350,499,46,50,23,50",
-"water_barrel": "396,499,32,50,16,50"
+"water_barrel": "396,499,32,50,16,50",
+"rock_rim_n": "0,552,48,48,24,48 48,552,48,48,24,48 96,552,48,48,24,48 144,552,48,48,24,48",
+"rock_rim_e": "192,552,48,48,24,48 240,552,48,48,24,48 288,552,48,48,24,48 336,552,48,48,24,48",
+"rock_rim_w": "384,552,48,48,24,48 432,552,48,48,24,48 480,552,48,48,24,48 528,552,48,48,24,48",
+"rock_rim_ne": "576,552,48,48,24,48 624,552,48,48,24,48",
+"rock_rim_nw": "672,552,48,48,24,48 720,552,48,48,24,48",
+"rock_rim_in_ne": "768,552,48,48,24,48 816,552,48,48,24,48",
+"rock_rim_in_nw": "864,552,48,48,24,48 912,552,48,48,24,48"
 },
-"source": "deep16/_src/minetiles/ART-112/ (the art desk's ART-112, 10-22: the Guano Mine's top levels top-down, four HEADs), cut by tools/minetiles-sheet.py",
+"source": "deep16/_src/minetiles/ART-112/ (the art desk's ART-112, 10-22: the Guano Mine's top levels top-down, four HEADs) and deep16/_src/minetiles/ART-160/ (ART-160, 11-24: the rock top's rim), cut by tools/minetiles-sheet.py",
 "dual": {
 "guano": {
 "fg": "guano",

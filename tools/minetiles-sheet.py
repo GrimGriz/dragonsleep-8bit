@@ -5,6 +5,7 @@ of tools/toptiles-sheet.py (read its head: the grounds, the faces, the props, th
 
 Sources (gitignored): deep16/_src/minetiles/ART-112/ (six pages and MANIFEST.json); its papers in _src/art-desk/received-2026-10-22-ART-112/. Asked in
 deep16-art-wanted.md section 21's second block (THE GUANO MINE'S TOP LEVELS), on Griz's "giant brown blur, really" of the working gallery among the rest.
+And deep16/_src/minetiles/ART-160/ (11-24, the rock's rim: art-wanted 96; ART-160-NATIVE.png and tile-map.csv), its own row after HEAD 4 -- rims() below.
 
 The camps outside the mouths stand on Silverton's earth, road and grass (toptiles_p1); the river's banks here are measured against Silverton's earth.
 """
@@ -67,8 +68,35 @@ def mine(check=False):
                    ('iron_banded_chest', 36), ('mine_cart', 44), ('guano_sacks', 40), ('pick_and_shovel', 30), ('shoring_post', 40), ('crew_bunk', 44),
                    ('water_barrel', 30)):
         img, _ = TT.cut_prop(M[k], width=wpx); A.add(k, img, img.shape[1] // 2, img.shape[0])
-    A.write('minetiles_p1', 'deep16/_src/minetiles/ART-112/ (the art desk\'s ART-112, 10-22: the Guano Mine\'s top levels top-down, four HEADs), cut by tools/minetiles-sheet.py',
+    A.newrow()
+    rims(A)
+    A.write('minetiles_p1', 'deep16/_src/minetiles/ART-112/ (the art desk\'s ART-112, 10-22: the Guano Mine\'s top levels top-down, four HEADs) and '
+            'deep16/_src/minetiles/ART-160/ (ART-160, 11-24: the rock top\'s rim), cut by tools/minetiles-sheet.py',
             {'dual': dual, 'door': 'roam:galleries_g2'}, check)
+
+
+# ART-160 (11-24, art-wanted 96): THE ROCK'S RIM -- the rock top with its edge along the side a cave floor lies on, north, east or west (Griz, 11-21, in the
+# Crawler Warrens: "the tiles south of barley to have a top edge like the one north of barley to visually differentiate the paths more"). The art desk cut
+# its page to the game's size itself (ART-160-NATIVE.png: 48-px cells with a pixel's gutter, four columns by five rows; tile-map.csv names each cell), so
+# a cell is taken as it is and snapped to the palette as every ground is. The south side stays the cliff face (HEAD 2). js/topview.js artRock lays them by
+# a rock square's open neighbours (TV.rim).
+RIMS = (('north', 'N', 'rock_rim_n'), ('east', 'E', 'rock_rim_e'), ('west', 'W', 'rock_rim_w'), ('outer', 'N+E', 'rock_rim_ne'),
+        ('outer', 'N+W', 'rock_rim_nw'), ('inner', 'NE only', 'rock_rim_in_ne'), ('inner', 'NW only', 'rock_rim_in_nw'))
+
+def rims(A):
+    import csv
+    from PIL import Image
+    d = os.path.join(TT.PX.SRC, 'minetiles', 'ART-160')
+    page = np.asarray(Image.open(os.path.join(d, 'ART-160-NATIVE.png')).convert('RGB')).astype(np.float64)
+    cells = list(csv.DictReader(open(os.path.join(d, 'tile-map.csv'), encoding='utf-8')))
+    for fam, nb, name in RIMS:
+        got = sorted((c for c in cells if c['family'] == fam and c['floor_neighbours'] == nb), key=lambda c: int(c['variant']))
+        assert got, 'ART-160: no cells for %s %s' % (fam, nb)
+        for c in got:
+            x, y, w, h = (int(c['native_' + k]) for k in ('x', 'y', 'width', 'height'))
+            assert (w, h) == (T, T), 'ART-160: a cell not %d px square' % T
+            out = np.zeros((T, T, 4), dtype=np.uint8); out[..., :3] = TT.snap(page[y:y + h, x:x + w]); out[..., 3] = 255
+            A.add(name, out, T // 2, T)
 
 
 if __name__ == '__main__':

@@ -34148,6 +34148,79 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preD);
     return;
   }
+  // THE CAVE ROCK'S RIM (mode=rims1124; 11-24, the cutter seat cutter-1124c, on the art desk's ART-160 -- art-wanted 96, Griz in the Crawler Warrens: "the tiles south of
+  // barley to have a top edge like the one north of barley to visually differentiate the paths more"; js/topview.js TV.rim, artRock): the atlases fetched for real, as
+  // hexart1028 fetches. The seven rims in minetiles_p1 at their counts; on the Warrens' stalls and the Galleries' working gallery a rock square's top names a north rim
+  // (or a corner) where a floor lies north, an east or west where one lies east or west, an inner corner only where the floor's corner alone cuts in, and nothing where no
+  // floor touches it -- and the squares read off the stalls in the pane; the rock south of Barley's square (19,15) drawn as a north rim a step of TV.ROCKDARK down as the
+  // plain top is; a rock a square wide between two floors drawn a half from each side's rim; the cliff face under a rock the same with the rims on or off; &rims=off the plain top
+  if (get('mode', '') === 'rims1124') {
+    var repR = { checks: [], errors: [] }, SR = D.spr, TVR = D.topview, RR = D.roam, memR = {}, stGR = D.store.get, stSR = D.store.set, muR = D.music;
+    var okR = function (c, s) { repR.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var endR = function () { D.store.get = stGR; D.store.set = stSR; D.music = muR; if (errs.length) repR.errors = repR.errors.concat(errs); var fR = repR.checks.filter(function (c) { return /^FAIL/.test(c); }).length; repR.ok = !fR && !repR.errors.length; repR.summary = (repR.checks.length - fR) + '/' + repR.checks.length + ' checks'; var pz = document.createElement('pre'); pz.id = 'out'; pz.textContent = 'BENCH16 ' + JSON.stringify(repR); document.body.appendChild(pz); };
+    var failR = function (e) { repR.errors.push(String(e && e.stack || e).slice(0, 900)); endR(); };
+    var floorR = function (q) { var B = RR.make(q + '&watch'); D.scenes.length = 0; D.push(B); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s.map; };
+    var KINDS = { rock_rim_n: 4, rock_rim_e: 4, rock_rim_w: 4, rock_rim_ne: 2, rock_rim_nw: 2, rock_rim_in_ne: 2, rock_rim_in_nw: 2 };
+    var topPx = function (m, x, y, row0, rows) { var pic = TVR.standAt(m, x, y); return { h: pic.canvas.height, d: pic.canvas.getContext('2d').getImageData(0, row0 || 0, TVR.TS, rows || TVR.TS).data }; };
+    var isPiece = function (d, name, x0, x1) { // (the drawn top's columns x0..x1 one of the piece's variants, each pixel a step of TV.ROCKDARK down its ramp)
+      var T = TVR.TS; return (TVR.piecePx(name, 'mine') || []).some(function (src) { for (var y = 0; y < T; y++) for (var x = x0; x < x1; x++) { var o = (y * T + x) * 4, c = TVR.palStep([src[o], src[o + 1], src[o + 2]], -TVR.ROCKDARK); if (d[o] !== c[0] || d[o + 1] !== c[1] || d[o + 2] !== c[2]) return false; } return true; });
+    };
+    var lawR = function (m) { // (each rock square's rim against its open sides, a half at a time; the tally of what was laid)
+      var bad = [], tally = {};
+      var half = function (r, N, side, corner, sideK, outK, inK) { return N ? r === (side ? outK : 'rock_rim_n') : side ? r === sideK : r === (corner ? inK : ''); }; // (floor north: the north rim, or the outer corner with its side's floor too; else its side's rim, or the inner corner where only the corner is floor, or plain)
+      m.sq.forEach(function (s) {
+        if (s.open || s.block || (m.def.roofs && m.def.roofs[s.ch])) return;
+        var fl = function (dx, dy) { var q = m.at(s.x + dx, s.y + dy); return !!(q && (q.open || q.block)); }, r = TVR.rim(m, s.x, s.y), N = fl(0, -1), k = r.join('|');
+        tally[k] = (tally[k] || 0) + 1;
+        if (!(half(r[0], N, fl(-1, 0), fl(-1, -1), 'rock_rim_w', 'rock_rim_nw', 'rock_rim_in_nw') && half(r[1], N, fl(1, 0), fl(1, -1), 'rock_rim_e', 'rock_rim_ne', 'rock_rim_in_ne'))) bad.push(s.x + ',' + s.y + ' ' + k);
+      });
+      return { bad: bad, tally: tally };
+    };
+    D.store.get = function (k) { return memR[k] ? JSON.parse(memR[k]) : null; }; D.store.set = function (k, v) { memR[k] = JSON.stringify(v); return true; }; D.music = function () { };
+    try {
+      SR.offline = false;
+      Object.keys(D.SHEETS).forEach(function (k) { D.SHEETS[k].image = '../deep16/' + D.SHEETS[k].image; });
+      SR.ensure(TVR.ART.sheets).then(function () {
+        try {
+          okR(TVR.artOn() && TVR.ART.rims === true, 'the atlases landed: the art on, the rims on');
+          var cnt = {}; Object.keys(KINDS).forEach(function (k) { var p = TVR.piece(k, 0, 'mine'); cnt[k] = p ? p.n : 0; });
+          okR(Object.keys(KINDS).every(function (k) { return cnt[k] === KINDS[k]; }), 'ART-160 in minetiles_p1, the seven rims: ' + JSON.stringify(cnt));
+          // 1. the Warrens' stalls: the law on every rock square, and the squares read off the floor in the pane
+          var mB = floorR('?roam=warrens_b&at=19,15'), lB = lawR(mB);
+          okR(!!mB.top && !lB.bad.length && Object.keys(KINDS).filter(function (k) { return k !== 'rock_rim_e' && k !== 'rock_rim_w'; }).every(function (k) { return Object.keys(lB.tally).some(function (t) { return t.indexOf(k) >= 0; }); }),
+            'the Warrens\' stalls: each rock\'s rim by its open sides, every kind laid somewhere (' + JSON.stringify(lB.tally) + ')' + (lB.bad.length ? ' -- wrong at ' + lB.bad.slice(0, 6).join('; ') : ''));
+          var SEEN = [[19, 16, 'rock_rim_nw|rock_rim_n', 'south of Barley\'s square, the cart track west of it'], [20, 16, 'rock_rim_n|rock_rim_n', 'south-east of him'], [12, 4, 'rock_rim_n|rock_rim_n', ''], [16, 4, 'rock_rim_n|rock_rim_ne', ''], [19, 6, 'rock_rim_nw|rock_rim_n', ''],
+            [11, 1, '|rock_rim_e', ''], [13, 1, 'rock_rim_w|', ''], [11, 4, '|rock_rim_in_ne', ''], [34, 6, 'rock_rim_in_nw|', ''], [0, 0, '|', 'the corner, no floor near']];
+          var seenBad = SEEN.filter(function (q) { return TVR.rim(mB, q[0], q[1]).join('|') !== q[2]; });
+          okR(!seenBad.length, 'the stalls\' squares as read in the pane: ' + SEEN.map(function (q) { return q[0] + ',' + q[1] + ' ' + q[2] + (q[3] ? ' (' + q[3] + ')' : ''); }).join('; ') + (seenBad.length ? ' -- got ' + seenBad.map(function (q) { return q[0] + ',' + q[1] + ' ' + TVR.rim(mB, q[0], q[1]).join('|'); }).join('; ') : ''));
+          // 2. drawn: south of Barley the north rim, a step down as the plain top; the face rock north of him a face of the same pixels with the rims off
+          var sb = topPx(mB, 20, 16), sc = topPx(mB, 19, 16), fOn = topPx(mB, 19, 14, TVR.TS, TVR.CLIFF);
+          okR(sb.h === TVR.TS && isPiece(sb.d, 'rock_rim_n', 0, TVR.TS) && isPiece(sc.d, 'rock_rim_nw', 0, TVR.TS), 'the rock south of Barley drawn with its rim, ' + TVR.ROCKDARK + ' steps down as the plain top: 20,16 the north rim (no face: ' + sb.h + ' px), 19,16 the outer north-west corner whole');
+          // 3. a rock a square wide between two floors (20,17 opened for the probe): the west rim's half and the east rim's
+          var at0 = mB.at; mB.at = function (x, y) { return x === 20 && y === 17 ? { x: 20, y: 17, ch: '.', open: true, gz: 0 } : at0.call(mB, x, y); }; mB.top.stand = {};
+          var r1 = TVR.rim(mB, 19, 17).join('|'), hv = topPx(mB, 19, 17);
+          mB.at = at0; mB.top.stand = {};
+          okR(r1 === 'rock_rim_w|rock_rim_e' && isPiece(hv.d, 'rock_rim_w', 0, TVR.TS / 2) && isPiece(hv.d, 'rock_rim_e', TVR.TS / 2, TVR.TS), 'a rock a square wide between two floors (19,17, its east opened for the probe): ' + r1 + ', the west rim\'s half and the east rim\'s');
+          // 4. &rims=off: the plain top again, the face unchanged
+          TVR.ART.rims = false; mB.top.stand = {};
+          var sbOff = topPx(mB, 20, 16), fOff = topPx(mB, 19, 14, TVR.TS, TVR.CLIFF);
+          TVR.ART.rims = true; mB.top.stand = {};
+          okR(isPiece(sbOff.d, 'rock_top', 0, TVR.TS) && !isPiece(sbOff.d, 'rock_rim_n', 0, TVR.TS), '&rims=off: south of Barley the plain rock top again');
+          okR(fOn.h === TVR.TS + TVR.CLIFF && fOn.d.length === fOff.d.length && Array.prototype.every.call(fOn.d, function (v, i) { return v === fOff.d[i]; }), 'the cliff face north of Barley (19,14) the same with the rims on and off (' + fOn.h + ' px tall)');
+          // 5. the Galleries' working gallery: the same law, the one sheet
+          var mG = floorR('?roam=galleries_g2'), lG = lawR(mG), nG = Object.keys(lG.tally).filter(function (t) { return t !== '|'; }).reduce(function (a, t) { return a + lG.tally[t]; }, 0);
+          okR(!!mG.top && TVR.place(mG) === 'mine' && !lG.bad.length && nG > 0, 'the Galleries\' working gallery: each rock\'s rim by its open sides, ' + nG + ' rock squares rimmed (' + JSON.stringify(lG.tally) + ')' + (lG.bad.length ? ' -- wrong at ' + lG.bad.slice(0, 6).join('; ') : ''));
+          var gEx = mG.sq.filter(function (s) { return !s.open && !s.block && TVR.rim(mG, s.x, s.y).join('|') === 'rock_rim_n|rock_rim_n'; })[0], gPx = gEx && topPx(mG, gEx.x, gEx.y);
+          okR(!!gPx && isPiece(gPx.d, 'rock_rim_n', 0, TVR.TS), 'the working gallery\'s first north rim (' + (gEx ? gEx.x + ',' + gEx.y : 'none') + ') drawn from the art');
+          // 6. the Glowseep is not a mine floor: no rims there
+          var mS = floorR('?roam=glowseep');
+          okR(TVR.place(mS) === 'seep', 'the Glowseep draws from its own sheet (' + TVR.place(mS) + '): artRock lays the rims on the mines\' floors only');
+        } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+        endR();
+      }, failR);
+    } catch (e0R) { failR(e0R); }
+    return;
+  }
   // THE HEX ON THE ART DESK'S TILES (mode=hexart1028; 10-28, the second cutter seat, on the lanes desk's order from Griz's "spin up a second cutter, more landing in
   // fresh"; the art desk's ART-115, tools/hextiles-sheet.py -> hextiles_p1, js/hex.js THE ART): the four atlases fetched for real, as lazy1003 fetches, from deep16/art/.
   // Before they land every piece is the code's; once they have, each floor's things that stand are the art's where it drew them -- by name and count, each standing on its
