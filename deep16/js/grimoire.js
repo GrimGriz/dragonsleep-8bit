@@ -1042,7 +1042,7 @@
   };
   E.blur = {
     summary: function () { return 'yourself · attacks at you at disadvantage (not by blindsight or truesight) (concentration)'; },
-    cast: function* (B, u, t, slot, head) { u.conds.blur = { by: u.id }; M.concentrate(B, u, 'blur', 'Blur', function () { delete u.conds.blur; }); FX.sparkle(u, 'silver', 16); B.card([head + ': his outline shivers and smears (attacks at him at disadvantage; concentration).']); yield 20; },
+    cast: function* (B, u, t, slot, head) { u.conds.blur = { by: u.id }; M.concentrate(B, u, 'blur', 'Blur', function () { delete u.conds.blur; }); FX.sparkle(u, 'silver', 16); B.card([head + ': ' + B.theOf(u) + '\'s outline shivers and smears (attacks at ' + B.theOf(u) + ' at disadvantage; concentration).' /* (by name, never "his": the mender casts it too -- 11-25, module-1125) */]); yield 20; },
     ai: function (B, u, e, slot, fs) { if (u.conc || u.conds.blur) return null; var th = fs.filter(function (w) { return G.dist(u, w) <= 60; }).reduce(function (s, w) { return s + TX().dpr(w); }, 0); return { score: th * 0.2 * 2 + (u.hp < u.maxhp / 2 ? 3 : 0), t: u, keep: th * 0.2 }; }
   };
   E.brandingsmite = {
