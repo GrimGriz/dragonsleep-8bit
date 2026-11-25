@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-25
 
+- 2026-11-25 · shipped · the house · `main:live` at `b0d8b1a4` by exact hash (`7939917f..b0d8b1a4`, a fast-forward, 117 commits; GitHub's full gate GREEN on `da19c3c5`, two .md files after it): the days 8 to 18 batches and the primer desk's batch -- the scene simulator, the Fae King's pact, the sphere's ring, Wagon Drill, the Dominion's sergeant and mender · *"ship to live and close"*
 - 2026-11-25 · ruled · the Snoot mode · Tronu's wagon aims to build its toll garrison one hex up the Coldridge Route from the Galleries junction (the near map's (63,23), foothills, 681 ft), and diverts toward the barbarians in the Snoot (laned) · *"that hex one-step up with 600 ft elevation is more defensible - lets have them aim to build the garrison there (but they divert toward the barbarians in the snoot)"*
 - 2026-11-25 · ruled · the wiki update · The Galleries and the Glowseep take the map's distances (laned for the next wiki pass); the first game's north gate noted as the first game's only · *"1 - yes, but lane"*, *"2 - yes, first game only"*
 - 2026-11-25 · `aa182df7`, `ed6d023a`, `aa4de159`, `33b5f646` · eyes on the screen · THE SCENE SIMULATOR, `deep16/scenes.html`: the dialog scenes played by the game's own code with no game loaded, each line marked with what chose it; a REVIEW shelf, a NOTES save (scenes-1125) · *"start scene simulator - working through the dialog without loading the game is going to be useful"*
