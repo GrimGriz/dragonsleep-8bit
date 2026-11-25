@@ -4648,7 +4648,7 @@
 },
 "dmwagon_p1": {
 "_note": "the Dominion's prison wagon over dominionroad's 2x2 covered wagon (tools/dmwagon-sheet.py, art-wanted 107, ART-169, 2026-11-25): a row a piece, as goblincamp_p1 (js/circles.js sheetAt draws a row with the sheet's ax,ay -- the 2x2 footprint's CENTRE -- at iso.center(x0 + 0.5, y0 + 0.5)); `tiles` the same pieces as boxes x,y,w,h with js/innprops.js's anchor, the footprint's back corner; named by the way its front faces; the scene starts shut, the recruits' encounter swaps to _open at the same anchor, a turn on the road swaps the heading",
-"image": "art/dmwagon_p1.png?v=ad5cc1a00a",
+"image": "art/dmwagon_p1.png?v=ec3312c636",
 "fw": 160,
 "fh": 110,
 "ax": 78,

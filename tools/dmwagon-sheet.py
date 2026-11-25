@@ -17,9 +17,9 @@ the sheet's (ax, ay) = the art desk's (78, 90), the footprint's centre, at iso.c
 `tiles` keeps each piece as a box for js/topview.js TV.piece with js/innprops.js's anchor, the BACK corner of its footprint (the top of the 2x2 diamond,
 2 x 16 px above its centre on the 64 x 32 grid: js/iso.js TW, TH) -- (78, 58).
 
-NOT TAKEN: the art desk's ART-169-REAR-BENCH-REV-REVIEW (its front bench raised to HEADs 3 and 4's height, on HEADs 1 and 2), sorted beside as
-deep16/_src/dmwagon/2026-11-25-ART-169-REAR-BENCH-REV/: its own REVIEW.md calls it "for review before promotion to the cutter handoff". Swap its four cells
-into CELLS when he approves it.
+HEADs 1 AND 2 ARE THE REAR BENCH REVISION: the art desk's ART-169-REAR-BENCH-REV-REVIEW (the front bench a visible edge above the tongue, at HEADs 3 and
+4's height, on the same registered wagon and anchor), taken on Griz's "there's a second wagon zip with revised rear views" (its own REVIEW.md called it
+"for review before promotion to the cutter handoff"): its four cells moved into the batch's cells/, the handoff's first four to its superseded/cells/.
 """
 import json, os, sys
 import numpy as np
