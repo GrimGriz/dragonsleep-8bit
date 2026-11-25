@@ -191,8 +191,10 @@
     wagonS: 'The wagon stands in the road, the traces cut, the team gone. In the back, chained, eight children. Real, and very quiet.',
     wagonN: 'The wagon stands in the road, the traces cut, the team gone. In the back, chained, seven children. Real, and very quiet.',
     bring: 'There is no roof nearer than the Halfway Inn. You turn the wagon for it, the children in the back.',
-    brought: ['The wagon in the yard, eight children in the back of it, and the Waterbys in the door.', '{y}Doran Waterby{/} climbs up on the bench that same night and drives them back down the road to Newland.'],
-    broughtN: ['The wagon in the yard, seven children in the back of it, and the Waterbys in the door.', '{y}Doran Waterby{/} climbs up on the bench that same night and drives them back down the road to Newland.'],
+    // (THE TEAM GONE, 11-24 -- the inn seat's region here: the wagon stopped on the road comes in with its traces cut and its team gone (wagonS, wagonN above), so Doran puts the
+    // inn's own bay in them; his NOTES of 11-23, "probably need a horse in the barn to cover the continuity if amara and willem make away with the horses" -- js/inn.js In.BAY)
+    brought: ['The wagon in the yard, eight children in the back of it, and the Waterbys in the door.', '{y}Doran Waterby{/} puts the inn\'s bay in the cut traces that same night, climbs up on the bench, and drives them back down the road to Newland.'],
+    broughtN: ['The wagon in the yard, seven children in the back of it, and the Waterbys in the door.', '{y}Doran Waterby{/} puts the inn\'s bay in the cut traces that same night, climbs up on the bench, and drives them back down the road to Newland.'],
     paidNight: 'The wagon turns in after dark, as you knew it would. You keep to your room, as paid.'
   };
   Wg.OPTS = { ask: 'ASK WHERE THEY ARE BOUND', look: 'LOOK IN THE BED', detect: 'DETECT MAGIC', stand: 'STAND IN THE ROAD', let: 'LET THEM BY' };

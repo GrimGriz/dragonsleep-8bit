@@ -218,6 +218,10 @@
     // at the NE end, U the cover behind it; the loaded floor's rows read U as the grid's own W) -- the drawing over them, the code's wagon under it given way; Willem stands on
     // the box (In.BOXZ), the one in the back inside the arch (IP.archDraw)
     var wr = !up && m.def && m.def.rows, wa = In.WAGONAT, wc = wr && wr[wa[1] + 1] ? wr[wa[1] + 1].charAt(wa[0]) : '';
+    // THE BOAT ONLY WHERE THE FLOOR HAS IT (11-24, his NOTES of 11-23: the boat drawn every day -- IP.find reads In.ROWS, where 'p' is always the boat; the loaded floor's rows
+    // have the shallows there till the first feeding is missed, js/inn.js In.boatOn, RULED 11-19 "Miss is 'not present for'")
+    var s8 = !up && m.def && m.def.src8; // (the floor's own source as js/inn.js In.map wrote it: its rowboat trigger only where the boat is -- the laid rows read the boat as the grid's 'k')
+    if (s8 && s8.triggers && !s8.triggers.some(function (t) { return t.id === 'rowboat'; })) got.pieces = got.pieces.filter(function (pc) { return pc[0] !== 'shore_boat'; });
     if ((wc === 'U' || wc === 'W') && wr[wa[1]].charAt(wa[0]) === 'V' && D.SHEETS.innprops_p2 && D.SHEETS.innprops_p2.tiles.yard_wagon) {
       got.pieces.push(['yard_wagon', wa[0], wa[1], 2, 4]);
     }

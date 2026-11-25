@@ -1190,7 +1190,7 @@
     if (u.traces) {
       u.traces = false;
       this.riders.forEach(function (r) { if (r.team) { r.anim = 'hurt'; r.animT = this.t; } }, this); // (the team flinches in its harness; it stays hitched)
-      this.card(['{r}' + shortName(u) + ' lets go of the traces.{/}  "Leave them!"  He breaks for the road, on foot.'], 400);
+      this.card(['{r}' + shortName(u) + ' lets go of the traces{/} and breaks for the road, on foot.  "Leave them!"'], 400); // (whoever had them: the buckle's coin, 11-24 -- not "He")
     } else this.card(['{r}' + shortName(u) + ' breaks for the road, on foot.{/}'], 400);
   };
 

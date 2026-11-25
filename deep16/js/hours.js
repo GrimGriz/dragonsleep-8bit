@@ -1226,7 +1226,7 @@
   H16.restOffers = function (o) { // (o: { hours, price, shortPrice, night: the inns', leave (false: none), short: false for none, extra: after the hours })
     var Hs = D.house, open = !Hs || !Hs.longOpen || Hs.longOpen(o.hours), R5 = H16.REST, sp = function (p) { return p ? ', ' + p + ' SP' : ''; }, rows = [];
     rows.push(open ? { id: 'long', label: R5.long.replace('{n}', o.hours) + (o.extra || '') + sp(o.price) } : { id: 'long', label: R5.off, off: true });
-    if (!open) { var n = Math.max(1, Math.round(Hs.longWait(o.hours))); rows.push({ id: 'wait', label: R5.wait.replace('{at}', Hs.clockAt(Hs.longFrom(o.hours)).split(',')[0]).replace('{n}', n).replace('{s}', n === 1 ? '' : 'S') }); if (o.night) rows.push({ id: 'night', label: R5.night + sp(o.price) }); }
+    if (!open) { var wm = Math.max(1, Math.round(Hs.longWait(o.hours) * 60)), wh = Math.floor(wm / 60), n = (wh ? wh + ' HOUR' + (wh === 1 ? '' : 'S') : '') + (wh && wm % 60 ? ' ' : '') + (wm % 60 ? (wm % 60) + ' MIN' : ''); rows.push({ id: 'wait', label: R5.wait.replace('{at}', Hs.clockAt(Hs.longFrom(o.hours)).split(',')[0]).replace('{n} HOUR{s}', n) }); if (o.night) rows.push({ id: 'night', label: R5.night + sp(o.price) }); } // (the wait's true minutes, not "1 HOUR" for ten: 11-24, the inn seat -- his "dinner still an hour from long rest")
     if (o.short !== false) rows.push({ id: 'short', label: R5.short + sp(o.shortPrice) });
     if (o.leave !== false) rows.push({ id: 'leave', label: o.leave || R5.leave });
     return { open: open, why: open ? '' : Hs.longWhy(o.hours, false), rows: rows, opts: rows.map(function (r) { return r.off ? { label: r.label, off: true } : r.label; }), idOf: function (a) { var r = rows[a]; return r && !r.off ? r.id : null; } };

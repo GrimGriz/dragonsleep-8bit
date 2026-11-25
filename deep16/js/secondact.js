@@ -800,8 +800,24 @@
   };
   // the chuul met (the rise at the shore, the ring warm after the due, the rowboat): the fight, and what it leaves -- won, the deep is only water and the corpse's gift; 'lost' the
   // party down (the floor's own end); 'escaped' clear of the water
+  // THE CHILDREN RUN IN (11-24, his NOTES of 11-23 at the rowboat's fight: "kids should flee on boat-trigger vs chuul"; the lanes desk's lean RULED 11-24): at a rise by light
+  // the shore's children -- Orrin, Pell, the girl kept out back -- drop their stones and run for the lake door, and Elsbeth calls them in; the fight opens after (they stood
+  // through every round as folk). By dark they are indoors already. The words the seat's drafts (invented.json halfway-kids-run-1124)
+  A.KIDS = { orrin: 1, pell: 1, adoptedKid: 1 };
+  A.kidsRun = function* (B) {
+    var kids = B.units.filter(function (u) { return A.KIDS[u.npc] && !u.dead && u.hp > 0; }); if (!kids.length) return [];
+    var boys = kids.filter(function (u) { return u.npc !== 'adoptedKid'; }).length, girl = kids.some(function (u) { return u.npc === 'adoptedKid'; }), door = In.DOORS.lake, p0 = In.PACE;
+    var line = boys > 1 ? 'The boys drop their stones and run for the house' + (girl ? ', the girl between them.' : '.') : boys === 1 ? 'The boy drops his stones and runs for the house' + (girl ? ', the girl with him.' : '.') : 'The girl drops her stones and runs for the house.';
+    A.trail('the lake rose by light: ' + kids.map(function (u) { return u.npc; }).join(', ') + ' run for the lake door');
+    B.card(D.roam.wrap([line]), 300); In.PACE = 4;
+    try { yield* In.walkAll(B, kids.map(function (u, k) { return [u, [door[0] + 1 + (k % 2), door[1] + (k > 1 ? 1 : 0)], [-1, 0]]; })); } finally { In.PACE = p0; }
+    yield* In.card(B, ['From the lake door, Elsbeth: "In. All of you, in -- now."'], 260);
+    kids.forEach(function (u) { In.gone(B, u); }); A.kidsIn = kids.map(function (u) { return u.npc; });
+    return A.kidsIn;
+  };
   A.meet = function* (B, Y, ring) {
     var f = B.roam.flags, st = D.counter.state(B);
+    A.kidsIn = null; yield* A.kidsRun(B); // (the shore's children in at the door before it comes on: 11-24)
     var o = yield* A.lakeFight(B, Y, ring);
     if (o === 'lost') return o;
     if (f.gennetTaken && Y.chuul && Y.chuul.fled) { A.trail('the inn lady taken: it went down with her'); return 'taken'; }

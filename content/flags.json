@@ -416,6 +416,11 @@
     "wwHidden": "set: js/deep.js; read: content/npcs.json",
     "wwLedger": "set: js/deep.js; read: js/deep.js",
     "wwLift": "set: js/deep.js; read: js/deep.js, maps/solskaft.json",
-    "xornDone": "set: js/deep.js, js/situations.js; read: maps/highway_3.json"
+    "xornDone": "set: js/deep.js, js/situations.js; read: maps/highway_3.json",
+    "innWake": "set: deep16/js/inn.js In.room, In.afterSupper (the clock the night in the room was to end, 11-24); read: In.room (no second night sold at the dawn bell to a party that woke in its room)",
+    "buckleBy": "set: deep16/js/inn.js In.buckleBy (the wagon night's coin, 11-24: 'willem' or 'amara' works the buckles at the greys' heads); read: In.toTraces, In.yardFight",
+    "dueAway": "set: deep16/js/inn.js In.dueAway (a due's night the party was away for, played offstage by its offering: its cycle, 11-24); read: In.dueAway, M.SCENES.elsbeth",
+    "dueAwayCard": "set: deep16/js/inn.js In.dueAway (the offering taken: 'kept' or 'goblin'); read: the inn floor's arrive, In.dueAwayCard (said once as the party comes in)",
+    "dueAwaySaid": "set: deep16/js/inn.js M.SCENES.elsbeth (her line on the missed due said, its cycle, 11-24); read: the same"
   }
 }

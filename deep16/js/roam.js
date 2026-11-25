@@ -1388,6 +1388,17 @@
   };
   // the floor's own tune (R.def.music: the first game's for the floor), again after a fight pulled in (R.pullIn0)
   R.tune = function () { if (R.def && R.def.music) D.music(R.def.music); };
+  // THE FIGHT'S MUSIC ON THE FLOOR (11-24): a fight on the floor's own squares (R.engage) starts a fight tune -- the group's own `music` if it has one, else `battle` --
+  // unless its caller has already set a fight tune (the yard's, the barn's, the path's and the lake's `boss`); R.after puts the floor's tune back for every end but a loss.
+  // (The gulch lane's 11-22 find: "no fight in the gulch starts a tune. Fights in place never call one" -- his "with music on i note fight music didn't start when this was
+  // triggered"; and the inn's 11-24, his "the music should change after willem and amara escape": the boss tune ran on past every floor fight, R.after had no R.tune)
+  R.FIGHT_TUNES = { battle: 1, boss: 1, hex: 1 };
+  R.fightTune = function (grp) {
+    var A = window.DS && window.DS.audio, cur = A && A.songId;
+    if (grp && grp.music) { D.music(grp.music); return grp.music; }
+    if (cur && R.FIGHT_TUNES[cur]) return cur;
+    D.music('battle'); return 'battle';
+  };
   // a won fight's spoils, into the pack and the purse; the lines to say
   R.spoils = function (B, fell) {
     var R0 = B.roam; if (!fell.length) return [];
@@ -1643,7 +1654,11 @@
       var nmR = {}; foes.forEach(function (u) { var k = u.name || u.id; nmR[k] = (nmR[k] || 0) + 1; });
       D.rec.start(B, { fight: 'roam', name: R.def.name + ': ' + Object.keys(nmR).map(function (k) { return k + (nmR[k] > 1 ? ' x' + nmR[k] : ''); }).join(', '), level: ((R0.members[0] || {}).src || {}).lvl, simple: false });
     }
-    var o = yield* R.fight(B, foes, lurk);
+    R.fightTune(grp); // (the fight's music: R.fightTune, 11-24)
+    // (ONE OUT TAKES THE PARTY, SAID SO, 11-24 -- the lanes desk's A14, RULED: a floor's fight ends 'escaped' for all of them when one gets out (R.fight), but on a story's fight the
+    // LEAVE THE FIGHT card said only the one went -- js/battle.js takesParty is false for a story unless the fight says oneLeavesAll; so it says it for the floor's fight)
+    var F1 = B.fight, ol0 = F1 ? F1.oneLeavesAll : undefined, o; if (F1) F1.oneLeavesAll = true;
+    try { o = yield* R.fight(B, foes, lurk); } finally { if (F1) { if (ol0 === undefined) delete F1.oneLeavesAll; else F1.oneLeavesAll = ol0; } }
     // THE RECORD AFTER THE PAY (11-24, the 11-22 desk's item 3, his "good" to "roam fights across the board (wet/gulch)?": all 42 roam wins since 11-08 kept no Victory or XP
     // line -- the record closed here, before R.after paid): open through the gather's pay and closed as its VICTORY panel goes up (the pay's lines then in its log), or, with
     // nothing paid, when the gather is done; the walk after it still not kept. R.after is stepped here, its yields and answers passed through as yield* would
@@ -1906,47 +1921,62 @@
       }
       if (!byStair) B.card(['{y}Away{/}: ' + outBy.name + ' gets clear, and the party with them -- into ' + lead.name + '.' + (took.length ? ' The light on the floor is taken up (' + took.join(', ') + ').' : ''), still.length ? (grp && grp.motivated ? '{o}They come after you at once.{/}' : '{g}They hold a moment (6 steps) -- then follow your trail.{/}') : ''], 340);
     } else {
-      var meet2 = [lead.x, lead.y];
-      B.card(['{y}The way is clear.{/}', '{g}The party gathers into ' + lead.name + '.' + (took.length ? ' The light on the floor is taken up (' + took.join(', ') + ').' : '') + '{/}'], 300);
-      // all of them at once, the whole way by the path (RULED 10-14, Griz: "1 yes" -- the gather walked each 12 steps and folded the rest in from wherever it stopped, a jump across
-      // the floor when the lead had walked off from the fight); the fallen carried in
-      var walkers = R0.members.filter(function (u) { return u !== lead && u.hp > 0; }).map(function (w) { return { w: w, path: D.Battle.route(w, meet2, false) || [] }; });
-      R0.members.forEach(function (u) { if (u !== lead && u.hp <= 0) FX.sparkle(u, 'glow', 12); });
-      // (one of ours in the way is walked through -- allies may; in a corridor the first to reach the lead stood on the only square beside it and the rest waited out the cap,
-      // a long stall in his pane, 10-14 -- a foe in the way is walked round once; a step in which nobody moves ends the walk)
-      for (var gs = 0; gs < 90 && walkers.some(function (k) { return k.path.length; }); gs++) {
-        var moved = 0;
-        walkers.forEach(function (k) {
-          var nx = k.path[0]; if (!nx) return;
-          if ((nx[0] === meet2[0] && nx[1] === meet2[1]) || Math.max(Math.abs(k.w.x - meet2[0]), Math.abs(k.w.y - meet2[1])) <= 1) { k.path = []; return; } // (beside the lead: in)
-          var oc = G.occupant(nx[0], nx[1], k.w);
-          if (oc && oc !== k.w && oc.side !== 'party') { if (k.rerouted) { k.path = []; return; } k.rerouted = true; k.path = D.Battle.route(k.w, meet2, true) || []; return; }
-          k.path.shift(); moved++;
-          k.w.tween = { fx: k.w.x, fy: k.w.y, fz: G.gzAt(k.w, k.w.x, k.w.y), t: 0, dur: STEP, mode: null }; k.w.facing = D.spr.facingFor(nx[0] - k.w.x, nx[1] - k.w.y);
-          if (k.w.anim !== 'walk') { k.w.anim = 'walk'; k.w.animT = B.t; }
-          k.w.x = nx[0]; k.w.y = nx[1];
-        });
-        G.setup(G.map, B.units);
-        if (!moved && !walkers.some(function (k) { return k.rerouted && k.path.length; })) break;
-        yield STEP;
+      // (a set fight's own after, 11-24 -- grp.noGather: the four stay where the fight left them, for the floor's own script to walk -- the inn's yard, his "everything scripted
+      // should happen on screen (instead of party gathering to token, goes to places on the wagon (as if searching)": js/inn.js In.yardAfter; it gathers them, R.gatherIn)
+      if (!(grp && grp.noGather)) {
+        B.card(['{y}The way is clear.{/}', '{g}The party gathers into ' + lead.name + '.' + (took.length ? ' The light on the floor is taken up (' + took.join(', ') + ').' : '') + '{/}'], 300);
+        yield* R.gatherWalk(B, lead);
       }
-      walkers.forEach(function (k) { k.w.anim = 'idle'; k.w.animT = B.t; });
       if (grp && grp.flag) R0.flags[grp.flag] = 1; // (what is dead stays dead: an ooze's flag, as the 8-bit's)
       if (grp && grp.trig) [].concat(grp.trig).forEach(function (id) { R0.spent[id] = 1; });
     }
     var others = R0.members.filter(function (u) { return u !== lead; });
     R0.token = lead; R0.rest = others; R0.mode = 'walk';
-    R.into(B, others);
+    if (grp && grp.noGather && o !== 'escaped') R0.onField = true; else R.into(B, others); // (R0.onField: the rest still stood on the floor till R.gatherIn)
     FX.ring(lead, 'glow', 22); D.sfx('popup');
     lead.anim = 'idle'; lead.animT = B.t;
     B.focus(lead);
     // the gather pays: the XP of everything that fell since the last one; on a win the coin, the drops and the parts off this fight's fallen (a getaway forfeits them)
     var paid = o === 'won' ? R.spoils(B, fell) : [], xpL = R.pay(B);
     if (paid.length || xpL.length) { var payL = [o === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, paid); B.logOnly(payL); yield { victory: D.Battle.victoryOf(payL) }; } // (the VICTORY panel in the middle, E closes it: 11-05, his "popup in the middle", js/ui.js)
+    R.tune(); // (the floor's own tune back after every floor fight but a loss -- the yard's and the lake's boss tune ran on through the cards after: 11-24, his "the music should change after willem and amara escape"; R.fightTune)
     yield* R.picks(B);
     yield 20;
     if (g2) g2.t = B.t; // (their hold starts when the party can move again, not during the gather's beat)
-    if (o === 'won') yield* R.landed(B); // (the square a won fight's gather ends on, once; a getaway sets the party down off any trigger and fires none -- his play, 10-14)
+    if (o === 'won' && !R0.onField) yield* R.landed(B); // (the square a won fight's gather ends on, once; a getaway sets the party down off any trigger and fires none -- his play, 10-14)
+  };
+  // THE GATHER WALKED (R.after's, lifted out 11-24 so a set fight's own script can walk it after its scene -- R.gatherIn): all of them at once, the whole way by the path
+  // (RULED 10-14, Griz: "1 yes" -- the gather walked each 12 steps and folded the rest in from wherever it stopped, a jump across the floor when the lead had walked off from
+  // the fight); the fallen carried in
+  R.gatherWalk = function* (B, lead) {
+    var R0 = B.roam, meet2 = [lead.x, lead.y];
+    var walkers = R0.members.filter(function (u) { return u !== lead && u.hp > 0 && B.units.indexOf(u) >= 0; }).map(function (w) { return { w: w, path: D.Battle.route(w, meet2, false) || [] }; });
+    R0.members.forEach(function (u) { if (u !== lead && u.hp <= 0) FX.sparkle(u, 'glow', 12); });
+    // (one of ours in the way is walked through -- allies may; in a corridor the first to reach the lead stood on the only square beside it and the rest waited out the cap,
+    // a long stall in his pane, 10-14 -- a foe in the way is walked round once; a step in which nobody moves ends the walk)
+    for (var gs = 0; gs < 90 && walkers.some(function (k) { return k.path.length; }); gs++) {
+      var moved = 0;
+      walkers.forEach(function (k) {
+        var nx = k.path[0]; if (!nx) return;
+        if ((nx[0] === meet2[0] && nx[1] === meet2[1]) || Math.max(Math.abs(k.w.x - meet2[0]), Math.abs(k.w.y - meet2[1])) <= 1) { k.path = []; return; } // (beside the lead: in)
+        var oc = G.occupant(nx[0], nx[1], k.w);
+        if (oc && oc !== k.w && oc.side !== 'party') { if (k.rerouted) { k.path = []; return; } k.rerouted = true; k.path = D.Battle.route(k.w, meet2, true) || []; return; }
+        k.path.shift(); moved++;
+        k.w.tween = { fx: k.w.x, fy: k.w.y, fz: G.gzAt(k.w, k.w.x, k.w.y), t: 0, dur: STEP, mode: null }; k.w.facing = D.spr.facingFor(nx[0] - k.w.x, nx[1] - k.w.y);
+        if (k.w.anim !== 'walk') { k.w.anim = 'walk'; k.w.animT = B.t; }
+        k.w.x = nx[0]; k.w.y = nx[1];
+      });
+      G.setup(G.map, B.units);
+      if (!moved && !walkers.some(function (k) { return k.rerouted && k.path.length; })) break;
+      yield STEP;
+    }
+    walkers.forEach(function (k) { k.w.anim = 'idle'; k.w.animT = B.t; });
+  };
+  // the rest, left stood on the floor by a set fight's own after (R0.onField, grp.noGather), walked into the token -- or at once (`now`: the floor about to change under them)
+  R.gatherIn = function* (B, now) {
+    var R0 = B.roam; if (!R0 || !R0.onField) return; R0.onField = false;
+    var lead = R0.token; if (!now && lead) yield* R.gatherWalk(B, lead);
+    R.into(B, R0.rest || []); if (lead) { FX.ring(lead, 'glow', 22); lead.anim = 'idle'; lead.animT = B.t; B.focus(lead); }
   };
 
   // what the fight left burning on the floor -- a torch dropped for a two-handed swing or thrown, a lantern set down -- is taken up as they gather: back

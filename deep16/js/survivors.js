@@ -325,6 +325,7 @@
     var site = SV.siteOf(R.def); if (!site) return false;
     if (!S.svAt || S.svAt.site !== site) { S.svAt = { site: site, since: S.t }; return false; } // (just come: the hour kept)
     if (R0.mode !== 'walk' || R0.path) return false;
+    if (site === 'inn' && D.inn && R.def.key === D.inn.UP) return false; // (INTO THE YARD, NOT THE ROOM, 11-24 -- his NOTES of 11-23 at dawn upstairs: "all that 'into the yard' (escaped Ox (art request?)) stuff playing in the room isn't right": a band's coming waits for the party downstairs or out in the yard; the hour kept)
     var r = SV.arrivals(site, S.svAt.since, S.t)[0]; if (!r) return false;
     SV.next = r; return true;
   };
@@ -342,6 +343,7 @@
       script: function (s) { return (function* () { SV.lastArrive = { id: r.id, site: site, res: yield* SV.talk(s, live) }; })(); } });
     D.push(sc); SV.last = sc;
     while (!sc.done && D.scenes.indexOf(sc) >= 0) yield 1;
+    var IN = D.inn; if (site === 'inn' && IN && IN.lay && D.roam.def && D.roam.def.key === IN.KEY) IN.lay(B, D.roam.def.inside || null, true); // (the band stood where it stays on, in the yard or at the table's far end: js/inn.js In.bandFolk, 11-24)
     B.focus(B.roam.token); yield 1;
   };
   SV.findArrive = function (site, S) { // (a save's seed with a band bound for the site whose hour falls by day 30, not in the first morning: the first of 400)

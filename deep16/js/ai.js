@@ -251,6 +251,13 @@
     if (onMe && u.turn.action && !u.conds.restrained && u.conds.blinded && u.conds.blinded.by === onMe.id) yield* B.exec(u, { do: 'detach', target: onMe });
     // the wagon yard: once Willem has been hit at the traces, in the 8-bit game's yard (runWhenHurt) each of the pair runs from its
     // own next move (battle.js startRun); on the ladder, where nobody runs, he lets the traces go and turns to fight
+    // THE ONE AT THE BUCKLES RUNS WHEN THE OTHER FALLS (RULED 11-24, his "willem should probably start running if amara falls while he's playing with the buckle, discuss 50/50
+    // roll of which villain fiddles with the buckle", then "go ahead with the 50/50" -- js/inn.js In.buckleBy): still at the traces with the other of the pair down (not away),
+    // it breaks for the road from this turn, on foot (battle.js startRun)
+    var mateT = u.traces && u.side === 'foe' && B.fight && B.fight.runWhenHurt && !u.flees && u.mate;
+    if (mateT && (mateT.hp <= 0 || mateT.dead) && !mateT.fled && D.FOES[u.kind] && D.FOES[u.kind].flees) {
+      B.card(['{r}' + B.shortName(u) + ' sees ' + B.shortName(mateT) + ' go down.{/}'], 300); yield 30; B.startRun(u); yield 30;
+    }
     if (B.hitAtTraces && u.side === 'foe') {
       if (B.fight.runWhenHurt && !u.flees && D.FOES[u.kind] && D.FOES[u.kind].flees) { B.startRun(u); yield 30; }
       else if (u.traces) { u.traces = false; B.card(['{r}' + u.name + ' lets go of the traces{/} and turns on you.'], 360); yield 30; }
