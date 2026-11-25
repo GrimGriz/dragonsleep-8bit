@@ -627,6 +627,13 @@
   // out and a pause), its `blush` a blush on the lead's face, its `noHero` the hero gone)
   C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, hero: { left: 2, drop: 40 }, narr: { w: 300, h: 66, pad: 34, rows: 16 }, pause: 30, blush: 20, faceZoom: 3 };
   C.OPEN.heroS = function () { var R = Math.max(1, Math.round(D.R || 1)); return Math.max(1, (2 * R - 1) / R); };
+  // THE HERO BOX ON AN OPEN SCREEN (11-25, odds-1125 -- his NOTES of 11-22, Silverton: "horrible portrait of barley on Vivian recruiting dialog that blocks the conversation
+  // interface..."; then 11-25, "it was the lack of chain portrait (i think) that made him look horrible, but the element placing on screen that blocks the talk isn't an art
+  // issue"): a hero answering with no talking portrait for the look worn (Barley in mail before ART-161; a guest) stands in the counter's hero box, his figure's face -- and the
+  // box sat on the answers' bubble, laid out for a portrait standing under it, hiding the first answer's start and the rest whole. Now the bubble stands beside the box, its
+  // tail at his face, as the flip's already did (openOn)
+  C.OPEN.boxGap = 12;
+  C.openBoxed = function (sc) { var w = sc.wait || {}; return !!sc.hero && !w.noHero && !C.heroPortrait(sc.hero); };
   // THE SIDES (11-04, the lanes desk; Griz at the inn's supper on the pane: "we want to show the main room with people seated for dinner, and maybe decide what side the
   // portrait shows while they're talking based on what side they're on in the background", after "It's returned to the default solid blue background and boxes. The council
   // scene and lymen/papa conversations look better"): a say or an ask may name who speaks (sc.by, sc.askBy: { name, sheet | unit, side }) -- the one speaking stands top
@@ -695,10 +702,10 @@
     else {
       var g = C.openGeo(sc), hr = sc.hSide() === 'right';
       if (g.side === 'left') { RX = g.right + 6; WY = O.words.y; WH = O.words.h; RW = D.W - 8 - RX; } else { RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; }
-      var hw = C.heroW(sc), fu = C.heroFull(sc.hero && C.heroPortrait(sc.hero)), bx = fu && !hr ? O.hero.left + hw + 4 : 0, bw = Math.min(RW, hr ? D.W - 16 - hw : bx ? D.W - 8 - bx : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side -- at the keepers' bust: clear of him)
+      var hw = C.heroW(sc), pt0 = sc.hero && C.heroPortrait(sc.hero), fu = C.heroFull(pt0), boxed = C.openBoxed(sc), bx = fu && !hr ? O.hero.left + hw + 4 : boxed && !hr ? HB.x + HB.w + C.OPEN.boxGap : 0, bw = Math.min(RW, hr ? D.W - 16 - hw - (boxed ? C.OPEN.boxGap : 0) : bx ? D.W - 8 - bx : D.W - 40); // (the bubble as long as the words' box, beside the hero on his side -- at the keepers' bust: clear of him; in the hero box, clear of the box: C.openBoxed)
       var lw = !hr && C.leadW(w); if (lw && bx) bw = Math.min(bw, D.W - 2 - lw - 6 - bx); // (and short of the lead brought in bottom right at the bust, when this wait has one -- the papa beat's "standing about", 11-06)
-      BB = { x: hr ? D.W - 2 - hw - 6 - bw : bx || O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
-      if (w.flip && !hr && !fu) { var fx = O.hero.left + hw + 4; BB = { x: fx, y: BB.y, w: D.W - 8 - fx, h: BB.h }; } // (THE FLIP, 11-05: its bubble runs taller than an answer's, so it stands beside the hero, clear of them)
+      BB = { x: hr ? D.W - 2 - hw - 6 - (boxed ? C.OPEN.boxGap : 0) - bw : bx || O.hero.left + 6 + O.under, y: g.foot + 17, w: bw, h: SAVED.BB.h }; // (the bubble's top just under the keeper's name)
+      if (w.flip && !hr && !fu) { var fx = boxed ? HB.x + HB.w + C.OPEN.boxGap : O.hero.left + hw + 4; BB ={ x: fx, y: BB.y, w: D.W - 8 - fx, h: BB.h }; } // (THE FLIP, 11-05: its bubble runs taller than an answer's, so it stands beside the hero, clear of them)
     }
   }
   function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
@@ -779,6 +786,7 @@
         if (bh && (echo || left > 0)) {
           var mo = C.MOUTH[pt] || [42, 25], mx = hR ? hL + hW - mo[0] * hs : hL + mo[0] * hs, my = hfoot - ((hsh ? hsh.ay : 68) - mo[1]) * hs; // (on the right he is mirrored: his mouth counted from his other edge)
           if (hfu) bubbleSide(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR, my); // (at the bust he stands beside it: the tail off its side at his mouth)
+          else if (!hsh) bubbleSide(ctx, BB.x, BB.y, BB.w, Math.max(30, bh), hR, HB.y + 30); // (in the hero box, no talking portrait: the bubble beside the box, its tail at his face -- C.openBoxed, 11-25)
           else bubbleDown(ctx, hR ? BB.x : BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), hR ? mx - 14 : mx + 14, my);
           if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
           else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (q.shade && C.FLIP && !hov) { ctx.fillStyle = C.FLIP.shade; ctx.fillRect(q.x, q.y, q.w, q.h); } if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } if (q.shade && C.FLIP) { ctx.fillStyle = C.FLIP.bar; ctx.fillRect(q.x, q.y, 3, q.h); if (q.tag && done) D.text(ctx, q.tag, q.x + q.w - 4, q.y + 2, C.FLIP.bar, 'right'); } typed(q.lines, q.x + 6, q.y + 2, q.off ? '#6c6c84' : hov ? W8.gold : q.color || W8.text); }); /* (q.off: a greyed answer in the counter's grey -- Asdis's ask, 11-19) */

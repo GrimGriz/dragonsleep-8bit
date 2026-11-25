@@ -386,6 +386,7 @@
   CO.BEATS = [
     { id: 'new', label: 'NEW GAME: CHOOSE WHO YOU ARE', note: 'The title\'s NEW GAME: the four, the sheet and the blurb, Begin as ...? -- the opening\'s three pages, then the west gate, alone.' },
     { id: 'vivian', lead: 'barley', near: 'vivian', label: 'VIVIAN, SELLING CANDLES ON VICE ROW', note: 'Barley leads, 10 silver, beside her: BUY A CANDLE (1 SP), then COME ALONG? -- she joins.' },
+    { id: 'vivianmail', lead: 'barley', near: 'vivian', armor: 'chainmail', label: 'VIVIAN\'S HIRE, BARLEY IN HIS CHAIN', note: 'Barley leads in chain mail (his own bust since 11-24), beside her: BUY A CANDLE (1 SP), then COME ALONG? -- every word clear of him.' }, // (11-25, odds-1125: his 11-22 note on this screen, "horrible portrait of barley ... that blocks the conversation interface", was Barley in his chain -- eyes-vivian-hire-1125)
     { id: 'aurdin', lead: 'lymen', near: 'aurdinChapel', silver: 25, label: 'AURDIN, OUTSIDE ALDWIN\'S CHAPEL', note: 'Lymen leads, 25 silver, beside him: PAY 20 SP -- he joins.' },
     { id: 'barley', lead: 'aurdin', hex: true, label: 'BARLEY, ON THE BENCH IN THE HEX', note: 'Aurdin leads, at the Hex\'s front doors: in, Barley by Korvin\'s slate -- FRONT 5 SP, he joins, and his bout on the sand at once.' },
     { id: 'lymenwait', lead: 'vivian', hex: true, label: 'LYMEN IN THE HEX, NO NAME YET', note: 'Vivian leads, renown 0, at the Hex\'s doors: his word, then Make a name first.' },
@@ -397,6 +398,7 @@
     (bt.with || []).forEach(function (id) { rec.party.push(CO.sheetFor(id, ld.lvl)); rec.hired.push(id); });
     if (bt.silver != null) rec.silver = bt.silver;
     if (bt.renown) rec.renown = bt.renown;
+    if (bt.armor && ld && ld.equip) ld.equip.armor = bt.armor; // (the lead in the beat's armour: the vivianmail beat's chain, 11-25)
     rec.flags.pin = CO.QUEST;
     var fl = T.floor('', rec.flags), at = null, dir = null;
     if (bt.hex) { at = (fl.marks.hexFront || [])[0]; dir = R.DIR8['0,-1']; } // (on the Hex's front doors, facing them)
