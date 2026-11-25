@@ -322,7 +322,7 @@
       cestus: { name: 'Cestus', atk: 4, dice: '1d4', mod: 2, type: 'bludgeoning', reach: 5 } // ("the spiked wrap leaves the hand free: a dragger can grapple and still strike")
     },
     multi: 1, secondWind: '1d10+1',
-    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill not built; his sheet dragger_p2 -- SENSES (ours, 11-24): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
+    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill not built; his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
   },
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the
@@ -338,7 +338,7 @@
     saves: { str: 5, dex: 0, con: 4, int: -1, wis: 0, cha: 1 },
     attacks: { greatsword: { name: 'Greatsword', atk: 5, dice: '2d6', mod: 3, type: 'slashing', reach: 5, gwf: true } },
     multi: 1, secondWind: '1d10+3', actionSurge: true, build: 'bladesergeant', buildAC: true, // (the attack above stands if the build cannot)
-    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE RIGHT HAND, "the Blade" (fighter 3 Champion: AC 18 full plate, HP 28, Athletics +5, Intimidation +3, crits on 19-20, Second Wind 1d10+3, Action Surge, Great Weapon Fighting; greatsword +5 2d6+3, handaxe +5 1d6+3 20/60) -- SENSES (ours, 11-24): Stealth none, a sergeant in full plate; passive Perception 10'
+    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE RIGHT HAND, "the Blade" (fighter 3 Champion: AC 18 full plate, HP 28, Athletics +5, Intimidation +3, crits on 19-20, Second Wind 1d10+3, Action Surge, Great Weapon Fighting; greatsword +5 2d6+3, handaxe +5 1d6+3 20/60) -- SENSES (ours, 11-10): Stealth none, a sergeant in full plate; passive Perception 10'
   },
   // SERGEANT OF THE LEFT HAND, "the Ledger": the page's Battle Master is the PHB's -- read as the SRD's one fighter archetype, the Champion, its superiority dice (Trip,
   // Menacing, Riposte) left off; the Dueling style, the longsword and shield. His javelins (+5 1d6+3 30/120) are thrown as the kit's handaxes (+5 1d6+3 20/60): the game
@@ -349,7 +349,7 @@
     saves: { str: 5, dex: 0, con: 4, int: 1, wis: 1, cha: 0 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 5, type: 'slashing', reach: 5 } },
     multi: 1, secondWind: '1d10+3', actionSurge: true, build: 'ledgersergeant', buildAC: true,
-    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE LEFT HAND, "the Ledger" (fighter 3 Battle Master -- read as the SRD\'s Champion, no superiority dice: AC 20 full plate and shield, HP 28, Athletics +5, Perception +2, Second Wind 1d10+3, Action Surge, Dueling; longsword +5 1d8+5; javelin +5 1d6+3 30/120 thrown as a handaxe) -- SENSES (ours, 11-24): Stealth none, full plate; passive Perception 12, 10 + WIS +1 + proficiency'
+    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE LEFT HAND, "the Ledger" (fighter 3 Battle Master -- read as the SRD\'s Champion, no superiority dice: AC 20 full plate and shield, HP 28, Athletics +5, Perception +2, Second Wind 1d10+3, Action Surge, Dueling; longsword +5 1d8+5; javelin +5 1d6+3 30/120 thrown as a handaxe) -- SENSES (ours, 11-10): Stealth none, full plate; passive Perception 12, 10 + WIS +1 + proficiency'
   },
   // THE MENDER (the page's GLASS-CLERIC, cleric 3, "her holy symbol is a small mirror on a cord"; Kat's book 03:21, "a mender of my office is addressed Mender";
   // dominion.md, "MENDERS OUTRANK SERGEANTS", clerics of Tronu): the page's Trickery Domain is the PHB's -- read as our own, the Window, Tronupholen's menders'
@@ -362,7 +362,7 @@
     saves: { str: 0, dex: 1, con: 2, int: 0, wis: 4, cha: 3 },
     attacks: { mace: { name: 'Mace', atk: 2, dice: '1d6', mod: 0, type: 'bludgeoning', reach: 5 } }, // ("She would rather not")
     multi: 1, build: 'wagonmender', buildAC: true,
-    src: 'dominion-patrol-the-fare-home.pdf THE GLASS-CLERIC (cleric 3, Trickery -- read as our Window: AC 16 as half plate, his ruling of 11-24, HP 24 3d8+6, WIS 15, spell DC 12 +4, slots 4/2; sacred flame, guidance, thaumaturgy; bless, healing word, sanctuary, shield of faith; hold person, spiritual weapon; mace +2 1d6) -- SENSES (ours, 11-24): Stealth none, its DEX check (+1); passive Perception 12, 10 + WIS +2'
+    src: 'dominion-patrol-the-fare-home.pdf THE GLASS-CLERIC (cleric 3, Trickery -- read as our Window: AC 16 as half plate, his ruling of 11-24, HP 24 3d8+6, WIS 15, spell DC 12 +4, slots 4/2; sacred flame, guidance, thaumaturgy; bless, healing word, sanctuary, shield of faith; hold person, spiritual weapon; mace +2 1d6) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1); passive Perception 12, 10 + WIS +2'
   },
   veteran: {
     name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 30, size: 1, reach: 5,
