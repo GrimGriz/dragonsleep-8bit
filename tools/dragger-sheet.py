@@ -4,6 +4,8 @@
     python tools/dragger-sheet.py check      (also the review sheet: every row of every facing at 3x, deep16/art-src/dragger/dragger_p2-review.png)
     python tools/dragger-sheet.py frames     (prints each frame's box, ground line and crown on its page: the cutter's own check)
 
+    THEN python tools/pike-wall-sheet.py: this writes dragger_p2 whole, and the pike wall's `keepback` and `shove` (ART-166, 11-25) are added by that tool.
+
 Asked in art-wanted section 95 (11-21, the pose seat pose-1121, on his "Dominion will have both as well"): the Dominion's dragger, the pikeman in gladiator
 harness -- the pike thrust along the hip (GUIDE-2026-11-21-pike-thrust-human) and the Pike Rank with the feet planted (GUIDE-2026-11-21-pike-rank-human).
 Drawn by the art desk as ART-159 (its page 4, the fight sheet), landed in Fresh 11-24, sorted to deep16/_src/dragger/2026-11-24-ART-159-COMBAT/ (the zip beside

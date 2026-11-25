@@ -5,6 +5,8 @@ Line Guard's own guard_p2: `push`, `pikeattack`, `pikerank`.
     python tools/guard-soldiering-sheet.py check     (also deep16/art-src/guard/guardpike_p2-review.png and dev/visions/guard/<row>.png)
     python tools/guard-soldiering-sheet.py frames    (each frame's drawing box, its boots and its crown)
 
+    THEN python tools/pike-wall-sheet.py: this writes guardpike_p2 whole, and the pike wall's `keepback` and `shove` (ART-166, 11-25) are added by that tool.
+
 Asked in art-wanted section 94 (11-21, the pose seat pose-1121, on his "include a line guard looking pike variant in the ask"): PAGE 1 a `push` row for guard_p2,
 PAGE 2 a Line Guard pikeman's whole fight sheet. Drawn by the art desk as ART-158 (LINE-GUARD-SOLDIERING handoff, sorted to
 deep16/_src/guard/2026-11-24-ART-158-SOLDIERING/, the zip beside it), with two more rows for guard_p2 on his word after its checkpoint: a pike attack and a pike

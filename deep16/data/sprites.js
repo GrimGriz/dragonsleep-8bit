@@ -4558,7 +4558,7 @@
 "source": "drawn by the art desk (HALFWAY-INN-DORAN-COMBAT, 11-05: art-wanted section 35), cut by tools/doran-sheet.py; SW W NW mirrored -- the idle from the art desk's five-view axe idle page (11-06), the walk from its axe walk page (11-10); every fight he is in (deep16/data/foes.js doran)"
 },
 "dragger_p2": {
-"image": "art/dragger_p2.png?v=07a774956b",
+"image": "art/dragger_p2.png?v=fc3a91ef3e",
 "fw": 102,
 "fh": 96,
 "ax": 51,
@@ -4629,6 +4629,26 @@
 "ay": 76,
 "frames": 1,
 "fps": 1
+},
+"keepback": {
+"y": 5376,
+"fw": 102,
+"fh": 96,
+"ax": 51,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"shove": {
+"y": 6144,
+"fw": 102,
+"fh": 96,
+"ax": 51,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3
 }
 },
 "name": "Dragger",
@@ -4641,7 +4661,7 @@
 "flinch: NE raises the pike steeply off the idle's angle (the art desk's own \"check the pike angle at the return to Idle\")",
 "prone: the last Fall cel held"
 ],
-"source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+"source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's dragger with the pike in gladiator harness in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/dragger-sheet.py over tools/vivian-sheet.py; SW W NW mirrored -- the pike wall's rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft's Shove), added by tools/pike-wall-sheet.py"
 },
 "drider_p1": {
 "image": "art/drider_p1.png?v=a0acd18d15",
@@ -9052,7 +9072,7 @@
 "source": "drawn by the art desk (ART-WANTED-77 GUARD COMBAT ILLUSTRATED, 11-18: five views, Ready Idle 4, Walk 8, Spear 6, Flinch 4, Fall 6, Prone 1, image-generated, its native cut 1x on its 96 x 96 cell), cut by tools/folk-costume-sheet.py (11-15) -- the spear rows (throw, shove, keepback) drawn by the art desk (ART-WANTED-86, the man, 11-19: the spear throw, the shaft shove, the point out), added by tools/guard-spear-sheet.py -- the soldiering rows (push, pikeattack, pikerank) drawn by the art desk (ART-158, 11-24: art-wanted 94, the shield wall's shove and the pike carried alone), added by tools/guard-soldiering-sheet.py"
 },
 "guardpike_p2": {
-"image": "art/guardpike_p2.png?v=6a7047d521",
+"image": "art/guardpike_p2.png?v=680db8ff06",
 "fw": 92,
 "fh": 96,
 "ax": 46,
@@ -9123,6 +9143,26 @@
 "ay": 76,
 "frames": 1,
 "fps": 1
+},
+"keepback": {
+"y": 5376,
+"fw": 106,
+"fh": 96,
+"ax": 53,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"shove": {
+"y": 6144,
+"fw": 92,
+"fh": 96,
+"ax": 46,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3
 }
 },
 "name": "Line Guard Pikeman",
@@ -9133,7 +9173,7 @@
 "hurt: N falls away from the viewer, the soles nearest the camera (the art desk's own note)",
 "prone: the Fall 6 crop held"
 ],
-"source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored"
+"source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- the pike wall's rows (keepback, shove) drawn by the art desk (ART-166, 11-25: art-wanted 102, the Keep Back from the Pike Rank hold and the shaft's Shove), added by tools/pike-wall-sheet.py"
 },
 "guardwoman_p1": {
 "image": "art/guardwoman_p1.png?v=4f92d49145",
