@@ -181,10 +181,16 @@ def windows():
     return out
 
 
-_W = windows()
-PS = scales(HEADS, N, two=())   # (by height alone: his walk marches upright, and the head's width reads his helmet with the shield's rim and the blade beside it --
-                                #  S Walk's "head" 108 to the idle's 87 -- where the dragger's bare curls read true)
-VS.LOOKS['dominion_p2'] = dict(src=SRC, windows=_W, name='Dominion Soldier', trim=False, tall=TALL, tallground=True, crownw=DG.CROWN, avoid=['fire'], pagescale=PS,
+def register():
+    """the look, its windows read (a tool that only borrows the reader -- tools/guard-soldiering-sheet.py -- imports this file without it)"""
+    global _W, PS
+    _W = windows()
+    PS = scales(HEADS, N, two=())   # (by height alone: his walk marches upright, and the head's width reads his helmet with the shield's rim and the blade beside it --
+                                    #  S Walk's "head" 108 to the idle's 87 -- where the dragger's bare curls read true)
+    VS.LOOKS['dominion_p2'] = dict(LOOK, windows=_W, pagescale=PS)
+
+
+LOOK = dict(src=SRC, name='Dominion Soldier', trim=False, tall=TALL, tallground=True, crownw=DG.CROWN, avoid=['fire'],
     bgtol=BGTOL,
     match={r: ('idle', 0) for r in N if r not in ('idle', 'prone')},   # (every page's scale is set by PS; `match` only marks them the look's own)
     ground={('hurt', 3), ('hurt', 4), ('hurt', 5), ('prone', 0)},
@@ -200,6 +206,7 @@ VS.LOOKS['dominion_p2'] = dict(src=SRC, windows=_W, name='Dominion Soldier', tri
            'views, the Attack and the Push over the mannequin\'s guides, and his light crossbow), cut by tools/dominion-sheet.py over tools/vivian-sheet.py; SW W NW mirrored')
 
 if __name__ == '__main__':
+    register()
     if 'frames' in sys.argv:
         for w in _W:
             h = HEADS.get(w[1:4])

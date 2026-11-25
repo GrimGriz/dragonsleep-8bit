@@ -1,0 +1,84 @@
+{
+ "image": "art/guardpike_p2.png",
+ "fw": 92,
+ "fh": 96,
+ "ax": 46,
+ "ay": 76,
+ "top": 52,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 92,
+   "fh": 96,
+   "ax": 46,
+   "ay": 76,
+   "frames": 4,
+   "fps": 4
+  },
+  "walk": {
+   "y": 768,
+   "fw": 90,
+   "fh": 96,
+   "ax": 45,
+   "ay": 76,
+   "frames": 8,
+   "fps": 9
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 124,
+   "fh": 96,
+   "ax": 62,
+   "ay": 76,
+   "frames": 8,
+   "fps": 12,
+   "release": 3
+  },
+  "pikerank": {
+   "y": 2304,
+   "fw": 100,
+   "fh": 96,
+   "ax": 50,
+   "ay": 76,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 3072,
+   "fw": 106,
+   "fh": 96,
+   "ax": 53,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3840,
+   "fw": 104,
+   "fh": 96,
+   "ax": 52,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 4608,
+   "fw": 104,
+   "fh": 96,
+   "ax": 52,
+   "ay": 76,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "name": "Line Guard Pikeman",
+ "hold": [
+  "pikerank: plays wherever his pike strikes through a set wall or over the rank in front (js/battle.js attack, F.pikeThrough), as trooperpike_p2's",
+  "attack: steps on 3 and lands on 4; S and N foreshortened -- check frame 4 in playback (the art desk's own note)",
+  "pikerank: both planted boots to be checked at final registration (the art desk's own note)",
+  "hurt: N falls away from the viewer, the soles nearest the camera (the art desk's own note)",
+  "prone: the Fall 6 crop held"
+ ],
+ "source": "drawn by the art desk (ART-158, 11-24: art-wanted section 94, the Line Guard pikeman, clean-shaven, in five views, the thrust and the Pike Rank over the mannequin's human guides), cut by tools/guard-soldiering-sheet.py over tools/dominion-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored"
+}
