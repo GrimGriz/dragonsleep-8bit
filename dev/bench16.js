@@ -20561,6 +20561,59 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preH);
     return;
   }
+  // THE SHOP REVIEW'S THREE MOVES (mode=shops1125; the seat nets-1125, the house lane's 11-25 odds-1125 section, item 2 RE-CUT -- his "11 - keep", then to the lanes desk "I
+  // meant leans, most of them were to keep. Lane these."): simples off Marko's shelf (Calla and Lucia keep them); the shortbow and the light crossbow onto Vilar's; Rope &
+  // Grapple onto Signy's -- her own shelf, content/shops.json signy, her counter on it (deep16/js/counter.js C.VENDORS.signy). Each shelf after the move, a buy and a sell at each
+  if (get('mode', '') === 'shops1125') {
+    var repS = { checks: [], errors: [] }, CS = D.counter, RS = D.roam;
+    var okS = function (c, s) { repS.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var stGS = D.store.get, stSS = D.store.set, memS = {}; D.store.get = function (k) { return memS[k]; }; D.store.set = function (k, v) { memS[k] = v; };
+    var driveS = function (g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); };
+    var topS = function () { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveS(s.co, null, 2); return s; };
+    var floorS = function (q) { var B = RS.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topS(); };
+    // a keeper's counter opened and read to its question: the counter, the question's words, its options
+    var counterS = function (B, id) { var g = CS.talk(B, id), sc = null; driveS(g, function () { var s = D.top(); if (s instanceof CS.Counter) sc = s; return !!sc; }, 50);
+      for (var k = 0; sc && k < 400 && !(sc.wait && sc.wait.opts); k++) { sc.update(); var okB = sc.wait && !sc.wait.opts && sc.buttons().filter(function (b) { return b.go === 'ok' || b.go === 'next'; })[0]; if (okB) sc.press(okB); }
+      var w = sc && sc.wait || {}; return { sc: sc, ask: [].concat(w.ask || w.say || []).join(' '), opts: (w.opts || []).join() }; };
+    var shelvesS = function (c) { c.sc.press(c.sc.buttons().filter(function (b) { return b.go === 'opt' && b.label === 'THE SHELVES'; })[0]); return c.sc.shop ? c.sc.rows().map(function (r) { return r.label + ' ' + r.right; }) : []; };
+    var cntS = function (st, id) { return st.inv.filter(function (s) { return s.id === id; }).reduce(function (a, s) { return a + s.n; }, 0); };
+    var buyS = function (sc, label, id) { var st = sc.st; if (st.silver() < 600) st.silver(600 - st.silver()); var s0 = st.silver(), n0 = cntS(st, id); sc.scroll = Math.max(0, sc.rows().map(function (r) { return r.id; }).indexOf(id)); sc.press(sc.buttons().filter(function (b) { return b.row && b.label === label; })[0]); if (sc.sub && sc.sub.kind === 'qty') { sc.sub.n = 1; sc.press({ go: 'qok' }); } sc.sub = null; return { paid: s0 - st.silver(), got: cntS(st, id) - n0 }; }; // (a thing bought by the bundle asks how many: one)
+    var sellS = function (sc, id) { var tab = sc.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0]; if (!tab || tab.off) return { shut: true }; sc.press(tab);
+      var st = sc.st, row = sc.rows().filter(function (r) { return r.id === id; })[0], s1 = st.silver(), n1 = cntS(st, id);
+      if (row) { sc.scroll = sc.rows().map(function (r) { return r.id; }).indexOf(id); sc.press(sc.buttons().filter(function (b) { return b.row && b.label === row.label; })[0]); if (sc.sub && sc.sub.kind === 'qty') { sc.sub.n = 1; sc.press({ go: 'qok' }); } }
+      return { offered: row ? row.right : 'NOT TAKEN', got: st.silver() - s1, gone: n1 - cntS(st, id) }; };
+    try {
+      var SH = window.DS.DATA.shops, IT = window.DS.DATA.items;
+      // 1. THE SHELVES AFTER THE MOVES (content/shops.json)
+      var mk = SH.marko.items, vl = SH.vilar.items, sg = SH.signy;
+      okS(mk.indexOf('simples') < 0 && ['rope', 'tent', 'torch', 'lantern', 'arrows', 'bolts'].every(function (i) { return mk.indexOf(i) >= 0; }) && SH.calla.items.indexOf('simples') >= 0 && SH.lucia.items.indexOf('simples') >= 0,
+        '1a Marko\'s shelf without the simples: ' + mk.join(', ') + ' -- Calla\'s keeps them (' + SH.calla.items.join(', ') + '), Lucia\'s too (' + SH.lucia.items.join(', ') + ')');
+      okS(vl.indexOf('shortbow') >= 0 && vl.indexOf('lightcrossbow') >= 0 && vl.length === 26 && ['club', 'greatsword', 'padded', 'shield'].every(function (i) { return vl.indexOf(i) >= 0; }),
+        '1b Vilar\'s shelf with the shortbow and the light crossbow (' + vl.length + ' things): ' + vl.join(', '));
+      okS(!!sg && sg.items.join() === 'rope' && sg.keeper === 'Signy' && sg.buys === false && /Rope, by the fathom/.test(sg.greeting) && CS.VENDORS.signy.shop === 'signy' && !CS.VENDORS.signy.wait,
+        '1c Signy\'s own shelf: ' + (sg ? sg.name + ' -- ' + sg.items.join(', ') + ', buys ' + sg.buys + ', "' + sg.greeting + '"' : 'NONE') + '; her counter on it: ' + JSON.stringify(CS.VENDORS.signy));
+      // 2. AT EACH COUNTER, Silverton by day: the question, the shelves, a buy, a sell (the lake done: Signy is on the street from then till the heir is found --
+      // content/maps/silverton.json her `cond`, the first game's heir quest)
+      var B = floorS('?roam=silverton&hour=10&lvl=3&flags=lakeDone');
+      var cM = counterS(B, 'marko'), rM = cM.opts === 'THE SHELVES,LEAVE' ? shelvesS(cM) : [], bM = rM.length ? buyS(cM.sc, 'Rope & Grapple', 'rope') : {}, sM = rM.length ? sellS(cM.sc, 'rope') : {}; if (cM.sc) cM.sc.close(); D.scenes.length = 0; D.push(B); topS();
+      okS(rM.length === 6 && !rM.some(function (r) { return /^Simples/.test(r); }) && bM.paid === 30 && bM.got === 1 && sM.offered === '15 sp' && sM.got === 15 && sM.gone === 1,
+        '2a Marko: ' + cM.opts + ' -- ' + rM.join('; ') + '; a buy, the rope: ' + bM.paid + ' sp, +' + bM.got + '; a sell, the rope back: offered ' + sM.offered + ', +' + sM.got + ' sp');
+      var cV = counterS(B, 'vilar'), rV = cV.opts === 'THE SHELVES,LEAVE' ? shelvesS(cV) : [], bV = rV.length ? buyS(cV.sc, 'Shortbow', 'shortbow') : {}, bV2 = rV.length ? buyS(cV.sc, 'Lt. Crossbow', 'lightcrossbow') : {}, sV = rV.length ? sellS(cV.sc, 'shortbow') : {}; if (cV.sc) cV.sc.close(); D.scenes.length = 0; D.push(B); topS();
+      okS(rV.indexOf('Shortbow 250 sp') >= 0 && rV.indexOf('Lt. Crossbow 250 sp') >= 0 && rV.length === 26 && bV.paid === 250 && bV.got === 1 && bV2.paid === 250 && bV2.got === 1 && sV.offered === '125 sp' && sV.got === 125 && sV.gone === 1,
+        '2b Vilar: ' + cV.opts + ' -- ' + rV.length + ' rows, ' + rV.filter(function (r) { return /bow/i.test(r); }).join('; ') + '; buys: the shortbow ' + bV.paid + ' sp, the light crossbow ' + bV2.paid + ' sp; a sell, the shortbow back: offered ' + sV.offered + ', +' + sV.got + ' sp');
+      var uS = B.units.filter(function (u) { return u.npc === 'signy'; })[0], cG = counterS(B, 'signy'), rG = cG.opts === 'THE SHELVES,LEAVE' ? shelvesS(cG) : [], bG = rG.length ? buyS(cG.sc, 'Rope & Grapple', 'rope') : {}, sG = rG.length ? sellS(cG.sc, 'rope') : {}; if (cG.sc) cG.sc.close(); D.scenes.length = 0; D.push(B); topS();
+      okS(!!uS && cG.opts === 'THE SHELVES,LEAVE' && rG.join() === 'Rope & Grapple 30 sp' && bG.paid === 30 && bG.got === 1 && sG.shut === true,
+        '2c Signy on the street by day (' + (uS ? uS.x + ',' + uS.y : 'NOT STOOD') + '): "' + cG.ask + '" ' + cG.opts + ' -- ' + rG.join('; ') + '; a buy, the rope: ' + bG.paid + ' sp, +' + bG.got + '; SELL ' + (sG.shut ? 'shut (she buys nothing)' : 'OPEN'));
+      var cC = counterS(B, 'calla'), rC = cC.opts === 'THE SHELVES,LEAVE' ? shelvesS(cC) : [], bC = rC.length ? buyS(cC.sc, 'Simples', 'simples') : {}; if (cC.sc) cC.sc.close(); D.scenes.length = 0; D.push(B); topS();
+      okS(rC.indexOf('Simples 2 sp') >= 0 && bC.paid === 2 && bC.got === 1, '2d Calla still sells the simples: ' + rC.join('; ') + '; a buy: ' + bC.paid + ' sp, +' + bC.got);
+      var atS = function (id) { var u = B.units.filter(function (w) { return w.npc === id; })[0]; if (u) return u.x + ',' + u.y; var t = ((RS.def && RS.def.src8 && RS.def.src8.triggers) || []).filter(function (q) { return q.id === 'shop:' + id; })[0]; return t ? 'the door ' + t.rect[0] + ',' + t.rect[1] : 'not stood'; };
+      okS(true, '3 where they stand on silverton by day (informational, the eyes row\'s steps): Marko ' + atS('marko') + ', Vilar ' + atS('vilar') + ', Signy ' + atS('signy') + ', Calla ' + atS('calla'));
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); }
+    D.store.get = stGS; D.store.set = stSS;
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   // THE SEAT nets-1125 (mode=nets1125; the road and its rewards lane, 2026-11-25 (later) -- his "seems like you're only dragging zero hp heroes", "lane the draggers get nets a
   // hooked piked, and with a prone-inducing move, drag prone not 0 hp"): THE NET by the SRD 5.1 (js/features.js F.throwNet, F.netOn: restrained, DC 10, AC 10 and 5 HP, only
   // slashing), BREAK FREE and FREE FROM THE NET (magic.js breakFree, F.freeNet, battle.js), THE HOOK (F.hook: the Shove to knock prone at the pike's reach), the prone and the

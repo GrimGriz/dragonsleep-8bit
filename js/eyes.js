@@ -23,6 +23,13 @@
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
     // THE ODDS SEAT (odds-1125), 11-25, on his answers 32, 33, 44, 47 and the bands' tent (mode=odds1125)
+    // THE SEAT nets-1125 (11-25, Opus; content/shops.json marko, vilar, signy; deep16/js/counter.js C.VENDORS.signy; mode=shops1125): the shop review's three moves. No unseen row
+    // asked these shelves (eyes-lucia-marko-1022 asks Lucia's shelf and Marko's rope, both still so; eyes-kael-shelf-1125 Kael's): none cut
+    'eyes-shop-moves-1125': { pri: 2, group: G2, title: 'THE SHOP REVIEW\'S THREE MOVES: Marko without the simples, bows at Vilar\'s, rope at Signy\'s own shelf (11-25)', pt: 'the second game\'s house lane, 2026-11-25 (the seat nets-1125; content/shops.json marko, vilar, signy; deep16/js/counter.js C.VENDORS.signy; mode=shops1125) -- his "11 - keep", then "I meant leans, most of them were to keep. Lane these."',
+      obj: 'Walk Silverton by day: is the shortbow at Vilar\'s, rope at Signy\'s, and Marko without the simples?',
+      url: 'deep16/?roam=silverton&hour=10&flags=lakeDone&lvl=3&fresh=1125sh',
+      steps: [['silverton', 44, 22, 'Marko\'s door: no simples'], ['silverton', 45, 32, 'Vilar\'s booth: the shortbow and light crossbow'], ['silverton', 11, 21, 'Signy: THE SHELVES, the rope']],
+      look: 'Your hands, Silverton by day with the lake done (&flags=lakeDone: Signy is on the street from then till the heir is found, her first-game condition). Marko Thorne\'s shelf: rope, tent, torch, lantern, arrows, bolts -- the simples gone to Calla\'s and Lucia\'s, who keep them. Vilar\'s: every melee weapon and the armour as before, and the Shortbow and the Lt. Crossbow, 250 sp each (25 gp, the SRD\'s), sold back at half. Signy, the rope-maker of the Shaft Rows: her own word "Rope, by the fathom. That\'s all anyone needs to know about me." and THE SHELVES -- The Rope-Walk, Rope & Grapple at 30 sp; she buys nothing (SELL shut, the seat\'s call, as Kael\'s yard). Marko keeps his rope too. Kessler\'s pledged bows stay on his. Do the three shelves read as their keepers\' trades?' },
     'eyes-kael-shelf-1125': { pri: 2, group: G2, title: 'KAEL\'S POLEARM SHELF: spear, pike, glaive, halberd and quarterstaff at the timber yard (11-25)', pt: 'the second game\'s house lane, 2026-11-25 (odds-1125; content/shops.json kael; deep16/js/counter.js C.VENDORS.kael)',
       obj: 'In Silverton, talk to Kael by the shaft rows: does THE SHELVES sell the five polearms at their prices?',
       url: 'deep16/?roam=silverton&hour=10&at=12,21&lvl=3&fresh=1125k',
