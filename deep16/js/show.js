@@ -362,9 +362,15 @@
       }
     }
     var heldBy = function (w) { var c = w.conds || {}; return [c.grappled, c.restrained, c.engulfed].some(function (h) { return h && h.by === u.id; }); };
-    var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && r && ((u.showSeen || {})[r] || 0) < 2 && (!a.needsHeld || B.units.some(function (w) { return w !== u && !w.dead && w.hp > 0 && heldBy(w) && D.grid.dist(u, w) <= (a.reach || u.reach || 5); })); })[0];
+    // (A CREATURE BUILT BY ITS CLASS swings its weapon, u.weapon -- its `attacks` empty, data/foes.js `build:` -- as js/battle.js's opportunity attack reads it: 11-25, the seat
+    // module-1125, RULED -- Griz: "good on the leans", on the mender's one mace in her show where two are wanted (a cleric who "would rather not" casts every turn; her one swing
+    // was an opportunity attack by chance), Willem's and Torvald's the same. One whose weapon is a bow swings its other weapon, u.alt (or what is in its off hand): GreyFang's
+    // shortsword, the `attack` row he showed none of, every turn at the bow -- his Sweep the Ring swings it on its own row. The show's beat only: their AIs keep their own way)
+    var blowsU = Object.assign({}, u.attacks || {}), mel = function (w) { return w && w.name && !w.ranged ? w : null; };
+    if (!Object.keys(blowsU).length) { var wpU = mel(u.weapon) || mel(u.alt) || mel(u.offhand); if (wpU) blowsU.weapon = wpU; }
+    var mk = Object.keys(blowsU).filter(function (k) { var a = blowsU[k], r = rowOf(a, k); return !a.ranged && !a.spell && r && ((u.showSeen || {})[r] || 0) < 2 && (!a.needsHeld || B.units.some(function (w) { return w !== u && !w.dead && w.hp > 0 && heldBy(w) && D.grid.dist(u, w) <= (a.reach || u.reach || 5); })); })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
-      var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5, ma.needsHeld ? heldBy : function (w) { return !(w.conds.engulfed && (w.conds.engulfed.by === u.id || D.engulf.sealedFrom(u, w))); }))[0]; // (not at the one it has engulfed, left for its crush, nor one inside another's cube, out of reach -- js/engulf.js, 11-25)
+      var ma = blowsU[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5, ma.needsHeld ? heldBy : function (w) { return !(w.conds.engulfed && (w.conds.engulfed.by === u.id || D.engulf.sealedFrom(u, w))); }))[0]; // (not at the one it has engulfed, left for its crush, nor one inside another's cube, out of reach -- js/engulf.js, 11-25)
       if (!mw && !ma.needsHeld && shown(u)) { mw = bringUp(B, u, ma.reach || u.reach || 5, function (w) { return !w.conds.engulfed; }); if (mw) yield 12; } // (no room, and its last turn -- every row shown once, so down it goes next: a watcher brought up beside it -- bringUp, 11-25)
       if (mw) {
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
