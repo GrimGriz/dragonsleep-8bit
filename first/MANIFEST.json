@@ -39,8 +39,8 @@
   "first/content/rumors.json": "816a1d121115a0f3",
   "first/content/shops.json": "dfd008a9a0ad4a3e",
   "first/content/spells.json": "8101b322ccc13347",
-  "first/content/text.json": "ba2b316203cda5c1",
-  "first/data/data.js": "624bb32a088a80e8",
+  "first/content/text.json": "c83bfbbb2e7e281f",
+  "first/data/data.js": "a6936e39356807ea",
   "first/js/art.js": "e7cf552356a7d11b",
   "first/js/audio.js": "457233bb63339fec",
   "first/js/battle.js": "fc0f90430f202036",
@@ -65,6 +65,6 @@
   "first/js/sprites.js": "198dc27c44ee8d02",
   "first/js/ui.js": "33cd910943a9f760",
   "first/js/world.js": "0ae649ae1ab9e21e",
-  "index.html": "532cc87655393998"
+  "index.html": "6180e102614b54c3"
  }
 }
