@@ -2285,5 +2285,10 @@
       obj: 'Open Aurdin\'s SPELLS, level 2, Enlarge/Reduce -- does its line end "(concentration, 10 rounds)"?',
       url: 'deep16/?npc=goblin,goblin&vs=aurdin:3,barley:3&lvl=3&spells=enlargereduce&fresh=1125en',
       look: 'Your eyes. Your 11-22 "actual enlarge duration?": the line under Enlarge/Reduce on the SPELLS ring (and on READY\'s, which reads the same line) said "(concentration)" alone; it now ends "(concentration, 10 rounds)" -- the SRD\'s minute. The cast card is as it was. The M menu\'s spell page still says "Concentration, a minute." (its words are the shared description\'s).' },
+    'eyes-line-soldiering-1125': { pri: 2, group: G2, title: 'DUNMORE\'S LINE IN FORMATION: the fight trains its four shields and the new pikeman behind them (11-25)', pt: 'the grid\'s rules, 2026-11-25 (the grid seat grid-1125; deep16/js/battle.js Battle.drilled, data/fights.js line `soldiering`, data/foes.js guardpike; js/features.js lineSpots, F.faceOf) -- his "a \'soldiering\' flag determined by the engine building the fight?", "build both"',
+      obj: 'Fight the Line and hold back a round -- do the four shields set facing you, the pikeman behind?',
+      url: 'deep16/?fight=line&lvl=3&seed=1125&fresh=1125ln',
+      steps: [['bridge', 9, 5, 'the four shields set, facing you'], ['bridge', 9, 4, 'the pikeman behind, his pike set']],
+      look: 'Your hands. The Line at the bridge: Captain Dunmore\'s stable trained in Soldiering by this fight alone -- the four Line Guards (8-11,5) and, in the fifth guard\'s place behind them (9,4), the new Line Guard pikeman (AC 14, the pike 1d10 reach 10, no spears to throw); the sergeant is not trained. END your heroes\' first turns: on theirs the guards SET SHIELDS facing you and join, and the pikeman takes the rank and SETS PIKES. Before, the three beside the first never joined (their own squares were refused), and a hidden hero nearer to one side turned the whole wall to face her. The same Line Guard at a gate, an inn or a town is plain. His Keep Back has no row yet (the cutter\'s ask).' },
   };
 })();
