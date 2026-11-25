@@ -1056,6 +1056,7 @@
       yield 60;
     } else if (!this.o.embed) yield* this.surpriseRoll(null, { allHide: this.fight.ambush ? 'foe' : null }); // (the story's ambush rolled one Stealth, the best bonus, for every foe till 11-10)
     if (D.familiar && D.familiar.alarm) yield* D.familiar.alarm(this); // (the frog familiar's croak: its caster is never caught off guard)
+    if (D.postures && D.postures.seenComing) yield* D.postures.seenComing(this); // (a rune's AMBUSH that was noticed is off: a plain fight from round 1 -- js/postures.js, 11-25)
     while (true) {
       this.round++;
       if (this.rec && D.rec && D.rec.checkpoint) D.rec.checkpoint(this); // (the play record kept as far as the fight has gone, each round: js/record.js, 10-02)
@@ -4769,7 +4770,7 @@
   Battle.prototype.surpriseRoll = function* (units, o) {
     o = o || {}; var self = this;
     var list = (units || this.units).filter(function (w) { return w && !w.dead && w.hp > 0 && !w.object && !w.look && !w.bystander && !w.away; });
-    list.forEach(function (w) { delete w.caughtR1; });
+    list.forEach(function (w) { delete w.caughtR1; delete w.seenComing; });
     var hiders = list.filter(function (w) { return (w.conds && w.conds.hidden) || (o.allHide && w.side === o.allHide); });
     if (!hiders.length) return 0;
     var tot = {}; hiders.forEach(function (w) { tot[w.id] = w.conds.hidden && w.hidTotal != null ? w.hidTotal : self.stealthCheck(w); });
@@ -4783,7 +4784,11 @@
     var rows = [];
     list.forEach(function (h) {
       var hs = hiders.filter(function (w) { return G.hostile(h, w); }); if (!hs.length) return;
-      var pp = h.perception || 10, saw = hs.filter(function (w) { return pp >= tot[w.id]; });
+      // (a tie is the hider's -- SRD 5.1: the passive score is what the Stealth check is set against, and "if the total equals or exceeds the DC, the ability check is a success";
+      // a contest tied "remains the same as it was before": hidden. Battle.spots, the finding in the fight, has always read it so. It read as noticed here till 11-25: his
+      // BUGBEAR AMBUSH of 11-21, Aurdin's 9 against a bugbear's 9 "sees them coming". `seenComing`: the hider noticed by one of the other side -- js/postures.js P.seenComing)
+      var pp = h.perception || 10, saw = hs.filter(function (w) { return pp > tot[w.id]; });
+      saw.forEach(function (w) { w.seenComing = true; });
       var plain = list.filter(function (f) { return G.hostile(h, f) && hs.indexOf(f) < 0 && !(f.conds && f.conds.hidden) && G.standing(f) && D.magic.sees(self, h, f) && G.los(h, f).clear; });
       if (!saw.length && !plain.length) { h.conds.surprised = true; caught++; }
       rows.push({ h: h, line: '  ' + nm(h) + ' ' + pp + ': ' + (saw.length ? '{n}sees them coming{/}' : plain.length ? '{n}sees ' + nm(plain[0]) + ' plainly{/}' : '{o}caught unaware{/}') });

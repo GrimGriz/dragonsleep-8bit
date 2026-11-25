@@ -21436,6 +21436,66 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preAM);
     return;
   }
+  // THE SEAT ambush-1125 (mode=ambush1125; his BUGBEAR AMBUSH Pocket DM module, his play of 11-21/22, five fixes RULED): 1 AN AMBUSH SEEN COMING IS A PLAIN FIGHT FROM ROUND 1
+  // (11-21, Griz: "grid lane the bugbear fix", on his card "Bugbears never acted, party wasn't surprised"): his module's one rune (ambush at 5,4, the four on 3,2 5,6 7,4 6,5, map
+  // breach), his party where it stood, the Stealth pinned to his openings' and each passive Perception to his party's (wut 11, Drill 11, Aurdin 9, Ingrith 15, the made wizard 11,
+  // the owl 13); the fight watched (the AI on both sides) from its head, through battle.js run and its surprise roll, to round 3
+  if (get('mode', '') === 'ambush1125') {
+    var repAB = { checks: [], errors: [] }, dAB = D.d, GAB = D.grid;
+    function okAB(what, v) { repAB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function drAB(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 6000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim && D.battle.readyAuto) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } return !!(until && until()); }
+    var PARTY_AB = '~paladin.3.halfelf.15-11-14-8-12-16.longsword_chainmail_shield_handaxe_____.wut.bless-command-shieldoffaith-calledtoaccount.protection.greenreturn,~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger,aurdin:3,ingrith:3,~wizard.2.human.9-14-15-16-13-11.quarterstaff_robes_______.made_wizard.firebolt-shockinggrasp-chilltouch-magicmissile-shield-mageArmor-burninghands-fogcloud';
+    var RUNE_AB = { kind: 'ambush', at: [5, 4], r: 15, fw: [0, 1] }, SQ_AB = [[3, 2], [5, 6], [7, 4], [6, 5]], HSQ_AB = [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]];
+    // a watched fight of his module's first slot: `st` the four Stealth totals (the Chief, then the three), `pp` the passives by name (the owl's under 'owl'); o.decoy: a goblin
+    // standing in plain sight, laid on no rune. Returns the battle, driven to `upto` rounds' start, with the log cut at each round's start
+    function ambAB(st, pp, upto, o) {
+      o = o || {}; D.scenes.length = 0;
+      var Bx = D.npcFight('?npc=bugbearchief,bugbear,bugbear,bugbear' + (o.decoy ? ',goblin' : '') + '&vs=' + PARTY_AB + '&lvl=3&map=breach&watch&seed=' + (o.seed || 1125), {}); D.push(Bx); D.battle = Bx; Bx.enter();
+      var fs = Bx.units.filter(function (u) { return u.side === 'foe' && u.kind !== 'goblin'; }), hs = Bx.units.filter(function (u) { return u.side === 'party' && !u.familiar; }), owl = Bx.units.filter(function (u) { return u.familiar; })[0];
+      fs.forEach(function (u, i) { u.post = JSON.parse(JSON.stringify(RUNE_AB)); u.x = SQ_AB[i][0]; u.y = SQ_AB[i][1]; });
+      hs.forEach(function (u, i) { if (HSQ_AB[i]) { u.x = HSQ_AB[i][0]; u.y = HSQ_AB[i][1]; } var k = /^wut/.test(u.name) ? 'wut' : /^Drill/.test(u.name) ? 'Drill' : /^Aurdin/.test(u.name) ? 'Aurdin' : /^Ingrith/.test(u.name) ? 'Ingrith' : 'made'; if (pp[k] != null) u.perception = pp[k]; });
+      if (owl) { owl.x = 9; owl.y = 14; if (pp.owl != null) owl.perception = pp.owl; }
+      var gob = o.decoy ? Bx.units.filter(function (u) { return u.kind === 'goblin'; })[0] : null; if (gob) { gob.x = 9; gob.y = 8; }
+      var PIN = {}; fs.forEach(function (u, i) { PIN[u.id] = st[i]; });
+      var sr0 = Bx.stealthRoll; Bx.stealthRoll = function (u) { return PIN[u.id] != null ? { r: 10, total: PIN[u.id], shaken: 0, supreme: false, ce: { adv: [], dis: [] }, hadv: false, hdis: false } : sr0.call(this, u); };
+      GAB.setup(GAB.map, Bx.units); Bx.cache = null;
+      var cut = {}, lastR = -1, at1 = null; drAB(Bx.co, function () { if (Bx.round !== lastR) { lastR = Bx.round; cut[Bx.round] = (Bx.log || []).length; if (Bx.round === 1) at1 = fs.map(function (u) { return { hid: !!u.conds.hidden, broke: u.postBroke || '' }; }); } return Bx.round >= upto || (Bx.over && Bx.over()); }, 60000);
+      cut.end = (Bx.log || []).length;
+      Bx.roundLog = function (r) { var a = cut[r], b = cut[r + 1] != null ? cut[r + 1] : cut.end; return a == null ? [] : (Bx.log || []).slice(a, b); };
+      return { B: Bx, fs: fs, hs: hs, owl: owl, gob: gob, at1: at1 || [], head: (Bx.log || []).slice(0, cut[1] != null ? cut[1] : cut.end) };
+    }
+    // a foe's own doing in a round's log: a step, a blow, a shot, a spell
+    function foeActsAB(S, lines) { var nm = S.fs.map(function (u) { return D.Battle.nm ? D.Battle.nm(u) : u.name; }).concat(['Bugbear Chief', 'Chief', 'Bugbear']); return lines.map(function (l) { return String(l).replace(/^R\d+ /, ''); }).filter(function (l) { return nm.some(function (n) { return l.indexOf(n + '\'s turn') === 0 || l.indexOf(n + ' > ') === 0; }); }); }
+    try {
+      // 1a. HIS OPENING OF 00:59:53Z (the lane's numbers): their Stealth the Chief 25, the three 13, 9, 17. Every one of ours noticed a bugbear (the 9 and the 13) but Aurdin, whose 9
+      // ties the 9 -- by the SRD the hider keeps a tie, so Aurdin is caught unaware; the bugbears that were noticed are found and the ambush is off: they act from round 1
+      var S1 = ambAB([25, 13, 9, 17], { wut: 11, Drill: 11, Aurdin: 9, Ingrith: 15, made: 11, owl: 13 }, 3);
+      var h1 = S1.head.join(' | '), r1 = S1.B.roundLog(1), r2 = S1.B.roundLog(2), a1 = foeActsAB(S1, r1), a2 = foeActsAB(S1, r2);
+      var cAu = /Aurdin[^|]* 9: caught unaware/.test(h1), others1 = !/(wut|Drill|Ingrith|made wizard) \d+: caught unaware/.test(h1);
+      var found1 = S1.at1.filter(function (x) { return !x.hid; }).length, broke1 = S1.at1.length === 4 && S1.at1.every(function (x) { return x.broke === 'is seen coming'; });
+      okAB('1a his opening of 00:59:53Z (Stealth 25; 13, 9, 17): the bugbears act in round 1 (' + a1.length + ': "' + a1.slice(0, 2).join(' / ').slice(0, 160) + '") and round 2 (' + a2.length + '); the ambush off (' + broke1 + ') -- the head: "' + h1.slice(0, 420) + '" (want both > 0, true)', a1.length > 0 && a2.length > 0 && broke1);
+      okAB('1b and the tie, Aurdin\'s passive 9 against the bugbear\'s 9: caught unaware (' + cAu + '; SRD 5.1, a check that equals its DC succeeds, and a contest tied leaves things as they were), the rest not (' + others1 + '); found at round 1\'s start: ' + found1 + ' (the 13 and the 9) (want true, true, 2)', cAu && others1 && found1 === 2);
+      // 1c. HIS OPENING OF 01:00:14Z, the escaped one: the Chief 23, the three 8, 13, 12 -- every one of ours sees them coming. On the old files no foe took a turn in four rounds
+      var S2 = ambAB([23, 8, 13, 12], { wut: 11, Drill: 11, Aurdin: 9, Ingrith: 15, made: 11, owl: 13 }, 3);
+      var h2 = S2.head.join(' | '), a21 = foeActsAB(S2, S2.B.roundLog(1)), a22 = foeActsAB(S2, S2.B.roundLog(2)), caught2 = S2.hs.concat([S2.owl]).filter(function (u) { return u && (u.conds.surprised || u.caughtR1); }).length;
+      var chief2 = S2.fs[0], hid2 = S2.fs.slice(1).filter(function (u) { return u.conds.hidden; }).length;
+      okAB('1c his opening of 01:00:14Z (Stealth 23; 8, 13, 12), every one of ours sees them coming: the bugbears act in round 1 (' + a21.length + ': "' + a21.slice(0, 2).join(' / ').slice(0, 160) + '") and round 2 (' + a22.length + '); no one caught (' + caught2 + '); the three noticed found (' + (3 - hid2) + ' of 3); "SEEN COMING" on the card (' + /SEEN COMING/.test(h2) + ') -- "' + h2.slice(0, 300) + '" (want > 0, > 0, 0, 3, true)', a21.length > 0 && a22.length > 0 && caught2 === 0 && hid2 === 0 && /SEEN COMING/.test(h2));
+      var c2 = S2.at1[0] || {}, b2 = S2.at1.slice(1);
+      okAB('1d at round 1\'s start: the Chief, noticed by no one (23 against 15 at the most), still hidden (' + c2.hid + ') and his posture off with the rest (' + c2.broke + '); the three found (' + b2.filter(function (x) { return !x.hid; }).length + ' of 3) (want true, "is seen coming", 3)', c2.hid === true && c2.broke === 'is seen coming' && b2.length === 3 && b2.every(function (x) { return !x.hid && x.broke === 'is seen coming'; }));
+      // 1e. NO ONE NOTICED, every one of ours caught unaware (Stealth 26 to 29): the ambush holds, as the 11-11 rule spends its round -- not broken at the head
+      var S3 = ambAB([29, 26, 27, 28], { wut: 11, Drill: 11, Aurdin: 9, Ingrith: 15, made: 11, owl: 13 }, 1);
+      var h3 = S3.head.join(' | '), held3 = S3.fs.every(function (u) { return !u.postBroke && u.conds.hidden; });
+      okAB('1e no one noticed (Stealth 29; 26, 27, 28): the ambush intact at round 1\'s start, all four hidden (' + held3 + '), no "SEEN COMING" (' + !/SEEN COMING/.test(h3) + ') (want true, true)', held3 && !/SEEN COMING/.test(h3));
+      // 1f. A DECOY IN PLAIN SIGHT, the ambush noticed by no one: ours are not surprised (they see the goblin plainly), and the ambush, unseen, lies in wait (the seat's call)
+      var S4 = ambAB([29, 26, 27, 28], { wut: 11, Drill: 11, Aurdin: 9, Ingrith: 15, made: 11, owl: 13 }, 1, { decoy: true });
+      var h4 = S4.head.join(' | '), held4 = S4.fs.every(function (u) { return !u.postBroke && u.conds.hidden; }), plain4 = /plainly/.test(h4);
+      okAB('1f a goblin in plain sight, the four noticed by no one: ours see the goblin plainly (' + plain4 + '), the ambush intact (' + held4 + ') (want true, true)', plain4 && held4);
+    } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
+    D.d = dAB;
+    var preAB = document.createElement('pre'); preAB.id = 'out'; preAB.textContent = 'BENCH16 ' + JSON.stringify(repAB);
+    document.body.appendChild(preAB);
+    return;
+  }
   // THE OPUS BUG SEAT OF 11-11 (mode=bugs1111; the play records lane's 2026-11-11 section, his Bugbear Ambush and NOTES): 1 the living drawn over the fallen on one square
   // ("aurdin (alive) standing on a dead bugbear and the bugbear was drawn over the top of him") -- the frame's figures as UI.drawBattle hands them to D.iso.draw, sorted as it sorts
   if (get('mode', '') === 'bugs1111') {

@@ -585,7 +585,7 @@
         spider.conds.hidden = true;
         say(['A giant spider lurks unseen in the dark corner -- no rune, no posture. Any fight where someone starts hidden rolls the SRD\'s surprise: its Stealth against each passive Perception (the d20 pinned at 10).']); yield W(90);
         var n = mark(); var c1 = yield* fire(B.surpriseRoll()); yield W(60); var l1 = since(n), t1 = +((l1.match(/Spider (\d+)/) || [])[1] || 0);
-        var fair = [cleric, wizard].every(function (h) { return !!h.conds.surprised === ((h.perception || 10) < t1); }), plain = spider.conds.hidden && spider.hidTotal == null;
+        var fair = [cleric, wizard].every(function (h) { return !!h.conds.surprised === ((h.perception || 10) <= t1); }), plain = spider.conds.hidden && spider.hidTotal == null; // (a tie the hider's since 11-25: battle.js surpriseRoll)
         var caughtN = [cleric, wizard].filter(function (h) { return h.conds.surprised; }).map(function (h) { return h.name + ' (' + h.perception + ')'; });
         cleric.conds = {}; wizard.conds = {}; delete spider.conds.hidden;
         stage([rogue, gob], [[0, 2], [0, -2]]); freshEars(); rogue.conds.hidden = true; rogue.hidTotal = 25;

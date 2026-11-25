@@ -124,6 +124,25 @@
   // THE SURPRISE: the ambushers hidden above, the roll is the grid's own for any fight (battle.js Battle.surpriseRoll -- each hider's Stealth against each passive
   // Perception on the other side, an enemy in plain sight noticed; RULED 11-10, "we should have 'real' surprise"). Kept by this name for the rules show's beat
   P.surprise = function* (B) { return yield* B.surpriseRoll(); };
+  // AN AMBUSH SEEN COMING IS A PLAIN FIGHT FROM ROUND 1 (RULED 11-21, Griz: "grid lane the bugbear fix", on his card of his BUGBEAR AMBUSH, "Bugbears never acted, party wasn't
+  // surprised"): the roll above marks each hider one of the other side noticed (its passive Perception over the Stealth -- Battle.surpriseRoll `seenComing`); a unit laid in AMBUSH
+  // with a member noticed is off before round 1 -- the noticed are found, and every member, its posture broken, acts on its initiative as any foe. One noticed by no one keeps its
+  // hiding into the fight, and strikes from it (SRD 5.1 Hiding: unnoticed, it is still hidden). Those caught unaware still lose their first turn (SRD 5.1 Surprise, "A member of
+  // a group can be surprised even if the other members aren't"). A unit no one noticed lies in wait as before -- the 11-11 round spent on the caught, or the blade readied --
+  // even where ours saw another foe plainly. Till 11-25 a "sees them coming" found no one: the hiders held still, unseen, and in his fight of 01:00Z no foe took a turn in four rounds
+  P.seenComing = function* (B) {
+    var seen = B.units.filter(function (u) { return u.seenComing && P.kindOf(u) === 'ambush'; });
+    if (!seen.length) return 0;
+    var sigs = {}; seen.forEach(function (u) { sigs[P.sig(u.post)] = 1; });
+    var off = B.units.filter(function (w) { return w.post && !w.postBroke && P.kindOf(w) === 'ambush' && sigs[P.sig(w.post)]; });
+    off.forEach(function (w) { w.postBroke = 'is seen coming'; delete w.postPool; });
+    seen.forEach(function (u) { delete u.conds.hidden; delete u.hidTotal; if (u.anim === 'hide') { u.anim = 'idle'; u.animT = B.t || 0; } });
+    var nm = function (u) { return B.shortName ? B.shortName(u) : u.name; }, still = off.filter(function (w) { return w.conds.hidden; });
+    B.card(['{y}SEEN COMING{/}: the ambush is off -- they fight from round 1.', '  found: ' + seen.map(nm).join(', ') + (still.length ? '; still hidden: ' + still.map(nm).join(', ') : '')], 360);
+    D.sfx('popup');
+    yield 50;
+    return off.length;
+  };
 
   // ---- the turn: true when the posture took it; false hands it to the AI's own turn (the brute's, the class turn's), with u.postPool for a holder
   P.turn = function* (B, u) {
