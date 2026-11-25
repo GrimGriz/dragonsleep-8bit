@@ -991,6 +991,16 @@
     if (D.house && D.house.trail) D.house.trail('ring', 'Winters gave the Ring of Water Walking' + (who && who.equip && (who.equip.ring === C.WRING || who.equip.ring2 === C.WRING) ? ', on ' + who.name : ', to the pack') + (lake ? ', the lake dead' : '') + ' (the lead at ' + (ld ? ld.lvl : '?') + ')');
     if (lake) { f.wintersInnTold = 1; yield sc.say(WL.history, 'attentive'); } // (the inn's history, after the ring: his "then he tells the history of the inn")
   };
+  // BACK TO WINTERS AFTER THE LAKE, THE RING HAD (RULED 2026-11-24, Griz to the lanes desk, verbatim: "world seat winters question is yes (it had asked to keep when you're ready
+  // mission open til monster was dead, i said keep it open after monster and make them go to winters and get the same history they get if they kill it without picking up the
+  // ring"): WHEN YOU'RE READY stays open past the lake to a last step, Winters on Fountain Street (C.RING_LAKE.back), and talking to him there he hears it is done and tells the
+  // inn's history, the same lines the lake-first path has after his ring (C.WINTERS_LAKE.history); wintersInnTold closes the mission. His word before the history the seat
+  // world-1124's draft (invented.json ring-lake-night-1124)
+  C.wintersAfterLake = function* (sc) {
+    var f = sc.st.flags; yield sc.say(C.RING_LAKE.heard, 'attentive');
+    f.wintersInnTold = 1; yield sc.say(C.WINTERS_LAKE.history, 'attentive');
+    if (D.house && D.house.trail) D.house.trail('ring', 'Winters told the inn\'s history, the lake dead and his ring worn');
+  };
   C.winters = function* (sc) {
     var st = sc.st, f = st.flags, ld = C.leadOf(st), had = function () { return count(st, C.WRING) > 0 || st.party.some(function (h) { return h.equip && (h.equip.ring === C.WRING || h.equip.ring2 === C.WRING); }); };
     if (!f.wintersMet) {
@@ -1006,6 +1016,7 @@
       if (!C.ringReady(st)) yield sc.say(L('winters.watching'), 'attentive');
     }
     if (!had() && f.lakeDone && !f.wintersRing) { yield* C.wintersRing(sc, true); return; } // (the lake dead first: his ring anyway, and the inn's history -- C.WINTERS_LAKE, RULED 11-18)
+    if (had() && f.lakeDone && !f.wintersInnTold) { yield* C.wintersAfterLake(sc); return; } // (the ring had and the lake dead: back to him for the inn's history -- C.wintersAfterLake, RULED 11-24)
     if (!had() && !f.lakeDone && C.ringReady(st)) { yield* C.wintersRing(sc); return; } // (the first game's: the ring ends the talk)
     // (an errand brought back closes as soon as you walk in, and the next one comes with it -- the first game's playtest 09-25 round four)
     var notReady = function () { // (once at each of the lead's levels below the 3rd, as the talk ends: the first game said it at every leaving; the JOURNAL keeps it between)
@@ -1581,14 +1592,16 @@
   // "Tonight"; a party past it is sent to the next. Its arrow THE WORLD's site, the inn. Done: Winters' ring words with the lake quiet. Till then it was done with the ring in
   // hand, and nothing said when the lake is fed. The words the seat's drafts (invented.json ring-lake-night-1124)
   C.RING_LAKE = { by: 'The Halfway Inn by dusk on day {day}: the thing in the lake is fed that night ({when}). Winters\' ring walks the one who wears it out on the water.',
-    tonight: 'Tonight, at the Halfway Inn: the thing in the lake is fed. Be there by dusk.', done: 'The Ring of Water Walking, for the thing in the lake, Winters said. The lake is quiet now.' };
+    tonight: 'Tonight, at the Halfway Inn: the thing in the lake is fed. Be there by dusk.',
+    back: 'Winters, on Fountain Street: the thing in the lake is dead. He will want to hear it.', backText: 'The thing in the lake is dead, with Winters\' ring on your hand. Ambrose Winters, on Fountain Street, will want to hear it.',
+    heard: ['Winters hears you out without a word. "So it\'s done, and the ring did its work. Then you should know what that inn was."'],done: 'The Ring of Water Walking, for the thing in the lake, Winters said. The lake is quiet now.' };
   C.ringLakeSteps = function (st) {
     var In = D.inn, W = D.world, d = NaN; try { d = W && W.day ? W.day() : NaN; } catch (e) { } if (!In || !In.nightsToDue || !isFinite(d)) return [{ site: 'inn', where: C.RING_WORDS.doneText }];
     var n = In.nightsToDue(st.flags, d); return [{ site: 'inn', where: n <= 0 ? C.RING_LAKE.tonight : C.RING_LAKE.by.replace('{day}', d + n).replace('{when}', n === 1 ? 'tomorrow' : 'in ' + n + ' days') }];
   };
-  C.OWN_QUESTS.push({ id: 'ring', done: 'has:ringwaterwalking & flag:lakeDone', doneText: function (st) { return st && st.flags && st.flags.wintersLakeRing ? C.WINTERS_LAKE.doneText : C.RING_LAKE.done; }, // (the lake dead first: C.WINTERS_LAKE)
-    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return st && st.flags && st.flags.lakeDone && !st.flags.wintersRing ? C.WINTERS_LAKE.text : st && C.cond('has:ringwaterwalking', st) ? C.RING_WORDS.doneText : C.ringReady(st) ? C.RING_WORDS.text : q.text; },
-    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; if (st && st.flags && st.flags.lakeDone && !st.flags.wintersRing) return [{ map: 'winters', npc: 'winters', where: C.WINTERS_LAKE.step }]; if (st && !st.flags.lakeDone && C.cond('has:ringwaterwalking', st)) return C.ringLakeSteps(st); return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
+  C.OWN_QUESTS.push({ id: 'ring', done: 'has:ringwaterwalking & flag:lakeDone & flag:wintersInnTold', /* (and his history heard since 11-24: C.wintersAfterLake) */ doneText: function (st) { return st && st.flags && st.flags.wintersLakeRing ? C.WINTERS_LAKE.doneText : C.RING_LAKE.done; }, // (the lake dead first: C.WINTERS_LAKE)
+    text: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; return st && st.flags && st.flags.lakeDone && !st.flags.wintersRing ? C.WINTERS_LAKE.text : st && st.flags && st.flags.lakeDone && !st.flags.wintersInnTold && C.cond('has:ringwaterwalking', st) ? C.RING_LAKE.backText : st && C.cond('has:ringwaterwalking', st) ? C.RING_WORDS.doneText : C.ringReady(st) ? C.RING_WORDS.text : q.text; },
+    steps: function (st) { var q = (DS.DATA.quests || []).filter(function (x) { return x.id === 'ring'; })[0] || {}; if (st && st.flags && st.flags.lakeDone && !st.flags.wintersRing) return [{ map: 'winters', npc: 'winters', where: C.WINTERS_LAKE.step }]; if (st && st.flags.lakeDone && !st.flags.wintersInnTold && C.cond('has:ringwaterwalking', st)) return [{ map: 'winters', npc: 'winters', where: C.RING_LAKE.back }]; if (st && !st.flags.lakeDone && C.cond('has:ringwaterwalking', st)) return C.ringLakeSteps(st); return C.ringReady(st) ? [{ map: 'winters', npc: 'winters', key: 'ready', where: C.RING_WORDS.step }] : q.steps || []; } });
   // (a second game's record of a first-game id stands over it, field by field -- its show, its words, its steps: js/hours.js; `text` and `steps` may be read off the state; the
   // list in C.QUESTS's order)
   C.quests = function (st) {

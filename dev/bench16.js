@@ -3076,10 +3076,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // E16 WHEN YOU'RE READY with the ring in hand: open till the lake is dead, its step the inn by the due night
       var stQ = CWW.state(null), ringQ = function () { return CWW.quests(stQ).filter(function (q) { return q.id === 'ring'; })[0]; }, fQ = stQ.flags, t0Q = SW.t, inv0Q = JSON.stringify(stQ.inv);
       fQ.wintersMet = 1; fQ.wintersRing = 1; CWW.give(stQ, 'ringwaterwalking', 1);
-      SW.t = 11 * 24 + 10; var dQ12 = WWW.day(), q12 = ringQ(); SW.t = 14 * 24 + 10; var dQ15 = WWW.day(), q15 = ringQ(); SW.t = 15 * 24 + 10; var dQ16 = WWW.day(), q16 = ringQ(); fQ.lakeDone = 1; var qDone = ringQ();
-      SW.t = t0Q; delete fQ.lakeDone; delete fQ.wintersRing; CWW.take(stQ, 'ringwaterwalking', 1);
-      okWW('E16 the ring had, day ' + dQ12 + ': ' + (q12.done ? 'done' : 'open') + ' -- "' + q12.where + '" (' + (q12.step && q12.step.site) + '); day ' + dQ15 + ': "' + q15.where + '"; day ' + dQ16 + ': "' + q16.where + '"; the lake dead: ' + (qDone.done ? 'done -- ' + qDone.doneText : 'open'),
-        !q12.done && /^The Halfway Inn by dusk on day 15: the thing in the lake is fed that night \(in 3 days\)/.test(q12.where || '') && q12.step && q12.step.site === 'inn' && /^Tonight, at the Halfway Inn/.test(q15.where || '') && /on day 43/.test(q16.where || '') && qDone.done && /lake is quiet now/.test(qDone.doneText || ''));
+      SW.t = 11 * 24 + 10; var dQ12 = WWW.day(), q12 = ringQ(); SW.t = 14 * 24 + 10; var dQ15 = WWW.day(), q15 = ringQ(); SW.t = 15 * 24 + 10; var dQ16 = WWW.day(), q16 = ringQ(); fQ.lakeDone = 1; var qBack = ringQ();
+      // (and back to Winters for the inn's history -- RULED 11-24, his "keep it open after monster and make them go to winters and get the same history they get if they kill it
+      // without picking up the ring": js/counter.js C.wintersAfterLake)
+      var saidQ = [], scQ = { st: stQ, say: function (l) { saidQ = saidQ.concat(l); return 0; }, ask: function () { return 0; } }, gQ = CWW.winters(scQ), nQ = 0; while (nQ++ < 40 && !gQ.next(0).done) { }
+      var qDone = ringQ(), toldQ = saidQ.join(' '), saidQ2 = []; scQ.say = function (l) { saidQ2 = saidQ2.concat(l); return 0; }; var gQ2 = CWW.winters(scQ), nQ2 = 0; while (nQ2++ < 40 && !gQ2.next(1).done) { }
+      SW.t = t0Q; delete fQ.lakeDone; delete fQ.wintersRing; delete fQ.wintersInnTold; CWW.take(stQ, 'ringwaterwalking', 1);
+      okWW('E16 the ring had, day ' + dQ12 + ': ' + (q12.done ? 'done' : 'open') + ' -- "' + q12.where + '" (' + (q12.step && q12.step.site) + '); day ' + dQ15 + ': "' + q15.where + '"; day ' + dQ16 + ': "' + q16.where + '"',
+        !q12.done && /^The Halfway Inn by dusk on day 15: the thing in the lake is fed that night \(in 3 days\)/.test(q12.where || '') && q12.step && q12.step.site === 'inn' && /^Tonight, at the Halfway Inn/.test(q15.where || '') && /on day 43/.test(q16.where || ''));
+      okWW('E16 the lake dead, the ring worn: still ' + (qBack.done ? 'DONE' : 'open') + ' -- "' + qBack.where + '" (' + (qBack.step && qBack.step.npc) + '); at Winters: "' + toldQ.slice(0, 160) + '..."; then ' + (qDone.done ? 'done -- ' + qDone.doneText : 'open') + '; again, the history not told twice (' + !/Anwen/.test(saidQ2.join(' ')) + ')',
+        !qBack.done && /^Winters, on Fountain Street: the thing in the lake is dead/.test(qBack.where || '') && qBack.step && qBack.step.npc === 'winters' && /So it's done, and the ring did its work/.test(toldQ) && /Anwen was the daughter of a friend of mine/.test(toldQ) && /The Half-Cellar/.test(toldQ) && qDone.done && /lake is quiet now/.test(qDone.doneText || '') && !/Anwen/.test(saidQ2.join(' ')));
     } catch (eWW) { repWW.errors.push(String(eWW && eWW.stack || eWW).slice(0, 900)); }
     D.store.get = stGWW; D.store.set = stSWW; D.music = muWW; window.DS.autoPicks = apWW; WWW.onStep = onStepWW; D.roll = roll0WW; if (HWW) { HWW.playing = false; HWW.cur = null; }
     var preWW = document.createElement('pre'); preWW.id = 'out'; preWW.textContent = 'BENCH16 ' + JSON.stringify(repWW);
