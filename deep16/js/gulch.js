@@ -258,7 +258,7 @@
     if (a !== 0) { if (step) M.stepBack(B); return; }
     var w0 = B.webs;
     B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.ladWebs(B), dc: Gu.LAD.webDC, ground: true }]);
-    var set = { list: Gu.LAD.foes.map(function (f) { return f[0]; }), at: Gu.SNARE.slice(), how: 'out of the silk behind him', flag: 'trig:snared', trig: ['snared', 'snaredstep'], // (both spent at the win: the party gathers inside the hollow after, and its step must not ask again)
+    var set = { list: Gu.LAD.foes.map(function (f) { return f[0]; }), at: Gu.SNARE.slice(), how: 'out of the silk behind him', flag: 'trig:snared', trig: ['snared', 'snaredstep'], music: (F0 && F0.music) || 'silk', // (its story battle's song since 11-25: data/fights.js snared, R.fightTune -- odds-1125) // (both spent at the win: the party gathers inside the hollow after, and its step must not ask again)
       line: (F0 && F0.intro) || 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
       place: function (B2, placed) { Gu.placeOn(B2, placed, Gu.LAD.foes, Gu.LAD.minGap); set.placed = placed.map(function (u) { return u.kind + "@" + u.x + "," + u.y; }); }, // (seated before they are drawn: Gu.placeOn)
       onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAD.foes, Gu.LAD.minGap); } }; // (the three on their squares behind him, as the grid fight seats its own)
@@ -319,7 +319,7 @@
     var w0 = B.webs, bx = Gu.LAIR.webBox, sq = [];
     for (var y = bx[1]; y < bx[1] + bx[3]; y++) for (var x = bx[0]; x < bx[0] + bx[2]; x++) if (Gu.ROWS[y] && Gu.ROWS[y].charAt(x) === 'x') sq.push([x, y]);
     B.webs = (w0 || []).concat([{ by: 'the gully\'s silk, the ettercap\'s', sq: sq, dc: Gu.LAIR.webDC, ground: true }]);
-    var set = { list: Gu.LAIR.foes.map(function (e) { return e[0]; }), at: Gu.LAIR.seat.slice(), how: 'from its strand at the back', flag: 'trig:ettercap', trig: ['ettercap'],
+    var set = { list: Gu.LAIR.foes.map(function (e) { return e[0]; }), at: Gu.LAIR.seat.slice(), how: 'from its strand at the back', flag: 'trig:ettercap', trig: ['ettercap'], music: (F0 && F0.music) || 'silk', // (its story battle's song since 11-25: data/fights.js ettercap, R.fightTune -- odds-1125)
       line: (F0 && F0.intro) || 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
       place: function (B2, placed) { Gu.placeOn(B2, placed, Gu.LAIR.foes, Gu.LAIR.minGap); set.placed = placed.map(function (u) { return u.kind + "@" + u.x + "," + u.y; }); }, // (seated before they are drawn: Gu.placeOn)
       onSpill: function (B2) { set.opening = Gu.seatOn(B2, Gu.LAIR.foes, Gu.LAIR.minGap); } };

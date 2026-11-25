@@ -23,7 +23,7 @@
     // ------------------------------------------------------------------ the 8-bit game's set pieces (09-27, the ladder seat, on Griz's word:
     // "start with boss fights from the 8-bit that don't involve water ... The otyugh fight should probably slot in there").
     // A rung may hold more than one fight: the set piece first, the bestiary's fights beside it (left/right on the ladder).
-    { id: 'ettercap', story: true, level: 3, ladder: false, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
+    { id: 'ettercap', story: true, level: 3, ladder: false, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'silk',
       intro: 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
       from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider + two wolf spiders)', won: 'THE GULCH GOES QUIET.',
       // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): two
@@ -50,7 +50,7 @@
     // and the crawlers come out of the pens (`pens`). One of the party off the edge takes them all back up to the 8-bit map
     // (oneLeavesAll). What is dead stays dead (the flags, through the seam). Every square here is the 8-bit map's: the grid is
     // turned (data/maps.js wet from8), and deep16/js/wet.js turns these with it
-    { id: 'wet', story: true, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'boss', settling: true, oneLeavesAll: true,
+    { id: 'wet', story: true, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'undertow', settling: true, oneLeavesAll: true,
       noCards: true, // (RULED 09-30c: "This should stay off the ladder, and probably not have start or end cards (no press e, just go)" -- no level: off the ladder)
       intro: 'Black water under the fall; the pools settling in the dark.',
       from: 'the 8-bit game: the Warrens, the wet (events.js S.jelly, S.poolOoze, S.landlord; js/wet.js)', won: 'THE WET GOES QUIET.', lost: 'THE HERD TAKES THEM.',
@@ -114,7 +114,7 @@
       from: 'the 8-bit game: deep.js S.holdStair (a crew boss, two thugs, two of the night crew; the 8-bit game\'s easy fight at 6, hard for four at 2)', won: 'THE STAIR HOLDS.',
       foes: [{ id: 'boss', kind: 'crewboss', at: [9, 2] }, { id: 'th1', kind: 'thug', at: [6, 3] }, { id: 'th2', kind: 'thug', at: [13, 3] },
              { id: 'nc1', kind: 'robber', at: [4, 5] }, { id: 'nc2', kind: 'robber', at: [15, 5] }], wave: null },
-    { id: 'snoot', story: true, level: 3, ladder: false, map: 'pithills', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss', // (map: the open hills since 11-24, E11 -- Griz of this fight, his play of 11-23: "we at least need to put this on a roaded hills map/one without walls"; data/maps.js pithills, the same squares)
+    { id: 'snoot', story: true, level: 3, ladder: false, map: 'pithills', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'glory', // (map: the open hills since 11-24, E11 -- Griz of this fight, his play of 11-23: "we at least need to put this on a roaded hills map/one without walls"; data/maps.js pithills, the same squares)
       intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',
       from: 'the 8-bit game: events.js S.snoot (a glory-seeker, three gnolls, three hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',
       // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): a third
@@ -159,7 +159,7 @@
       intro: 'Hask hefts the pry-bar. The wheelwright hangs back by the lamp. (He runs for the stair when Hask falls.)',
       from: 'the 8-bit game: deep.js, The One Law\'s FIGHT (Hask, the wheelwright, two crewmen; the 8-bit game fights it at 5-6, hard for four at 4)', won: 'THE CREW IS DOWN.',
       foes: [{ id: 'hask', kind: 'hask', at: [9, 5] }, { id: 'ww', kind: 'wheelwright', at: [10, 2] }, { id: 'cm1', kind: 'crewman', at: [6, 6] }, { id: 'cm2', kind: 'crewman', at: [13, 6] }], wave: null },
-    { id: 'snared', story: true, level: 2, map: 'gulch', name: 'The Snared Lad', sub: 'Web Gulch', music: 'boss',
+    { id: 'snared', story: true, level: 2, map: 'gulch', name: 'The Snared Lad', sub: 'Web Gulch', music: 'silk',
       intro: 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
       from: 'the 8-bit game: events.js, the snared lad (two wolf spiders and a giant spider)', won: 'YOU CUT THE TRAVELER DOWN.',
       foes: [{ id: 'ws1', kind: 'wolfspider', at: [5, 13] }, { id: 'ws2', kind: 'wolfspider', at: [6, 4] }, { id: 'gs1', kind: 'giantspider', at: [3, 7] }], wave: null },
@@ -230,7 +230,7 @@
     // the gimmick's home (Griz, 09-28: "the first 16-bit fight with a cloaker in which Aurdin magic-missiles a cloaker ... a quick cutscene
     // close-up of Aurdin and then that mp3, then a close up of the cloaker showing it hit, then big close up cloaker face"): the first
     // Magic Missile thrown at the darkness here is the cutscene (magic.js darts, ui.js scene), and the cloaker comes for the caster
-    { id: 'cloaker', story: true, level: 6, map: 'deep', name: 'The Cloaker', sub: 'the deep gallery', music: 'boss', gimmick: 'darkness',
+    { id: 'cloaker', story: true, level: 6, map: 'deep', name: 'The Cloaker', sub: 'the deep gallery', music: 'gallery', gimmick: 'darkness',
       intro: 'Something hangs from the roof like a cloak somebody left behind. Then it opens. (It is dark down here, and it hates the light.)',
       from: 'the 8-bit game: events.js, the tail bounty (the cloaker; the 8-bit game fights it at 4-5, hard for four at 6)', won: 'PROOF FOR HESSLE\'S SCALES.',
       foes: [{ id: 'clk', kind: 'cloaker', at: [12, 4] }], wave: null },
@@ -256,7 +256,7 @@
       from: 'the 8-bit game: the Hex (the floor\'s brawlers and the card bruiser; the 8-bit game fights them one on one, the ladder all at once)', won: 'THE FLOOR IS YOURS.',
       foes: [{ id: 'br1', kind: 'brawler', at: [5, 4] }, { id: 'br2', kind: 'brawler', at: [12, 4] }, { id: 'br3', kind: 'brawler', at: [5, 8] }, { id: 'br4', kind: 'brawler', at: [12, 8] },
              { id: 'cb', kind: 'cardbruiser', at: [8, 2] }], wave: null },
-    { id: 'keeper', story: true, level: 3, ladder: false, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss', oneLeavesAll: true, // (10-04, Griz, after the escape by the corridor: "pull the rest of the party" as the Wet does)
+    { id: 'keeper', story: true, level: 3, ladder: false, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'undertow', oneLeavesAll: true, // (10-04, Griz, after the escape by the corridor: "pull the rest of the party" as the Wet does)
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
       foes: [{ id: 'keeper', kind: 'keeper', at: window.D16.laneAt(window.D16.MAPS.floodstair, window.D16.MAPS.floodstair.geo.keeper[0], window.D16.MAPS.floodstair.geo.keeper[1], 2), hidden: true }], wave: null }, // (in the lane frame, data/maps.js floodstair geo.keeper)

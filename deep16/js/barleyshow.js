@@ -206,7 +206,7 @@
 
     var only = get('only'), look = get('look'), list = BEATS.filter(function (b) { return (!only || only.split(',').indexOf(b.id) >= 0) && (!look || b.look === look || b.id === 'mail'); });
     var i = Math.max(0, Math.min(list.length - 1, (+(get('beat') || 1)) - 1));
-    D.music('camp');
+    D.music('title'); // (the class floor's own tune, js/battle.js -- it asked for 'camp', which js/audio.js never had, and so played nothing: the house lane's 11-22 side find, fixed 11-25 by odds-1125)
     while (i < list.length) {
       var b = list[i];
       B.clearCards(); seen = [];

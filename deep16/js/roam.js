@@ -1399,7 +1399,7 @@
   // unless its caller has already set a fight tune (the yard's, the barn's, the path's and the lake's `boss`); R.after puts the floor's tune back for every end but a loss.
   // (The gulch lane's 11-22 find: "no fight in the gulch starts a tune. Fights in place never call one" -- his "with music on i note fight music didn't start when this was
   // triggered"; and the inn's 11-24, his "the music should change after willem and amara escape": the boss tune ran on past every floor fight, R.after had no R.tune)
-  R.FIGHT_TUNES = { battle: 1, boss: 1, hex: 1 };
+  R.FIGHT_TUNES = { battle: 1, boss: 1, hex: 1, silk: 1, undertow: 1, gallery: 1, glory: 1 }; // (the story battles' four since 11-25: js/audio.js, odds-1125)
   R.fightTune = function (grp) {
     var A = window.DS && window.DS.audio, cur = A && A.songId;
     if (grp && grp.music) { D.music(grp.music); return grp.music; }
@@ -1606,7 +1606,7 @@
     var who = R.whoOf(B, placed);
     var sees = sight.lightBy ? sight.lightBy + ' ' + sight.lightFt + ' ft' : 'no light';
     if (sight.dv) sees += ', ' + sight.dvBy + '\'s darkvision ' + sight.dv + ' ft';
-    var grp = { foes: placed, why: why, mode: 'approach', motivated: R.hunts(p.grp, placed), rolled: false, stall: 0, t: B.t, seenAt: distFt, flag: set && set.flag, trig: set && set.trig, onSpill: set && set.onSpill, zone: set ? null : R.zoneAt(B, t.x, t.y) || 'warrens_d' }; // (zone: the tally's, as the 8-bit's EV.encounter sends it)
+    var grp = { foes: placed, why: why, mode: 'approach', motivated: R.hunts(p.grp, placed), rolled: false, stall: 0, t: B.t, seenAt: distFt, flag: set && set.flag, trig: set && set.trig, onSpill: set && set.onSpill, zone: set ? null : R.zoneAt(B, t.x, t.y) || 'warrens_d', music: (set && set.music) || undefined }; // (zone: the tally's, as the 8-bit's EV.encounter sends it) // (music: a set fight's own tune, R.fightTune -- the gulch's lad and lair, the story battles' songs of 11-25, odds-1125)
     R0.last = { why: why, who: who, kinds: placed.map(function (u) { return u.kind; }), spot: spot, distFt: distFt, how: how, sightFar: sight.far, lightFt: sight.lightFt, dv: sight.dv, lurk: lurk, motivated: grp.motivated, ms: ms, at: [t.x, t.y] };
     R0.log.push(R0.last); R0.sightV = sight.v; // (the map's picture of what they saw: R.paintMap)
     D.sfx('encounter');

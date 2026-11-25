@@ -278,6 +278,34 @@
         ' r.2 E5.4 | E5.2 F#5.2 E5.2 | D5.6 | r.2 F#5.2 D5.2 | C#5.2 B4.2 r.2 | D5.2 C#5.4 | C#5.2 B4.2 D5.2 | B4.2 A4.1 B4.3 | A4.2 r.4 |' +
         ' r.6 | r.2 B4.2 B4.2 | B4.4 A4.2 | A4.2 r.4 | r.2 D5.4 | D5.2 C#5.4 | B4.4 D5.2 | D5.1 C#5.3 D5.2 | E5.2 r.4 |' +
         ' r.6 | r.2 B4.2 B4.2 | B4.4 A4.2 | A4.2 r.4 | r.6 | D5.4 C#5.2 | C#5.2 B4.4 | B4.2 A4.2 B4.2 | B4.2 A4.4 | r.6'
+    },
+    // THE STORY BATTLES' FOUR (2026-11-25, odds-1125 -- RULED 11-22, Griz: "etter fight as well, all story battles to differentiate from random encounter, not all unique but
+    // maybe four varieties?"; his list of the story battles 11-25: "33 - Keeper in the Wet, landlord, cloaker, glory seekers with anchor pin", beside the cocoon rescue and the
+    // ettercap named 11-22). A song a place, the seat's lean for which share (his to move: data/fights.js `music`): Web Gulch's two, the Wet's two, the deep gallery, the Pit
+    // road. Random encounters keep `battle`, the rest of the set pieces `boss`. The tunes the seat's own, invented.json story-battle-songs-1125
+    silk: { // Web Gulch: the snared lad in the cocoon, the braiding ettercap -- B minor, the arp skittering under it
+      bpm: 146, bass: 'pump', pad: 'arp16', drums: 'battle', duty: 0.125, padVol: 0.05, melVol: 0.15,
+      chords: 'Bm Bm G F# Bm Bm Em F# Em Em Bm Bm G A F# F#',
+      melody: 'B4.2 D5.2 F#5.2 B5.2 A#5.2 B5.2 F#5.4 | D6.2 C#6.2 B5.2 A#5.2 B5.8 | G5.2 B5.2 D6.2 G6.2 F#6.4 D6.4 | C#6.4 A#5.4 F#5.8 | B5.2 B5.2 D6.2 B5.2 F#5.4 G5.4 | A5.2 G5.2 F#5.2 E5.2 D5.8 | E5.2 G5.2 B5.2 E6.2 D6.4 B5.4 | C#6.4 A#5.4 F#5.4 C#5.4 |' +
+        ' G5.4 B5.4 E6.4 B5.4 | D6.2 B5.2 G5.2 B5.2 E5.8 | F#5.4 B5.4 D6.4 F#6.4 | E6.2 D6.2 C#6.2 D6.2 B5.8 | D6.4 G6.4 B6.4 G6.4 | A6.2 G6.2 E6.2 C#6.2 A5.8 | A#5.8 C#6.8 | F#6.8 C#6.4 A#5.4'
+    },
+    undertow: { // the Wet: the landlord at its rim, the Keeper on the flooded stair -- C minor, the bass rolling like the fall
+      bpm: 138, bass: 'arp', pad: 'arp8', drums: 'battle', duty: 0.125, padVol: 0.045, melVol: 0.16,
+      chords: 'Cm Cm Ab Bb Cm Cm Fm G Ab Ab Eb Eb Fm Fm G G',
+      melody: 'G5.4 C6.4 D#6.4 D6.4 | C6.6 G5.2 D#5.8 | C6.4 D#6.4 G#6.4 G6.4 | F6.6 D6.2 A#5.8 | G5.4 C6.4 D#6.4 G6.4 | G#6.2 G6.2 F6.2 D#6.2 C6.8 | F5.4 G#5.4 C6.4 G#5.4 | B5.4 D6.4 G6.8 |' +
+        ' G#5.8 C6.8 | D#6.6 C6.2 G#5.8 | G5.8 A#5.4 D#6.4 | D6.4 D#6.4 A#5.8 | C6.4 G#5.4 F5.4 G#5.4 | C6.6 C#6.2 C6.8 | B5.2 D6.2 F6.2 G6.2 F6.4 D6.4 | B5.8 G5.8'
+    },
+    gallery: { // the deep gallery: the cloaker in its darkness -- D harmonic minor, the gallop of something big moving where you can't see it
+      bpm: 128, bass: 'gallop', pad: 'stab', drums: 'battle', duty: 0.25, padVol: 0.06, melVol: 0.15,
+      chords: 'Dm Dm Bb A Dm Dm Gm A Gm Gm Dm Dm Bb C A A',
+      melody: 'D5.6 F5.2 A5.4 D6.4 | C#6.2 D6.2 A5.4 F5.8 | D6.4 Bb5.4 F5.4 D5.4 | E5.6 C#5.2 A4.8 | D5.6 F5.2 A5.4 D6.4 | E6.2 F6.2 E6.2 D6.2 A5.8 | G5.4 Bb5.4 D6.4 G6.4 | F6.2 E6.2 C#6.4 A5.8 |' +
+        ' Bb5.8 A5.4 G5.4 | D6.6 C6.2 Bb5.8 | A5.8 F5.4 D5.4 | E5.4 F5.4 A5.8 | Bb5.4 D6.4 F6.4 D6.4 | E6.4 C6.4 G5.8 | A5.2 C#6.2 E6.2 A6.2 G6.4 E6.4 | C#6.8 A5.8'
+    },
+    glory: { // the Pit road by day: the glory-seekers, the pack's challenge -- G minor, a march at a run
+      bpm: 158, bass: 'pump', pad: 'stab', drums: 'battle2', duty: 0.25, padVol: 0.06, melVol: 0.16,
+      chords: 'Gm Gm Eb F Gm Gm Cm D Eb F Gm Gm Eb F D D',
+      melody: 'G5.2 G5.2 D6.4 Bb5.2 A5.2 G5.4 | D5.4 G5.4 Bb5.8 | Eb6.2 D6.2 C6.2 Bb5.2 G5.8 | A5.4 C6.4 F6.8 | G5.2 G5.2 D6.4 Bb5.2 C6.2 D6.4 | G6.4 F6.4 D6.8 | Eb6.4 D6.4 C6.4 G5.4 | F#5.4 A5.4 D6.8 |' +
+        ' Bb5.4 Eb6.4 G6.8 | F6.4 Eb6.4 C6.8 | D6.2 D6.2 Bb5.2 G5.2 D6.4 G6.4 | F6.2 Eb6.2 D6.2 C6.2 Bb5.8 | G5.4 Bb5.4 Eb6.4 G6.4 | F6.4 C6.4 A5.8 | A5.2 D6.2 F#6.2 A6.2 F#6.4 D6.4 | A5.8 F#5.8'
     }
   };
   var SONGS = {};
