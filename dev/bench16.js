@@ -20723,17 +20723,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okSw('the slowest sets the pace: ' + ft17 + ' ft (a dwarf\'s 25: ' + ft17b + ' ft, rounded up); the wall ' + at(h17.f) + ' ' + at(h17.m) + '; the mate may march again this round ' + again17, ft17 === 10 && ft17b === 15 && at(h17.f) === h17.X + ',' + (h17.Y - 2) && at(h17.m) === (h17.X + 1) + ',' + (h17.Y - 2) && !again17);
       // 18. THE MISSILES (his "2 - 2 rounds, reset after a march move"): a goblin's arrow at a set member marks it; on the AI, two of its rounds under fire with nothing in its reach
       // and it leaves the wall; a march between them resets the count
-      var h18 = mkSw(); h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; h18.g2.x = h18.X + 1; h18.g2.y = h18.Y + 2; h18.g1.x = h18.X - 0; D.grid.setup(h18.B.map, h18.B.units); wallSw(h18); h18.f.guest = h18.m.guest = true; h18.f.classAI = h18.m.classAI = true;
-      h18.f.conds.wall.face = [0, -1]; h18.m.conds.wall.face = [0, -1]; h18.g1.y = h18.Y + 4 > (h18.B.map.h || 99) - 1 ? h18.Y + 2 : h18.Y + 2; D.grid.setup(h18.B.map, h18.B.units);
+      var h18 = mkSw(); h18.g1.x = h18.X; h18.g1.y = h18.Y - 2; h18.g2.x = h18.X + 1; h18.g2.y = h18.Y - 2; D.grid.setup(h18.B.map, h18.B.units); wallSw(h18); h18.f.guest = h18.m.guest = true; h18.f.classAI = h18.m.classAI = true;
+      h18.f.conds.wall.face = [0, -1]; h18.m.conds.wall.face = [0, -1]; h18.f.conds.wall.marched = h18.m.conds.wall.marched = h18.B.round; D.grid.setup(h18.B.map, h18.B.units);
       RUSw.startTurn(h18.g1); h18.B.active = h18.g1; var bow = { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', ranged: true, range: [80, 320], reach: 5 };
-      h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; D.grid.setup(h18.B.map, h18.B.units); var shotBefore = !!h18.f.conds.wall.shot; runSw(h18.B.attack(h18.g1, h18.f, bow)); var shot18 = !!(h18.f.conds.wall && h18.f.conds.wall.shot);
-      h18.g1.x = h18.X; h18.g1.y = h18.Y + 2; h18.g2.y = h18.Y + 2; D.grid.setup(h18.B.map, h18.B.units);
+      h18.g1.x = h18.X; h18.g1.y = h18.Y - 2; D.grid.setup(h18.B.map, h18.B.units); var shotBefore = !!h18.f.conds.wall.shot; runSw(h18.B.attack(h18.g1, h18.f, bow)); var shot18 = !!(h18.f.conds.wall && h18.f.conds.wall.shot);
+      h18.g1.x = h18.X; h18.g1.y = h18.Y - 2; h18.g2.y = h18.Y - 2; D.grid.setup(h18.B.map, h18.B.units);
       var aiTurn = function (u) { RUSw.startTurn(u); h18.B.active = u; runSw(D.features.aiWall(h18.B, u)); };
-      // (the goblins two squares behind: 10 ft, out of a longsword's reach -- behind, so no march comes of it)
+      // (the goblins two squares ahead: 10 ft, out of a longsword's reach; the wall marked as marched this round, so no march comes of it. Till 11-25 they stood two squares
+      // BEHIND, so no march came of it -- since then a wall with every foe behind it breaks to re-form, js/features.js F.aiWall, mode ambush1125 5)
       aiTurn(h18.f); var set1 = D.features.wallSet(h18.f), r1 = h18.f.conds.wall && h18.f.conds.wall.shotRounds;
       h18.f.conds.wall.shot = true; aiTurn(h18.f); var set2 = D.features.wallSet(h18.f);
-      var h18b = mkSw(); h18b.g1.x = h18b.X; h18b.g1.y = h18b.Y + 2; h18b.g2.x = h18b.X + 1; h18b.g2.y = h18b.Y + 2; D.grid.setup(h18b.B.map, h18b.B.units); wallSw(h18b); h18b.f.guest = h18b.m.guest = true;
-      h18b.f.conds.wall.face = h18b.m.conds.wall.face = [0, -1];
+      var h18b = mkSw(); h18b.g1.x = h18b.X; h18b.g1.y = h18b.Y - 3; h18b.g2.x = h18b.X + 1; h18b.g2.y = h18b.Y - 3; D.grid.setup(h18b.B.map, h18b.B.units); wallSw(h18b); h18b.f.guest = h18b.m.guest = true;
+      h18b.f.conds.wall.face = h18b.m.conds.wall.face = [0, -1]; h18b.f.conds.wall.marched = h18b.m.conds.wall.marched = h18b.B.round;
       var aiTurnB = function (u) { RUSw.startTurn(u); h18b.B.active = u; runSw(D.features.aiWall(h18b.B, u)); };
       h18b.f.conds.wall.shot = true; aiTurnB(h18b.f); RUSw.startTurn(h18b.f); h18b.B.round = 2; runSw(D.features.wallMarch(h18b.B, h18b.f)); var rM = h18b.f.conds.wall && h18b.f.conds.wall.shotRounds;
       h18b.B.round = 3; h18b.f.conds.wall.shot = true; aiTurnB(h18b.f); var setB = D.features.wallSet(h18b.f);
@@ -21564,6 +21565,56 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       try { drAB(B4c.co, function () { return B4c.round >= 4 || (B4c.over && B4c.over()); }, 80000); } finally { D.ai.turn = turn4; }
       okAB('4c his fight 2\'s door watched (seed 1125, no runes), rounds 1-3: Crossbow Trooper turns begun with no one in reach and a clear shot -- ' + held4 + ' held and loosed, ' + walked4.length + ' walked in (' + walked4.slice(0, 4).join('; ') + ') (want > 0, 0)', held4 > 0 && walked4.length === 0);
     } catch (eAB4) { D.d = dAB; repAB.errors.push('4: ' + String(eAB4 && eAB4.stack || eAB4).slice(0, 900)); }
+    try {
+      // 5. THE WALL THAT FROZE WITH ITS FOES BEHIND IT (RULED 11-22, "1 - break and re-form facing enemies, so mostly a. also c."): three Troopers set in a line facing west, the
+      // party to the east. 5a round 2: each breaks to re-form (old: each holds, set facing west); 5b round 3: set again, facing east. 5c the made wizard's square -- 2 west and 4 south
+      // of a west-facing pair -- is not in front (no MARCH past him; the half-plane said "ahead"); 5d a foe straight ahead 25 ft off: the MARCH, as before. 5e Sacred Flame from
+      // 30 ft at a set member marks its missiles (a save spell from beyond its reach); from beside it, no mark
+      var FW = D.features, inFrontW = FW.inFront || function () { return null; }, mkW = function (q, line, face, heroes) { // (inFrontW: the old files have no F.inFront -- the rest still runs, RED where it should be)
+        var Bx = mkAB(q), ts = Bx.units.filter(function (u) { return u.side === 'foe'; }), hs = Bx.units.filter(function (u) { return u.side === 'party'; });
+        var lay = ts.map(function (t, i) { return [t, line[i][0], line[i][1]]; }).concat(hs.map(function (h, i) { return [h, heroes[i][0], heroes[i][1]]; }));
+        if (!layAB(Bx, lay)) return null;
+        Bx.round = 2; ts.forEach(function (t) { D.rules.startTurn(t); Bx.active = t; FW.setShields(Bx, t, face); });
+        Bx.active = null; return { B: Bx, ts: ts, hs: hs };
+      };
+      var aiTurn = function (Bx, u) { var n = (Bx.log || []).length; D.rules.startTurn(u); Bx.active = u; drAB(D.ai.turn(Bx, u), null, 4000); Bx.active = null; return (Bx.log || []).slice(n).map(function (l) { return String(l).replace(/^R\d+ /, ''); }).join(' | '); };
+      D.d = function (s) { return Math.min(s, 10); };
+      var W5 = mkW('?npc=trooper,trooper,trooper&vs=fighter:3,cleric:3&lvl=3', [[2, 0], [2, 1], [2, 2]], [-1, 0], [[6, 1], [6, 3]]);
+      if (!W5) okAB('5a the wall laid', false);
+      else {
+        var set5 = W5.ts.every(function (t) { return FW.wallSet(t) && FW.joined(t, W5.B); }), l5a = W5.ts.map(function (t) { return aiTurn(W5.B, t); });
+        var broke5 = W5.ts.filter(function (t) { return !FW.wallSet(t); }).length, said5 = l5a.filter(function (l) { return /breaks from the wall to re-form/.test(l); }).length;
+        okAB('5a three set facing west (' + set5 + '), the party to the east: round 2, out of the wall ' + broke5 + ' of 3, "breaks from the wall to re-form" ' + said5 + ' -- "' + l5a[0].slice(0, 200) + '" (want true, 3, 3)', set5 && broke5 === 3 && said5 === 3);
+        // (5b: broken, each walked in and struck with its action, as any foe; at its next turn it sets where it stands -- the front with the most of ours in front of it)
+        W5.B.round = 3; var l5b = W5.ts.map(function (t) { return aiTurn(W5.B, t); });
+        var faced5 = W5.ts.filter(function (t) { if (!FW.wallSet(t)) return false; var wl = FW.wallOf(W5.B, t); return W5.hs.some(function (h) { return inFrontW(wl.length ? wl : [t], t.conds.wall.face, h); }); }).length;
+        okAB('5b round 3: set again, one of ours in front of its wall, ' + faced5 + ' of 3 (' + W5.ts.map(function (t) { return t.name + ' ' + (FW.wallSet(t) ? JSON.stringify(t.conds.wall.face) : 'not set') + ' at ' + t.x + ',' + t.y; }).join('; ') + '; ours at ' + W5.hs.map(function (h) { return h.x + ',' + h.y; }).join(' ') + ') -- "' + l5b.join(' / ').slice(0, 240) + '" (want 3)', faced5 === 3);
+        W5.B.round = 4; var l5c4 = W5.ts.map(function (t) { return aiTurn(W5.B, t); }).join(' / '), again5 = (l5c4.match(/breaks from the wall to re-form/g) || []).length;
+        okAB('5b2 round 4: no one breaks again (' + again5 + ') (want 0)', again5 === 0);
+      }
+      var W5c = mkW('?npc=trooper,trooper&vs=wizard:3&lvl=3', [[3, 0], [3, 1]], [-1, 0], [[1, 4]]);
+      if (!W5c) okAB('5c the wall laid', false);
+      else {
+        var wz5 = W5c.hs[0], inF = inFrontW(W5c.ts, [-1, 0], wz5), l5c = aiTurn(W5c.B, W5c.ts[0]);
+        okAB('5c a west-facing pair, the made wizard 2 squares west and 4 south of the first: in front ' + inF + '; its turn: MARCH ' + /calls MARCH/.test(l5c) + ' -- "' + l5c.slice(0, 200) + '" (want false, false)', !inF && !/calls MARCH/.test(l5c));
+      }
+      var W5d = mkW('?npc=trooper,trooper&vs=wizard:3&lvl=3', [[6, 0], [6, 1]], [-1, 0], [[1, 0]]);
+      if (!W5d) okAB('5d the wall laid', false);
+      else {
+        var l5d = aiTurn(W5d.B, W5d.ts[0]);
+        okAB('5d the same pair, the wizard straight ahead 25 ft: in front ' + inFrontW(W5d.ts, [-1, 0], W5d.hs[0]) + ', the MARCH ' + /calls MARCH/.test(l5d) + ' -- "' + l5d.slice(0, 200) + '" (want true, true)', /calls MARCH/.test(l5d));
+      }
+      var W5e = mkW('?npc=trooper,trooper&vs=cleric:3&lvl=3', [[1, 0], [1, 1]], [1, 0], [[7, 0]]);
+      if (!W5e) okAB('5e the wall laid', false);
+      else {
+        var cl5 = W5e.hs[0], m5 = W5e.ts[0]; D.rules.startTurn(cl5); W5e.B.active = cl5; drAB(D.magic.cast(W5e.B, cl5, 'sacredflame', 0, m5), null, 4000);
+        var far5 = !!(m5.conds.wall && m5.conds.wall.shot); if (m5.conds.wall) m5.conds.wall.shot = false;
+        cl5.x = m5.x + 1; cl5.y = m5.y; GAB.setup(GAB.map, W5e.B.units); W5e.B.cache = null; D.rules.startTurn(cl5); drAB(D.magic.cast(W5e.B, cl5, 'sacredflame', 0, m5), null, 4000);
+        var near5 = !!(m5.conds.wall && m5.conds.wall.shot); W5e.B.active = null;
+        okAB('5e Sacred Flame at a set member from 30 ft: its missiles marked ' + far5 + '; from beside it ' + near5 + ' (want true, false)', far5 && !near5);
+      }
+      D.d = dAB;
+    } catch (eAB5) { D.d = dAB; repAB.errors.push('5: ' + String(eAB5 && eAB5.stack || eAB5).slice(0, 900)); }
     try { /* (the next sections) */ } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
     D.d = dAB;
     var preAB = document.createElement('pre'); preAB.id = 'out'; preAB.textContent = 'BENCH16 ' + JSON.stringify(repAB);

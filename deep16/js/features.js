@@ -1524,6 +1524,32 @@
   // the missiles a set member takes (his "2 - 2 rounds, reset after a march move"): a shot or a spell's attack from beyond its reach marks it (battle.js attack calls this);
   // its own turn counts the rounds (F.aiWall)
   F.wallShot = function (att, tgt, atk, melee) { if (tgt && atk && !melee && tgt.conds && tgt.conds.wall && F.wallSet(tgt)) tgt.conds.wall.shot = true; };
+  // SAVE SPELLS COUNT AS MISSILES (RULED 11-22, Griz: "also c", on the Code tab's "(c) let save spells count toward the missiles break as well"): a set member that makes a save
+  // against a spell cast by a foe out of its reach is marked as a shot marks it, and its turn counts the round (F.aiWall). In his BUGBEAR AMBUSH fight 2 (11-22) Sacred Flame, Acid
+  // Splash and two Burning Hands never counted, and the set wall held with every foe behind it. The caster is the cast's (M.cast, wrapped: F.castBy for its length); RU.save asks it
+  var castW = M.cast;
+  M.cast = function* (B, u) { var prev = F.castBy; F.castBy = u; try { return yield* castW.apply(this, arguments); } finally { F.castBy = prev; } };
+  var saveW = RU.save;
+  RU.save = function (u) {
+    var r = saveW.apply(this, arguments), c = F.castBy;
+    if (c && u && u.conds && u.conds.wall && c !== u && G.hostile(c, u) && G.dist(c, u) > G.armOf(u) && F.wallSet(u)) u.conds.wall.shot = true;
+    return r;
+  };
+  // IN FRONT OF THE WALL (11-25, on his "1 - break and re-form facing enemies, so mostly a"; the 11-22 tab's "Read the march's half-plane 'ahead' with it"): past the line's front,
+  // and no farther out beyond the line's ends than it is ahead -- the cone off each end, as a watch's widens (battle.js nearOf). Till 11-25 the MARCH read the half-plane: the made
+  // wizard 2 squares west and 4 south of a west-facing Trooper was "ahead" of it, and the wall marched past him. `wall`: its members (one, set alone), `face` its front
+  F.inFront = function (wall, face, w) {
+    var p = [-face[1], face[0]], line = Math.max.apply(null, wall.map(function (s) { return s.x * face[0] + s.y * face[1]; }));
+    var al = wall.map(function (s) { return s.x * p[0] + s.y * p[1]; }), lo = Math.min.apply(null, al), hi = Math.max.apply(null, al);
+    return G.foot(w).some(function (q) { var fwd = q[0] * face[0] + q[1] * face[1] - line, a = q[0] * p[0] + q[1] * p[1], lat = a < lo ? lo - a : a > hi ? a - hi : 0; return fwd > 0 && lat <= fwd; });
+  };
+  // the front a re-form takes with no re-formed mate beside it (F.aiWall): of the four straight ways, the one with the most foes it knows of within 60 ft in front of it -- a tie,
+  // F.faceOf's (toward the nearest). F.faceOf alone reads a diagonal tie as up or down, and a front with no foe in front of it would break again at the next turn
+  F.reformFace = function (B, u) {
+    var kf = knownFoes(B, u).filter(function (w) { return G.dist(u, w) <= 60; }), f0 = F.faceOf(B, u), best = f0, bn = -1;
+    [f0, [0, -1], [1, 0], [0, 1], [-1, 0]].forEach(function (f) { var n = kf.filter(function (w) { return F.inFront([u], f, w); }).length; if (n > bn) { bn = n; best = f; } });
+    return best.slice();
+  };
   // THE COVER BEHIND THE WALL (G.los asks it of each creature in a line): a joined member w, and of the two the line joins the one behind w (against the wall's facing) --
   // 5 (three-quarters) in the first square behind, 2 (half) in the second; one larger than w, 2 in the first and none of the wall's past it. The one in front gets nothing
   // of the wall's own (the ordinary half a creature in the line gives stays G.los's)
@@ -1683,7 +1709,15 @@
     if (!F.wallReady(u) || !(u.turn.bonus > 0)) return;
     var reach = G.armOf(u), walls = sideWalls(B, u);
     if (!F.wallSet(u)) {
+      if (u.wallReform != null && B.round - u.wallReform > 2) delete u.wallReform; // (a re-form never made: stale)
       if (!F.canSet(u) || !F.formGuard(B, u)) return;
+      // THE RE-FORM'S SECOND TURN (below, the break): set again where it stands, facing the foes -- the nearest one's way, or a mate's already turned (F.faceOf); a wall of its side
+      // standing farther off, it goes to that as ever
+      if (u.wallReform != null && u.wallReform < B.round) {
+        delete u.wallReform;
+        var mateR = walls.some(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; });
+        if (!walls.length || mateR) { B.card(['{y}' + u.name + '{/} re-forms the wall to face them.'], 160); F.setShields(B, u, mateR ? null : F.reformFace(B, u)); yield 10; return; }
+      }
       if (!walls.length) { // (no wall of its side yet)
         if (B.round === 1 || foeWithin(B, u, reach) && B.units.some(function (w) { return w !== u && w.side === u.side && F.wallReady(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })) { F.setShields(B, u); yield 10; }
         return;
@@ -1704,10 +1738,19 @@
     var Wm = u.conds.wall; if (Wm.shot) { Wm.shotRounds = (Wm.shotRounds || 0) + 1; Wm.shot = false; }
     if (foeWithin(B, u, reach)) Wm.shotRounds = 0;
     else if ((Wm.shotRounds || 0) >= 2) { B.card(['{g}' + u.name + ' breaks from the wall: two rounds of missiles and nothing comes on.{/}'], 200); F.leaveWall(B, u); yield 8; return; }
+    // BREAK AND RE-FORM FACING THE FOES (RULED 11-22, Griz: "1 - break and re-form facing enemies, so mostly a", on the Code tab's "The wall: when every foe is behind it or on its
+    // flank, what should it do?"): the foes it knows of within 60 ft, none of them in front of its wall (F.inFront), it leaves (the bonus action) and at its next turn sets again
+    // where it stands, facing them (above). LEAVE and SET SHIELDS are each the bonus action, so the re-form spans two turns; one in a single turn would be a new rule, and his.
+    // Its set pikes come out with it (F.pikeSet: the shield before them gone) and take the rank behind the new front. In his fight 2 the patrol's wall set facing west at Drill,
+    // marched past the made wizard, and from round 3 every foe was behind it: the three set logged 18 "paces" to round 9, the File Leader 10 ft from the made wizard
+    var wl = F.wallOf(B, u), fr = knownFoes(B, u).filter(function (w) { return G.dist(u, w) <= 60; });
+    if (fr.length && !fr.some(function (w) { return F.inFront(wl.length ? wl : [u], u.conds.wall.face, w); })) {
+      B.card(['{g}' + u.name + ' breaks from the wall to re-form it: every foe behind it or on its flank.{/}'], 200); F.leaveWall(B, u); u.wallReform = B.round; yield 8; return;
+    }
     if (F.canPush(B, u) && F.pushers(B, u).length > 1) { yield* F.wallPush(B, u); return; }
     if (!foeWithin(B, u, reach) && F.canMarch(B, u)) {
       var fc = u.conds.wall.face, nf = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-      if (nf && (nf.x - u.x) * fc[0] + (nf.y - u.y) * fc[1] > 0) { yield* F.wallMarch(B, u); if (F.canPush(B, u) && F.pushers(B, u).length > 1) yield* F.wallPush(B, u); }
+      if (nf && F.inFront(wl.length ? wl : [u], fc, nf)) { yield* F.wallMarch(B, u); if (F.canPush(B, u) && F.pushers(B, u).length > 1) yield* F.wallPush(B, u); } // (in front of it, not the half-plane: F.inFront, 11-25)
     }
   };
   TX.FIRST.unshift(function* (B, u) { yield* F.aiWall(B, u); });
