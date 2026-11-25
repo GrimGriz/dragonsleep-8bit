@@ -519,6 +519,22 @@
         return [hid0 && caught.length > 0 && held && sprung, 'hidden from the start ' + hid0 + ', caught unaware: ' + (caught.join(', ') || 'no one') + '; its turn: ' + (held ? 'held still, hidden, the scimitar readied' : 'NOT held at ' + sqOf(gob)) + '; the wizard beside it: ' + (sprung ? 'the readied blade from hiding, the ambush sprung' : l.slice(0, 120))];
       } finally { unpost([gob, wizard, cleric]); }
     }
+    function* postSeen() {
+      // AN AMBUSH SEEN COMING (11-25, his "grid lane the bugbear fix", on his card "Bugbears never acted, party wasn't surprised"): a goblin laid in AMBUSH, its Stealth low (the
+      // d20 pinned at 2: 8), the wizard and the cleric 30 ft off -- both see it coming: no one caught, the goblin found and the ambush off before round 1 (js/postures.js
+      // P.seenComing, as battle.js run calls it after the surprise); its turn is any foe's -- it comes on
+      stage([wizard, cleric, gob], [[0, 3], [2, 3], [0, -3]]); setPin(2, null); wizard.maxhp = wizard.hp = 200; cleric.maxhp = cleric.hp = 200;
+      try {
+        gob.post = { kind: 'ambush', at: [gob.x, gob.y] }; freshEars(); D.postures.start(B); B.round = 0;
+        say(['A goblin laid in AMBUSH, hidden from the start -- but its Stealth is poor (' + gob.hidTotal + '). The SRD\'s surprise: its Stealth against each passive Perception.']); yield W(80);
+        var n = mark(); yield* fire(D.postures.surprise(B)); yield W(50); yield* fire(D.postures.seenComing(B)); yield W(70); var l0 = since(n);
+        var caught = [wizard, cleric].filter(function (w) { return w.conds.surprised; }).length, found = !gob.conds.hidden, off = gob.postBroke === 'is seen coming';
+        wizard.conds = {}; cleric.conds = {}; B.round = 1; var x0 = gob.x, y0 = gob.y;
+        say(['Seen coming, the ambush is off: a plain fight from round 1. Its turn -- it comes on as any foe.']); yield W(60);
+        n = mark(); yield* aiTurn(gob); yield W(70); var l1 = since(n), came = gob.x !== x0 || gob.y !== y0 || / > /.test(l1);
+        return [caught === 0 && found && off && /SEEN COMING/.test(l0) && came, 'caught unaware: ' + caught + '; the card ' + (/SEEN COMING/.test(l0) ? 'SEEN COMING' : 'NOT said') + '; found ' + found + ', the ambush ' + (off ? 'off' : 'NOT off (' + gob.postBroke + ')') + '; its turn: ' + (came ? 'it came on, to ' + sqOf(gob) : 'it held at ' + sqOf(gob))];
+      } finally { unpost([gob, wizard, cleric]); }
+    }
     function* postDefend() {
       // a wolf laid to DEFEND its square, 15 ft round (drawn): the cleric 35 ft off -- it holds and readies; the cleric at 20 ft from the ward -- it goes at the cleric from inside
       // its ground; the cleric steps back out -- it holds again. Never further than 15 ft from the ward
@@ -713,6 +729,7 @@
       { id: 'thrownpickup', group: 'gridfix1110', name: 'A thrown weapon picked up', what: 'A thrown weapon lands: a miss on the square past the target, a hit at its feet. Walked onto, one of the party takes it up (the hand on an object, free); the fight won, what still lies there is gathered into the pack. (11-10, your "pickup with auto-pack ground items at fight end".)', run: thrownPickup },
       { id: 'throwwheel', group: 'throw1111', name: 'THROW on the wheel', what: 'Your play of 11-11 ("couldn\'t figure out how to throw a dagger with drill") and your rulings that day: THROW under ACTIONS lists what can be thrown and from where -- a hand, or carried with a hand free, drawn with the turn\'s free draw. Thrown once, it sits on the first ring beside ATTACK for the fight and a click on a foe out of reach asks it; the last one, a magic one or the off hand\'s is warned first; none left, it drops off the first ring.', run: throwWheel },
       { id: 'postambush', group: 'postures', name: 'A rune\'s AMBUSH', what: 'The Pocket DM\'s runes (11-10): a foe the DM laid in ambush is hidden from the start, its own Stealth held, and the SRD\'s surprise is rolled -- its Stealth against each passive Perception; caught unaware, no turn in round 1. It holds still: one of ours in sight but out of reach, it readies its blade unseen; one walks up, and the readied blow comes from hiding.', run: postAmbush },
+      { id: 'postseen', group: 'postures', name: 'An AMBUSH seen coming', what: 'Your BUGBEAR AMBUSH card of 11-21: "Bugbears never acted, party wasn\'t surprised." A foe laid in ambush whose Stealth one of ours beats is seen coming: it is found, the ambush is off before round 1 (SEEN COMING on the card), and it fights on its initiative as any foe. One no one noticed stays hidden and strikes from it; an ambush no one noticed lies in wait as before. A tie is the hider\'s.', run: postSeen },
       { id: 'postdefend', group: 'postures', name: 'A rune\'s DEFEND', what: 'A foe laid to defend holds within 15 ft of its ward (drawn): it readies against what comes, goes at one near the ward from inside its ground, and never chases out of it -- whatever it hears.', run: postDefend },
       { id: 'postpatrol', group: 'postures', name: 'A rune\'s PATROL', what: 'A foe laid on patrol walks from its rune to the second square (both drawn) and back while it knows of no one. A sight of one of ours (or a blow heard within 60 ft) breaks it, and it hunts as any foe.', run: postPatrol },
       { id: 'poststand', group: 'postures', name: 'A rune\'s STAND', what: 'A foe laid to stand waits where it was laid with a Ready (SRD 5.1). The first that comes into its reach gets the readied blow; struck or striking, it is in the fight, and fights as any foe.', run: postStand },

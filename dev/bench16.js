@@ -21562,8 +21562,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         return r;
       };
       function G9ok(u) { return u && !u.dead && u.hp > 0 && D.rules.canAct(u); } // (asleep, held: no turn to judge)
-      try { drAB(B4c.co, function () { return B4c.round >= 4 || (B4c.over && B4c.over()); }, 80000); } finally { D.ai.turn = turn4; }
-      okAB('4c his fight 2\'s door watched (seed 1125, no runes), rounds 1-3: Crossbow Trooper turns begun with no one in reach and a clear shot -- ' + held4 + ' held and loosed, ' + walked4.length + ' walked in (' + walked4.slice(0, 4).join('; ') + ') (want > 0, 0)', held4 > 0 && walked4.length === 0);
+      var upto4 = +(get('runs', '') || 4); // (runs=10, a key dev/bench16.py passes on: the fight to round 9 for the eyes row's reading -- the re-forms, Hold Person -- not the gate's)
+      try { drAB(B4c.co, function () { return B4c.round >= upto4 || (B4c.over && B4c.over()); }, 80000 * Math.max(1, upto4 / 4)); } finally { D.ai.turn = turn4; }
+      var log4 = (B4c.log || []).map(String), rf4 = log4.filter(function (l) { return /re-forms the wall|breaks from the wall to re-form/.test(l); }), hp4 = log4.filter(function (l) { return /HOLD PERSON/.test(l); });
+      okAB('4c his fight 2\'s door watched (seed 1125, no runes), rounds 1-' + (upto4 - 1) + ': Crossbow Trooper turns begun with no one in reach and a clear shot -- ' + held4 + ' held and loosed, ' + walked4.length + ' walked in (' + walked4.slice(0, 4).join('; ') + ') (want > 0, 0) [the walls: ' + rf4.length + ' re-form lines' + (rf4.length ? ', first "' + rf4[0].slice(0, 90) + '"' : '') + '; Hold Person: ' + hp4.length + (hp4.length ? ', "' + hp4[0].slice(0, 90) + '"' : '') + '; the fight ' + (B4c.over && B4c.over() ? 'over at round ' + B4c.round : 'at round ' + B4c.round) + ']', held4 > 0 && walked4.length === 0);
     } catch (eAB4) { D.d = dAB; repAB.errors.push('4: ' + String(eAB4 && eAB4.stack || eAB4).slice(0, 900)); }
     try {
       // 5. THE WALL THAT FROZE WITH ITS FOES BEHIND IT (RULED 11-22, "1 - break and re-form facing enemies, so mostly a. also c."): three Troopers set in a line facing west, the
@@ -21615,6 +21617,43 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       }
       D.d = dAB;
     } catch (eAB5) { D.d = dAB; repAB.errors.push('5: ' + String(eAB5 && eAB5.stack || eAB5).slice(0, 900)); }
+    try {
+      // 6. MAGIC MISSILE AND CONCENTRATION (11-21, Griz: "solve via SRD if applicable"; the grid lane's lead: one save stands -- "all strike simultaneously" -- is its DC from the
+      // SUM of the darts that hit that creature?): a wizard's five darts (a 3rd-level slot), every die its top, all at one ogre holding Bless -- 25 force, DC 12 (a dart alone: 10)
+      D.d = function (s) { return s; };
+      var B6 = mkAB('?npc=ogre&vs=wizard:5&lvl=5'), wz6 = B6.units.filter(function (u) { return u.side === 'party'; })[0], og6 = B6.units.filter(function (u) { return u.side === 'foe'; })[0];
+      if (!layAB(B6, [[wz6, 1, 2], [og6, 5, 2]])) okAB('6 the fight laid', false);
+      else {
+        og6.hp = og6.maxhp = 999; og6.conc = { name: 'Bless', id: 'bless', undo: function () {} };
+        D.rules.startTurn(wz6); B6.active = wz6; var n6 = (B6.log || []).length;
+        drAB(D.magic.cast(B6, wz6, 'magicmissile', 3, { units: [og6, og6, og6, og6, og6] }), null, 4000); B6.active = null;
+        var l6 = (B6.log || []).slice(n6).join(' | '), saves6 = (l6.match(/holds Bless\? CON/g) || []).length, dc6 = +((l6.match(/holds Bless\? CON [^|]*?vs DC (\d+)/) || [])[1] || 0);
+        okAB('6 five darts at one ogre holding Bless, every die its top: ' + saves6 + ' concentration save, DC ' + dc6 + ' -- "' + l6.replace(/\{\/?[a-z]*\}/g, '').slice(0, 220) + '" (want 1, 12: half the sum, 25)', saves6 === 1 && dc6 === 12);
+      }
+      D.d = dAB;
+    } catch (eAB6) { D.d = dAB; repAB.errors.push('6: ' + String(eAB6 && eAB6.stack || eAB6).slice(0, 900)); }
+    try {
+      // 7. THE SHOW'S BEAT (js/eyes.js eyes-ambush-seen-1125, deep16/?rulesshow&only=postseen&lvl=3): staged and run by the engine, headless with &fast
+      D.scenes.length = 0; var B7 = D.rulesshow.make('?rulesshow&fast&only=postseen&lvl=3'); D.battle = B7; B7.enter();
+      var v7, k7 = 0; while (B7.co && k7++ < 400000) { var r7 = B7.co.next(v7); v7 = undefined; if (r7.done) break; var y7 = r7.value; if (y7 && y7.prompt) v7 = y7.prompt.opts[0].value; }
+      (B7.rulesReport || []).forEach(function (b) { okAB('7 the show: ' + b.name + ' -- ' + b.why, b.ok); });
+      okAB('7 the show ran ' + (B7.rulesReport || []).length + ' beat (want 1)', (B7.rulesReport || []).length === 1);
+    } catch (eAB7) { repAB.errors.push('7: ' + String(eAB7 && eAB7.stack || eAB7).slice(0, 900)); }
+    try {
+      // 8. A NEIGHBOUR'S DOOR STILL SHOWS WHAT ITS ROW ASKS (js/eyes.js eyes-garrison-saves-1125, seed 3, watched): the Crossbow Trooper now shoots from where it stands and the
+      // clerics weigh the bonus action -- the seeded fight runs another way: seed 3 stages no Sacred Flame on a trooper in round one now, so the row is written fresh on a seed that
+      // does (reads=scan lists them)
+      var SEED8 = 4; // (the scan on these files: 4, 6, 9, 10, 11, 14, 15, 16 -- the first)
+      var sfAt8 = function (seed) {
+        D.scenes.length = 0; var B8 = D.npcFight('?npc=trooper,trooper,trooperxbow,trooperpike&vs=cleric:3,wizard:3,cleric:3&lvl=3&watch&seed=' + seed, {}); D.push(B8); D.battle = B8; B8.enter();
+        drAB(B8.co, function () { return B8.round >= 2 || (B8.over && B8.over()); }, 40000);
+        var lg = (B8.log || []).map(String), i = -1; lg.some(function (l, j) { if (/SACRED FLAME/.test(l) && /Trooper/.test(l)) { i = j; return true; } return false; });
+        return i < 0 ? null : lg.slice(i, i + 3).join(' / ');
+      };
+      if (get('reads', '') === 'scan') { var sc8 = []; for (var s8 = 1; s8 <= 16; s8++) sc8.push(s8 + ':' + (sfAt8(s8) ? 'yes' : '-')); okAB('8 scan ' + sc8.join(' '), true); }
+      var sf8 = sfAt8(SEED8);
+      okAB('8 eyes-garrison-saves-1125b\'s door (seed ' + SEED8 + ', watched), round one: a Sacred Flame on a trooper -- "' + (sf8 || 'none') + '" (want one, its save one d20)', !!sf8 && !/Trooper: d20 \[/.test(sf8));
+    } catch (eAB8) { repAB.errors.push('8: ' + String(eAB8 && eAB8.stack || eAB8).slice(0, 900)); }
     try { /* (the next sections) */ } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
     D.d = dAB;
     var preAB = document.createElement('pre'); preAB.id = 'out'; preAB.textContent = 'BENCH16 ' + JSON.stringify(repAB);
