@@ -32493,6 +32493,136 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preCr);
     return;
   }
+  // THE FARE HOME (mode=fare1125; 11-25, the seat module-1125 -- RULED, Griz: "how bout a Pocket DM module based on all the new stuff added this week?", then "good on the
+  // leans, build module"): the game's second module (data/modules.js farehome) whole -- nine fights, four at 3rd, its floors dealt and its foes in the bestiary, each fight's
+  // runes kept by PK.moduleOf, its rests as flagged; THE MODULES, THE PARTY TO LEVEL 3, LOAD THIS MODULE, PLAY, fight 1 laid on its runes; then played through `runs` times
+  // (3 in the gate) by the AI's party as module1017 plays THE WAGON ROAD (RETRY on a loss, `retry` tries a run, 20 by default), and each fight's beat read off its lines: the
+  // draggers' NET and HOOK and Wagon Drill's drag, the Ledger's plays, each lady's patron's own spells and her mender's Doubling, Hand on the Neck, Hold Person and Healing
+  // Word, the garrison's shields and pikes set, its crossbows shooting and its wall re-forming, the ambush seen coming or not, the cube's and the mound's Engulf. A beat is
+  // GREEN where any run that reached its fight saw it; the rates print. only=<n>: that fight alone, `runs` times on fresh seeds after a long rest (a staging read, not the gate's)
+  if (get('mode', '') === 'fare1125') {
+    var repF = { checks: [], errors: [], runs: [], reach: [], beats: {}, fights: {} };
+    var okF = function (c, s) { repF.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memF = {}, stGF = D.store.get, stSF = D.store.set, push0F = D.push;
+    D.store.get = function (k) { return memF[k] ? JSON.parse(memF[k]) : null; }; D.store.set = function (k, v) { memF[k] = JSON.stringify(v); return true; };
+    var cvF = document.createElement('canvas'); cvF.width = D.W; cvF.height = D.H; var cxF = cvF.getContext('2d');
+    var drawF = function (pk, what) { try { pk.btns = []; pk.draw(cxF); return true; } catch (eDf) { repF.errors.push('draw ' + what + ': ' + String(eDf && eDf.stack || eDf).slice(0, 400)); return false; } };
+    var btnF = function (pk, re) { return pk.btns.filter(function (b) { return re.test(b.label); })[0] || null; };
+    // each fight's beats: [name, the line that shows it]
+    var LADY = function (who, spells) { return new RegExp('Patrol Lady \\(' + who + '\\)[^:]*: (' + spells + ')\\b'); };
+    var BEATS = [
+      [['the NET', /\bNET\b.*Wagon Drill: thrown/], ['the HOOK', /HOOK.*Wagon Drill/], ['Wagon Drill\'s hold', /takes hold of .*WAGON DRILL|takes the other side of .*Wagon Drill/], ['shields set', /sets shields, facing/]],
+      [['a Drillyard play', /TAKE THE LEGS|SPOOK|STRIKE BACK/], ['shields set', /sets shields, facing/], ['the NET', /\bNET\b.*Wagon Drill: thrown/], ['the HOOK', /HOOK.*Wagon Drill/], ['Wagon Drill\'s hold', /takes hold of .*WAGON DRILL|takes the other side of .*Wagon Drill/]],
+      [['the Fiend\'s own spells', LADY('the Fiend', 'BURNING HANDS|COMMAND|SCORCHING RAY|FIREBALL|STINKING CLOUD|HELLISH REBUKE')]],
+      [['shields set', /sets shields, facing/], ['pikes set', /sets (the [a-z ]+|pikes) behind/], ['a crossbow shot', /Crossbow Trooper > .*Crossbow/], ['the wall broken (flanked, or missiles)', /breaks from the wall/]],
+      [['the ambush seen coming', /SEEN COMING: the ambush is off/], ['the ambush unseen', null]], // (unseen: the AMBUSH roll with no SEEN COMING after it -- js/postures.js P.seenComing)
+      [['the Mirror\'s own spells', LADY('the Mirror', 'GLASS WHISPER|COMMAND|MIRROR IMAGE|HOLD PERSON|HYPNOTIC PATTERN|FEAR')], ['the Doubling or the Hand on the Neck', /THE DOUBLING|THE HAND ON THE NECK/], ['Hold Person or a Healing Word', /Mender: (HOLD PERSON|HEALING WORD)/]],
+      [['the Fae King\'s own spells', LADY('the Fae King', 'SLEEP|CHARM PERSON|MIRROR IMAGE|INVISIBILITY|HOLD PERSON|HYPNOTIC PATTERN')], ['the Doubling or the Hand on the Neck', /THE DOUBLING|THE HAND ON THE NECK/], ['Hold Person or a Healing Word', /Mender: (HOLD PERSON|HEALING WORD)/]],
+      [['the cube\'s Engulf', /Gelatinous Cube.*(takes in .*ENGULFED|: ENGULF -- it slides)/]],
+      [['the mound\'s Engulf', /Shambling Mound.*folds over .*ENGULFED/]]
+    ];
+    var seenF = BEATS.map(function (bs) { return bs.map(function () { return 0; }); }), reachedF = BEATS.map(function () { return 0; });
+    var readBeats = function (fi, lines) {
+      var txt = lines.map(function (l) { return String(l).replace(/\{\/?[a-z]*\}/g, ''); });
+      reachedF[fi]++;
+      BEATS[fi].forEach(function (b, j) { var hit = b[1] ? txt.some(function (l) { return b[1].test(l); }) : null; if (fi === 4 && j === 1) hit = txt.some(function (l) { return /^R0 AMBUSH: their Stealth/.test(l); }) && !txt.some(function (l) { return BEATS[4][0][1].test(l); }); if (hit) seenF[fi][j]++; });
+      if (fi <= 1 && txt.some(function (l) { return / drags .* into the patrol's flank/.test(l); })) dragsF[fi]++; // (the drag itself, the turn after the hold: a rate, not a check -- a dragger at 12 HP rarely lives to it)
+      if (fi === 3 && txt.some(function (l) { return /re-forms the wall to face them/.test(l); })) reformF++; // (the re-form: a rate -- every foe behind the wall or on its flank at once, which the AI's party seldom does)
+    };
+    var dragsF = [0, 0], reformF = 0;
+    // the dragger's own NET and HOOK rows, played where the module throws and hooks (his 27: the rows held till a fight or a show plays them) -- each throw and hook watched
+    // for the dragger's row set while it runs
+    var rowsF = { net: 0, hook: 0 }, tn0F = D.features.throwNet, hk0F = D.features.hook;
+    var watchRow = function (g0, row) { return function* (B, u, w) { var g = g0.apply(this, arguments), v, st, saw = false; while (true) { st = g.next(v); if (u && u.anim === row) saw = true; if (st.done) { if (saw) rowsF[row]++; return st.value; } v = yield st.value; } }; };
+    D.features.throwNet = watchRow(tn0F, 'net'); D.features.hook = watchRow(hk0F, 'hook');
+    try {
+      var PKf = D.pocket, idsF;
+      memF['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null });
+      var Pf = new D.Pocket(); Pf.enter(); Pf.ask = function () { return true; }; Pf.xpAlways = true; idsF = Pf.mapIds();
+      var fh = PKf.modules(Pf.st).filter(function (m) { return m.key === 'game:farehome'; })[0], src = (D.MODULES || []).filter(function (m) { return m.id === 'farehome'; })[0];
+      okF(!!fh && fh.slots.length === 9 && fh.party.n === 4 && fh.party.lvl === 3 && fh.slots.every(function (s) { return idsF.indexOf(s.map) >= 0 && s.foes.every(function (k) { return !!PKf.foe(k); }); }),
+        'THE FARE HOME comes with the game: ' + (fh && fh.slots.length) + ' fights, made for ' + (fh && fh.party && fh.party.n + ' at ' + fh.party.lvl) + ', every floor one the table deals and every foe one it builds');
+      okF(!!fh && !!src && fh.slots.every(function (s, i) { var n = 0; (s.runes || []).forEach(function (r) { n += r.foes.length; }); var n0 = 0; (src.slots[i].runes || []).forEach(function (r) { n0 += r.foes.length; }); return s.runes && s.runes.length === src.slots[i].runes.length && n === s.foes.length && n0 === n; }),
+        'every fight laid by its runes, kept whole by PK.moduleOf (none dropped): ' + (fh ? fh.slots.map(function (s) { return (s.runes || []).map(function (r) { return r.post; }).join('+'); }).join(' ') : ''));
+      var rsF = fh ? fh.slots.slice(0, 8).map(function (s) { return (s.rest.long ? 'L' : s.rest.short ? 'S' : '-') + (s.rest.market ? 'M' : ''); }).join(' ') : '';
+      okF(rsF === 'S S LM S LM S S L', 'its rests: short in a day, a long rest and the market after 3 and 5, a long rest after 8 (' + rsF + ')');
+      // THE MODULES, THE PARTY TO LEVEL 3, LOAD THIS MODULE, PLAY, fight 1 on its runes
+      var lvF0 = Pf.levels().join('/'); Pf.go('modules'); Pf.modSel = 'game:farehome'; drawF(Pf, 'modules'); var toL3 = btnF(Pf, /^THE PARTY TO LEVEL 3$/); if (toL3) Pf.fire(toL3);
+      var lvF = Pf.levels().join('/'); drawF(Pf, 'modules again'); var ldF = btnF(Pf, /^LOAD THIS MODULE$/); if (ldF) Pf.fire(ldF);
+      drawF(Pf, 'hub'); var plF = btnF(Pf, /^PLAY THE FARE HOME$/); if (plF) Pf.fire(plF); drawF(Pf, 'morning'); var gF = btnF(Pf, /^TO FIGHT 1$/); if (gF) Pf.fire(gF);
+      var run1 = Pf.st.run;
+      okF((!!toL3 || lvF0 === '3/3/3/3') && lvF === '3/3/3/3' && !!ldF && !!plF && !!gF && !!run1 && Pf.rungName(run1) === 'FIGHT 1 OF 9' && run1.map === 'dominionroad' && Pf.screen === 'cr',
+        'THE MODULES: THE PARTY TO LEVEL 3 (' + lvF + '), LOAD THIS MODULE, PLAY THE FARE HOME, THE LONG REST, TO FIGHT 1: ' + (run1 && Pf.rungName(run1)) + ' on ' + (run1 && run1.map));
+      var B1 = null; D.push = function (b) { B1 = b; }; try { Pf.launch(); } finally { D.push = push0F; }
+      if (B1) { D.battle = B1; B1.enter(); for (var g1 = 0; g1 < 300 && !(B1.order && B1.order.length); g1++) B1.co.next(); }
+      var at1 = B1 ? B1.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind + '@' + u.x + ',' + u.y + ':' + (u.post && u.post.kind); }) : [];
+      var bl = B1 && B1.units.filter(function (u) { return u.kind === 'sergeantblade' || /Blade/.test(u.name || ''); })[0];
+      okF(at1.length === 5 && !!bl && bl.x === 8 && bl.y === 6 && B1.units.filter(function (u) { return u.side === 'foe'; }).every(function (u) { return u.post && u.post.kind === 'patrol'; }),
+        'fight 1 on its runes: the Blade at (8,6), his squad round him, every one on PATROL (' + at1.join(' ') + ')');
+      Pf.st.run = null;
+      // the runs
+      var nF = +get('runs', 3), triesF = +get('retry', 20), onlyF = +get('only', 0), pushF = D.push; // (20 tries a run, a player's patience: Savine's lady opens with Fireball and a 3rd-level Hellish Rebuke, and a worn party has taken twelve)
+      for (var kF = 0; kF < nF; kF++) {
+        D.seed = 4000 + kF * 7919; Pf.st.run = null; Pf.st.pack = []; PKf.levelAll(Pf.st, onlyF && +get('flvl', 0) ? +get('flvl', 0) : 3); // (flvl: the one fight's party at a level, as the run brings them there) Pf.st.party.forEach(function (sl) { sl.loot = []; var r = PKf.recOf(Pf.st, sl); if (r) r.xp = DS.R.XP_LEVEL[r.lvl || 3] || 0; }); Pf.cache = {};
+        Pf.startModule(fh); Pf.mInfo = null; Pf.takeMorning(); Pf.watch = true;
+        if (onlyF) { Pf.st.run.rung = onlyF; Pf.planRung(Pf.st.run); }
+        var gotF = 0, outF = 'done', triedF = 0, f0 = onlyF ? onlyF - 1 : 0, f1 = onlyF ? onlyF : 9, linesF = [];
+        for (var fF = f0; fF < f1; fF++) {
+          var Bf = null; D.push = function (b) { Bf = b; }; try { Pf.launch(); } finally { D.push = pushF; }
+          if (!Bf) { outF = 'fight ' + (fF + 1) + ' never set'; break; }
+          D.battle = Bf; Bf.enter(); var rF = drive(Bf); Bf.o.onDone(rF === 'won' || rF === 'lost' ? rF : null);
+          linesF = linesF.concat(Bf.log || []); if (wantLog && onlyF) repF.log = (repF.log || []).concat(['--- run ' + (kF + 1)], Bf.log || []);
+          var fkF = (fF + 1) + ' ' + fh.slots[fF].name; repF.fights[fkF] = repF.fights[fkF] || { won: 0, lost: 0, other: 0, rounds: 0 }; var frF = repF.fights[fkF];
+          frF[rF === 'won' ? 'won' : rF === 'lost' ? 'lost' : 'other']++; frF.rounds += Bf.round || 0;
+          if (rF === 'lost' && triedF < triesF) { drawF(Pf, 'lost ' + (fF + 1)); var rtF = btnF(Pf, /^RETRY$/); if (rtF) { triedF++; Pf.fire(rtF); fF--; continue; } }
+          readBeats(fF, linesF); linesF = [];
+          if (rF !== 'won') { outF = 'lost at fight ' + (fF + 1) + (rF !== 'lost' ? ' (' + rF + ')' : ''); break; }
+          gotF++;
+          if (onlyF) break;
+          if (fF === 8) { if (!(Pf.result && Pf.result.moduleDone === 'THE FARE HOME' && !Pf.st.run)) outF = 'the ninth won, not marked done'; break; }
+          drawF(Pf, 'result ' + (fF + 1)); var onF = btnF(Pf, /^TO THE CAMP$|^CONTINUE: FIGHT/); if (!onF) { outF = 'no way on after fight ' + (fF + 1); break; }
+          Pf.fire(onF); drawF(Pf, 'camp ' + (fF + 1));
+          var rbF = btnF(Pf, /^LONG REST$/) || btnF(Pf, /^SHORT REST$/);
+          if (rbF) {
+            Pf.fire(rbF);
+            if (Pf.screen === 'morning') { drawF(Pf, 'morning ' + (fF + 2)); var bkF = btnF(Pf, /^BACK TO THE CAMP$/); if (!bkF) { outF = 'no BACK TO THE CAMP'; break; } Pf.fire(bkF); }
+            else { drawF(Pf, 'rest ' + (fF + 1)); var tcF = btnF(Pf, /^THE CAMP$/); if (!tcF) { outF = 'no THE CAMP on the rest card'; break; } Pf.fire(tcF); }
+            drawF(Pf, 'camp again ' + (fF + 1));
+          }
+          if (Pf.screen === 'hub') { var goF = btnF(Pf, new RegExp('^GO ON: FIGHT ' + (fF + 2) + '$')); if (!goF) { outF = 'no GO ON: FIGHT ' + (fF + 2); break; } Pf.fire(goF); }
+          var sN = fh.slots[fF + 1]; if (!(Pf.st.run && Pf.st.run.rung === fF + 2 && Pf.st.run.map === sN.map && Pf.st.run.foes.join() === sN.foes.join() && Pf.screen === 'cr')) { outF = 'fight ' + (fF + 2) + ' not as built'; break; }
+        }
+        repF.reach.push(gotF); repF.runs.push(outF + (triedF ? ' (' + triedF + ' retries)' : '') + ', levels ' + Pf.levels().join('/'));
+      }
+      Pf.st.run = null;
+      BEATS.forEach(function (bs, i) { if (onlyF && i !== onlyF - 1) return; bs.forEach(function (b, j) { repF.beats[(i + 1) + ' ' + b[0]] = seenF[i][j] + ' of ' + reachedF[i]; }); });
+      if (!onlyF) {
+        okF(repF.runs.every(function (r) { return /^done/.test(r); }), 'PLAYED THROUGH, ' + nF + ' runs by the AI\'s party, every fight on its floor with its foes as built and the rests as set: ' + repF.runs.join('; '));
+        // the beats two fights share, read across both: the draggers in fights 1 and 2 (both squads carry two), the mender in 6 and 7 (she rides with those ladies) -- each seen in one
+        var JOINT = [{ names: ['the NET', 'the HOOK', 'Wagon Drill\'s hold'], fights: [0, 1], label: 'the draggers, fights 1 and 2', why: ' -- his "27 - we\'re building a module with those guys in it?"' },
+                     { names: ['the Doubling or the Hand on the Neck', 'Hold Person or a Healing Word'], fights: [5, 6], label: 'the mender, fights 6 and 7', why: '' }];
+        var jointOf = function (i, nmJ) { return JOINT.some(function (J) { return J.fights.indexOf(i) >= 0 && J.names.indexOf(nmJ) >= 0; }); };
+        JOINT.forEach(function (J) {
+          var sums = J.names.map(function (nmJ) { var n = 0; J.fights.forEach(function (i) { BEATS[i].forEach(function (b, j) { if (b[0] === nmJ) n += seenF[i][j]; }); }); return n; });
+          okF(sums.every(function (n) { return n > 0; }), J.label + ' (' + J.fights.reduce(function (a, i) { return a + reachedF[i]; }, 0) + ' fought): ' + J.names.map(function (nmJ, k) { return nmJ + ' ' + sums[k]; }).join(', ') + J.why);
+        });
+        okF(rowsF.net > 0 && rowsF.hook > 0, 'the dragger\'s own rows played: NET ' + rowsF.net + 'x, HOOK ' + rowsF.hook + 'x (deep16/art/dragger_p2 net and hook, the art desk\'s ART-168)');
+        BEATS.forEach(function (bs, i) {
+          var miss = bs.filter(function (b, j) { return !seenF[i][j] && !(i === 4) && !jointOf(i, b[0]); }).map(function (b) { return b[0]; });
+          var amb = i === 4 ? (seenF[4][0] + seenF[4][1] > 0) : true;
+          okF(reachedF[i] > 0 && !miss.length && amb, 'fight ' + (i + 1) + ', ' + fh.slots[i].name + ': ' + bs.map(function (b, j) { return b[0] + ' ' + seenF[i][j] + '/' + reachedF[i]; }).join(', ') + (miss.length ? ' -- never: ' + miss.join(', ') : ''));
+        });
+      }
+    } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
+    if (errs.length) repF.errors = repF.errors.concat(errs);
+    repF.report = ['THE FARE HOME: the beats (seen in runs that reached the fight)'].concat(Object.keys(repF.beats).map(function (k) { return '  ' + k + ': ' + repF.beats[k]; }),
+      ['  (Wagon Drill\'s drag into the flank, a rate: fight 1 ' + dragsF[0] + ' of ' + reachedF[0] + ', fight 2 ' + dragsF[1] + ' of ' + reachedF[1] + '; the wall re-formed to its flank, fight 4 ' + reformF + ' of ' + reachedF[3] + ')'],
+      ['the fights (won / lost / other, rounds)'], Object.keys(repF.fights).map(function (k) { var f = repF.fights[k]; return '  ' + k + ': ' + f.won + ' / ' + f.lost + ' / ' + f.other + ', ' + f.rounds + ' rounds'; }), ['the runs: ' + repF.runs.join('; ')]);
+    D.store.get = stGF; D.store.set = stSF; D.push = push0F; D.features.throwNet = tn0F; D.features.hook = hk0F;
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   // A MODULE'S CEILING, 20 (mode=cap1125; 11-25, Griz: "do we have an arbitrary limit of 5 locations on a module - is it arbitrary? raise the ceiling on it?", then
   // "Yes, 20"): PK.MODULE_MAX 20 (it was 10); a module of 20 fights built on BUILD at the DM's table a map click at a time, the 21st refused and the maps greyed;
   // BUILD's fights paged past ten (nine a page, ^ v under them, the wheel over them, the arrows off a page's foot, the new fight's page shown, every row inside the

@@ -25,5 +25,60 @@
       { name: 'The bugbear in the pit', map: 'greyfangpit', foes: ['bugbear', 'goblin', 'goblin'],
         intro: 'The wagons that went missing went here. The bugbear who took them is waiting, and so are his goblins.' }
     ]
+  },
+  // THE FARE HOME (2026-11-25, the seat module-1125 -- RULED, Griz: "how bout a Pocket DM module based on all the new stuff added this week?", then "good on the leans, build
+  // module", on the seat's list of nine; invented.json pocket-module-the-fare-home). The week's new things, each fight laid by the DM's runes (js/runes.js: a unit's squares, its
+  // posture, its facing) so what it shows comes about: the Dominion's patrol a squad at a time (the draggers' nets and hooks and Wagon Drill, the Ledger's three Drillyard
+  // plays, a lady by her patron and her mender), the garrison's wall (set shields, set pikes, the crossbows that hold and shoot, the wall that re-forms to its foes), his own
+  // BUGBEAR AMBUSH (seen coming or not), and Engulf by the SRD (the gelatinous cube, the shambling mound). Named for his patrol page, The Fare Home. Four at 3rd, three days:
+  // short rests in a day, a long rest and the market at the end of the first two, a long rest before the mound. PATROL on a lit road is a unit that sees the party at once
+  // and hunts (js/postures.js); DEFEND keeps a lady and her mender by their spot; AMBUSH hides. Benched through whole by bench16 mode=fare1125, each fight's beat read off its lines
+  {
+    id: 'farehome', name: 'THE FARE HOME', by: 'the Pocket DM', party: { n: 4, lvl: 3 },
+    about: 'Three days on the roads the Dominion patrols: its squads a sergeant at a time, three wagons and their ladies, the garrison\'s shield wall, a bugbear ambush, and two things in the dark that swallow whole. Nine fights for four at 3rd.',
+    slots: [
+      { name: 'The Blade\'s squad', map: 'dominionroad', foes: ['sergeantblade', 'dominion', 'dominion', 'dragger', 'dragger'],
+        intro: 'A Dominion patrol on the road south: two shields across it, two draggers behind with their nets and hooked pikes, and the Blade at the end of the line. Anyone who falls, they take.',
+        runes: [{ foes: ['sergeantblade', 'dominion', 'dominion'], at: [9, 6], post: 'patrol', to: [9, 4], sq: [[8, 6], [9, 6], [10, 6]], fw: [0, 1] },
+                { foes: ['dragger', 'dragger'], at: [6, 9], post: 'patrol', to: [6, 7], sq: [[6, 9], [13, 9]], fw: [0, 1] }], // (the draggers wide of the line: "the other two circle wide for the next drop", his page -- within a net's 15 ft of the party's flanks; behind the shields they ready the pike and rarely net)
+        rest: { short: true } },
+      { name: 'The Ledger\'s squad', map: 'snootroad', foes: ['sergeantledger', 'dominion', 'dominion', 'dragger', 'dragger'],
+        intro: 'The other squad, the Ledger\'s. He fights by the book he keeps: take the legs, put the fear in them, and strike back at whoever swings.',
+        runes: [{ foes: ['sergeantledger', 'dominion', 'dominion'], at: [10, 6], post: 'patrol', to: [10, 4], sq: [[11, 6], [9, 6], [10, 6]], fw: [0, 1] },
+                { foes: ['dragger', 'dragger'], at: [13, 9], post: 'patrol', to: [13, 7], sq: [[13, 9], [6, 9]], fw: [0, 1] }], // (his draggers wide too, as the Blade's)
+        rest: { short: true } },
+      { name: 'Savine\'s wagon', map: 'dominionroad', foes: ['patrolladyfiend'],
+        intro: 'The patrol\'s wagon, its cell empty, and the one who rides it: Savine\'s lady, whose patron is the Fiend. She opens with fire.',
+        // (the lady alone, standing for his overrule: with her mender, a party worn by the two squads lost this fight twenty times running on the bench -- her Fireball and a
+        // 3rd-level Hellish Rebuke in round one; the mender rides with the other two ladies, fights 6 and 7)
+        runes: [{ foes: ['patrolladyfiend'], at: [9, 2], post: 'defend', to: [9, 2], r: 20, fw: [0, 1] }],
+        rest: { long: true, market: true } },
+      { name: 'The garrison\'s wall', map: 'burial', foes: ['trooper', 'trooper', 'trooper', 'trooperpike', 'trooperpike', 'trooperxbow', 'trooperxbow', 'fileleader'],
+        intro: 'The garrison\'s night shift under the old hold: three shields to make a wall, two pikes to stand behind it, and the crossbows by the file leader, who do not come forward.',
+        // (the crossbows and the file leader behind the wall, at the hold's door: the party's blades go round its flank for them, and the wall turns to face them)
+        runes: [{ foes: ['trooper', 'trooper', 'trooper', 'trooperpike', 'trooperpike'], at: [9, 6], post: 'patrol', to: [9, 4], sq: [[8, 6], [9, 6], [10, 6], [8, 5], [10, 5]], fw: [0, 1] },
+                { foes: ['trooperxbow', 'trooperxbow', 'fileleader'], at: [9, 2], post: 'stand', sq: [[8, 2], [11, 2], [9, 3]], fw: [0, 1] }],
+        rest: { short: true } },
+      { name: 'The bugbear ambush', map: 'breach', foes: ['bugbearchief', 'bugbear'],
+        intro: 'The breach in the dark, and two of them in it you will not see unless you are looking. If you are, it is a fight. If not, it is an ambush.',
+        // (his own BUGBEAR AMBUSH's fight 1, the chief and three; for four at 3rd the chief and one -- the seat's "one fewer if the bench says so": with two, 7 of 12 tries lost)
+        runes: [{ foes: ['bugbearchief', 'bugbear'], at: [6, 9], post: 'ambush' }],
+        rest: { long: true, market: true } },
+      { name: 'The Old One\'s wagon', map: 'northroad', foes: ['patrolladymirror', 'mender'],
+        intro: 'The north road at night, and the Old One\'s wagon bound for the tower in Silverton. Its lady\'s patron is the Mirror, and she comes ahead of it on foot with her mender.',
+        runes: [{ foes: ['patrolladymirror', 'mender'], at: [9, 3], post: 'defend', to: [9, 3], r: 20, sq: [[9, 3], [10, 3]], fw: [0, 1] }],
+        rest: { short: true } },
+      { name: 'Tronu\'s wagon', map: 'pithills', foes: ['patrolladyfae', 'mender'],
+        intro: 'Tronu\'s wagon, going to build a garrison of its own. Its lady keeps the pact of the Fae King: what she wants you to see, and what she does not.',
+        runes: [{ foes: ['patrolladyfae', 'mender'], at: [9, 3], post: 'defend', to: [9, 3], r: 20, sq: [[9, 3], [10, 3]], fw: [0, 1] }],
+        rest: { short: true } },
+      { name: 'The Drain Cut', map: 'drain', foes: ['cube', 'mouther'],
+        intro: 'The drain cut, and something in it you only see by what hangs in it: bones, a boot, a lantern. And a heap of mouths behind.',
+        runes: [{ foes: ['cube'], at: [6, 3], post: 'ambush' }, { foes: ['mouther'], at: [10, 6], post: 'patrol', to: [10, 4] }],
+        rest: { long: true } },
+      { name: 'The Glowseep', map: 'bog', foes: ['shamblingmound'],
+        intro: 'The Glowseep, and a heap of the bog that gets up and walks. Whatever it folds into itself, it carries.',
+        runes: [{ foes: ['shamblingmound'], at: [8, 7], post: 'ambush' }] } // (lying in the bog on the party's way: its first two slams from hiding, the pair that engulfs)
+    ]
   }
 ];
