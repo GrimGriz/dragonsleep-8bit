@@ -85,8 +85,14 @@
     if (scene) Wg.then(scene, function () { scene.say(TW.WORDS.open + ' ' + W.timeOfDay().replace(/^./, function (c) { return c.toUpperCase(); }) + '.'); });
     return sc;
   };
-  // the counter's picture: the road by day, the glory-seeker on it (its own figure, data/foes.js gloryseeker)
+  // the counter's picture: THE ANCHOR-PIN on a stone by the road, the art desk's ART-162 still (pic_anchorpin, the slot's own 184 x 208 -- 11-24, the cutter seat cutter-1124c;
+  // asked on Griz's 11-23 "art dept request anchor pin for portrait slot (glory seeker fight end)"), fetched the first time the card is up and drawn once it lands; till then,
+  // and where the sheet is not (a bench), the code's road by day with the glory-seeker on it (its own figure, data/foes.js gloryseeker)
+  TW.PIC = 'pic_anchorpin';
   TW.pic = function (ctx, x, y, wd, h, t) {
+    var sh = D.SHEETS && D.SHEETS[TW.PIC], im = sh && D.images && D.images[sh.image];
+    if (im && im.naturalWidth) { var sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false; ctx.drawImage(im, 0, 0, sh.fw, sh.fh, x, y, wd, h); ctx.imageSmoothingEnabled = sm; return true; }
+    if (sh && D.spr && D.spr.load && !TW.picAsked) { TW.picAsked = true; D.spr.load(sh.image); }
     ctx.fillStyle = '#3a4a70'; ctx.fillRect(x, y, wd, h); ctx.fillStyle = '#5a6a3a'; ctx.fillRect(x, y + h * 0.55, wd, h * 0.45);
     ctx.fillStyle = '#7a6040'; ctx.fillRect(x + wd * 0.38, y + h * 0.55, wd * 0.24, h * 0.45); // (the road, going south)
     try { var sh = (D.FOES.gloryseeker || {}).sheet; if (D.spr && D.spr.draw && D.SHEETS[sh]) D.spr.draw(ctx, sh, 'idle', D.spr.facingFor(0, 1), t, x + wd * 0.5, y + h * 0.8, {}); } catch (e) { }

@@ -3000,8 +3000,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     window.DS.autoPicks = true; D.music = function () { };
     try {
       D.seed = +get('seed', 1124);
-      // E1 the chain Barley's portrait: his coat's bust
-      okWW('E1 Barley in his chain (barley_p3) on the coat\'s bust: ' + CWW.HERO_PT.barley_p3 + ' (the coat\'s ' + CWW.HERO_PT.barley_p2 + ')', CWW.HERO_PT.barley_p3 === 'pt_barley_coat' && CWW.HERO_PT.barley_p2 === 'pt_barley_coat');
+      // E1 the chain Barley's portrait: his coat's bust, the stand-in -- his own chain-mail bust since ART-161 came the same day (the cutter seat cutter-1124c; mode=mailpin1124)
+      okWW('E1 Barley in his chain (barley_p3) on his own chain-mail bust (ART-161, in place of the coat\'s stand-in): ' + CWW.HERO_PT.barley_p3 + ' (the coat\'s ' + CWW.HERO_PT.barley_p2 + ')', CWW.HERO_PT.barley_p3 === 'pt_barley_mail' && CWW.HERO_PT.barley_p2 === 'pt_barley_coat');
       // E2 Ned's wand at the dawn bell (items1116 W2 walks it)
       okWW('E2 Ned\'s wand ready from ' + CWW.WAND.morning + ':00, the dawn bell; his word while it waits: ' + CWW.NED_WAND.waiting[0], CWW.WAND.morning === 5 && /At first light/.test(CWW.NED_WAND.waiting[0]) && WWW.todAt(5) === 'dawn');
       // E3 the pools to the knee, the landlord's water as it was
@@ -34953,6 +34953,52 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         endR();
       }, failR);
     } catch (e0R) { failR(e0R); }
+    return;
+  }
+  // BARLEY'S CHAIN-MAIL BUST AND THE ANCHOR-PIN (mode=mailpin1124; 11-24, the cutter seat cutter-1124c, on the art desk's ART-161 and ART-162 -- Griz's "if we lack the barley
+  // chain portrait the regular portrait is better than what we're using for barley portrait scenes" and "art dept request anchor pin for portrait slot (glory seeker fight end)"):
+  // the sheets fetched for real, as hexart1028 fetches. Barley in his chain (barley_p3) speaks on pt_barley_mail in the hero box and pt_barley_mail_full on the open screens, both at
+  // the coat's frame, anchor and rows, so his face holds its place as his look turns; the portraits' show by name; the glory-seekers' win card's picture slot draws the
+  // anchor-pin's still at 1:1 once it lands, the code's road before it, and asks its fetch; the pin's icon in hand
+  if (get('mode', '') === 'mailpin1124') {
+    var repP = { checks: [], errors: [] }, SP = D.spr, CP = D.counter, TWP = D.trueword;
+    var okP = function (c, s) { repP.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var endP = function () { if (errs.length) repP.errors = repP.errors.concat(errs); var fP = repP.checks.filter(function (c) { return /^FAIL/.test(c); }).length; repP.ok = !fP && !repP.errors.length; repP.summary = (repP.checks.length - fP) + '/' + repP.checks.length + ' checks'; var pz = document.createElement('pre'); pz.id = 'out'; pz.textContent = 'BENCH16 ' + JSON.stringify(repP); document.body.appendChild(pz); };
+    var failP = function (e) { repP.errors.push(String(e && e.stack || e).slice(0, 900)); endP(); };
+    var boxP = function (nm) { var s = D.SHEETS[nm]; return s ? [s.fw, s.fh, s.ax, s.ay].join(',') + ' ' + Object.keys(s.anims).map(function (a) { return a + s.anims[a].frames + '@' + s.anims[a].fps; }).join(' ') : 'none'; };
+    var slotP = function (draw) { var cv = document.createElement('canvas'); cv.width = 184; cv.height = 208; var cx = cv.getContext('2d'); var r = draw(cx); return { r: r, d: cx.getImageData(0, 0, 184, 208).data }; };
+    try {
+      // 1. the chain bust in place of the coat's stand-in, the coat's frame
+      okP(CP.HERO_PT.barley_p3 === 'pt_barley_mail' && CP.HERO_PT.barley_p2 === 'pt_barley_coat' && CP.heroFull('pt_barley_mail') === 'pt_barley_mail_full',
+        'Barley in his chain (barley_p3) on ' + CP.HERO_PT.barley_p3 + ', the open screens on ' + CP.heroFull(CP.HERO_PT.barley_p3) + '; in his coat (barley_p2) ' + CP.HERO_PT.barley_p2);
+      okP(boxP('pt_barley_mail') === boxP('pt_barley_coat') && boxP('pt_barley_mail_full') === boxP('pt_barley_coat_full'),
+        'the mail at the coat\'s frame, anchor and rows: hero box ' + boxP('pt_barley_mail') + ' (the coat\'s ' + boxP('pt_barley_coat') + '), open screen ' + boxP('pt_barley_mail_full'));
+      okP(CP.heroPt('barley_mail') === 'pt_barley_mail_full' && CP.heroPt('barley_mail_small') === 'pt_barley_mail', 'the portraits\' show by name: barley_mail ' + CP.heroPt('barley_mail') + ', barley_mail_small ' + CP.heroPt('barley_mail_small'));
+      // 2. the pin's still: the code's road before it lands, its fetch asked
+      var shP = D.SHEETS[TWP.PIC], askedP = [], ld0 = SP.load;
+      SP.load = function (src) { askedP.push(src); return Promise.resolve(); };
+      var preP = slotP(function (cx) { return TWP.pic(cx, 0, 0, 184, 208, 0); });
+      SP.load = ld0;
+      okP(!!shP && shP.fw === 184 && shP.fh === 208 && preP.r !== true && askedP.length === 1 && askedP[0] === shP.image, 'before the still lands the code\'s road, and its fetch asked once (' + askedP.join(', ') + '); the still ' + (shP ? shP.fw + ' x ' + shP.fh : 'missing') + ', the slot\'s size');
+      okP(!!D.SHEETS.icon_anchorpin && D.SHEETS.icon_anchorpin.fw === 32, 'the pin\'s icon in hand (icon_anchorpin ' + (D.SHEETS.icon_anchorpin ? D.SHEETS.icon_anchorpin.fw + ' x ' + D.SHEETS.icon_anchorpin.fh : 'missing') + '), worn by nothing');
+      SP.offline = false;
+      Object.keys(D.SHEETS).forEach(function (k) { D.SHEETS[k].image = '../deep16/' + D.SHEETS[k].image; });
+      SP.ensure([TWP.PIC]).then(function () {
+        try {
+          var im = D.images[D.SHEETS[TWP.PIC].image], ref = slotP(function (cx) { cx.drawImage(im, 0, 0); return true; }), got = slotP(function (cx) { return TWP.pic(cx, 0, 0, 184, 208, 0); });
+          var same = got.r === true && Array.prototype.every.call(got.d, function (v, i) { return v === ref.d[i]; });
+          okP(same, 'once it lands the picture slot draws the anchor-pin\'s still, pixel for pixel at 1:1 (TW.pic ' + got.r + ')');
+          // 3. on the win's card: the counter screen's slot
+          var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var cxW = cvW.getContext('2d'); D.canvas = D.canvas || cvW;
+          var scW = new CP.Counter(null, { id: 'snootRoad', name: 'The glory-seekers', place: 'The Pit road', what: 'south of the Halfway Inn', pic: TWP.pic, script: function (s) { return (function* () { yield s.narr(['THE ROAD OPEN.']); })(); } });
+          scW.draw(cxW);
+          var sx = D.W - 8 - 190 + 3, sy = 11, dW = cxW.getImageData(sx, sy, 184, 150).data, hit = 0;
+          for (var i = 0; i < dW.length; i += 4) if (dW[i] === ref.d[i] && dW[i + 1] === ref.d[i + 1] && dW[i + 2] === ref.d[i + 2]) hit++;
+          okP(hit / (dW.length / 4) > 0.97, 'the win\'s card (the counter screen) draws it in the picture slot at ' + sx + ',' + sy + ': ' + Math.round(1000 * hit / (dW.length / 4)) / 10 + '% of the slot\'s upper rows the still\'s own pixels');
+        } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
+        endP();
+      }, failP);
+    } catch (e0P) { failP(e0P); }
     return;
   }
   // THE HEX ON THE ART DESK'S TILES (mode=hexart1028; 10-28, the second cutter seat, on the lanes desk's order from Griz's "spin up a second cutter, more landing in
