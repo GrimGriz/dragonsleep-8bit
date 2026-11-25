@@ -683,10 +683,14 @@
     if (m) {
       var yy = py + 5;
       D.text(ctx, '{y}' + cut(m.name, pw - 20) + '{/}  {g}' + m.slots.length + ' of ' + PK.MODULE_MAX + ' fights{/}', px + 6, yy, P('gold', 4)); yy += 12;
-      m.slots.forEach(function (s, i) {
+      // (ten fit the panel; past ten, since the 20 of 11-25, nine a page with ^ v at its foot and the wheel over it)
+      var per2 = m.slots.length > 10 ? 9 : 10, from2 = Math.min(this.scroll2For('dmmods:' + m.id), Math.max(0, m.slots.length - per2)); this.scroll2 = from2;
+      m.slots.slice(from2, from2 + per2).forEach(function (s, k) {
+        var i = from2 + k;
         D.text(ctx, cut('{y}' + (i + 1) + '{/} ' + ((D.MAPS[s.map] || {}).name || s.map) + '  {g}CR ' + PK.fmt8(PK.sum8(s.foes || [])) + '{/}  ' + PK.foesText(s.foes || []), pw - 12), px + 6, yy, P('bone', 1)); yy += 9;
         if (i < m.slots.length - 1) { D.text(ctx, '{g}then ' + PK.restText(s.rest) + '{/}', px + 16, yy, P('stone', 5)); yy += 9; }
       });
+      this.pager(ctx, px + 6, py + ph - 14, m.slots.length, per2, from2, 'scroll2', true, true);
       if (!m.slots.length) D.text(ctx, 'no fights yet: OPEN it on BUILD', px + 6, yy, P('stone', 5));
     } else D.text(ctx, 'none yet: BUILD MODULE on THE CAMPAIGN, or FROM A FILE', px + pw / 2, py + 80, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -748,7 +752,12 @@
     else { Object.keys(sel).forEach(function (k) { delete sel[k]; }); sel[id] = true; }
     pk.anchor = i;
   };
-  Pocket.prototype.wheelTo = function (w) { if ((this.screen === 'units' && I.mouse.x >= 244) || (this.screen === 'market' && I.mouse.x >= 256)) { this.scroll2 = Math.max(0, (this.scroll2 || 0) + w); return true; } return false; }; // (THE MARKET's pack too, 10-17)
+  var wheel0 = Pocket.prototype.wheelTo; // (js/pocket.js's: THE MODULES' fights, 11-25)
+  Pocket.prototype.wheelTo = function (w) { // (THE MARKET's pack too, 10-17; BUILD's fights and YOUR MODULES' since the 20 of 11-25)
+    var mine = (this.screen === 'units' && I.mouse.x >= 244) || (this.screen === 'market' && I.mouse.x >= 256) || (this.screen === 'build' && I.mouse.x >= 258) || (this.screen === 'dmmods' && I.mouse.x >= 162);
+    if (!mine) return wheel0.call(this, w);
+    this.scroll2 = Math.max(0, (this.scroll2 || 0) + w); return true;
+  };
   Pocket.prototype.drawUnits = function (ctx) {
     var self = this, st = this.st, cp = PD.camp(st), rs = cp.bought, us = PD.newest(cp), per = 12, sel = this.picked = this.picked || {};
     Object.keys(sel).forEach(function (k) { if (!rs.some(function (r) { return String(r.id) === k; })) delete sel[k]; });
@@ -815,6 +824,7 @@
       var def = D.MAPS[id], yy = 36 + i * 16, ci = cp.mapCR[id] == null ? dflt : cp.mapCR[id];
       self.btn(ctx, cut(def.name || id, 124), 14, yy, 132, 14, function () {
         var s = PD.addSlot(self, m, id, PK.VALUES[ci]); if (!s) { D.sfx('error'); self.say('all ' + PK.MODULE_MAX + ' fights are set: take one off on the right', 240); return; }
+        self.scroll2 = Math.max(0, m.slots.length - (m.slots.length > 10 ? 9 : 10)); // (the page with the new fight on it, past the tenth: 11-25)
         m.at = Date.now(); self.keep(); self.say('FIGHT ' + m.slots.length + ': ' + (def.name || id) + ', ' + PK.foesText(s.foes) + (s.mine ? ' (' + s.mine + ' yours)' : ''), 300);
       }, { small: true, dis: full, why: 'all ' + PK.MODULE_MAX + ' fights are set: take one off on the right' });
       D.text(ctx, '{g}' + ({ underground: 'U', urban: 'R', outdoors: 'O' }[PD.landOf(id)] || '?') + '{/}' + (def.dark ? '{p}D{/}' : ''), 150, yy + 3, P('stone', 5));
@@ -835,8 +845,12 @@
     } else D.text(ctx, '{y}' + cut(m.name, pw - 70) + '{/}', px + 6, 38, P('gold', 4));
     this.btn(ctx, this.naming ? 'DONE' : 'RENAME', px + pw - 52, 35, 46, 12, function () { if (self.naming) { self.naming = false; self.dropField(); } else { self.naming = true; self.nameT = self.t; } }, { small: true, on: !!this.naming });
     D.text(ctx, '{g}' + m.slots.length + ' of ' + PK.MODULE_MAX + ' fights · then S short, L long, M market{/}', px + 6, 50, P('stone', 5));
-    m.slots.forEach(function (sl, i) {
-      var yy = 60 + i * 16, last = i === m.slots.length - 1, rs = sl.rest = sl.rest || PD.REST0();
+    // (20 fights since 11-25, his "raise the ceiling on it?" -- "Yes, 20": ten rows fit this panel, so past ten it pages, nine a page, ^ v under them, the wheel
+    // over it and the arrows walking off its top or foot as every list here does)
+    var per2 = m.slots.length > 10 ? 9 : 10, from2 = Math.min(this.scroll2For('build:' + m.id), Math.max(0, m.slots.length - per2)); this.scroll2 = from2;
+    var b1 = this.btns.length;
+    m.slots.slice(from2, from2 + per2).forEach(function (sl, k) {
+      var i = from2 + k, yy = 60 + k * 16, last = i === m.slots.length - 1, rs = sl.rest = sl.rest || PD.REST0();
       var nR = sl.runes && sl.runes.length ? sl.runes.length : 0; // (the DM's runes laid on it: js/runes.js -- a laid fight is its runes)
       D.text(ctx, '{y}' + (i + 1) + '{/} ' + cut((D.MAPS[sl.map] || {}).name || sl.map, pw - 128) + '  {g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + (nR ? ' · ' + nR + ' rune' + (nR === 1 ? '' : 's') : sl.mine ? ' · ' + sl.mine + ' yours' : '') + '{/}', px + 6, yy, P('bone', 1));
       D.text(ctx, cut(PK.foesText(sl.foes || []), pw - 118), px + 14, yy + 8, nR ? P('gold', 4) : P('stone', 6));
@@ -854,6 +868,8 @@
       });
       else D.text(ctx, '{g}the end{/}', px + pw - 6, yy + 8, P('stone', 5), 'right');
     });
+    this.listRows(b1, 60, 16, m.slots.length, per2, from2, 'scroll2');
+    this.pager(ctx, px + 6, 60 + per2 * 16 + 2, m.slots.length, per2, from2, 'scroll2');
     if (!m.slots.length) D.text(ctx, 'click a map on the left: it is fight 1', px + pw / 2, 90, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'THE LOCATIONS', 86, 236, 100, 15, function () { self.scroll = 0; self.go('locations'); }, { small: true });

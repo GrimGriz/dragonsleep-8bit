@@ -32353,6 +32353,125 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preCr);
     return;
   }
+  // A MODULE'S CEILING, 20 (mode=cap1125; 11-25, Griz: "do we have an arbitrary limit of 5 locations on a module - is it arbitrary? raise the ceiling on it?", then
+  // "Yes, 20"): PK.MODULE_MAX 20 (it was 10); a module of 20 fights built on BUILD at the DM's table a map click at a time, the 21st refused and the maps greyed;
+  // BUILD's fights paged past ten (nine a page, ^ v under them, the wheel over them, the arrows off a page's foot, the new fight's page shown, every row inside the
+  // panel), a long rest and the market set on fights of the second and third page; YOUR MODULES paged; SAVE TO THE FOLDER's file (a download here) read back whole
+  // by PK.moduleOf, which keeps 20 of a file of 25; then at a player's table: the file loaded, THE MODULES paged, LOAD THIS MODULE, PLAY, and the twenty played
+  // through by the AI's party as module1017 plays THE WAGON ROAD -- every fight on its floor with its foes as built, the rests as set, "FIGHT 20 OF 20" its last
+  if (get('mode', '') === 'cap1125') {
+    var repCp = { checks: [], errors: [], fights: [] }, okCp = function (c, s) { repCp.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memCp = {}, stGCp = D.store.get, stSCp = D.store.set, aClkCp = HTMLAnchorElement.prototype.click, dlCp = [], push0Cp = D.push, m0Cp = D.input.mouse, cv0Cp = D.canvas, txt0Cp = D.text, canF0Cp = null;
+    D.store.get = function (k) { return memCp[k] ? JSON.parse(memCp[k]) : null; }; D.store.set = function (k, v) { memCp[k] = JSON.stringify(v); return true; };
+    HTMLAnchorElement.prototype.click = function () { dlCp.push({ name: this.download, href: this.href }); };
+    var cvCp = document.createElement('canvas'); cvCp.width = D.W; cvCp.height = D.H; var cxCp = cvCp.getContext('2d'); if (!D.canvas) D.canvas = cvCp;
+    var said = []; // (what a draw writes, with where: the rows' places read off the page)
+    var drawCp = function (pk, what) { said = []; D.text = function (c, s, x, y) { said.push({ s: String(s), x: x, y: y }); return txt0Cp.apply(this, arguments); }; try { pk.btns = []; pk.draw(cxCp); return true; } catch (eDr) { repCp.errors.push('draw ' + what + ': ' + String(eDr && eDr.stack || eDr).slice(0, 400)); return false; } finally { D.text = txt0Cp; } };
+    var btnCp = function (pk, re, f) { return pk.btns.filter(function (b) { return re.test(b.label) && (!f || f(b)); })[0] || null; };
+    var mouseCp = function (o) { D.input.mouse = Object.assign({}, m0Cp || {}, { inside: true, inWin: true, click: false, moved: false, wheel: 0 }, o); };
+    try {
+      D.seed = 1125 * 7919; var PK = D.pocket, PD = D.pocketdm;
+      okCp(PK.MODULE_MAX === 20, 'PK.MODULE_MAX is 20 (' + PK.MODULE_MAX + ') -- his "Yes, 20"; the ladder\'s five stay (PD.SLOTS ' + PD.SLOTS + ')');
+      // the DM's table: four floors bought, no dark one, each at CR 1/8
+      memCp['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null, dm: true });
+      var Pk = new D.Pocket(); Pk.enter(); Pk.ask = function () { return true; };
+      var cpK = PD.camp(Pk.st); cpK.purse = 1e9;
+      var floors = PD.locations(Pk, 'underground').concat(PD.locations(Pk, 'urban'), PD.locations(Pk, 'outdoors')).filter(function (id) { return !D.MAPS[id].dark; }).sort(function (a, b) { return PD.sizeOf(a) - PD.sizeOf(b); }).slice(0, 4);
+      floors.forEach(function (id) { PD.buyMap(Pk.st, id); cpK.mapCR[id] = 0; });
+      var mK = PD.newModule(Pk.st, 'TWENTY'); Pk.go('build'); drawCp(Pk, 'build');
+      var refused = null, addOK = true;
+      for (var a = 0; a < 21; a++) {
+        var mb = Pk.btns.filter(function (b) { return b.w === 132; })[a % floors.length]; if (!mb) { addOK = false; break; }
+        if (a === 20) { refused = { dis: mb.dis, why: mb.why }; Pk.fire(mb); break; }
+        Pk.fire(mb); drawCp(Pk, 'build ' + (a + 1));
+        if (mK.slots.length !== a + 1) { addOK = false; break; }
+      }
+      okCp(addOK && mK.slots.length === 20 && !!refused && refused.dis && /all 20 fights are set/.test(refused.why || '') && mK.slots.every(function (s) { return s.foes.length && PK.sum8(s.foes) <= 1; }),
+        'BUILD: twenty map clicks make twenty fights (' + mK.slots.length + '), each at CR 1/8 (' + mK.slots.map(function (s) { return s.foes.join('+'); }).slice(0, 4).join(', ') + '..); the 21st map greyed, "' + (refused && refused.why) + '"');
+      // BUILD's fights, paged: the 20th added shows its page, 12-20
+      var rowsOn = function () { return Pk.btns.filter(function (b) { return b.label === 'x' && b.w === 12; }); };
+      var panelIn = Pk.btns.filter(function (b) { return b.x >= 258 && b.y > 50 && b.y < 232; }).every(function (b) { return b.y + b.h <= 224; }) && said.filter(function (t) { return t.x >= 258 && t.y > 50 && t.y < 232; }).every(function (t) { return t.y <= 216; });
+      var up = btnCp(Pk, /^\^$/, function (b) { return b.x >= 258; }), dn = btnCp(Pk, /^v$/, function (b) { return b.x >= 258; }), cnt = said.filter(function (t) { return /^\d+-\d+ of 20$/.test(t.s) && t.x >= 258; })[0];
+      var n20 = said.some(function (t) { return /^\{y\}20\{\/\} /.test(t.s); }), n11 = said.some(function (t) { return /^\{y\}11\{\/\} /.test(t.s); }), endT = said.some(function (t) { return /the end/.test(t.s); });
+      okCp(Pk.scroll2 === 11 && rowsOn().length === 9 && !!up && !up.dis && !!dn && dn.dis && !!cnt && cnt.s === '12-20 of 20' && n20 && !n11 && endT && panelIn && /20 of 20 fights/.test((said.filter(function (t) { return /of 20 fights/.test(t.s); })[0] || {}).s || ''),
+        'BUILD pages its fights past ten: the twentieth\'s page shown (' + (cnt && cnt.s) + '), nine rows, ^ lit and v greyed, "20 of 20 fights", "the end" on the last, every row inside the panel (' + panelIn + ')');
+      Pk.fire(up); drawCp(Pk, 'build ^'); var s2a = Pk.scroll2; Pk.fire(btnCp(Pk, /^\^$/, function (b) { return b.x >= 258; })); drawCp(Pk, 'build ^^'); var s2b = Pk.scroll2;
+      var first = said.some(function (t) { return /^\{y\}1\{\/\} /.test(t.s); }), tenth = said.some(function (t) { return /^\{y\}10\{\/\} /.test(t.s); });
+      Pk.screen = 'build'; mouseCp({ x: 300, y: 120 }); var wOn = Pk.wheelTo(1), s2w = Pk.scroll2; mouseCp({ x: 60, y: 120 }); var wOff = Pk.wheelTo(1); D.input.mouse = m0Cp;
+      Pk.scroll2 = 0; drawCp(Pk, 'build page 1'); var lastRow = rowsOn().sort(function (a, b) { return b.y - a.y; })[0]; Pk.ksel = Pk.btns.indexOf(lastRow); var stepped = Pk.listStep('down'), s2k = Pk.scroll2;
+      okCp(s2a === 2 && s2b === 0 && first && !tenth && wOn && s2w === 1 && !wOff && stepped && s2k === 1,
+        'BUILD\'s ^: fights 3-11, then 1-9 (' + s2a + ', ' + s2b + '); the wheel over the fights pages them (' + s2w + '), over the maps it does not; the arrows down off the ninth row scroll a row (' + s2k + ')');
+      // a long rest and the market on fights of later pages: the rows' S L M are the fight's own
+      var setRest = function (i, lbl) { Pk.scroll2 = Math.min(11, i - 1); drawCp(Pk, 'build rest ' + i); var from = Pk.scroll2, yy = 60 + (i - 1 - from) * 16 + 7, b = Pk.btns.filter(function (q) { return q.label === lbl && q.w === 12 && q.y === yy; })[0]; if (b) Pk.fire(b); return !!b; };
+      var rOK = [setRest(5, 'L'), setRest(10, 'L'), setRest(10, 'M'), setRest(15, 'L'), setRest(18, 'M')];
+      var rsK = mK.slots.map(function (s) { return (s.rest.long ? 'L' : s.rest.short ? 'S' : '-') + (s.rest.market ? 'M' : ''); });
+      okCp(rOK.every(Boolean) && rsK[4] === 'L' && rsK[9] === 'LM' && rsK[14] === 'L' && rsK[17] === 'SM' && rsK.filter(function (r) { return r === 'S'; }).length === 16,
+        'BUILD\'s S L M on a later page set that fight\'s rest: a long rest after 5, 10 and 15, the market after 10 and 18 (' + rsK.join(' ') + ')');
+      // YOUR MODULES: the module whole, paged
+      Pk.dmSel = mK.id; Pk.go('dmmods'); drawCp(Pk, 'dmmods'); var dUp = btnCp(Pk, /^\^$/, function (b) { return b.x >= 162; }), dDn = btnCp(Pk, /^v$/, function (b) { return b.x >= 162; });
+      // (the fights' lines, at the panel's left: none runs into ^ v's row)
+      var dIn = said.filter(function (t) { return (t.x === 168 || t.x === 178) && t.y > 50; }).every(function (t) { return t.y + 9 <= 228 - 14; }), d9 =said.some(function (t) { return /^\{y\}9\{\/\} /.test(t.s); }) && !said.some(function (t) { return /^\{y\}10\{\/\} /.test(t.s); });
+      if (dDn) Pk.fire(dDn); drawCp(Pk, 'dmmods v'); var dAt = Pk.scroll2, d10 = said.some(function (t) { return /^\{y\}10\{\/\} /.test(t.s); }) && said.some(function (t) { return /^\{y\}18\{\/\} /.test(t.s); });
+      Pk.fire(btnCp(Pk, /^v$/, function (b) { return b.x >= 162; })); drawCp(Pk, 'dmmods v v'); var d20 = d10 && Pk.scroll2 === 11 && said.some(function (t) { return /^\{y\}20\{\/\} /.test(t.s); }) && !said.some(function (t) { return /^\{g\}then /.test(t.s) && t.y > 200; }) && btnCp(Pk, /^v$/, function (b) { return b.x >= 162; }).dis;
+      Pk.screen = 'dmmods'; mouseCp({ x: 300, y: 120 }); var dW = Pk.wheelTo(-1); D.input.mouse = m0Cp;
+      okCp(!!dUp && dUp.dis && !!dDn && !dDn.dis && !dDn.nokey && d9 && dIn && dAt === 9 && d20 && dW && Pk.scroll2 === 10,
+        'YOUR MODULES pages a module\'s fights: 1-9 clear of ^ v, v (the arrows may stop on it) to 10-18 (' + dAt + '), again to 12-20 with v greyed, the wheel back a row' + ' [' + [!!dUp && dUp.dis, !!dDn && !dDn.dis && !dDn.nokey, d9, dIn, d20, dW, Pk.scroll2].join(' ') + ']');
+      // SAVE TO THE FOLDER (no folder here: the download), read back whole
+      canF0Cp = PK.canFolder; PK.canFolder = function () { return false; };
+      Pk.go('build'); drawCp(Pk, 'build save'); dlCp.length = 0; Pk.fire(btnCp(Pk, /^SAVE TO THE FOLDER$/));
+      var fCp = null; try { var xq = new XMLHttpRequest(); xq.open('GET', dlCp[0].href, false); xq.send(); fCp = xq.responseText; } catch (eF) { repCp.errors.push('the module file: ' + eF); }
+      var jCp = fCp ? JSON.parse(fCp) : null, rdCp = PK.moduleOf(jCp);
+      var big = jCp ? JSON.parse(fCp) : null; if (big) big.slots = big.slots.concat(big.slots.slice(0, 5)); var rdBig = PK.moduleOf(big);
+      okCp(!!jCp && jCp.slots.length === 20 && !!rdCp && rdCp.slots.length === 20 && rdCp.slots.every(function (s, i) { return s.map === mK.slots[i].map && s.foes.join() === mK.slots[i].foes.join(); }) && rdCp.slots[9].rest.long && rdCp.slots[9].rest.market && !!rdBig && rdBig.slots.length === 20,
+        'SAVE TO THE FOLDER: ' + (dlCp[0] && dlCp[0].name) + ', its twenty fights read back whole by PK.moduleOf (' + (rdCp && rdCp.slots.length) + ', fight 10\'s long rest and market kept); a file of 25 is kept to 20 (' + (rdBig && rdBig.slots.length) + ')');
+      // a player's table: the file loaded, THE MODULES paged, LOAD THIS MODULE, PLAY
+      memCp['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null });
+      var Pm = new D.Pocket(); Pm.enter(); Pm.ask = function () { return true; }; Pm.xpAlways = true;
+      var mL = fCp ? Pm.readModule(fCp) : null; if (mL) Pm.modSel = PK.keepModule(Pm.st, mL);
+      Pm.go('modules'); drawCp(Pm, 'modules'); var mUp = btnCp(Pm, /^\^$/, function (b) { return b.x >= 162; }), mDn = btnCp(Pm, /^v$/, function (b) { return b.x >= 162; });
+      // (the fights' two lines each: none runs into ^ v's row, and ^ v clear of the folder's row under it, which crosses the panel's foot from y 218)
+      var mPg = btnCp(Pm, /^\^$/, function (b) { return b.x >= 162; }), mIn = !!mPg && mPg.y + mPg.h <= 217 && said.filter(function (t) { return (t.x === 168 || t.x === 176) && t.y > 50; }).every(function (t) { return t.y + 9 <= mPg.y; }), mShown = said.filter(function (t) { return /^\{y\}\d+\{\/\} /.test(t.s) && t.x >= 162; }).length;
+      var mCnt = said.filter(function (t) { return /^\d+-\d+ of 20$/.test(t.s); })[0];
+      if (mDn) Pm.fire(mDn); drawCp(Pm, 'modules v'); var mAt = Pm.scroll2; Pm.scroll2 = 99; drawCp(Pm, 'modules end'); var m20 = said.some(function (t) { return /^\{y\}20\{\/\} /.test(t.s); }) && Pm.scroll2 === 20 - mShown;
+      Pm.screen = 'modules'; mouseCp({ x: 300, y: 120 }); var mW = Pm.wheelTo(-1); D.input.mouse = m0Cp; var mWs = Pm.scroll2; Pm.modSel = 'game:wagonroad'; drawCp(Pm, 'modules wagon road'); var wrNoPg = !btnCp(Pm, /^v$/, function (b) { return b.x >= 162; }) && Pm.scroll2 === 0;
+      okCp(!!mL && !!mUp && mUp.dis && !!mDn && !mDn.dis && !mDn.nokey && mIn && mShown >= 3 && !!mCnt && mAt === mShown && m20 && mW && mWs === 20 - mShown - 1 && wrNoPg,
+        'THE MODULES: TWENTY kept from its file; its fights paged ' + mShown + ' at a time (' + (mCnt && mCnt.s) + '), inside the panel, v to the next, the 20th on the last page, the wheel back a row; THE WAGON ROAD\'s six fit with no ^ v and start at its top' + ' [' + [!!mL, !!mUp && mUp.dis, !!mDn && !mDn.dis && !mDn.nokey, mIn, mShown, mAt, m20, mW, mWs, wrNoPg].join(' ') + ']');
+      Pm.modSel = (PK.modules(Pm.st).filter(function (m) { return m.name === 'TWENTY'; })[0] || {}).key; drawCp(Pm, 'modules twenty'); var ldB = btnCp(Pm, /^LOAD THIS MODULE$/); if (ldB) Pm.fire(ldB);
+      drawCp(Pm, 'hub'); var plB = btnCp(Pm, /^PLAY TWENTY$/); if (plB) Pm.fire(plB); drawCp(Pm, 'morning'); var gM = btnCp(Pm, /^TO FIGHT 1$/); if (gM) Pm.fire(gM);
+      var run0 = Pm.st.run;
+      okCp(!!ldB && !!plB && !!gM && !!run0 && run0.module && Pm.lastRung(run0) === 20 && Pm.rungName(run0) === 'FIGHT 1 OF 20' && run0.map === mK.slots[0].map && run0.foes.join() === mK.slots[0].foes.join() && Pm.screen === 'cr',
+        'LOAD THIS MODULE, PLAY TWENTY, THE LONG REST, TO FIGHT 1: ' + (run0 && Pm.rungName(run0)) + ' on ' + (run0 && run0.map) + ', ' + (run0 && PK.foesText(run0.foes)));
+      // the twenty, played by the AI's party (RETRY on a loss, as the result card offers it, up to 8)
+      Pm.watch = true; var outCp = 'done', tries = 0, restSeenCp = [];
+      for (var f = 0; f < 20; f++) {
+        var Bc = null; D.push = function (b) { Bc = b; }; try { Pm.launch(); } finally { D.push = push0Cp; }
+        if (!Bc) { outCp = 'fight ' + (f + 1) + ' never set'; break; }
+        D.battle = Bc; Bc.enter(); var rC = drive(Bc); Bc.o.onDone(rC === 'won' || rC === 'lost' ? rC : null); repCp.fights.push((f + 1) + ' ' + rC + ' R' + (Bc.round || 0));
+        if (rC === 'lost' && tries < 8) { drawCp(Pm, 'lost ' + (f + 1)); var rt = btnCp(Pm, /^RETRY$/); if (rt) { tries++; Pm.fire(rt); f--; continue; } }
+        if (rC !== 'won') { outCp = 'lost at fight ' + (f + 1) + ' (' + rC + ')'; break; }
+        if (f === 19) { if (!(Pm.result && Pm.result.moduleDone === 'TWENTY' && !Pm.st.run)) outCp = 'the twentieth won, not marked done'; break; }
+        drawCp(Pm, 'result ' + (f + 1)); var on = btnCp(Pm, /^TO THE CAMP$|^CONTINUE: FIGHT/); if (!on) { outCp = 'no way on after fight ' + (f + 1); break; }
+        Pm.fire(on); drawCp(Pm, 'camp ' + (f + 1));
+        var rb = btnCp(Pm, /^LONG REST$/) || btnCp(Pm, /^SHORT REST$/), mk = btnCp(Pm, /^THE MARKET/);
+        restSeenCp.push((f + 1) + (rb ? (rb.label === 'LONG REST' ? 'L' : 'S') : '-') + (mk && !mk.dis ? 'M' : ''));
+        if (rb) {
+          Pm.fire(rb);
+          if (Pm.screen === 'morning') { drawCp(Pm, 'morning ' + (f + 2)); var bk = btnCp(Pm, /^BACK TO THE CAMP$/); if (!bk) { outCp = 'no BACK TO THE CAMP after ' + (f + 1); break; } Pm.fire(bk); }
+          else { drawCp(Pm, 'rest ' + (f + 1)); var tc = btnCp(Pm, /^THE CAMP$/); if (!tc) { outCp = 'no THE CAMP on the rest card after ' + (f + 1); break; } Pm.fire(tc); }
+          drawCp(Pm, 'camp again ' + (f + 1));
+        }
+        if (Pm.screen === 'hub') { var go = btnCp(Pm, new RegExp('^GO ON: FIGHT ' + (f + 2) + '$')); if (!go) { outCp = 'no GO ON: FIGHT ' + (f + 2); break; } Pm.fire(go); }
+        var sN = mK.slots[f + 1]; if (!(Pm.st.run && Pm.st.run.rung === f + 2 && Pm.st.run.map === sN.map && Pm.st.run.foes.join() === sN.foes.join() && Pm.screen === 'cr' && Pm.rungName(Pm.st.run) === 'FIGHT ' + (f + 2) + ' OF 20')) { outCp = 'fight ' + (f + 2) + ' not as built'; break; }
+      }
+      repCp.restSeen = restSeenCp.join(' ');
+      var restsOK = [/^5L$/, /^10LM$/, /^15L$/, /^18[S-]M$/].every(function (re) { return restSeenCp.some(function (r) { return re.test(r); }); }) && restSeenCp.filter(function (r) { return /L/.test(r); }).length === 3 && restSeenCp.filter(function (r) { return /M/.test(r); }).length === 2;
+      okCp(outCp === 'done' && restsOK, 'PLAYED THROUGH: all twenty fights won by the AI\'s party, each on its floor with its foes as built, "FIGHT n OF 20" on each, the rests as set (' + repCp.restSeen + '), the module marked done after the twentieth (' + outCp + ', ' + tries + ' retries)');
+    } catch (eCp) { repCp.errors.push(String(eCp && eCp.stack || eCp).slice(0, 800)); }
+    D.store.get = stGCp; D.store.set = stSCp; D.push = push0Cp; D.input.mouse = m0Cp; D.text = txt0Cp; D.canvas = cv0Cp; HTMLAnchorElement.prototype.click = aClkCp; if (canF0Cp) D.pocket.canFolder = canF0Cp;
+    var preCp = document.createElement('pre'); preCp.id = 'out'; preCp.textContent = 'BENCH16 ' + JSON.stringify(repCp);
+    document.body.appendChild(preCp);
+    return;
+  }
   // THE MODULES (mode=module1017; 10-17, Griz: "to test it can you make a 6 fight module for a starting lvl 1 party of 4 that we can include for new users to have
   // as example module?"): the game's own module whole -- its floors dealt, its foes in the bestiary, its rests as flagged -- the title's MODULES, THE MODULES' screen
   // and THE PARTY TO LEVEL 1, a DM's ladder file of 10-17 read as a module; then THE WAGON ROAD played through `runs` times (3 in the gate; runs=20 for a balance read) by the AI's party (watched, as the Pocket

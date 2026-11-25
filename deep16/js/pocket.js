@@ -507,7 +507,7 @@
   // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
   Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
   Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE CAMPAIGN to a file.', t: 480, sticky: true, bad: true }; };
-  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.noteFrom = null; this.screen = screen; this.ksel = 0; this.scroll = 0; this.kwant = null; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; }; // (noteFrom: where NOTES came from -- the result's card sets it after its go, 10-21)
+  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.noteFrom = null; this.screen = screen; this.ksel = 0; this.scroll = 0; this.s2Of = null; this.kwant = null; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; }; // (noteFrom: where NOTES came from -- the result's card sets it after its go, 10-21)
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
   Pocket.prototype.useField = function (kind, rect, value, oninput) {
@@ -642,11 +642,12 @@
   // ^ and v under a list that runs past its page, as THE MARKET's (10-17): a page a press, the wheel as before, 'a-b of n' beside them; key is the list's
   // scroll ('scroll', or 'scroll2' for a screen's second list). Every list of both tables has them since 10-27 (Griz: "menu on pocket DM doors is broken same
   // as other, requires mousewheel and doesn't scroll properly"); text false leaves the count to the caller
-  Pocket.prototype.pager = function (ctx, x, y, n, per, from, key, text) {
+  Pocket.prototype.pager = function (ctx, x, y, n, per, from, key, text, keyed) {
     if (n <= per) return x;
     var self = this; key = key || 'scroll';
-    this.btn(ctx, '^', x, y, 16, 12, function () { self[key] = Math.max(0, from - per); }, { small: true, dis: from <= 0, nokey: true });
-    this.btn(ctx, 'v', x + 18, y, 16, 12, function () { self[key] = Math.min(n - per, from + per); }, { small: true, dis: from + per >= n, nokey: true });
+    // (keyed: the arrows may stop on ^ and v -- a page of words with no rows to walk, a module's fights on THE MODULES and YOUR MODULES (11-25), is paged by them)
+    this.btn(ctx, '^', x, y, 16, 12, function () { self[key] = Math.max(0, from - per); }, { small: true, dis: from <= 0, nokey: !keyed });
+    this.btn(ctx, 'v', x + 18, y, 16, 12, function () { self[key] = Math.min(n - per, from + per); }, { small: true, dis: from + per >= n, nokey: !keyed });
     if (text !== false) D.text(ctx, (from + 1) + '-' + Math.min(n, from + per) + ' of ' + n, x + 40, y + 3, P('stone', 5));
     return x + 40;
   };
@@ -687,7 +688,10 @@
   Pocket.prototype.titleClick = function () { return false; };
   Pocket.prototype.backMore = function () { return false; };
   Pocket.prototype.scrolls = function () { return false; };
-  Pocket.prototype.wheelTo = function () { return false; };
+  // (THE MODULES' fights, paged past what fits since 11-25: the wheel over them pages them -- js/pocketdm.js's wheelTo comes here for the screens it does not own)
+  Pocket.prototype.wheelTo = function (w) { if (this.screen === 'modules' && I.mouse.x >= 162) { this.scroll2 = Math.max(0, (this.scroll2 || 0) + w); return true; } return false; };
+  // a second list that is one picked thing's (a module's fights): its scroll starts over when what is picked changes, and holds while it stays
+  Pocket.prototype.scroll2For = function (what) { if (this.s2Of !== what) { this.s2Of = what; this.scroll2 = 0; } return this.scroll2 || 0; };
   Pocket.prototype.drawMore = function () { };
   Pocket.prototype.drawTitleDM = function () { };
   Pocket.prototype.drawKnobs = function () { };
@@ -1070,7 +1074,9 @@
   // what follows it (`rest`: short, long, market -- a short rest unless it says not, RULED 10-17). The game's own are data/modules.js (D.MODULES); one from a file
   // is kept in this browser (st.modules, the newest first) to play again. A DM's ladder file of 10-17 still loads: its four rungs with a short rest and the market
   // between, a long rest before its fifth, the trial (as the DM's ladder ran). A module's last fight lets no king in, as a DM's trial never did
-  PK.MODULE_KIND = 'pocket-dm-module'; PK.MODULE_MAX = 10; PK.MODULES_KEPT = 12;
+  // (MODULE_MAX 20 since 11-25, Griz: "do we have an arbitrary limit of 5 locations on a module - is it arbitrary? raise the ceiling on it?", then "Yes, 20" -- it was
+  // 10, the 10-17 seat's number; every list of a module's fights pages past what fits: BUILD's, YOUR MODULES', THE MODULES'. The ladder's five, PD.SLOTS, is not this)
+  PK.MODULE_KIND = 'pocket-dm-module'; PK.MODULE_MAX = 20; PK.MODULES_KEPT = 12;
   PK.moduleOf = function (f) {
     if (!f || f.game !== 'DRAGONSLEEP') return null;
     var ok = function (s) { return s && typeof s.map === 'string' && Array.isArray(s.foes) && s.foes.length && s.foes.every(function (k) { return !!PK.foe(k); }); }; // (a villain's word builds at any table: PK.foe)
@@ -2752,11 +2758,16 @@
       if (m.party) { off = levels.length !== m.party.n || levels.some(function (L) { return L !== m.party.lvl; }); D.text(ctx, 'made for ' + m.party.n + ' at level ' + m.party.lvl + (off ? '  {o}yours: ' + levels.length + ' at ' + levels.join('/') + '{/}' : '  {n}yours fit{/}'), px + 6, yy, P('silver', 5)); yy += 10; }
       D.wrap(m.about || '', pw - 12).slice(0, 3).forEach(function (t) { D.text(ctx, t, px + 6, yy, P('bone', 1)); yy += 9; });
       yy += 3;
-      m.slots.forEach(function (s, i) {
-        var d = PK.diff(levels, s.foes), col = d.label === 'DEADLY' ? '{r}' : d.label === 'HARD' ? '{o}' : '{g}';
+      // (a module of up to PK.MODULE_MAX fights, 20 since 11-25: what fits under the words shows, and past that they page -- ^ v above the folder's row, which runs
+      // across the panel's foot, and the wheel over it)
+      var foot = py + ph - 14, room = foot - yy, nS = m.slots.length, per2 = nS * 19 <= room ? nS : Math.max(1, Math.floor((room - 14) / 19));
+      var from2 = Math.min(this.scroll2For('modules:' + m.key), Math.max(0, nS - per2)); this.scroll2 = from2;
+      m.slots.slice(from2, from2 + per2).forEach(function (s, k) {
+        var i = from2 + k, d = PK.diff(levels, s.foes), col = d.label === 'DEADLY' ? '{r}' : d.label === 'HARD' ? '{o}' : '{g}';
         D.text(ctx, fitText('{y}' + (i + 1) + '{/} ' + (s.name || PK.foesText(s.foes)) + '  ' + col + d.label + (d.deadlyX > 1 ? ' x' + d.deadlyX : '') + '{/}', pw - 12), px + 6, yy, P('bone', 1)); yy += 9;
         D.text(ctx, fitText(PK.foesText(s.foes) + ', ' + ((D.MAPS[s.map] || {}).name || s.map) + (i < m.slots.length - 1 ? '  ·  then ' + PK.restText(s.rest) : ''), pw - 20), px + 14, yy, P('stone', 5)); yy += 10;
       });
+      this.pager(ctx, px + pw - 112, foot - 13, nS, per2, from2, 'scroll2', true, true);
     } else D.text(ctx, 'no modules yet: FROM A FILE loads one', px + pw / 2, py + 80, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'FROM A FILE', 86, 236, 90, 15, function () { self.loadModule(); });
