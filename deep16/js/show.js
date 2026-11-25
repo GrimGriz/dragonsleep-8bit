@@ -117,7 +117,10 @@
   // plays it; nor the werewolf's `towolf`, which no fight plays yet -- the wolf form is not on the grid; the row gallery, ?gallery&shelf=creatures&rows=werewolf,
   // plays both: 11-14, the hyena-stirge seat; nor the Shove's `shove` and the Long Guard feat's `keepback`, which a show's blows never bring about -- the Line
   // Guard's guard_p2, ART-WANTED-86, 11-19, the cutter-guard seat: the gallery, ?rows=guard_p2, plays both; nor Soldiering's `pikerank` and `push`, which play only through and in a set shield wall -- the pike trooper's and Halldor's and Hedda's sheets, 11-20: the gallery's wall, ?gallery&shelf=features&feature=soldiering_wall, plays both; nor a `sit` row on one that never yields -- a fight plays it only on a yielder at half, js/battle.js, and Talmok's show door ended every run "sit 0" in red, 11-21, the shows-notes seat)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && r !== 'pikerank' && r !== 'push' && !(r === 'shift' && !shf) && !(r === 'sit' && !(kind && D.FOES[kind] && D.FOES[kind].yields)) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
+  // (nor Willem's `traces`, the wagon night's harness alone, played while u.traces holds there -- js/ai.js traces, js/ui.js; nor Torvald's `sitdown`, which no fight plays
+  // yet -- a yielder sits on its `sit` row, js/battle.js Battle.sitYielded, and the sit-down waits for a hook of its own, the story build lane's 11-21: the gallery,
+  // ?rows=willemglass_p2 and ?rows=torvald_p2, plays both -- 11-25, the seat module-1125, on the desk's "fix them")
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && r !== 'pikerank' && r !== 'push' && r !== 'traces' && r !== 'sitdown' && !(r === 'shift' && !shf) && !(r === 'sit' && !(kind && D.FOES[kind] && D.FOES[kind].yields)) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
@@ -218,7 +221,9 @@
     // a step or two for its `walk`, three squares or more for its `slither` where it has one (js/battle.js moveAlong picks the gait by the length)
     // (a flier aloft walks on its fly row since 10-28, js/ui.js: one whose walk has shown fewer than twice lands for the step -- the show's, never a rule)
     var landFly = D.ui && D.ui.aloftRow && D.ui.aloftRow(u, 'walk') === 'fly' && (seen.walk || 0) < 2;
-    var gaits = [['walk', 1, 2], ['slither', 3, 6]].filter(function (g) { return (!seen[g[0]] || (landFly && g[0] === 'walk')) && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
+    // (and a `run` row of its own: four squares and more at a run, through the engine's own move -- js/battle.js moveAlong's `gait`. A charger's run plays off its charge (js/ui.js),
+    // Amara's and Willem's only in the road's chase (js/chase.js), so their shows saw none: 11-25, the seat module-1125, RULED -- the desk's "fix them", Griz's "good on the leans")
+    var gaits = [['walk', 1, 2], ['slither', 3, 6], ['run', 4, 6]].filter(function (g) { return (!seen[g[0]] || (landFly && g[0] === 'walk')) && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
     if (gaits.length && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone) { // (holding someone too: a roper's tendrils reach 50 ft)
       var g = gaits[0], them = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
       if (landFly && g[0] === 'walk') u.fz = null;
@@ -230,8 +235,8 @@
         if (d >= 1 && d < bd) { bd = d; best = c; }
       });
       if (best) {
-        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + g[0] + ' yet. ' + (g[0] === 'walk' ? 'A step or two' : 'Three squares and more') + ', to see it.'], 200);
-        yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true });
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + g[0] + ' yet. ' + (g[0] === 'walk' ? 'A step or two' : g[0] === 'run' ? 'Four squares and more at a run' : 'Three squares and more') + ', to see it.'], 200);
+        yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true, gait: g[0] === 'run' ? 'run' : null });
         u.anim = 'idle';
       }
     }

@@ -1527,6 +1527,31 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preS);
     return;
   }
+  // FIVE SHOW DOORS, EVERY ROW TWICE (mode=shows1125; 11-25, the seat module-1125 -- RULED, Griz: "good on the leans", and the desk's "fix them"): the mender's mace (one,
+  // an opportunity attack by chance: a creature built by its class carries its blow as u.weapon, and the director's catch-all blow read only u.attacks), Willem's and Torvald's
+  // the same, GreyFang's shortsword (his u.alt, his weapon the bow), Amara's and Willem's run (the chase's alone: the director's run beat), Willem's traces and Torvald's
+  // sitdown passed by (the wagon night's harness; no hook plays the sit-down yet -- the gallery plays both). Each door's fight run whole, its tally read: FAIL a wanted row under two
+  if (get('mode', '') === 'shows1125') {
+    var repV = { checks: [], errors: [] };
+    try {
+      ['mender', 'greyfang', 'amara', 'willem', 'torvald'].forEach(function (kind) {
+        D.seed = seed0 * 7919;
+        var BV = D.show.fight('?show=' + kind + '&lvl=3', { bench: true }); D.battle = BV; BV.enter();
+        var resV = drive(BV), under = [], rows = [];
+        Object.keys(BV.showTally || {}).forEach(function (sheet) { D.show.wanted(sheet, BV.showKind[sheet]).forEach(function (r) { var c = BV.showTally[sheet][r] || 0; rows.push(r + ' ' + c); if (c < 2) under.push(r + ' ' + c); }); });
+        // (the director's own swing of a class-built creature's weapon, read off the fight's lines: the dice may bring the row by opportunity attacks alone -- they did for the mender and
+        // GreyFang on main's file at this seed -- so the beat itself is checked where the creature is built by its class and its sheet has the `attack` row)
+        var swung = (BV.log || []).filter(function (l) { return /THE SHOW.*has not shown its [^.]+ yet\. One at /.test(String(l)); }).length, built = kind !== 'amara';
+        repV.checks.push((under.length || resV !== 'won' || !rows.length || (built && !swung) ? 'FAIL ' : 'ok   ') + '?show=' + kind + '&lvl=3: every row twice, the show ' + resV + ' in ' + BV.round + ' rounds' + (under.length ? ' -- under two: ' + under.join(', ') : '') + ' (' + rows.filter(function (s) { return /^(attack|run|traces|sitdown) /.test(s); }).join(', ') + ')' + (built ? '; the director swung its weapon ' + swung + 'x' : ''));
+      });
+      var wntW = D.show.wanted('willemglass_p2', 'willem'), wntT = D.show.wanted('torvald_p2', 'torvald');
+      repV.checks.push((wntW.indexOf('traces') < 0 && wntT.indexOf('sitdown') < 0 && wntT.indexOf('sit') >= 0 && wntW.indexOf('run') >= 0 ? 'ok   ' : 'FAIL ') + 'passed by: Willem\'s traces and Torvald\'s sitdown (the gallery plays them); still wanted: his run, Torvald\'s sit');
+    } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); }
+    if (errs.length) repV.errors = repV.errors.concat(errs);
+    var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);
+    document.body.appendChild(preV);
+    return;
+  }
   // THE SHOW DOORS' ROWS (mode=showrows1121; 11-21, the shows-notes seat -- Griz at five show doors: "looks like he's taking two swings, is that two attacks or one attack
   // animation issue?", "bow looks like 3 shots", "rows look good but play multiple times"): a blow's row whose name js/ui.js's list of once-rows lacked LOOPED for as long as
   // the blow held it (Talmok's greataxe ~42 frames on a 36-frame row: a second swing begun). Each door's fight run through the real draw (D.ui.drawBattle), frame by frame while
