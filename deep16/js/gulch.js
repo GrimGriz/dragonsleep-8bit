@@ -758,7 +758,7 @@
     var def = D.roam.def, t = B.roam && B.roam.token;
     if (!def || def.key !== Gu.KEY || !t || (B.webs || []).some(function (w) { return /gully/.test(w.by); })) { return yield* fightGu0.apply(this, arguments); } // (the lad's fight lays its own: Gu.snaredInPlace)
     var w0 = B.webs; B.webs = (w0 || []).concat([{ by: 'the gully\'s silk', sq: Gu.webSq(t.x, t.y, Gu.RANDOM.webReach), dc: Gu.RANDOM.webDC, ground: true }]);
-    var dr = B.noDrum ? null : Gu.drumNear(B), fm0 = B.floorMarks, ht0 = B.heroTurn; // (the camp's own watches: the boy asleep, no drum -- Gu.watchFight)
+    var dr = B.noDrum || !(foes || []).some(function (u) { return u.drumTable; }) ? null : Gu.drumNear(B), fm0 = B.floorMarks, ht0 = B.heroTurn; // (the gully's own spider fights alone: Gu.drumPlacing's drumTable) // (the camp's own watches: the boy asleep, no drum -- Gu.watchFight)
     if (dr) {
       B.drum = dr; Gu.drumB = B; dr.foes = foes; Gu.drumLast = dr;
       B.floorMarks = function (c) { if (fm0) fm0.apply(this, arguments); Gu.drawDrum(c, B); };
@@ -803,10 +803,14 @@
   D.grid.canStand = function (u, x, y, o) { if (Gu.drumB && Gu.drumBars(u, x, y)) return false; return standGu0.apply(this, arguments); };
   D.grid.canPass = function (u, x, y, o) { if (Gu.drumB && Gu.drumBars(u, x, y)) return false; return passGu0.apply(this, arguments); };
   // the group's squares chosen with the drum already in mind (js/roam.js R.encounter's first step, before anything is drawn): none inside the reach
+  // (and those it sets down marked as the gully's own -- `drumTable`: the drum is for the spider table's fights alone, never a story's set on the gully -- the wagon's chase to
+  // the north mouth, the lad, the lair -- whose foes come by other doors; the desk's full gate of 11-24, chase1104: the last catch at the north mouth was in the boy's hearing,
+  // the drum ran in it and Amara and Willem "fled", and Willem's book never came)
   Gu.drumPlacing = function* (B, g) {
-    var dr = Gu.drumNear(B), r, v;
+    var dr = Gu.drumNear(B), r, v, had = (B.units || []).slice();
     if (dr) { dr.placing = true; B.drum = dr; Gu.drumB = B; }
     try { r = g.next(); } finally { if (dr && B.drum === dr) { B.drum = null; Gu.drumB = null; } }
+    (B.units || []).forEach(function (u) { if (u.side === 'foe' && had.indexOf(u) < 0) u.drumTable = true; });
     while (!r.done) { v = yield r.value; r = g.next(v); }
     return r.value;
   };
