@@ -47,7 +47,8 @@
   #filter { width: 320px; }
   .lede { color: var(--dim); font-size: 13.5px; max-width: 70em; margin: 0 0 16px; }
   /* the player */
-  #player { display: grid; grid-template-columns: 330px 1fr; gap: 16px; align-items: start; }
+  #player { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; align-items: start; }
+  #player > * { min-width: 0; } /* (a long mark wraps in its column, never widens the page) */
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
   .card h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .1em; color: var(--gold); }
   #stage label { display: flex; gap: 8px; align-items: center; margin: 3px 0; font-size: 13.5px; }
@@ -60,7 +61,7 @@
   #scene h2 { margin: 0 0 2px; font-size: 16px; color: var(--gold); }
   #sceneSub { color: var(--dim); font-size: 13px; margin: 0 0 8px; }
   #log { display: flex; flex-direction: column; gap: 3px; }
-  .ln { display: grid; grid-template-columns: 150px 1fr; gap: 10px; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.02); position: relative; }
+  .ln { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.02); position: relative; }
   .ln:hover { background: rgba(143,176,255,.06); }
   .ln .who { color: var(--gold); font-size: 13px; text-align: right; padding-top: 1px; }
   .ln .said { white-space: pre-wrap; }
@@ -73,7 +74,7 @@
   .ln.pick .said { color: #cfe0ff; }
   .ln.pick .who { color: var(--blue); }
   .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
-  .tag { font: 11.5px/1.35 ui-monospace, Consolas, monospace; padding: 0 6px; border-radius: 9px; background: var(--tag); color: var(--tagink); }
+  .tag { font: 11.5px/1.35 ui-monospace, Consolas, monospace; padding: 0 6px; border-radius: 9px; background: var(--tag); color: var(--tagink); overflow-wrap: anywhere; max-width: 100%; }
   .tag.series { background: var(--series); color: var(--seriesink); }
   .tag.who { background: #1e2a4a; color: var(--blue); }
   .tag.fset { background: var(--set); color: var(--setink); }
@@ -102,7 +103,8 @@
   #notes h3 { margin: 0; color: var(--gold); font-size: 14px; letter-spacing: .1em; }
   #notes textarea { flex: 1; width: 100%; resize: none; font: 13.5px/1.45 ui-monospace, Consolas, monospace; }
   #notesMsg { color: var(--dim); font-size: 12.5px; min-height: 1.2em; }
-  @media (max-width: 900px) { #player { grid-template-columns: 1fr; } .ln { grid-template-columns: 1fr; } .ln .who { text-align: left; } }
+  @media (max-width: 900px) { #player { grid-template-columns: minmax(0, 1fr); } .ln { grid-template-columns: minmax(0, 1fr); } .ln .who { text-align: left; } }
+  #player, .ln, .askBox .q, .opt, code { overflow-wrap: anywhere; } /* (a door's address has no spaces: on THE STAGE and in the staged line) */
 </style>
 <script>
 // THE SANDBOX, first, before a line of the game runs: localStorage's game keys go to memory for the page's life, so nothing the scenes do is written to his saves
