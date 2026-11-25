@@ -135,6 +135,9 @@ def say(s):
 
 
 def main(argv):
+    # (a failing line holds whatever the game prints -- a star, a dash: 11-25 the summary died on '\u2605' in a Windows console and the lines were lost; the lanes desk)
+    for st in (sys.stdout, sys.stderr):
+        if hasattr(st, 'reconfigure'): st.reconfigure(encoding='utf-8', errors='replace')
     full = 'all' in argv
     seat = 'seat' in argv and not full
     jobs = [('spells', spells, None)] + [('fight', fight, p) for p in QUICK_FIGHTS] + [('mode ' + m, mode, m) for m in (ALL_MODES if full else QUICK_MODES + (SEAT_MODES if seat else []))]
