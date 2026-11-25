@@ -4191,6 +4191,101 @@
 }
 }
 },
+"dominion_p2": {
+"image": "art/dominion_p2.png?v=c7e72dd894",
+"fw": 46,
+"fh": 96,
+"ax": 23,
+"ay": 76,
+"top": 52,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 46,
+"fh": 96,
+"ax": 23,
+"ay": 76,
+"frames": 4,
+"fps": 4
+},
+"walk": {
+"y": 768,
+"fw": 46,
+"fh": 96,
+"ax": 23,
+"ay": 76,
+"frames": 8,
+"fps": 9
+},
+"attack": {
+"y": 1536,
+"fw": 80,
+"fh": 96,
+"ax": 40,
+"ay": 76,
+"frames": 8,
+"fps": 12,
+"release": 3
+},
+"push": {
+"y": 2304,
+"fw": 58,
+"fh": 96,
+"ax": 29,
+"ay": 76,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 3072,
+"fw": 56,
+"fh": 96,
+"ax": 28,
+"ay": 76,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3840,
+"fw": 82,
+"fh": 96,
+"ax": 41,
+"ay": 76,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 4608,
+"fw": 82,
+"fh": 96,
+"ax": 41,
+"ay": 76,
+"frames": 1,
+"fps": 1
+},
+"lightcrossbow": {
+"y": 5376,
+"fw": 56,
+"fh": 96,
+"ax": 28,
+"ay": 76,
+"frames": 8,
+"fps": 10,
+"release": 3
+}
+},
+"name": "Dominion Soldier",
+"hold": [
+"push: the shield drives on frame 4, the sword kept drawn back -- deep16/js/features.js THE PUSH plays a sheet's `push` (Halldor's and Hedda's name)",
+"lightcrossbow: his Light Crossbow plays it (js/battle.js, a blow's own row by its weapon's name); drawn ready, the sword sheathed and the shield on his back; the engine draws the bolt",
+"walk: E 1 and 5 share a lead-foot silhouette, S's lead change hard to read (the art desk's own notes)",
+"push: S and N foreshortened, the extension less plain than SE's and E's (the art desk's own note)",
+"lightcrossbow: the release subtle in S and N; rear NE closer to profile than the identity page (the art desk's own notes)",
+"prone: the last Fall cel held"
+],
+"source": "drawn by the art desk (ART-159, 11-24: art-wanted section 95, the Dominion's line soldier in black half plate with round shield and longsword in five views, the Attack and the Push over the mannequin's guides, and his light crossbow), cut by tools/dominion-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
+},
 "doran_p1": {
 "image": "art/doran_p1.png?v=0467980a0b",
 "fw": 40,

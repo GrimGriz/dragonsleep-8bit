@@ -277,9 +277,10 @@
   // the ladder's wagon yard since 09-27 (Griz: "consult the katarina wagon troops and use two of those soldiers (if we rolled
   // them, what weapons) and make the armor on these guys as if it was black armor"; ladder only, stock and climb): the Dominion
   // patrol's LINE SOLDIERS (dominion-patrol-the-fare-home.pdf: fighter 2, "two with glaives, two with sword and shield"); two
-  // rolled d4 3 and 4, the sword-and-shield pair: half plate, shield, Defense style
+  // rolled d4 3 and 4, the sword-and-shield pair: half plate, shield, Defense style. His drawn figure since 11-24 (art-wanted 95, the art desk's ART-159:
+  // tools/dominion-sheet.py): dominion_p2 -- the longsword's `attack`, the shield's `push`, and his Light Crossbow's own `lightcrossbow` row
   dominion: {
-    name: 'Dominion Soldier', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, cr: '1/2', ac: 19, metalArmor: 'half plate', shield: true, hp: 20, speed: 30, size: 1, reach: 5,
+    name: 'Dominion Soldier', type: 'humanoid', sheet: 'dominion_p2', humanoid: true, cr: '1/2', ac: 19, metalArmor: 'half plate', shield: true, hp: 20, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 4, dex: 1, con: 4, int: 0, wis: 0, cha: 0 },
     attacks: {
