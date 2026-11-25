@@ -17,9 +17,9 @@
   },
   "walk": {
    "y": 768,
-   "fw": 36,
+   "fw": 38,
    "fh": 96,
-   "ax": 18,
+   "ax": 19,
    "ay": 76,
    "frames": 8,
    "fps": 10
@@ -84,8 +84,8 @@
  },
  "name": "Mender",
  "hold": [
-  "walk: S drawn; SE, E, NE and N (and their mirrors) play her own idle twice -- the art desk held those four walks (frames 1 and 5 the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come",
-  "prone: S, SE, E and NE as drawn, matched by width to their Fall 6; N is N Fall 6 held -- its own Prone was held, propped higher than the Fall's end (the art desk's own note)",
+  "walk: all five drawn -- SE, E, NE and N the art desk's 11-25 redraws (art-wanted 105), 1 and 5 opposite leads; check the cadence at the loop seam (its own note)",
+  "prone: all five drawn, matched by width to their Fall 6 -- N redrawn 11-25 from its Fall 6 crop, the mace beside the right hand",
   "attack: the mace home on frame 3 (`release` 2, as katarina_p2's)",
   "cast: the mirror held out on its cord on frame 4; castup: the mirror lifted overhead on 4 -- no glow drawn, the engine's spells are the light",
   "the mirror's cord is fine at game size: check it reads (the art desk's own note)"

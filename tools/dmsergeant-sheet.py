@@ -19,7 +19,9 @@ data/foes.js gives him no thrown blow yet).
 WHAT IS HELD (each zip's art-hold/: "The three held sheets need a fresh eight-phase gait before cutting"; the shield kit's four): the walks of SE, E and rear NE in
 the greatsword kit, and SE, E, NE and N in the shield kit (frames 1 and 5 the same lead). Not cut: the walk is each kit's drawn walk where it was cleared (the
 greatsword's S and N, the shield's S) and elsewhere his own idle in that view played twice, as the mender's (tools/mender-sheet.py WALK_IDLE) -- he glides facing the
-way he goes till the redraws come.
+way he goes till the redraws come. THE REDRAWS CAME 11-25 (art-wanted 104; each kit's CUTTER-HANDOFF again, its "November 25 Walk redraws"): SE and E in both kits
+and N with the shield, drawn anew; the rear NE in both "included as drawn" on Griz's approval (its gait redraw deferred to the dream list, the NW mirror with
+it). Sorted into the same batches by the cutter seat cutter-1125b (the held pages and the old FRAME-MAPs to their superseded/); walk_idle empty in both kits.
 
 The cut is tools/mender-sheet.py's reader (read_page, windows) over tools/vivian-sheet.py: each page read whole, the printed numbers dropped (those printed
 within 6 px of his boots too), every loose piece to the nearest frame (a blade's tip); each upright frame on its boots, each lying one on its lowest row; the
@@ -49,11 +51,11 @@ CROWN = 50       # (source px: his crown the first run this wide that is not ste
 KITS = {
     'dmsergeant_p2': dict(batch='2026-11-25-ART-163-GREATSWORD', name='Sergeant (the Blade)',
                           N={'idle': 4, 'walk': 8, 'attack': 8, 'flinch': 4, 'hurt': 6, 'prone': 1},
-                          walk_idle=('SE', 'E', 'NE'),
+                          walk_idle=(),           # (11-25b: SE and E redrawn, rear NE cut as drawn on his approval -- art-wanted 104)
                           rows=[('idle', 4, 4), ('walk', 9, 8), ('attack', 12, 8), ('flinch', 12, 4), ('hurt', 8, 6), ('prone', 1, 1)],
                           release={'attack': 3},
-                          hold=['walk: S and N drawn; SE, E and NE (and their mirrors) play his own idle twice -- the art desk held those three walks (frames 1 and 5 '
-                                'the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come',
+                          hold=['walk: all five drawn -- SE and E the art desk\'s 11-25 redraws (art-wanted 104); rear NE as first drawn, frames 1 and 5 an unclear '
+                                'lead change, cut on his approval with its gait redraw on the dream list (the NW mirror with it)',
                                 'attack: the greatsword two-handed over the greataxe guide, contact on frame 4',
                                 'the handaxe stowed at his right hip throughout (the art desk\'s own note): data/foes.js sergeantblade throws none yet',
                                 'prone: the last Fall cel held (the art desk\'s Prone is a literal crop of it)'],
@@ -61,11 +63,11 @@ KITS = {
                                  'cut by tools/dmsergeant-sheet.py over tools/vivian-sheet.py; SW W NW mirrored'),
     'dmsergeantshield_p2': dict(batch='2026-11-25-ART-163-LONGSWORD-SHIELD', name='Sergeant (the Ledger)',
                                 N={'idle': 4, 'walk': 8, 'attack': 8, 'push': 6, 'flinch': 4, 'hurt': 6, 'prone': 1},
-                                walk_idle=('SE', 'E', 'NE', 'N'),
+                                walk_idle=(),     # (11-25b: SE, E and N redrawn, rear NE cut as drawn on his approval -- art-wanted 104)
                                 rows=[('idle', 4, 4), ('walk', 9, 8), ('attack', 12, 8), ('push', 10, 6), ('flinch', 12, 4), ('hurt', 8, 6), ('prone', 1, 1)],
                                 release={'attack': 3, 'push': 3},
-                                hold=['walk: S drawn; SE, E, NE and N (and their mirrors) play his own idle twice -- the art desk held those four walks (frames 1 and 5 '
-                                      'the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come',
+                                hold=['walk: all five drawn -- SE, E and N the art desk\'s 11-25 redraws (art-wanted 104; N reverses the trailing boot at 5); rear NE as '
+                                      'first drawn, frames 1 and 5 an unclear lead change, cut on his approval with its gait redraw on the dream list (the NW mirror with it)',
                                       'attack: the longsword over the longsword-and-shield guide, contact on frame 4',
                                       'push: the shield wall\'s shove, home on frame 4 -- deep16/js/features.js THE PUSH plays a sheet\'s `push`, as the line soldier\'s',
                                       'prone: the last Fall cel held (the art desk\'s Prone is a literal crop of it)'],

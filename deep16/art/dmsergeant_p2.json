@@ -17,9 +17,9 @@
   },
   "walk": {
    "y": 768,
-   "fw": 38,
+   "fw": 56,
    "fh": 96,
-   "ax": 19,
+   "ax": 28,
    "ay": 76,
    "frames": 8,
    "fps": 9
@@ -64,7 +64,7 @@
  },
  "name": "Sergeant (the Blade)",
  "hold": [
-  "walk: S and N drawn; SE, E and NE (and their mirrors) play his own idle twice -- the art desk held those three walks (frames 1 and 5 the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come",
+  "walk: all five drawn -- SE and E the art desk's 11-25 redraws (art-wanted 104); rear NE as first drawn, frames 1 and 5 an unclear lead change, cut on his approval with its gait redraw on the dream list (the NW mirror with it)",
   "attack: the greatsword two-handed over the greataxe guide, contact on frame 4",
   "the handaxe stowed at his right hip throughout (the art desk's own note): data/foes.js sergeantblade throws none yet",
   "prone: the last Fall cel held (the art desk's Prone is a literal crop of it)"

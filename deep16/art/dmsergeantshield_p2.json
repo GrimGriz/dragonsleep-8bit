@@ -17,9 +17,9 @@
   },
   "walk": {
    "y": 768,
-   "fw": 44,
+   "fw": 48,
    "fh": 96,
-   "ax": 22,
+   "ax": 24,
    "ay": 76,
    "frames": 8,
    "fps": 9
@@ -74,7 +74,7 @@
  },
  "name": "Sergeant (the Ledger)",
  "hold": [
-  "walk: S drawn; SE, E, NE and N (and their mirrors) play his own idle twice -- the art desk held those four walks (frames 1 and 5 the same lead) and ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come",
+  "walk: all five drawn -- SE, E and N the art desk's 11-25 redraws (art-wanted 104; N reverses the trailing boot at 5); rear NE as first drawn, frames 1 and 5 an unclear lead change, cut on his approval with its gait redraw on the dream list (the NW mirror with it)",
   "attack: the longsword over the longsword-and-shield guide, contact on frame 4",
   "push: the shield wall's shove, home on frame 4 -- deep16/js/features.js THE PUSH plays a sheet's `push`, as the line soldier's",
   "prone: the last Fall cel held (the art desk's Prone is a literal crop of it)"

@@ -15,7 +15,8 @@ drawn apart where Katarina's are one.
 WHAT IS HELD (its art-hold/: "No art-hold file is a selected production source"): the SE, E, NE and N Walks (frames 1 and 5 the same lead) and N Prone (propped
 higher than Fall 6). Not cut: N Prone is N Fall 6 held, as the notes say ("Hold Fall 6 at the transition if a temporary fallback is needed"); the walk is S's own
 drawn walk, and in SE, E, NE and N (and their mirrors) her own idle, played through twice, so she glides facing the way she goes till the redraws come
-(WALK_IDLE). A cutter takes the redrawn walks into PLAN when they land.
+(WALK_IDLE). THE REDRAWS CAME 11-25 (art-wanted 105; ART-164's CUTTER-HANDOFF, its "November 25 art repairs"): the four Walks and N Prone sorted into the same
+batch by the cutter seat cutter-1125b (the held pages and the old FRAME-MAP to its superseded/), cut as drawn; WALK_IDLE and HELD_PRONE empty.
 
 THE READER (read_page; tools/dmsergeant-sheet.py borrows it): its FRAME-MAP.csv names each page's action, count and printed bands but gives no boxes, so each
 page is read whole: tools/dominion-sheet.py drawings() -- the matte at BGTOL, the printed title and frame numbers dropped (cream glyphs), the pieces within 6 px
@@ -41,6 +42,7 @@ VIEWS = ('S', 'SE', 'E', 'NE', 'N')
 LYING = {('hurt', 3), ('hurt', 4), ('hurt', 5), ('prone', 0)}
 JOIN = 80        # (source px: a loose piece farther than this from every frame is left out, and named)
 TEXT = 110       # (a loose piece this light at its darkest channel, and grey, is printed text)
+RULE = (4, 400)  # (source px: a loose piece at most 4 thin and at least 400 long is a printed rule, never a frame's -- 11-25b, cutter-1125b)
 
 
 def is_text(px, h):
@@ -88,6 +90,9 @@ def read_page(path, n):
     got = [list(t) for b in bands for t in sorted(b, key=lambda t: t[1][0])]
     notes.insert(0, 'smallest frame %d px, biggest loose piece %d px' % (min(int(d.sum()) for d, _ in main), max([int(d.sum()) for d, _ in rest] or [0])))
     for d, bx in rest:
+        if min(bx[2] - bx[0], bx[3] - bx[1]) <= RULE[0] and max(bx[2] - bx[0], bx[3] - bx[1]) >= RULE[1]:
+            notes.append('rule line: %d px at %s' % (int(d.sum()), bx))     # (a band's seam: ART-163's 11-25 walk redraws, two bands pasted, a hairline the page wide)
+            continue
         if is_text(a[d], bx[3] - bx[1]):
             notes.append('text: %d px at %s' % (int(d.sum()), bx))
             continue
@@ -160,8 +165,8 @@ SRC, BATCH = 'mender', '2026-11-25-ART-164-COMBAT'
 N = {'idle': 4, 'walk': 8, 'attack': 6, 'cast': 6, 'castup': 6, 'flinch': 4, 'hurt': 6, 'prone': 1}
 TALL = 47
 BGTOL = int(os.environ.get('MENDER_BGTOL', '20'))
-WALK_IDLE = ('SE', 'E', 'NE', 'N')      # (their walks held by the art desk: her idle stands in, facing the way she goes)
-HELD_PRONE = ('N',)                     # (N Prone held: N Fall 6 stands in)
+WALK_IDLE = ()          # (11-25b: SE, E, NE and N Walks redrawn -- art-wanted 105; till then her idle stood in, facing the way she went)
+HELD_PRONE = ()         # (11-25b: N Prone redrawn from its Fall 6 crop; till then N Fall 6 stood in)
 HEADS, NOTES = {}, {}
 
 
@@ -194,10 +199,9 @@ LOOK = dict(src=SRC, name='Mender', trim=False, tall=TALL, avoid=AVOID, bgtol=BG
     ground=LYING,                                                                                         #  by their width to their Fall 6)
     rows=[('idle', 4, 4), ('walk', 10, 8), ('attack', 10, 6), ('cast', 10, 6), ('castup', 10, 6), ('flinch', 12, 4), ('hurt', 8, 6), ('prone', 1, 1)],
     release={'attack': 2, 'cast': 3, 'castup': 3},
-    hold=['walk: S drawn; SE, E, NE and N (and their mirrors) play her own idle twice -- the art desk held those four walks (frames 1 and 5 the same lead) and '
-          'ImageGen ran out before the redraws (its own notes); a cutter takes the redraws when they come',
-          'prone: S, SE, E and NE as drawn, matched by width to their Fall 6; N is N Fall 6 held -- its own Prone was held, propped higher than the Fall\'s end '
-          '(the art desk\'s own note)',
+    hold=['walk: all five drawn -- SE, E, NE and N the art desk\'s 11-25 redraws (art-wanted 105), 1 and 5 opposite leads; check the cadence at the loop seam '
+          '(its own note)',
+          'prone: all five drawn, matched by width to their Fall 6 -- N redrawn 11-25 from its Fall 6 crop, the mace beside the right hand',
           'attack: the mace home on frame 3 (`release` 2, as katarina_p2\'s)',
           'cast: the mirror held out on its cord on frame 4; castup: the mirror lifted overhead on 4 -- no glow drawn, the engine\'s spells are the light',
           'the mirror\'s cord is fine at game size: check it reads (the art desk\'s own note)'],
