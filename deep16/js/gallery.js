@@ -293,6 +293,7 @@
     steelwill: { foe: 0, mate: null, wiz: 1 }, mindlessrage: { foe: 0, mate: null, wiz: 1 },
     auraofprotection: { foe: 0, mate: 'whole', wiz: 1 }, auraofdevotion: { foe: 0, mate: 'whole', wiz: 1 }, wakeful: { foe: 0, mate: 'whole', wiz: 1 },
     darkonesblessing: { foe: 3, foeHurt: 1 }, agonizingblast: { foe: 3 }, repellingblast: { foe: 3 },
+    gonefromsight: { mate: null, nfoe: 1 }, heshowsneverspeaks: { foe: 0, mate: null, wiz: 1 }, thepastime: { foe: 3, nfoe: 1, mate: null }, // (the Pact of the Fae King, ours, 11-25)
     // (10-08, the one gallery: the passives that were a card only and can be shown -- a crit, a save rerolled, an AC a blow just misses)
     brutalcritical: { mate: null }, improvedcritical: { mate: null },
     dangersense: { foe: 0, mate: null, wiz: 1 }, indomitable: { foe: 0, mate: null, wiz: 1 },
@@ -314,6 +315,7 @@
     soldiering_wheel: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_wall: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_pike: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike' } }, soldiering_pikewall: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike', shield: null } }, // (Soldiering at 4)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
     pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] },
+    heshowsneverspeaks: { maxLvl: 14 }, thepastime: { maxLvl: 14 }, // (the Fae King's 10th and 14th: a warlock stood past the class's 9, as a named one is -- 11-25)
     // (the SRD's invocations of 11-20: the Armor wants no armour worn, the Blade its pact weapon at 5)
     armorofshadows: { invocations: ['agonizing', 'armorofshadows'], equip: { armor: null } }, eldritchspear: { invocations: ['agonizing', 'eldritchspear'] }, thirstingblade: { pact: 'blade', invocations: ['agonizing', 'thirstingblade'] }
   };
@@ -657,6 +659,15 @@
       darkonesblessing: function* (c) { c.foes[0].hp = 1; yield* castTry(c, 'eldritchblast', 5); },
       agonizingblast: function* (c) { yield* castTry(c, 'eldritchblast', 5); }, repellingblast: function* (c) { yield* castTry(c, 'eldritchblast', 5); },
       pactofthetome: function* (c) { yield* castTry(c, 'sacredflame', 3); },
+      // the Pact of the Fae King (ours, 11-25): GONE FROM SIGHT -- the foe's blow lands and the warlock goes unseen (asked, and the walk says yes); HE SHOWS, NEVER SPEAKS -- the
+      // wizard's Charm Person finds the warlock proof against it; THE PASTIME -- an Eldritch Blast lands, the foe is drawn into the glass, and at the end of the warlock's next turn
+      // (the clock run on here) it is put back within 30 ft with the 10d10
+      gonefromsight: function* (c) { yield* foeStrike(c, 4, { until: function (k) { return !!k.hero.conds.invisible; } }); yield 40; },
+      heshowsneverspeaks: wizCast('charmperson'),
+      thepastime: function* (c) {
+        var t = c.foes[0]; yield* castTry(c, 'eldritchblast', 5);
+        if (t && t.conds.banished && t.conds.banished.glass) { yield 70; for (var k = 0; k < 2 && t.conds.banished; k++) D.magic.tick(B, c.hero, 'end'); var mx = Math.round((c.hero.x + t.x) / 2), my = Math.round((c.hero.y + t.y) / 2); D.iso.lookAt(mx, my, D.grid.map.gz(mx, my)); yield 70; } // (the camera on where it came back)
+      },
       pactoftheblade: swings(5),
       // (10-08, the one gallery: shown with the dice pinned -- FPIN below; with F's dice as they fall they show what the dice bring)
       brutalcritical: swings(1), improvedcritical: swings(1),

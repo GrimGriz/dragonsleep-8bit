@@ -68,7 +68,7 @@
     }
   };
   // the warlock's Pact Magic (SRD 5.1): few slots, all of one level, back on a short rest
-  var SLOTS_PACT = { 1: [1], 2: [2], 3: [0, 2], 4: [0, 2], 5: [0, 0, 2], 6: [0, 0, 2], 7: [0, 0, 0, 2], 8: [0, 0, 0, 2], 9: [0, 0, 0, 0, 2], 10: [0, 0, 0, 0, 2], 11: [0, 0, 0, 0, 3], 12: [0, 0, 0, 0, 3] };
+  var SLOTS_PACT = { 1: [1], 2: [2], 3: [0, 2], 4: [0, 2], 5: [0, 0, 2], 6: [0, 0, 2], 7: [0, 0, 0, 2], 8: [0, 0, 0, 2], 9: [0, 0, 0, 0, 2], 10: [0, 0, 0, 0, 2], 11: [0, 0, 0, 0, 3], 12: [0, 0, 0, 0, 3], 13: [0, 0, 0, 0, 3], 14: [0, 0, 0, 0, 3] }; // (13 and 14, SRD 5.1: 11-25, the Pact of the Fae King's 14th on a warlock stood past 9 by name)
   R.slotsFor = function (h) {
     var c = R.CLASSES[h.cls];
     if (c.caster === 'full') return (SLOTS_FULL[h.lvl] || []).slice();
@@ -339,7 +339,10 @@
       { id: 'lampwright', name: 'the Lampwright', desc: "Ours: the light she carries and the light she takes away. Wick-Lore: Light and Dancing Lights, by INT. Hooded Lamp: her own light never shows her. Pin the Light: her Cunning Action sets a mote on one within 30 ft (DEX save) -- no hiding, no help from being invisible, till her next turn. At 9, By Her Own Light: in light she made, her Sneak Attack needs no edge or friend." }] },
     warlock: { at: 1, word: 'OTHERWORLDLY PATRON', opts: [
       { id: 'fiend', name: 'The Fiend', srd: true, desc: "Dark One's Blessing: a foe it drops gives temporary HP. At 6, Dark One's Own Luck." },
-      { id: 'mirror', name: 'The Mirror', desc: "Amara's. The Mirror's eye: nothing hides or goes invisible before the warlock, in light. Its own list: Glass Whisper and Command; Mirror Image and Detect Thoughts at 3; Hypnotic Pattern and Clairvoyance at 5." }] },
+      { id: 'mirror', name: 'The Mirror', desc: "Amara's. The Mirror's eye: nothing hides or goes invisible before the warlock, in light. Its own list: Glass Whisper and Command; Mirror Image and Detect Thoughts at 3; Hypnotic Pattern and Clairvoyance at 5." },
+      // (the Pact of the Fae King, ours in the PHB Archfey's place -- 11-25, the leveling lane, Griz: "Build the pact"; his name, "lane 'Pact of the Fae King' that most recent draft";
+      // cut to the SRD Fiend's weight. Tronupholen's, the Trickster in the glass: deep16/js/classes.js NPC.SUBS, deep16/js/features.js F.goneFromSight, F.pastime)
+      { id: 'faeking', name: 'the Pact of the Fae King', desc: "Tronupholen's, the Trickster in the glass: he shows, never speaks. GLAMOUR: Disguise Self on herself at will. Its list: Sleep (Silent Image); Mirror Image (Suggestion) at 3; Hypnotic Pattern (Major Image) at 5; Greater Invisibility and Phantasmal Killer at 7; Mislead (Seeming) at 9. At 6, GONE FROM SIGHT: hit, the reaction makes her invisible till her next turn, a short rest. At 10 she can't be charmed; at 14, THE PASTIME." }] },
     // the druid's (10-30, the leveling lane: leveling-srd-by-class.md 6.2; RULED, Griz: "take leveling's leans and it can start building"): the Land, the SRD's, and the Pelt,
     // ours (deep16/js/features.js F.pelt; a druid of the Pelt has no land: deep16/js/classes.js)
     druid: { at: 2, word: 'DRUID CIRCLE', opts: [

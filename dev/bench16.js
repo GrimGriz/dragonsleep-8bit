@@ -19138,6 +19138,152 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePy);
     return;
   }
+  // THE PACT OF THE FAE KING (mode=pact1125; the leveling lane, 2026-11-25 -- Griz: "Build the pact"; his name, "lane 'Pact of the Fae King' that most recent draft"): a warlock's
+  // patron of ours on the pick list and the Pocket DM's maker (js/rules.js R.SUBCLASSES.warlock), its word round the maker's codec; its expanded list -- the built ones known first
+  // at 1/3/5/7/9 and offered on the level's page, the four not built (Silent Image, Suggestion, Major Image, Seeming) never; GLAMOUR on the sheet; GONE FROM SIGHT at 6 -- an
+  // ogre's blow that leaves the warlock at half or less, the reaction, invisible (the next blow at disadvantage), gone at the warlock's turn, once a short rest and back at one; the
+  // AI keeps it above half, the player is asked, none at 5; HE SHOWS, NEVER SPEAKS at 10 -- Charm Person and Hypnotic Pattern find the warlock proof against them, not at 9;
+  // THE PASTIME at 14 -- a hit draws the ogre into the glass, the clock brings it back within 30 ft with the 10d10, once a long rest; a goblin beside the ogre not taken; the
+  // player asked; a failed save against Poison Spray takes it too; the keeper down, the glass lets go; then whole fights, the class AI's, at 6 and 9 (a made card's word) and 14
+  if (get('mode', '') === 'pact1125') {
+    var repPk = { checks: [], errors: [], fights: {} }, d0Pk = D.d, RPk = window.DS.R, NPk = D.npc, FAEk = 'the Pact of the Fae King';
+    function okPk(what, v) { repPk.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPk(g, pick) { var v, k = 0, st, asked = []; while (g && k++ < 8000) { st = g.next(v); v = undefined; if (st.done) return asked; if (st.value && st.value.prompt) { asked.push(st.value.prompt.title); v = pick != null ? pick : st.value.prompt.opts[0].value; } } return asked; }
+    function plainPk(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function logPk(B, n0) { return (B.log || []).slice(n0).map(plainPk).join(' / '); }
+    function besidePk(B, a, b) {
+      var s = b.size || 1;
+      for (var dy = -1; dy <= s; dy++) for (var dx = -1; dx <= s; dx++) { if (dx >= 0 && dx < s && dy >= 0 && dy < s) continue; var x = b.x + dx, y = b.y + dy; if (D.grid.canStand(a, x, y)) { a.x = x; a.y = y; D.grid.setup(B.map, B.units); if (D.grid.dist(a, b) <= 5) return true; } }
+      return false;
+    }
+    // a fight on the class floor with a warlock of the pact at L (stood past 9 by name where L is), the party's first swapped for it
+    function mkPk(L, foes, o) {
+      var B = D.npcFight('?npc=' + foes + '&lvl=' + Math.min(L, 9) + '&vs=warlock:' + Math.min(L, 9), {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var slot = B.units.filter(function (w) { return w.side === 'party'; })[0], wl = NPk.build(Object.assign({ id: 'fae' + L, cls: 'warlock', lvl: L, maxLvl: 14, subclass: FAEk, pact: 'tome' }, o || {}), L, 'party');
+      wl.x = slot.x; wl.y = slot.y; wl.id = slot.id; B.units[B.units.indexOf(slot)] = wl; B.order = B.order.map(function (w) { return w === slot ? wl : w; }); D.grid.setup(B.map, B.units);
+      wl.guest = true; wl.reaction = 1; // (the class AI's answers; a check that wants the player's prompt sets it false) (the reaction: the fight's start gave the one swapped out its own)
+      var fs = B.units.filter(function (w) { return w.side === 'foe'; }); fs.forEach(function (f) { f.conds = {}; });
+      return { B: B, wl: wl, fs: fs };
+    }
+    function blowOf(o) { return o.weapon || (o.attacks && o.attacks[Object.keys(o.attacks)[0]]); }
+    var sp0 = function (L) { return { cls: 'warlock', lvl: L, race: 'human', name: 'Glass Lady', custom: true, pact: 'tome', subclass: FAEk }; };
+    try {
+      D.seed = 1125;
+      // 1. on the pick list and the maker
+      var scPk = RPk.SUBCLASSES.warlock, soPk = RPk.subOpt('warlock', 'faeking');
+      okPk('the warlock\'s patrons: ' + scPk.opts.map(function (o) { return o.name + (o.srd ? ' (SRD)' : ''); }).join(', ') + ', at ' + scPk.at, scPk.opts.length === 3 && !!soPk && soPk.name === FAEk && !soPk.srd && scPk.at === 1);
+      var a1 = NPk.levelAsks(Object.assign(NPk.spec('warlock:1'), { custom: true }), 1, { classDefaults: true }), ar1 = ((a1 && a1.asks) || []).filter(function (a) { return a.kind === 'archetype'; })[0];
+      okPk('the maker at 1 asks the patron: ' + (ar1 ? ar1.rows.map(function (r) { return r.name; }).join(' / ') : 'no ask'), !!ar1 && ar1.rows.some(function (r) { return r.id === FAEk && / \*$/.test(r.name); }));
+      var codePk = NPk.code(Object.assign(sp0(7), { equip: { weapon: 'dagger', armor: 'leather' } })), backPk = NPk.decode(codePk);
+      okPk('a made one\'s word: ' + codePk + ' -- back: ' + (backPk && backPk.subclass), /\.faeking(\.|$)/.test(codePk) && !!backPk && backPk.subclass === FAEk);
+      // 2. the expanded list: known first on the sheet, offered on the level's page; the four not built never
+      var NOTB = ['silentimage', 'suggestion', 'majorimage', 'seeming'], WANT = { 1: ['sleep'], 3: ['mirrorimage'], 5: ['hypnoticpattern'], 7: ['greaterinvisibility', 'phantasmalkiller'], 9: ['mislead'] };
+      okPk('the four not built are not on the grid: ' + NOTB.map(function (id) { return id + ' ' + !!D.SPELLS[id]; }).join(', ') + '; Disguise Self ' + !!D.SPELLS.disguiseself, NOTB.every(function (id) { return !D.SPELLS[id]; }) && !D.SPELLS.disguiseself);
+      Object.keys(WANT).forEach(function (Ls) {
+        var Lx = +Ls, sh = NPk.sheet({ cls: 'warlock', lvl: Lx, subclass: FAEk }), shF = NPk.sheet({ cls: 'warlock', lvl: Lx }), aL = NPk.levelAsks(sp0(Lx), Lx, { classDefaults: true }), qs = ((aL && aL.asks) || []).filter(function (a) { return a.kind === 'spells'; })[0];
+        var rows = qs ? qs.rows.map(function (r) { return r.id; }) : [];
+        var fiendIn = sh.known.concat(rows).filter(function (id) { return NPk.FIEND_OWN.indexOf(id) >= 0; });
+        okPk('at ' + Lx + ': known ' + sh.known.join(', ') + ' (the Fiend\'s ' + shF.known.filter(function (id) { return WANT[Ls].indexOf(id) >= 0; }).length + ' of them); the page offers ' + WANT[Ls].join(', ') + ' ' + WANT[Ls].every(function (id) { return rows.indexOf(id) >= 0; }) + ', marks ' + (qs ? qs.took.join(', ') : 'nothing') + '; the Fiend\'s own on it: ' + (fiendIn.join(', ') || 'none'),
+          WANT[Ls].every(function (id) { return sh.known.indexOf(id) >= 0 && rows.indexOf(id) >= 0; }) && !sh.known.some(function (id) { return NOTB.indexOf(id) >= 0; }) && !rows.some(function (id) { return NOTB.indexOf(id) >= 0; }) && !!qs && qs.took.indexOf(WANT[Ls][0]) >= 0 && !fiendIn.length);
+      });
+      // 3. the sheet's features by level; the register
+      var shL = {}; [1, 5, 6, 9, 10, 13, 14].forEach(function (Lx) { shL[Lx] = NPk.sheet({ cls: 'warlock', lvl: Lx, maxLvl: 14, subclass: FAEk }); });
+      okPk('GLAMOUR at 1 ' + !!shL[1].glamour + '; GONE FROM SIGHT at 5 ' + shL[5].feats.goneFromSight + ', at 6 ' + shL[6].feats.goneFromSight + '; no charm at 9 ' + !!shL[9].unCharmed + ', at 10 ' + !!shL[10].unCharmed + '; THE PASTIME at 13 ' + shL[13].feats.pastime + ', at 14 ' + shL[14].feats.pastime,
+        shL[1].glamour === true && !shL[5].feats.goneFromSight && shL[6].feats.goneFromSight === 1 && !shL[9].unCharmed && shL[10].unCharmed === true && !shL[13].feats.pastime && shL[14].feats.pastime === 1);
+      okPk('a warlock stood at 14 by name: level ' + shL[14].lvl + ', slots ' + JSON.stringify(shL[14].slotsMax || shL[14].slots) + ', ' + shL[14].known.length + ' known; a made word stops at ' + NPk.decode('~warlock.14').lvl, shL[14].lvl === 14 && (shL[14].slotsMax || shL[14].slots).join(',') === '0,0,0,0,3' && NPk.decode('~warlock.14').lvl === 9);
+      var FEk = D.FEATURES || {}, fk = ['glamour', 'gonefromsight', 'heshowsneverspeaks', 'thepastime'];
+      okPk('the features register: ' + fk.map(function (k) { return FEk[k] ? FEk[k].name + ' ' + FEk[k].lvl : k + ' MISSING'; }).join(', '), fk.every(function (k) { return FEk[k] && FEk[k].sub === FAEk && FEk[k].cls === 'warlock'; }) && FEk.glamour.lvl === 1 && FEk.gonefromsight.lvl === 6 && FEk.heshowsneverspeaks.lvl === 10 && FEk.thepastime.lvl === 14);
+
+      // 4. GONE FROM SIGHT at 6 (the ogre's blow pinned to land)
+      D.d = function (nn) { return nn === 20 ? 19 : d0Pk(nn); };
+      var g6 = mkPk(6, 'ogre'), og6 = g6.fs[0], w6 = g6.wl, ok6 = besidePk(g6.B, og6, w6); w6.hp = Math.floor(w6.maxhp / 2) + 3; D.rules.startTurn(og6); g6.B.active = og6;
+      var n6 = (g6.B.log || []).length; runPk(g6.B.attack(og6, w6, blowOf(og6), {})); var l6 = logPk(g6.B, n6), iv6 = w6.conds.invisible;
+      okPk('an ogre hits the warlock 6 to ' + w6.hp + ' of ' + w6.maxhp + ': GONE FROM SIGHT ' + /GONE FROM SIGHT/.test(l6) + ', invisible ' + !!iv6 + ', the reaction ' + w6.reaction + ', uses left ' + w6.feats.goneFromSight, ok6 && /GONE FROM SIGHT/.test(l6) && !!iv6 && iv6.fae && w6.reaction === 0 && w6.feats.goneFromSight === 0);
+      var e6 = D.rules.edges(og6, w6, blowOf(og6));
+      okPk('the ogre\'s next blow at it: ' + JSON.stringify(e6.dis || e6), /unseen target/.test(JSON.stringify(e6)));
+      w6.reaction = 1; var hp6 = w6.hp; runPk(g6.B.attack(og6, w6, blowOf(og6), {})); D.d = d0Pk;
+      okPk('hit again while unseen, no second use (uses ' + w6.feats.goneFromSight + ', HP ' + hp6 + ' -> ' + w6.hp + ')', w6.feats.goneFromSight === 0);
+      D.rules.startTurn(w6); g6.B.active = w6;
+      okPk('the warlock\'s turn begins: seen again (' + !w6.conds.invisible + ')', !w6.conds.invisible);
+      var c6 = { hp: w6.hp, maxhp: w6.maxhp, cls: 'warlock', lvl: 6, con: 1, feats: { goneFromSight: 0 }, slots: [0, 0, 0], slotsMax: [0, 0, 2] }, cF = { hp: 10, maxhp: 30, cls: 'warlock', lvl: 6, con: 1, feats: { darkLuck: 0 }, slots: [0, 0, 0], slotsMax: [0, 0, 2] };
+      var r6 = D.pocket.shortRest(c6, 6, false, function () { return 0.5; }), rF = D.pocket.shortRest(cF, 6, false, function () { return 0.5; });
+      okPk('the Pocket DM\'s short rest: ' + r6.text + ' (uses ' + c6.feats.goneFromSight + '); the Fiend\'s: ' + rF.text + ' (luck ' + cF.feats.darkLuck + ')', c6.feats.goneFromSight === 1 && /Gone from Sight/.test(r6.text) && cF.feats.darkLuck === 1);
+      // the AI keeps it above half; the player is asked; none at 5
+      D.d = function (nn) { return nn === 20 ? 19 : d0Pk(nn); };
+      var g6b = mkPk(6, 'ogre'), ogb = g6b.fs[0], wb = g6b.wl; besidePk(g6b.B, ogb, wb); wb.maxhp = wb.hp = 200; D.rules.startTurn(ogb); g6b.B.active = ogb; runPk(g6b.B.attack(ogb, wb, blowOf(ogb), {}));
+      okPk('the AI\'s warlock hit and still above half: not gone (' + !wb.conds.invisible + ', uses ' + wb.feats.goneFromSight + ')', !wb.conds.invisible && wb.feats.goneFromSight === 1);
+      var g6c = mkPk(6, 'ogre'), ogc = g6c.fs[0], wc = g6c.wl; besidePk(g6c.B, ogc, wc); wc.guest = false; wc.maxhp = wc.hp = 200; D.rules.startTurn(ogc); g6c.B.active = ogc; var askC = runPk(g6c.B.attack(ogc, wc, blowOf(ogc), {}));
+      okPk('the player\'s warlock is asked (' + askC.join('; ') + ') and goes unseen ' + !!wc.conds.invisible, askC.some(function (t) { return /GONE FROM SIGHT\?/.test(t); }) && !!wc.conds.invisible);
+      var g5 = mkPk(5, 'ogre'), og5 = g5.fs[0], w5 = g5.wl; besidePk(g5.B, og5, w5); w5.hp = Math.floor(w5.maxhp / 2) + 3; D.rules.startTurn(og5); g5.B.active = og5; runPk(g5.B.attack(og5, w5, blowOf(og5), {}));
+      okPk('a warlock 5 of the pact: no GONE FROM SIGHT (' + !(w5.conds.invisible && w5.conds.invisible.fae) + ')', !(w5.conds.invisible && w5.conds.invisible.fae));
+      D.d = d0Pk;
+
+      // 5. HE SHOWS, NEVER SPEAKS at 10
+      var u10 = NPk.build({ id: 'u10', cls: 'warlock', lvl: 10, maxLvl: 14, subclass: FAEk }, 10, 'party'), u9 = NPk.build({ id: 'u9', cls: 'warlock', lvl: 9, subclass: FAEk }, 9, 'party');
+      okPk('proof against charm at 10: charmed ' + D.rules.immuneTo(u10, 'charmed') + ', hypnotized ' + D.rules.immuneTo(u10, 'hypnotized') + '; at 9 ' + D.rules.immuneTo(u9, 'charmed'), D.rules.immuneTo(u10, 'charmed') && D.rules.immuneTo(u10, 'hypnotized') && !D.rules.immuneTo(u9, 'charmed'));
+      var g10 = mkPk(10, 'wizard'), wz = g10.fs[0], w10 = g10.wl; besidePk(g10.B, wz, w10); wz.known = ['charmperson', 'hypnoticpattern']; wz.slots = [4, 3, 3, 3, 2]; wz.slotsMax = wz.slots.slice(); D.rules.startTurn(wz); g10.B.active = wz;
+      var eC = D.magic.list(g10.B, wz).filter(function (x) { return x.id === 'charmperson'; })[0], n10 = (g10.B.log || []).length;
+      if (eC) runPk(g10.B.exec(wz, { do: 'cast', id: 'charmperson', slot: eC.slot, target: w10 }));
+      var l10 = logPk(g10.B, n10);
+      okPk('a wizard\'s Charm Person at the warlock 10: ' + (eC ? (/proof against/.test(l10) ? 'proof against it' : l10.slice(0, 160)) : 'not castable') + ', charmed ' + !!w10.conds.charmed, !!eC && /proof against/.test(l10) && !w10.conds.charmed);
+      D.rules.startTurn(wz); g10.B.active = wz; wz.conc = null; var eH = D.magic.list(g10.B, wz).filter(function (x) { return x.id === 'hypnoticpattern'; })[0], n10b = (g10.B.log || []).length;
+      if (eH) runPk(g10.B.exec(wz, { do: 'cast', id: 'hypnoticpattern', slot: eH.slot, target: { x: w10.x, y: w10.y } }));
+      okPk('its Hypnotic Pattern on the warlock\'s square: ' + (eH ? logPk(g10.B, n10b).replace(/\s+/g, ' ').slice(0, 200) : 'not castable') + ' -- hypnotized ' + !!w10.conds.hypnotized, !!eH && !w10.conds.hypnotized && !w10.conds.charmed);
+
+      // 6. THE PASTIME at 14
+      D.d = function (nn) { return nn === 20 ? 19 : d0Pk(nn); };
+      var g14 = mkPk(14, 'ogre,goblin'), og = g14.fs.filter(function (f) { return f.kind === 'ogre'; })[0], gb = g14.fs.filter(function (f) { return f.kind === 'goblin'; })[0], w14 = g14.wl;
+      og.maxhp = og.hp = 150; besidePk(g14.B, w14, og); D.rules.startTurn(w14); g14.B.active = w14;
+      var ox = og.x, oy = og.y, n14 = (g14.B.log || []).length; runPk(g14.B.attack(w14, og, w14.weapon, {})); var l14 = logPk(g14.B, n14), gc = og.conds.banished;
+      okPk('the warlock 14 hits the ogre: THE PASTIME ' + /THE PASTIME/.test(l14) + ', in the glass ' + !!(gc && gc.glass) + ', off the field ' + !!og.ethereal + ', uses left ' + w14.feats.pastime + ', back at the end of turn ' + (gc && gc.till.n) + ' from now', /THE PASTIME/.test(l14) && !!gc && gc.glass && og.ethereal && w14.feats.pastime === 0 && gc.till.n === 2);
+      var hpIn = og.hp; D.magic.tick(g14.B, w14, 'end'); var still = !!og.conds.banished;
+      var n14b = (g14.B.log || []).length; D.magic.tick(g14.B, w14, 'end'); var l14b = logPk(g14.B, n14b), took = hpIn - og.hp, far = Math.max(Math.abs(og.x - ox), Math.abs(og.y - oy));
+      okPk('this turn\'s end: still in the glass ' + still + '; the next turn\'s end: back ' + !og.conds.banished + ' on the field ' + !og.ethereal + ', ' + far * 5 + ' ft from where it stood, ' + took + ' psychic (' + (l14b.match(/10d10[^/]*/) || [''])[0].trim() + ')', still && !og.conds.banished && !og.ethereal && far <= 6 && took >= 10 && took <= 100 && /put back out of the glass/.test(l14b));
+      D.rules.startTurn(w14); g14.B.active = w14; var n14c = (g14.B.log || []).length; runPk(g14.B.attack(w14, og, w14.weapon, {}));
+      okPk('once a long rest: the next hit draws nothing (' + !og.conds.banished + ')', !og.conds.banished && !/THE PASTIME/.test(logPk(g14.B, n14c)));
+      w14.feats.pastime = 1; gb.maxhp = gb.hp = 22; D.rules.startTurn(w14); g14.B.active = w14; besidePk(g14.B, w14, gb); runPk(g14.B.attack(w14, gb, w14.weapon, {})); // (a goblin made to stand the bolt: 22 HP, under the AI's 30 and the ogre's)
+      okPk('the AI does not spend it on the goblin (' + gb.hp + ' HP, hit) beside the ogre (' + og.hp + '): ' + !gb.conds.banished, gb.hp > 0 && gb.hp < og.hp && gb.hp < 30 && !gb.conds.banished && w14.feats.pastime === 1);
+      w14.guest = false; D.rules.startTurn(w14); g14.B.active = w14; besidePk(g14.B, w14, og); var askP = runPk(g14.B.attack(w14, og, w14.weapon, {}), false);
+      okPk('the player\'s warlock is asked (' + askP.join('; ') + '), and NOT NOW keeps it: ' + !og.conds.banished + ', uses ' + w14.feats.pastime, askP.some(function (t) { return /THE PASTIME\?/.test(t); }) && !og.conds.banished && w14.feats.pastime === 1);
+      D.d = d0Pk;
+      // a failed save against the warlock's spell: Poison Spray, the ogre's CON made to fail
+      w14.guest = true; og.saves = Object.assign({}, og.saves, { con: -40 }); D.rules.startTurn(w14); g14.B.active = w14; besidePk(g14.B, w14, og);
+      var eP = D.magic.list(g14.B, w14).filter(function (x) { return x.id === 'poisonspray'; })[0], n14d = (g14.B.log || []).length;
+      if (eP) runPk(g14.B.exec(w14, { do: 'cast', id: 'poisonspray', slot: eP.slot, target: og }));
+      okPk('Poison Spray, the ogre fails its CON save: ' + (eP ? 'drawn in ' + !!(og.conds.banished && og.conds.banished.glass) : 'not castable') + ' (' + logPk(g14.B, n14d).replace(/\s+/g, ' ').slice(0, 140) + ')', !!eP && !!(og.conds.banished && og.conds.banished.glass));
+      // the keeper down: the glass lets go at the drawn one's turn
+      var hpK = og.hp; w14.hp = 0; w14.ko = true; var n14e = (g14.B.log || []).length; D.rules.startTurn(og);
+      okPk('the warlock down, the ogre\'s turn begins: back ' + !og.conds.banished + ', ' + (hpK - og.hp) + ' psychic', !og.conds.banished && !og.ethereal && hpK - og.hp >= 10 && /put back out of the glass/.test(logPk(g14.B, n14e)));
+
+      // 7. whole fights, the class AI's on both sides: a made warlock of the pact at 6 and 9 (its word) beside a fighter against ogres; the named-past-9 one at 14
+      NPk.NAMED.faebench14 = { name: 'Glass Lady', cls: 'warlock', lvl: 14, maxLvl: 14, race: 'human', subclass: FAEk, pact: 'tome', invocations: ['agonizing', 'devilsight', 'repelling'] }; // (the bench's own, gone after)
+      // (goblins' bows and hobgoblins' longbows besides the ogres: the warlock in the back row is shot at, not only the fighter at the front swung at)
+      var bands = [['6', NPk.code(Object.assign(sp0(6), { equip: { weapon: 'lightcrossbow', armor: 'leather' } })), 'ogre,ogre,goblin,goblin,goblin,goblin', 6], ['9', NPk.code(Object.assign(sp0(9), { equip: { weapon: 'lightcrossbow', armor: 'leather' } })), 'ogre,ogre,hobgoblin,hobgoblin,hobgoblin', 9], ['14', 'faebench14', 'stonegiant,ogre,ogre', 14]];
+      var nF = +get('fights', 6), goneAll = 0; // (its own count, not the gate's n=1: seeded fights, the same each run -- GONE FROM SIGHT is the class AI's choice, asked of the three bands together)
+      bands.forEach(function (b) {
+        var tally = { won: 0, lost: 0, other: 0, gone: 0, pastime: 0, back: 0, casts: {}, errors: 0 };
+        for (var i = 0; i < nF; i++) {
+          D.seed = 1125 * 31 + i * 7919 + (+b[0]); D.lastError = null; var e0 = errs.length;
+          var Bf = new D.Battle({ npc: { party: [b[1], 'fighter:' + Math.min(9, b[3])], foes: b[2].split(',') }, bench: true, fightDef: D.classFight(Math.min(9, b[3])) }); D.battle = Bf; Bf.enter();
+          var res = drive(Bf), lg = (Bf.log || []).map(plainPk).join('\n');
+          if (res === 'won') tally.won++; else if (res === 'lost') tally.lost++; else tally.other++;
+          if (/GONE FROM SIGHT/.test(lg)) tally.gone++; if (/THE PASTIME/.test(lg)) tally.pastime++; if (/put back out of the glass/.test(lg)) tally.back++;
+          (lg.match(/Glass Lady: [A-Z][A-Z' ]{3,}/g) || []).forEach(function (s) { var k = s.replace(/^Glass Lady: /, '').trim(); tally.casts[k] = (tally.casts[k] || 0) + 1; });
+          if (errs.length > e0 || D.lastError) tally.errors++;
+        }
+        repPk.fights['warlock ' + b[0]] = tally; goneAll += tally.gone;
+        okPk('whole fights, the warlock ' + b[0] + ' and a fighter against ' + b[2] + ': ' + tally.won + ' won, ' + tally.lost + ' lost, ' + tally.other + ' other of ' + nF + '; GONE FROM SIGHT in ' + tally.gone + (b[3] >= 14 ? ', THE PASTIME in ' + tally.pastime + ' (back ' + tally.back + ')' : '') + '; errors ' + tally.errors,
+          tally.errors === 0 && tally.other === 0 && (b[3] < 14 || (tally.pastime > 0 && tally.back === tally.pastime)));
+      });
+      okPk('GONE FROM SIGHT by the class AI\'s own choice in ' + goneAll + ' of the ' + (nF * bands.length) + ' whole fights', goneAll > 0);
+      delete NPk.NAMED.faebench14;
+    } catch (e) { repPk.errors.push(String(e && e.stack || e)); }
+    D.d = d0Pk; if (D.npc && D.npc.NAMED) delete D.npc.NAMED.faebench14;
+    if (errs.length) repPk.errors = repPk.errors.concat(errs.slice(0, 5));
+    var prePk = document.createElement('pre'); prePk.id = 'out'; prePk.textContent = 'BENCH16 ' + JSON.stringify(repPk);
+    document.body.appendChild(prePk);
+    return;
+  }
   // THREE MORE INVOCATIONS (mode=invoc1120; the leveling lane §8 item 10, 2026-11-20 -- Griz: "pick two of the SRD unbuilt to add tonight"; SRD 5.1 Warlock, Eldritch
   // Invocations): on the maker's INVOCATIONS tab (seven now); ARMOR OF SHADOWS -- AC 13 + DEX with no armour worn, nothing over armour; ELDRITCH SPEAR -- Eldritch
   // Blast's range 300 ft on the ring's list, 120 without; THIRSTING BLADE -- two attacks with the pact weapon at 5, one at 4, one with no Pact of the Blade
@@ -32273,6 +32419,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       deflectmissiles: /deflects the missile/, evasion_monk: /evasion/, evasion_rogue: /evasion/, firstblood: /FIRST BLOOD/, answerback: /answers back/, downinthesand: /down in the sand/, rimedoubles: /breaks to rime/,
       rimestep: /Rime Step/, sculptspells: /sculpted/, potentcantrip: /potent/, elementalaffinity: /affinity/, discipleoflife: /CURE WOUNDS/, blessedhealer: /blessed healer/, destroyundead: /DESTROYED/,
       darkonesblessing: /Dark One's Blessing/, agonizingblast: /1d10\+\d/, pactoftheblade: /\(pact\)/, pactofthetome: /SACRED FLAME/, auraofprotection: /aura \+/, auraofdevotion: /proof against/,
+      gonefromsight: /GONE FROM SIGHT/, heshowsneverspeaks: /proof against/, thepastime: /THE PASTIME[\s\S]*put back out of the glass/, // (the Pact of the Fae King, ours: 11-25)
       steelwill: /steel will/, mindlessrage: /fearless/, wakeful: /vigil keeps/, supremesneak: /supreme sneak/, pitfists: /Fists/, fightingstyle_archery: /Shortbow/, fightingstyle_gwf: /Greatsword/, repellingblast: /Eldritch Blast/ };
     var repW ={ total: 0, fired: [], demo: [], card: [], blocked: [], silent: [], errors: [], byClass: {} };
     try {

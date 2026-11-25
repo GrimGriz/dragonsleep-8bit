@@ -1035,6 +1035,79 @@
   // WAKEFUL (6): magic cannot put him, or one of his within 10 ft, to sleep (magic.js Sleep asks)
   M.wakeful = function (B, w) { return B.units.some(function (k) { return sub(k, 'the Vigil', 6) && k.side === w.side && G.standing(k) && G.dist(k, w) <= 10; }); };
 
+  // ------------------------------------------------------------------ the Pact of the Fae King (ours, the warlock's patron, 1; 11-25 -- the leveling lane, Griz: "Build the pact";
+  // his name, "lane 'Pact of the Fae King' that most recent draft"; invented.json #pact-of-the-fae-king): Tronupholen's, the Trickster in the glass -- he shows, never speaks. Cut to
+  // the SRD Fiend's weight. GLAMOUR (1) is the sheet's alone (Disguise Self is not on the grid); HE SHOWS, NEVER SPEAKS (10) is js/classes.js NPC.unit's (no charm). Here: GONE FROM
+  // SIGHT (6) and THE PASTIME (14). The lines name the warlock, never a pronoun: a made one may be anyone
+  var FAE = 'the Pact of the Fae King';
+  function unitById(B, id) { return B.units.filter(function (w) { return w.id === id; })[0] || null; }
+  // GONE FROM SIGHT (6; once a short rest): hit, the reaction makes the warlock invisible until the start of the warlock's next turn (the Sprite's Invisibility, the Green Hag's
+  // Invisible Passage; no teleport). Asked before Hellish Rebuke (battle.js attack): one reaction, and the AI's is to go unseen when the blow leaves it at half or less, else to answer
+  F.goneFromSight = function* (B, u, att) {
+    if (!sub(u, FAE, 6) || !feat(u, 'goneFromSight') || !u.reaction || u.dead || u.hp <= 0 || !RU.canAct(u) || (u.conds.invisible && !u.conds.invisible.ends) || u.conds.banished) return;
+    var auto = u.side !== 'party' || u.guest;
+    if (auto && u.hp > u.maxhp / 2) return;
+    var yes = auto ? true : yield { prompt: { who: u, title: u.name + ': GONE FROM SIGHT?', lines: [Nm(B, att) + ' hit you. The glass takes you from sight till your turn begins: blows at you at disadvantage, yours at advantage. (the reaction; once a short rest)'], opts: [{ label: 'GO UNSEEN', value: true }, { label: 'STAY', value: false }] } };
+    if (!yes) return;
+    u.reaction = 0; u.feats.goneFromSight--; delete u.conds.hidden;
+    u.conds.invisible = { by: u.id, fae: true, till: { who: u.id, at: 'start', n: 1 }, endText: '{who} steps back out of the glass.' }; // (no `ends`: it lasts its turn's length whatever -- battle.js endInvis)
+    D.sfx('magic'); FX.sparkle(u, 'violet', 20); FX.ring(u, 'violet', 26);
+    B.card(['{p}' + Nm(B, u) + ': GONE FROM SIGHT{/} -- the glass takes ' + nm(B, u) + ' from sight  {g}(invisible till ' + nm(B, u) + '\'s next turn; the reaction, a short rest){/}'], 260);
+    yield 16;
+  };
+  // THE PASTIME (14; once a long rest): a creature the warlock hits, or one that fails a save against the warlock's spell, is drawn into the glass until the end of the warlock's
+  // next turn (the banished's own handling -- no turn, not on the field), takes 10d10 psychic (the Fiend's Hurl Through Hell's size), and comes back to a square the warlock picks
+  // within 30 ft of where it stood. The AI draws a foe of 30 HP or more, or the strongest standing; the player's warlock is asked. The square: the one within 30 ft farthest from
+  // the warlock's own side (the player's too -- the seat's call, no square-picking by hand yet). A keeper fallen or gone before then: the glass lets go at the drawn one's turn
+  F.pastimeWants = function (B, u, t) {
+    if (!sub(u, FAE, 14) || !feat(u, 'pastime') || !t || t === u || t.dead || t.hp <= 0 || t.object || t.conds.banished || t.ethereal || !G.hostile(u, t)) return false;
+    var top = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object; }).reduce(function (m, w) { return Math.max(m, w.hp); }, 0);
+    return t.hp >= 30 || (t.hp >= top && t.hp >= 12);
+  };
+  F.pastime = function* (B, u, t, how) {
+    if (!sub(u, FAE, 14) || !feat(u, 'pastime') || !t || t === u || t.dead || t.hp <= 0 || t.object || t.conds.banished || t.ethereal || !G.hostile(u, t) || u.dead || u.hp <= 0) return false;
+    var auto = u.side !== 'party' || u.guest;
+    if (auto && !F.pastimeWants(B, u, t)) return false;
+    var yes = auto ? true : yield { prompt: { who: u, title: u.name + ': THE PASTIME?', lines: [(how === 'save' ? Nm(B, t) + ' failed the save.' : 'You hit ' + nm(B, t) + '.') + ' Draw it into the glass till the end of your next turn: 10d10 psychic, and back within 30 ft where you put it. (once a long rest)'], opts: [{ label: 'INTO THE GLASS', value: true }, { label: 'NOT NOW', value: false }] } };
+    if (!yes) return false;
+    u.feats.pastime--;
+    var c = { by: u.id, x: t.x, y: t.y, glass: true, till: { who: u.id, at: 'end', n: B.active === u ? 2 : 1 } }; // (drawn on the warlock's own turn: that turn's end is not "the next")
+    c.onEnd = function (w) { F.pastimeBack(D.battle || B, unitById(D.battle || B, c.by), w, c); };
+    t.conds.banished = c; t.ethereal = true;
+    D.sfx('magic'); FX.sparkle(t, 'violet', 30); FX.ring(t, 'violet', 40);
+    B.card(['{p}' + Nm(B, u) + ': THE PASTIME{/} -- ' + nm(B, t) + ' is drawn into the glass  {g}(till the end of ' + nm(B, u) + '\'s next turn; a long rest){/}'], 300);
+    yield 24;
+    return true;
+  };
+  // back out of the glass: the square (within 30 ft of where it stood, as far from the keeper's side as it can be), then the 10d10
+  F.pastimeBack = function (B, k, w, c) {
+    if (!B || !w || w.dead) return;
+    delete w.conds.banished; w.ethereal = false;
+    var x0 = c.x, y0 = c.y, best = null, mine = k ? B.units.filter(function (o) { return o !== w && o.side === k.side && G.standing(o); }) : [];
+    for (var y = y0 - 6; y <= y0 + 6; y++) for (var x = x0 - 6; x <= x0 + 6; x++) {
+      if (x < 0 || y < 0 || x >= G.map.w || y >= G.map.h || !G.canStand(w, x, y)) continue;
+      var far = mine.length ? mine.reduce(function (m, o) { return Math.min(m, Math.max(Math.abs(o.x - x), Math.abs(o.y - y))); }, 99) : 0, near = Math.max(Math.abs(x - x0), Math.abs(y - y0));
+      var sc = far * 10 - near; if (!best || sc > best.sc) best = { sc: sc, x: x, y: y };
+    }
+    if (best) { w.x = best.x; w.y = best.y; }
+    var r = D.roll('10d10');
+    FX.sparkle(w, 'violet', 24);
+    B.card(['{p}' + Nm(B, w) + ' is put back out of the glass' + (best ? ' ' + Math.max(Math.abs(w.x - x0), Math.abs(w.y - y0)) * 5 + ' ft from where it stood' : '') + '{/}: the Pastime  10d10 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} psychic'], 300);
+    B.hurt(w, r.total, 'psychic', { magic: true });
+  };
+  // the glass lets go of one whose keeper is down or gone, at its own turn's start
+  var onStartFae = M.onStart;
+  M.onStart = function (B, u) {
+    var c = u && u.conds && u.conds.banished;
+    if (B && c && c.glass) { var k = unitById(B, c.by); if (!k || k.dead || k.hp <= 0) F.pastimeBack(B, k, u, c); }
+    return onStartFae.apply(this, arguments);
+  };
+  // a failed save against the warlock's spell (js/grimoire.js saveAll): the first one that failed that THE PASTIME would take
+  F.pastimeSave = function* (B, u, failed) {
+    if (!u || !sub(u, FAE, 14) || !feat(u, 'pastime')) return;
+    for (var i = 0; i < failed.length; i++) { if (yield* F.pastime(B, u, failed[i], 'save')) return; }
+  };
+
   // ------------------------------------------------------------------ DIVINE STRIKE (8; 09-28h, Griz: "can we do the levels for the original
   // classes up to nine" -- the seat's drafts for our two domains, standing as approved): the SRD Life Domain's feature, in each domain's
   // own kind. Once on each of the cleric's turns, a creature it hits with a weapon attack takes 1d8 more (2d8 at 14): the Window's
@@ -1066,6 +1139,7 @@
     if (u.cls === 'sorcerer' && u.metamagic && u.metamagic.length) out.push((f.sorcery || 0) + ' pts: ' + u.metamagic.join(', '));
     if (u.cls === 'warlock' && u.pact) out.push('pact of the ' + u.pact);
     if (u.subclass === 'The Fiend' && u.lvl >= 6) out.push('dark luck ' + (f.darkLuck ? 'ready' : 'spent'));
+    if (u.subclass === 'the Pact of the Fae King' && u.lvl >= 6) out.push('gone from sight ' + (f.goneFromSight ? 'ready' : 'spent') + (u.lvl >= 14 ? ', the pastime ' + (f.pastime ? 'ready' : 'spent') : '')); // (ours, 11-25)
     if (u.cls === 'barbarian' && u.subclass === 'Path of the Berserker' && u.lvl >= 6) out.push('mindless rage');
     if (u.prey && u.prey !== 'colossus') out.push(F.PREY_NAMES[u.prey] || ''); // (the Hunter's Prey when it is not the Colossus Slayer every Hunter had: 11-20)
     if (u.hunterDef) out.push({ horde: 'escape the horde', multiattack: 'multiattack defense', steelwill: 'steel will' }[u.hunterDef] || '');

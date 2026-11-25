@@ -72,7 +72,7 @@
     // pick 09-30: Fire Bolt, Sacred Flame, Vicious Mockery); a spec may say pact: 'blade' (a pact weapon: a rapier, proficient, magical) or
     // its own tome. The Chain (a familiar in imp, pseudodragon, quasit or sprite form) waits on sheets for those four: not built
     warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'npcwarlock_p0', pact: 'tome', tome: ['firebolt', 'sacredflame', 'viciousmockery'],
-      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], known: [2, 3, 4, 5, 6, 7, 8, 9, 10], invocations: { 2: ['agonizing', 'devilsight'], 5: ['agonizing', 'devilsight', 'repelling'] },
+      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4], known: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12], invocations: { 2: ['agonizing', 'devilsight'], 5: ['agonizing', 'devilsight', 'repelling'] }, // (10 to 14, SRD 5.1 -- 11-25: a warlock stood past 9 by name, as Pyro is a fighter at 12; the Fae King's 10th and 14th)
       spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'expeditiousretreat', 'command', 'burninghands', 'gnawingword'], /* (Gnawing Word, ours, last: no generic warlock reaches a fifth 1st -- 10-30) */ /* (Expeditious Retreat second: fourth, the generic warlock never knew it at 1-9 -- the rules runner's find; RULED 10-01c, Griz: "yes") */ 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch', 'counterspell', 'fly'], 4: ['blight', 'fireshield', 'dimensiondoor', 'banishment'], 5: ['flamestrike', 'holdmonster'] } },
     wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'npcwizard_p0',
       cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'int',
@@ -100,8 +100,27 @@
     // chainmail I think"; "all 8 leans are go"): Rhollor's, through the relics (TarlynsPit/wiki/gnoll-hills.md -- the god under the ground, his dead call
     // "through the female voices"). Entangle is his; the rest the seat's drafts, invented.json #the-keeping: the laugh that is the call, the hold, the
     // pack's terror, the curse, the rot, the confusion, and at 9 Book I's own Insect Plague
-    'the Keeping': { always: { 1: ['entangle', 'hideouslaughter'], 3: ['holdperson', 'blindnessdeafness'], 5: ['fear', 'bestowcurse'], 7: ['blight', 'confusion'], 9: ['insectplague', 'holdmonster'] } }
+    'the Keeping': { always: { 1: ['entangle', 'hideouslaughter'], 3: ['holdperson', 'blindnessdeafness'], 5: ['fear', 'bestowcurse'], 7: ['blight', 'confusion'], 9: ['insectplague', 'holdmonster'] } },
+    // THE PACT OF THE FAE KING (ours, a warlock's patron in the PHB Archfey's place -- 11-25, the leveling lane, Griz: "Build the pact"; his name, "lane 'Pact of the Fae King'
+    // that most recent draft"; invented.json #pact-of-the-fae-king): Tronupholen's, the Trickster in the glass, cut to the SRD Fiend's weight. `expanded`: its spells added to
+    // the warlock's list (SRD 5.1 Expanded Spell List), keyed by the warlock level that opens their spell level -- 1st at 1, 2nd at 3, 3rd at 5, 4th at 7, 5th at 9. A warlock
+    // of the pact knows the built ones first (NPC.sheet) and the pick page offers them (NPC.prepInfo). Silent Image, Suggestion, Major Image and Seeming are not built on the
+    // grid (spells-srd-by-class.md: LATER, LATER, LATER, OUT) and wait; GLAMOUR's Disguise Self is OUT there too (a changed look: social), so GLAMOUR is the sheet's and the
+    // features page's, with nothing on the grid. GONE FROM SIGHT (6), HE SHOWS, NEVER SPEAKS (10) and THE PASTIME (14): js/features.js, below (NPC.sheet, NPC.unit)
+    'the Pact of the Fae King': { expanded: { 1: ['silentimage', 'sleep'], 3: ['mirrorimage', 'suggestion'], 5: ['majorimage', 'hypnoticpattern'], 7: ['greaterinvisibility', 'phantasmalkiller'], 9: ['seeming', 'mislead'] } }
   };
+  NPC.FAE = 'the Pact of the Fae King';
+  // the SRD Fiend's own Expanded Spell List as the generic warlock's list carries it (that warlock is the Fiend's: NPC.CLASSES.warlock): a patron of ours with its own `expanded`
+  // list does not learn these (SRD 5.1: the list is "added to the warlock spell list for you", the Fiend's warlock) -- off its sheet's default and its level's page (11-25)
+  NPC.FIEND_OWN = ['burninghands', 'command', 'scorchingray', 'fireball', 'fireshield', 'flamestrike'];
+  function notFiend(id) { return NPC.FIEND_OWN.indexOf(id) < 0; }
+  // a patron's expanded spells the level has reached, the built ones only, as { spell level: [ids] }
+  function expandedAt(sub, lvl) {
+    var ex = NPC.SUBS[sub] && NPC.SUBS[sub].expanded, out = {}; if (!ex) return null;
+    Object.keys(ex).forEach(function (k) { if (lvl < +k) return; var L = Math.ceil(+k / 2); out[L] = (out[L] || []).concat(ex[k].filter(function (id) { return !!D.SPELLS[id]; })); });
+    return out;
+  }
+  NPC.expandedAt = expandedAt;
   // our four (09-28h, Griz: "the off SRD ones we made to 9"; "AI now, buttons later"): the tester ladder's party (js/ladder.js
   // ?ladder&party=ours), each built at the rung's level. One who is across the floor on that rung (the Wagon Yard's Willem, the
   // Card's Top's Talmok) sits it out: three of ours, not a man against himself (the seat's call; flagged)
@@ -430,6 +449,7 @@
     var sub = c.sub && lvl >= c.sub[0] ? c.sub[1] : null;
     if ('subclass' in spec) sub = spec.subclass;
     if (cls === 'warlock' && spec.patron === 'mirror') sub = 'The Mirror';
+    if (cls === 'warlock' && spec.patron === 'faeking') sub = NPC.FAE; // (a named one of the Fae King's -- Tronu's ladies, when the wagons' patrons are built: 11-25)
     if (pkd && pkd.fields.subclass != null) sub = pkd.fields.subclass; // (one chosen on the card's EDIT stands over the register's, Amara's patron too)
     if (sub === 'Draconic Bloodline') hp += lvl; // Draconic Resilience: +1 HP a level
     if (spec.hp && !spec.away) hp = spec.hp; // (a named one's sheet: its register's number; away from its level, the SRD's average)
@@ -464,6 +484,9 @@
     // sorcerer's metamagic (3: two options, a third at 10, a fourth at 17), the Hunter's Defensive Tactics (7: Escape the Horde unless the spec
     // says 'multiattack' or 'steelwill'), the warlock's Pact Boon (3: below)
     if (sub === 'The Fiend' && lvl >= 6) h.feats.darkLuck = 1;
+    // the Pact of the Fae King (ours, 11-25 -- NPC.SUBS above; js/features.js): GLAMOUR at 1 (the sheet's; Disguise Self is not on the grid), GONE FROM SIGHT at 6 (once a short rest),
+    // HE SHOWS, NEVER SPEAKS at 10 (NPC.unit: no charm), THE PASTIME at 14 (once a long rest)
+    if (sub === NPC.FAE && cls === 'warlock') { h.glamour = true; if (lvl >= 6) h.feats.goneFromSight = 1; if (lvl >= 10) h.unCharmed = true; if (lvl >= 14) h.feats.pastime = 1; }
     if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = lvl >= 7 ? 3 : 2; h.plays = (window.DS.R.playsFix(spec.plays) || ['bind', 'breakstride', 'pinshield', 'callmark', 'holdground']).slice(0, lvl >= 7 ? 5 : 3); } // (WHEEL gone to the feat Soldiering, 11-20: R.playsFix) // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
     if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
     if (sub === 'the Lampwright' && cls === 'rogue' && lvl >= 3) h.known = (h.known || []).concat(['light', 'dancinglights'].filter(function (id) { return (h.known || []).indexOf(id) < 0; })); // (Wick-Lore: Light and Dancing Lights, INT -- ours, 11-03)
@@ -479,6 +502,8 @@
       var cc = c;
       if (spec.spells) cc = Object.assign({}, c, { spells: spec.spells });
       if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
+      // (a patron's expanded list of ours, the built ones, first at each spell level -- the Pact of the Fae King, 11-25: NPC.SUBS[sub].expanded)
+      var exS = expandedAt(sub, lvl); if (exS) { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(cc.spells).forEach(function (L) { if (+L > 0) cc.spells[L] = cc.spells[L].filter(notFiend); }); Object.keys(exS).forEach(function (L) { cc.spells[L] = exS[L].concat((cc.spells[L] || []).filter(function (x) { return exS[L].indexOf(x) < 0; })); }); } // (the Fiend's own off it: NPC.FIEND_OWN)
       if (NPC.SUBS[sub] && NPC.SUBS[sub].always) cc = Object.assign({}, cc, { always: NPC.SUBS[sub].always }); // (our own domains' lists, in the Life Domain's place)
       // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
       h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow, h.land)
@@ -574,8 +599,9 @@
     var top = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) top = i + 1; });
     var n = c.known ? c.known[h.lvl - 1] : Math.max(1, DS.mod(h.abil[c.prepares]) + (c.half ? Math.floor(h.lvl / 2) : h.lvl));
     if (c.half && h.lvl < 2) n = 0;
-    var alw = alwaysOf(c, h.subclass, h.lvl, h.land), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice();
-    for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], sp[L] || []);
+    var alw = alwaysOf(c, h.subclass, h.lvl, h.land), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice(), exP = expandedAt(h.subclass, h.lvl) || {}; // (a patron's expanded list: offered first at its level -- the Pact of the Fae King, 11-25)
+    var exOn = !!(NPC.SUBS[h.subclass] && NPC.SUBS[h.subclass].expanded); // (a patron of ours with its own list: the Fiend's own are not offered -- NPC.FIEND_OWN)
+    for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], exP[L] || [], (sp[L] || []).filter(function (id) { return !exOn || notFiend(id); }));
     if (spec.custom && spec.register !== false) for (var Lr = 1; Lr <= top; Lr++) pool = pool.concat(NPC.registerList(spec.cls, Lr)); // (a made one: the SRD's list for its class after the class's own, 11-14)
     pool = pool.filter(uniq).filter(function (id) { var L2 = lv(id); return L2 >= 1 && L2 <= top && alw.indexOf(id) < 0; })
       .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });
@@ -666,6 +692,8 @@
     if (race.savage) u.savage = true;
     if (race.lucky) u.lucky = true; if (race.brave) u.brave = true; if (race.nimble) u.nimble = true; if (race.gnomeCunning) u.gnomeCunning = true; // (the halfling's and the gnome's, 11-14: rules.js)
     if (h.mirrorEye) u.mirrorEye = true;
+    if (h.glamour) u.glamour = true; // (the Pact of the Fae King's GLAMOUR, 11-25: the sheet's, nothing on the grid)
+    if (h.unCharmed) { u.unCharmed = true; u.condImmune = (Array.isArray(u.condImmune) ? u.condImmune : []).concat(['charmed', 'hypnotized']).filter(function (x, i, a) { return a.indexOf(x) === i; }); } // (HE SHOWS, NEVER SPEAKS, the Fae King's 10th: she can't be charmed -- Hypnotic Pattern's charm is the grid's 'hypnotized', rules.js RU.immuneTo)
     if (h.lupine) { u.darkvision = Math.max(u.darkvision || 0, 60); u.keenSenses = true; u.raceName = 'Lupine'; } // (a Lupine, GreyFang's people, 10-08: darkvision 60, keen hearing and smell -- battle.js search)
     if (h.grimlock) { u.blindsight = Math.max(u.blindsight || 0, 30); u.keenSenses = true; u.raceName = 'Half-elf, grimlock-made'; } // (the General's grimlock twist, 11-10: the SRD grimlock's blindsight 30 ft and Keen Hearing and Smell)
     // natural weapons (the General's claws and bite, 11-10): STR and his proficiency, the first in hand; `combo` the Attack action's swings in order (js/tactics.js attacksWith, swingAll)

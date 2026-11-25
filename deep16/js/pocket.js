@@ -199,6 +199,10 @@
     if (c.cls === 'monk' && c.lvl >= 2) { if (!(f.ki >= c.lvl)) back.push('ki'); f.ki = c.lvl; }
     if (c.cls === 'bard' && c.lvl >= 5) { f.inspiration = Math.max(1, c.cha || 1); back.push('Bardic Inspiration'); }
     if (c.cls === 'warlock' && c.slotsMax) { c.slots = c.slotsMax.slice(); back.push('pact slots'); }
+    // (a short rest's warlock features, 11-25: GONE FROM SIGHT, the Fae King's 6th -- and the Fiend's Dark One's Own Luck, whose sheet says a short rest and which no short rest
+    // gave back till then; each only where the sheet has it, a spent one at 0)
+    if (c.cls === 'warlock' && f.goneFromSight === 0) { f.goneFromSight = 1; back.push('Gone from Sight'); }
+    if (c.cls === 'warlock' && f.darkLuck === 0) { f.darkLuck = 1; back.push('Dark One\'s Own Luck'); }
     if (c.cls === 'wizard' && !arcane && c.slotsMax && c.slots) {
       var budget = Math.ceil(c.lvl / 2), got = 0;
       for (var L = Math.min(5, c.slotsMax.length); L >= 1; L--) while (c.slots[L - 1] < c.slotsMax[L - 1] && budget >= L) { c.slots[L - 1]++; budget -= L; got++; }

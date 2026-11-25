@@ -55,6 +55,8 @@
     hits.forEach(function (h) { B.hurt(h[0], h[1], type, MAGIC); });
     if (o.cond) failed.forEach(function (w) { if (!w.dead && (w.hp > 0 || o.onDown)) o.cond(w); });
     yield 24;
+    // THE PASTIME (the Fae King's 14th, 11-25 -- js/features.js): one that failed a save against the warlock's spell may be drawn into the glass
+    if (failed.length && u && u.feats && u.feats.pastime > 0 && (B.castLevel != null || o.cantrip) && D.features && D.features.pastimeSave) yield* D.features.pastimeSave(B, u, failed.filter(function (w) { return !w.dead && w.hp > 0; }));
     return failed;
   }
   E._saveAll = saveAll;

@@ -3108,9 +3108,12 @@
     }
     if (o.onHit) o.onHit(tgt, crit); // (a spell attack's rider: js/grimoire.js)
     if (D.magic.onWeaponHit && !atk.spell && !tgt.dead) yield* D.magic.onWeaponHit(this, att, tgt, atk, crit); // (Stunning Strike, Open Hand, Colossus Slayer: js/features.js)
+    if (D.features && D.features.pastime && att.feats && att.feats.pastime > 0 && !tgt.dead && tgt.hp > 0) yield* D.features.pastime(this, att, tgt, 'hit'); // (THE PASTIME, the Fae King's 14th: a creature she hits drawn into the glass -- js/features.js, 11-25)
     yield o.oa ? 18 : 26;
+    // a reaction to the blow (11-25, js/features.js): GONE FROM SIGHT, the Fae King's 6th, asked first -- one reaction, the AI's to go unseen when the blow leaves it at half or less
+    if (D.features && D.features.goneFromSight && tgt.feats && tgt.feats.goneFromSight > 0 && !tgt.dead && tgt.hp > 0 && !tgt.conds.banished && !att.dead) yield* D.features.goneFromSight(this, tgt, att);
     // a reaction to the blow (09-28, js/grimoire.js): Hellish Rebuke from one who took it and can see who gave it
-    if (D.magic.rebuke && !tgt.dead && tgt.hp > 0 && !att.dead) yield* D.magic.rebuke(this, tgt, att);
+    if (D.magic.rebuke && !tgt.dead && tgt.hp > 0 && !tgt.conds.banished && !att.dead) yield* D.magic.rebuke(this, tgt, att);
     // riders: the drow's poisoned bolt, the spider's venom
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
       var sv = RU.save(tgt, 'con', atk.poison.dc, false, 'poisoned');
