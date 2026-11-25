@@ -4,6 +4,18 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-25
 
+- 2026-11-25 · ruled · every lane the primer's Part A names · The seats' leans 6-17 of `primer-2026-11-25-open-questions.md` stand · *"rest of part A leans approved (renown greeting temporary until narrative pass)"*
+- 2026-11-25 · ruled · every lane the primer's Part B names · The calls standing for his overrule, 54-73 of the primer, stand · *"re answered calls - stand"*
+- 2026-11-25 · ruled · the wiki update · The council's room to the Hex's lounge, the road's length to THE WORLD's, the fork, Harrow's Castegut line kept; Brennan, Marko and the Venn line put back to him · *"23 - yes"*, *"24 - match with world map"*, *"26 - line is fine, he doesn't know anyone that trades with castegut"*
+- 2026-11-25 · ruled · the Snoot mode · The three wagons' ladies by patron and their errands laned here; `SN.hostile`'s peace with the Harbinger's pack and the Dominion struck (to build) · *"those 3 wagons implemented is snoot lane"*, *"46 - lane in snoot lane, 47 yes"*
+- 2026-11-25 · ruled · Silverton's hours and words · Warda's standing kept, the other Urtusks and the dialogue pass to the narrative pass, the new-moon card hourly for now · *"35 - the pending 'narrative pass'"*, *"36 - it can sit hourly for now"*
+- 2026-11-25 · ruled · the world map · Escort missions held, the lean kept in the build notes · *"37 - hold the build, include that lean in build notes"*
+- 2026-11-25 · ruled · the clock · The party's start two weeks before the moot stays his lean, not built · *"45 - probably, but not building it yet"*
+- 2026-11-25 · ruled · the play records · A fresh Barley starts without armour · *"50 - no, Gull's Reward handles"*
+- 2026-11-25 · ruled · the story build · The General's card gives CR and hit dice only once his fight is built and benched · *"51 - not until finalized after fight is built and benched"*
+- 2026-11-25 · ruled · the leveling · The Ledger's feat laned here; the beefiness check run; the Pact of the Fae King to build · *"19 - should be laned with the feats/leveling lane"*, *"21 - go on beefiness check"*, *"Build the pact"*
+- 2026-11-25 · ruled · the story build · Art-wanted 101's three patron trims are the cutter's to propose from the palette; 101 and 102 sent · *"4 - Let the cutter propose the colors as well, it has the palette"*, *"outbox is carried"*
+
 - 2026-11-25 · `d11b05ed`, `fd5cac41` · the world map · Barley in his chain speaks on his own mail bust (`pt_barley_mail`), and the anchor pin sits in the glory-seekers' picture slot at the true word's end; art-wanted 97 and 98 in hand (cutter-1124c) · *"that pin is for a portrait pane at the end of the true word gnoll fight"*
 - 2026-11-25 · `e4568588` · eyes on the screen · Three pikemen's rows (the Line Guard pikeman, the trooper pike, the dragger) no longer say "He fights nowhere yet" (dominion-1124)
 - 2026-11-25 · `a0634272`, `95e0a0c4`, `217e8ab1` · the story build · Dunmore's Line Guard soldiering: the pikeman's sheet `guardpike_p2`, and the Push and pike rows on `guard_p2`; art-wanted 94 all in hand (cutter-1124) · *"Outbox sent and stuff in Fresh"*
