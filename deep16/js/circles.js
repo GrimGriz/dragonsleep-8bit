@@ -207,7 +207,7 @@
   //   `fire: [gx, gy]`                 a campfire in its ring of stones: difficult ground that burns (js/oil.js, the campfire); its light is the
   //                                     map's `lights` entry
   //   `bones: [[gx, gy]]`              gnawed bones on the floor, a look
-  var RUBBLE = 'rubble_p1', CAMP = 'goblincamp_p1';
+  var RUBBLE = 'rubble_p1', CAMP = 'goblincamp_p1', WAGON = 'dmwagon_p1';
   function standProp(sq, sheet, row, gx, gy, front) {     // front: the square nearest the camera, for the sort
     return { kind: 'roadprop', sq: sq, depth: front.x + front.y + 0.5, gz: sq.gz, draw: function (ctx) {
       var sh = D.SHEETS && D.SHEETS[sheet], a = sh && sh.anims[row];
@@ -218,8 +218,8 @@
     return { kind: 'roadprop', sq: sq, depth: sq.x + sq.y, layer: -1, gz: sq.gz, draw: function (ctx) { sheetAt(ctx, sheet, row, 0, sq.x, sq.y, sq.gz); } };
   }
   function roadProps(m, def) {
-    if (!(def.tents || def.heaps || def.rubble || def.fire || def.bones)) return;
-    var taken = {}, drop = {}, key = function (x, y) { return x + ',' + y; };
+    if (!(def.tents || def.heaps || def.rubble || def.fire || def.bones || def.wagon)) return;
+    var taken = {}, drop = {}, cover = {}, key = function (x, y) { return x + ',' + y; };
     function stand(sq, what) { sq.walk = false; sq.pillar = true; sq.stands = what; taken[key(sq.x, sq.y)] = 1; }
     (def.tents || []).forEach(function (t) {
       var sq = m.at(t[0], t[1]); if (!sq) return;
@@ -242,8 +242,18 @@
     }
     if (def.fire) { var fs = m.at(def.fire[0], def.fire[1]); if (fs) { fs.difficult = true; fs.campfire = true; m.campfires = [[fs.x, fs.y]]; m.props.push(standProp(fs, CAMP, 'fire', def.fire[0], def.fire[1], fs)); } }   // (its rules: js/oil.js, the campfire)
     (def.bones || []).forEach(function (b) { var bs = m.at(b[0], b[1]); if (bs) m.props.push(flatProp(bs, CAMP, 'bones')); });
-    m.props = m.props.filter(function (p) {                // (the stalagmite a tent or heap stands for, the loose stones the scatter is drawn for)
-      return !((p.kind === 'pillar' && taken[key(p.sq.x, p.sq.y)]) || (p.kind === 'stone' && drop[key(p.sq.x, p.sq.y)]));
+    // THE DOMINION'S PRISON WAGON (2026-11-25, the cutter seat cutter-1125b; art-wanted 107, the art desk's ART-169, tools/dmwagon-sheet.py): `wagon: [x0, y0,
+    // piece]` lays dmwagon_p1's piece over the map's two-by-two W at x0..x0+1, y0..y0+1 -- its anchor the footprint's centre, iso.center(x0 + 0.5, y0 + 0.5),
+    // sorted by its front square -- and the W squares' own drawn wagon (js/iso.js BLOCK.W) goes; the squares' rules stay (they stand: "the wagon")
+    if (def.wagon) {
+      var wg = def.wagon, w0 = m.at(wg[0], wg[1]), wf = m.at(wg[0] + 1, wg[1] + 1);
+      if (w0 && wf) {
+        [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (d) { cover[key(wg[0] + d[0], wg[1] + d[1])] = 1; });
+        m.props.push(standProp(w0, WAGON, wg[2] || 'dmwagon_ne', wg[0] + 0.5, wg[1] + 0.5, wf));
+      }
+    }
+    m.props = m.props.filter(function (p) {                // (the stalagmite a tent or heap stands for, the loose stones the scatter is drawn for, the wagon's block)
+      return !((p.kind === 'pillar' && taken[key(p.sq.x, p.sq.y)]) || (p.kind === 'stone' && drop[key(p.sq.x, p.sq.y)]) || (p.kind === 'block' && cover[key(p.sq.x, p.sq.y)]));
     });
     m.sorted = null;
   }
@@ -254,6 +264,7 @@
     if (def.tower) out.push(TOWER_SHEET);
     if (def.tents || def.fire || def.bones) out.push(CAMP);
     if (def.rubble || def.heaps) out.push(RUBBLE);
+    if (def.wagon) out.push(WAGON);
     return out;
   };
   var sheets0 = D.Battle.prototype.sheets;

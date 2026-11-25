@@ -4239,7 +4239,7 @@
 "source": "drawn by the art desk (ART-165, 11-25: art-wanted section 101, the Dominion's patrol lady, rapier and mirror, her trim in white, five views), cut by tools/dmlady-sheet.py over tools/mender-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored"
 },
 "dmladyfae_p2": {
-"image": "art/dmlady_p2.png?v=c579c201c1",
+"image": "art/dmladyfae_p2.png?v=6dc8e4acf6",
 "fw": 46,
 "fh": 96,
 "ax": 23,
@@ -4323,7 +4323,7 @@
 "source": "drawn by the art desk (ART-165, 11-25: art-wanted section 101, the Dominion's patrol lady, rapier and mirror, her trim in white, five views), cut by tools/dmlady-sheet.py over tools/mender-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- her trim (the white key and its slate shade, found on the source pages) in the Dominion's crimson #801c1c, #4c1010, #240808, her cuffs in the violet ramp #bb96e0, #8a5cb4, #62398a for the Fae King, by tools/dmlady-sheet.py trims()"
 },
 "dmladyfiend_p2": {
-"image": "art/dmlady_p2.png?v=c579c201c1",
+"image": "art/dmladyfiend_p2.png?v=e2524e1349",
 "fw": 46,
 "fh": 96,
 "ax": 23,
@@ -4407,7 +4407,7 @@
 "source": "drawn by the art desk (ART-165, 11-25: art-wanted section 101, the Dominion's patrol lady, rapier and mirror, her trim in white, five views), cut by tools/dmlady-sheet.py over tools/mender-sheet.py's reader and tools/vivian-sheet.py; SW W NW mirrored -- her trim (the white key and its slate shade, found on the source pages) in the Dominion's crimson #801c1c, #4c1010, #240808, her cuffs in the red ramp #e8624a, #b83428, #801c1c for the Fiend, by tools/dmlady-sheet.py trims()"
 },
 "dmladymirror_p2": {
-"image": "art/dmlady_p2.png?v=c579c201c1",
+"image": "art/dmladymirror_p2.png?v=f3ef07302f",
 "fw": 46,
 "fh": 96,
 "ax": 23,

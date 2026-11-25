@@ -517,6 +517,8 @@ window.D16.MAPS.dominionroad = {
   sub: 'a Dominion wagon on it',
   step: 10,
   ground: 'earth',
+  wagon: [9, 0, 'dmwagon_ne'],   // (the prison wagon drawn over the W two-by-two -- art-wanted 107, ART-169's HEAD 2, its door to screen lower left, toward the lady (9,2)
+                                 //  and the mender (10,2): js/circles.js roadProps. `dmwagon_ne_open` for the recruits' encounter when it is built)
   rows: [
     '########=WW=########',
     '#####...=WW=...#####',

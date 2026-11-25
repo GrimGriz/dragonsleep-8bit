@@ -170,7 +170,8 @@ def trims():
         for k, c in zip(lv(cuff), cols):
             o[k, :3] = hexrgb(c)
         Image.fromarray(o, 'RGBA').save(os.path.join(art, name + '.png'), optimize=True)
-        m2 = dict(meta, name=label, source=meta.get('source', '') + ' -- her trim (the white key and its slate shade, found on the source pages) in the '
+        m2 = dict(meta, image='art/%s.png' % name, name=label,   # (its own image: copied from dmlady_p2's meta, every patron sheet drew the white one -- 11-25)
+                  source=meta.get('source', '') + ' -- her trim (the white key and its slate shade, found on the source pages) in the '
                   'Dominion\'s crimson %s, her cuffs in the %s ramp %s for %s, by tools/dmlady-sheet.py trims()' % (', '.join(DOMINION), ramp, ', '.join(cols),
                   label.split('(')[1].rstrip(')')))
         json.dump(m2, open(os.path.join(art, name + '.json'), 'w'), indent=1)

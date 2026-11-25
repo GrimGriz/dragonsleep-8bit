@@ -186,9 +186,9 @@
   // makes for the toll garrison's hex (SN.GARRISON, the map's: one hex up the Coldridge Route from the Galleries junction) and goes for the plains tribes while they are in
   // the field (js/ai.js AI.tronu)
   SN.PATRONS = {
-    fiend: { whose: 'Savine', of: 'the Fiend', grid: 'patrolladyfiend' },
-    mirror: { whose: 'the Old One', of: 'the Mirror', grid: 'patrolladymirror' },
-    faeking: { whose: 'Tronu', of: 'the Fae King', grid: 'patrolladyfae' }
+    fiend: { whose: 'Savine', of: 'the Fiend', grid: 'patrolladyfiend', sheet: 'dmladyfiend_p2' },   // (`sheet`: her figure, art-wanted 101 -- the Dominion's crimson, her cuffs her patron's: tools/dmlady-sheet.py, 11-25)
+    mirror: { whose: 'the Old One', of: 'the Mirror', grid: 'patrolladymirror', sheet: 'dmladymirror_p2' },
+    faeking: { whose: 'Tronu', of: 'the Fae King', grid: 'patrolladyfae', sheet: 'dmladyfae_p2' }
   };
   var WAGON = function (id, missile, patron, more) {
     var P = SN.PATRONS[patron];
@@ -205,7 +205,7 @@
         { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['mender_p2'] }
       ],
       comp: { dominion: 10, dragger: 6, sergeantblade: 1, sergeantledger: 1, mender: 1 },
-      heroes: [{ type: 'wizard', name: 'a patrol lady of ' + P.of + ' (warlock)', warlock: true, missile: missile, patron: patron, grid: P.grid }], sheets: ['npcwarlock_p0', 'dominion_p2'] }, more || {});
+      heroes: [{ type: 'wizard', name: 'a patrol lady of ' + P.of + ' (warlock)', warlock: true, missile: missile, patron: patron, grid: P.grid }], sheets: [P.sheet, 'dominion_p2'] }, more || {});
   };
   // THE ERRANDS (RULED 11-25, Griz: "leans approved unless indicated below", on the seat's seven leans -- the lane's 11-25 snoot-1125 section): `errand`, js/ai.js AI.errand.
   // Savine's ('harbinger') hunts the Harbinger's pack and, he put down or the head taken, turns back west and off the board; the Old One's ('tower') rides to the fork and off it
