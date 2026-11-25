@@ -16,7 +16,7 @@
    only (js/magic.js M.targetKind and M.touchTargets; 10-05, Griz: Sanctuary cast on the glass). */
 'use strict';
 (window.D16 = window.D16 || {}).SPELLS = {
-  firebolt: { shape: 'attack', range: 120, time: 'A', obj: true }, // (obj: its SRD words take an object -- "a creature or object within range" -- so the Skylights' glass is a target for it; every spell without it takes creatures only: js/magic.js targetKind, 10-05)
+  firebolt: { shape: 'attack', range: 120, time: 'A', obj: true, ignite: true }, // (obj: its SRD words take an object -- "a creature or object within range" -- so the Skylights' glass is a target for it; every spell without it takes creatures only: js/magic.js targetKind, 10-05) (ignite: "A flammable object hit by this spell ignites" -- oil or a web on an empty square in range and sight catches, js/magic.js M.igniteAt; RULED 2026-11-24, Griz: "fire bolt web and oil squares")
   acidsplash: { shape: 'splash', range: 60, time: 'A' },
   // Light (SRD 5.1; torchdark 09-28): on an object he holds, or an ally's beside him: bright 20 ft and dim 20 more, going where they go (js/light.js)
   light: { shape: 'touch', side: 'ally', time: 'A', obj: true }, // (obj: "You touch one object that is no larger than 10 feet in any dimension")

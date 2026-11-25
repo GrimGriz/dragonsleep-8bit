@@ -646,6 +646,12 @@
     return !!(B && B.units && w && !w.dead && w.hp > 0 && B.units.some(function (p) { return F.green(p, 7) && p.side === w.side && G.standing(p) && RU.canAct(p) && G.dist(p, w) <= (p.lvl >= 18 ? 30 : 10); }));
   };
   // WHAT FALLS, FEEDS: can the paladin take it for the fallen u (the reaction and a Channel Divinity to spend, standing and able, within 30 ft, in sight)
+  // FEED THEM: ASK or HOLD (RULED 2026-11-24, Griz: "Toggle the feed them as free action channel divinity ring"; his note of 11-22, "Discuss the notion of channel divinity toggle
+  // for 'feed them' as a free action, which turns on/off the feed them popup" -- it asked about nine times in the gulch and he said NOT NOW to seven): a free entry under CHANNEL
+  // DIVINITY on a player's Green Return paladin's ring (js/ui.js CHANNEL; F.commands 'feedthem', F.exec). ASK, the default, is the popup as it was; HOLD asks nothing when one falls
+  // and keeps the reaction and the use. No auto-feed (his 11-03 "that paladin stuff auto-firing seemed weird", 89d3be97). Kept on the sheet's uses (feats.feedHold), which every
+  // fight hands back and a rest leaves alone (js/rules.js R.refresh sets the counts only), so it holds across turns, fights and rests until he flips it
+  F.feedHeld = function (p) { return !!(p && p.feats && p.feats.feedHold); };
   F.greenCan = function (B, p, u) { return F.green(p) && p.reaction > 0 && feat(p, 'channel') && G.standing(p) && RU.canAct(p) && G.dist(p, u) <= 30 && M.sees(B, p, u); };
   // who it would feed and by how much: each friend within 10 ft of the fallen that is hurt and can be healed, its hp gain at the lowest roll (1 + CHA) and the highest (6 + CHA)
   // -- both capped at what it is missing -- and the gain the roll is expected to give (the six faces, capped); `exp` and `hi` are the sums
@@ -703,7 +709,7 @@
     B.units.forEach(function (p) {
       if (!F.greenCan(B, p, u)) return;
       var feed = F.greenFeed(B, p, u); if (!feed.list.length) return;
-      if (mine(p) && !p.ally) { (B.greenQ = B.greenQ || []).push({ p: p, u: u, round: B.round }); return; } // (a player's: asked, below)
+      if (mine(p) && !p.ally) { if (F.feedHeld(p)) return; (B.greenQ = B.greenQ || []).push({ p: p, u: u, round: B.round }); return; } // (a player's: asked, below -- unless his FEED THEM is on HOLD: no ask, the reaction and the use kept, F.feedHeld)
       if (F.greenWorth(B, p, feed)) F.greenGive(B, p, u, feed);
     });
   };
@@ -1912,6 +1918,8 @@
       why: !(T.bonus > 0) ? 'the bonus action is spent' : 'no one within 30 ft that you can see', note: 'Cunning Action: a mote on one within 30 ft -- DEX DC ' + u.spellDC + ' -- bright 10 ft, no hiding, nothing gained by being invisible, till your next turn' }); }
     if (F.green(u)) { var gdC = F.greenDown(B, u); out.push({ id: 'greenagain', label: 'GREEN AGAIN', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && gdC.length > 0 && u.hp > u.lvl, // (the Oath of the Green Return, ours: 10-30)
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : !gdC.length ? 'no one of yours down within 30 ft that you can see' : 'it would take your last hit points', note: 'Channel Divinity: one of yours at 0 HP within 30 ft stands with ' + u.lvl + ' HP, and you lose as many' }); }
+    if (F.green(u) && mine(u) && !u.ally) { var fdH = F.feedHeld(u); out.push({ id: 'feedthem', label: 'FEED THEM: ' + (fdH ? 'HOLD' : 'ASK'), cost: 'F', icon: 'sacred', skill: true, ok: true, // (WHAT FALLS, FEEDS asked or held: F.feedHeld, 11-24)
+      note: fdH ? 'free: WHAT FALLS, FEEDS is held -- no ask when one falls, the reaction and the use kept. A click asks again' : 'free: WHAT FALLS, FEEDS is asked when one falls near a hurt friend. A click holds it -- no ask, the use kept -- till you turn it back' }); }
     if (u.cls === 'bard' && u.lvl >= 6) out.push({ id: 'countercharm', label: 'COUNTERCHARM', cost: 'A', icon: 'sacred', skill: true, ok: act && !u.conds.countercharm && !u.conds.incapacitated,
       why: u.conds.countercharm ? 'the song is up already' : 'the action is spent', note: 'till the end of your next turn: you and friends within 30 ft, advantage on saves against being frightened or charmed' });
     if (u.cls === 'sorcerer' && u.lvl >= 3) (u.metamagic || []).forEach(function (mn) {
@@ -1977,6 +1985,12 @@
         var gdE = F.greenDown(B, u); if (!gdE.length || !chan(u) || u.hp <= u.lvl || !(u.turn.action > 0)) return;
         t = c.target && gdE.indexOf(c.target) >= 0 ? c.target : gdE.length > 1 ? yield* pickOne(B, u, 'GREEN AGAIN', gdE, 'One at 0 HP: it stands with ' + u.lvl + ' HP, and you lose as many.') : gdE[0];
         if (t) yield* F.greenAgain(B, u, t); return;
+      }
+      case 'feedthem': { // (FEED THEM: ASK or HOLD, free -- F.feedHeld, 11-24)
+        u.feats = u.feats || {};
+        if (u.feats.feedHold) delete u.feats.feedHold; else u.feats.feedHold = true;
+        B.card(['{y}' + u.name + '{/}: WHAT FALLS, FEEDS -- ' + (u.feats.feedHold ? '{g}HOLD: no ask when one falls; the reaction and the use kept.{/}' : 'ASK: asked again when one falls near a hurt friend.')], 180);
+        return;
       }
       case 'patient': yield* F.patient(B, u); return;
       case 'flurry': yield* F.bonusStrikes(B, u); return;

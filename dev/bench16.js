@@ -18336,7 +18336,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okSw('Bane asks "' + aimSw('bane').slice(0, 44) + '..."', /^up to 3 foes you can see within 30 ft /.test(aimSw('bane')));
       okSw('Magic Missile asks "' + aimSw('magicmissile') + '"', /^3 darts: click a foe you can see for each/.test(aimSw('magicmissile')));
       okSw('Call Lightning asks "' + aimSw('calllightning') + '"', /^a point you can see within 120 ft/.test(aimSw('calllightning')));
-      okSw('Firebolt says "' + aimSw('firebolt') + '"', aimSw('firebolt') === 'a foe within 120 ft (one unseen: at disadvantage)'); // (11-21: "in sight" was not the SRD's -- js/ui.js aimWords)
+      okSw('Firebolt says "' + aimSw('firebolt') + '"', aimSw('firebolt') === 'a foe within 120 ft (one unseen: at disadvantage); or oil or a web on the ground you can see: it catches'); // (11-21: "in sight" was not the SRD's -- js/ui.js aimWords) (11-25: the oil and the web, his "fire bolt web and oil squares" -- mode=grid1125)
       var plain = Object.keys(D.SPELLS).filter(function (id) { var g = D.SPELLS[id]; return !g.see && /^(single|splash|allies|sphere|cube|darts|rays)$/.test(g.shape); });
       okSw('the ' + plain.length + ' aimed spells without `see` say nothing of sight', plain.every(function (id) { return !/you can see/.test(aimSw(id)); }));
       var bareSw = [], sumSw = [];
@@ -19332,6 +19332,94 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.d = d0G;
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
     document.body.appendChild(preG);
+    return;
+  }
+  // THE GRID SEAT OF 11-25 (mode=grid1125; the grid's rules lane, its 2026-11-24 ~21:30Z section, his words there): FEED THEM: ASK or HOLD, free, under CHANNEL DIVINITY on a
+  // Green Return paladin's ring with GREEN AGAIN ("Toggle the feed them as free action channel divinity ring") -- HOLD asks nothing and keeps the reaction and the use, and holds
+  // through a fight's hand-back, a long rest and the next fight's figure; FIRE BOLT at oil and a web on the ground ("fire bolt web and oil squares") -- by the click, lit, the
+  // web burned, the list not greyed with only oil in sight, and not Ray of Frost, not a square out of range, not one someone stands in; Enlarge's 10 rounds on its ring line
+  // ("If 10 rounds is in where spell is readied we don't need it on card")
+  if (get('mode', '') === 'grid1125') {
+    var repH = { checks: [], errors: [] }, d0H = D.d, Gh = D.grid, Mh = D.magic, UIh = D.ui, Fh = D.features, GRh = 'the Oath of the Green Return';
+    function okH(what, v) { repH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runH(g) { var v, k = 0, st, asked = []; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return asked; var sv = st.value; if (sv && sv.prompt) { asked.push(sv.prompt.title); v = sv.prompt.opts[0].value; } } return asked; }
+    function logH(Bx, n0) { return (Bx.logEntries || []).slice(n0).map(function (e) { return window.DS.stripCodes(String(e.text)); }).join(' | '); }
+    function nH(Bx) { return (Bx.logEntries || []).length; }
+    function openH(w, h) { var m = Gh.map; for (var y = 3; y + h < m.h - 2; y++) for (var x = 3; x + w < m.w - 2; x++) { var good = true, z = m.gz(x, y); for (var j = -1; j <= h && good; j++) for (var i = -1; i <= w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || !s.open || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function mkPal() {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=5&vs=paladin:5,fighter:5', {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), p = ps.filter(function (w) { return w.cls === 'paladin'; })[0], f = ps.filter(function (w) { return w !== p; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      p.subclass = GRh; if (p.src) p.src.subclass = GRh;
+      g.conds = {}; f.x = p.x + 1; f.y = p.y; if (!Gh.canStand(f, f.x, f.y)) f.x = p.x - 1; g.x = f.x + 1; g.y = f.y; if (!Gh.canStand(g, g.x, g.y)) { g.x = f.x; g.y = f.y + 1; }
+      Gh.setup(B.map, B.units); D.rules.startTurn(p); B.active = p; p.feats.channel = 1; p.reaction = 1; return { B: B, p: p, f: f, g: g };
+    }
+    function chanTab(ring) { return ring.filter(function (x) { return x.id === 'channel'; })[0] || null; }
+    function deep(ring, id) { var out = null; (function walk(l) { l.forEach(function (x) { if (x.id === id) out = out || x; if (x.items) walk(x.items); }); })(ring); return out; }
+    function inSkills(ring, id) { var s = ring.filter(function (x) { return x.id === 'skills'; })[0]; return !!(s && deep(s.items, id)); }
+    try {
+      D.seed = 1125;
+      // 1. FEED THEM on the ring: under CHANNEL DIVINITY with GREEN AGAIN (RING and RING2), not under SKILLS; a Devotion paladin has none
+      var h1 = mkPal(), um0 = UIh.urlMenu; UIh.urlMenu = 'ring'; var r1 = UIh.cmds(h1.B, h1.p); UIh.urlMenu = um0; var r1b = UIh.cmds2(h1.B, h1.p);
+      var t1 = chanTab(r1), ac1b = r1b.filter(function (x) { return x.id === 'actions'; })[0], t1b = ac1b && deep(ac1b.items, 'channel');
+      var lab1 = function (t) { return t ? t.label + ' [' + t.items.map(function (x) { return x.label; }).join(', ') + ']' : 'none'; };
+      okH('1 the ring: ' + lab1(t1) + '; RING2\'s ACTIONS: ' + lab1(t1b) + '; GREEN AGAIN or FEED THEM left in SKILLS: ' + (inSkills(r1, 'greenagain') || inSkills(r1, 'feedthem')),
+        t1 && t1.items.map(function (x) { return x.id; }).join() === 'greenagain,feedthem' && t1.items[1].label === 'FEED THEM: ASK' && t1.items[1].cost === 'F' && t1.items[1].ok && t1b && !!deep(t1b.items, 'feedthem') && !inSkills(r1, 'greenagain') && !inSkills(r1, 'feedthem'));
+      var hD = mkPal(); hD.p.subclass = null; if (hD.p.src) hD.p.src.subclass = null; hD.p.subclass = 'the Oath of Devotion';
+      okH('1 a Devotion paladin: no FEED THEM (' + !deep(UIh.cmds(hD.B, hD.p), 'feedthem') + ')', !deep(UIh.cmds(hD.B, hD.p), 'feedthem'));
+      // 2. the click: free -- the action, the bonus action and the reaction untouched; the label says HOLD; a card
+      var T2 = h1.p.turn, a2 = [T2.action, T2.bonus, h1.p.reaction].join('/'), n2 = nH(h1.B); runH(h1.B.exec(h1.p, { do: 'feedthem' }));
+      var lab2 = deep(UIh.cmds(h1.B, h1.p), 'feedthem'), l2 = logH(h1.B, n2);
+      okH('2 FEED THEM clicked: held ' + Fh.feedHeld(h1.p) + ', the label "' + (lab2 && lab2.label) + '", action/bonus/reaction ' + a2 + ' -> ' + [T2.action, T2.bonus, h1.p.reaction].join('/') + ', the card "' + l2.slice(0, 90) + '"',
+        Fh.feedHeld(h1.p) && lab2 && lab2.label === 'FEED THEM: HOLD' && a2 === [T2.action, T2.bonus, h1.p.reaction].join('/') && /WHAT FALLS, FEEDS -- HOLD/.test(l2));
+      // 3. HOLD: the goblin drops beside the hurt fighter -- nothing queued, no ask, the fighter as he was, the reaction and the use kept
+      h1.f.hp = Math.floor(h1.f.maxhp / 2); var f3 = h1.f.hp; h1.g.hp = 1; var n3 = nH(h1.B); h1.B.hurt(h1.g, 5, 'slashing', {}); var q3 = (h1.B.greenQ || []).length, ask3 = runH(Fh.greenAsk(h1.B));
+      okH('3 HOLD: the goblin drops -- queued ' + q3 + ', asked [' + ask3.join('; ') + '], the fighter ' + f3 + ' -> ' + h1.f.hp + ', the reaction ' + h1.p.reaction + ', the channel ' + h1.p.feats.channel,
+        q3 === 0 && !ask3.length && h1.f.hp === f3 && h1.p.reaction === 1 && h1.p.feats.channel === 1 && !/WHAT FALLS, FEEDS\?/.test(logH(h1.B, n3)));
+      // 4. it holds: the fight hands the uses back to the sheet, a long rest, the next fight's figure (js/save.js unitOf)
+      var hS = h1.p.src; hS.feats = JSON.parse(JSON.stringify(h1.p.feats)); window.DS.R.refresh(hS, true); var u4 = D.save.unitOf(hS, false, h1.B.fight);
+      okH('4 held through the hand-back, a long rest (channel ' + hS.feats.channel + ') and the next fight\'s figure: ' + Fh.feedHeld(u4), Fh.feedHeld(u4) && hS.feats.channel === 1);
+      // 5. clicked again: ASK -- the next drop is queued and asked as before
+      runH(h1.B.exec(h1.p, { do: 'feedthem' })); var h5g = h1.B.units.filter(function (w) { return w.side === 'foe' && w !== h1.g; })[0];
+      h5g.x = h1.f.x; h5g.y = h1.f.y + 1; if (!Gh.canStand(h5g, h5g.x, h5g.y)) h5g.y = h1.f.y - 1; Gh.setup(h1.B.map, h1.B.units.filter(function (w) { return !w.dead; })); h5g.hp = 1; h1.B.hurt(h5g, 5, 'slashing', {});
+      var ask5 = runH(Fh.greenAsk(h1.B));
+      okH('5 clicked again: held ' + Fh.feedHeld(h1.p) + '; the next drop asked [' + ask5.join('; ') + ']', !Fh.feedHeld(h1.p) && ask5.length === 1 && /WHAT FALLS, FEEDS\?/.test(ask5[0]));
+      // 6. FIRE BOLT AT THE OIL: an empty oiled square 30 ft off, by the aim and the click -- the oil lit this round, the action spent; the aim's words
+      var B6 = D.npcFight('?npc=goblin&lvl=5&vs=wizard:5:human,fighter:5:human', {}); D.battle = B6; B6.enter(); var k6 = 0; while (!B6.order.length && k6++ < 400) B6.co.next(); B6.dark = false;
+      var wz = B6.units.filter(function (w) { return w.cls === 'wizard'; })[0], fg6 = B6.units.filter(function (w) { return w.cls === 'fighter'; })[0], gb6 = B6.units.filter(function (w) { return w.side === 'foe'; })[0], o6 = openH(9, 3);
+      if ((wz.known || []).indexOf('firebolt') < 0) wz.known.push('firebolt'); if ((wz.known || []).indexOf('rayoffrost') < 0) wz.known.push('rayoffrost');
+      wz.x = o6[0]; wz.y = o6[1] + 1; fg6.x = o6[0]; fg6.y = o6[1] + 3; gb6.x = o6[0] + 8; gb6.y = o6[1] + 3; Gh.setup(Gh.map, B6.units.filter(function (w) { return !w.dead; })); B6.cache = null;
+      var ox = o6[0] + 6, oy = o6[1] + 1; B6.oils = [{ x: ox, y: oy, lit: null, by: wz.id }];
+      var got6 = null; B6.answer = function (c) { got6 = c; };
+      D.rules.startTurn(wz); B6.active = wz; B6.req = { turn: wz }; B6.cursor = { x: wz.x, y: wz.y }; B6.list = null;
+      var e6 = Mh.list(B6, wz).filter(function (x) { return x.id === 'firebolt'; })[0]; e6.kind = 'spell'; UIh.spellAim(B6, wz, e6);
+      var v6 = UIh.valid(B6, wz, ox, oy); UIh.actAt(B6, wz, ox, oy, false); var tg6 = got6 && got6.target;
+      okH('6 FIRE BOLT aimed: the oiled square ' + ox + ',' + oy + ' (30 ft, empty) reads ' + v6 + '; the click casts at ' + (tg6 ? tg6.name + ' ' + tg6.x + ',' + tg6.y : 'nothing') + '; the aim says "' + UIh.aimWords(D.SPELLS.firebolt, 1) + '"',
+        v6 === 'ok' && tg6 && tg6.ignite && tg6.oil && tg6.x === ox && /or oil or a web on the ground you can see: it catches/.test(UIh.aimWords(D.SPELLS.firebolt, 1)));
+      var n6 = nH(B6); runH(Mh.cast(B6, wz, 'firebolt', 0, tg6)); var l6 = logH(B6, n6), o6l = D.oil.at(B6, ox, oy);
+      okH('6 cast: the oil lit ' + (o6l && o6l.lit) + ' (round ' + B6.round + '), the action ' + wz.turn.action + ', the goblin untouched (' + gb6.hp + '/' + gb6.maxhp + '); "' + l6.slice(0, 160) + '"',
+        o6l && o6l.lit === B6.round && wz.turn.action === 0 && gb6.hp === gb6.maxhp && /it catches/.test(l6) && /The oil on the ground catches/.test(l6));
+      // 7. a web on an empty square: burned away by the bolt (the fire on it for the round)
+      D.rules.startTurn(wz); var wx = o6[0] + 5, wy = o6[1] + 2; B6.webs = [{ by: 'the ground', sq: [[wx, wy], [wx + 1, wy]], dc: 11, ground: true }];
+      var t7 = Mh.igniteAt(B6, wz, Mh.geo('firebolt'), wx, wy), n7 = nH(B6); runH(Mh.cast(B6, wz, 'firebolt', 0, t7)); var l7 = logH(B6, n7);
+      okH('7 a web at ' + wx + ',' + wy + ': aimed ' + (t7 && t7.name) + '; after the bolt the web keeps ' + JSON.stringify(B6.webs[0].sq) + ', burning ' + JSON.stringify((B6.webFire || []).map(function (f) { return f.sq; })) + '; "' + l7.slice(0, 120) + '"',
+        t7 && t7.web && B6.webs[0].sq.length === 1 && (B6.webFire || []).some(function (f) { return f.sq.some(function (q) { return q[0] === wx && q[1] === wy; }); }) && /The web catches/.test(l7));
+      // 8. not: Ray of Frost; a square past 120 ft; a square someone stands in (the click there is the creature); lit oil already burning
+      B6.oils.push({ x: gb6.x, y: gb6.y, lit: null }); B6.oils.push({ x: ox, y: oy + 2, lit: null });
+      var near8 = Mh.igniteAt(B6, wz, Mh.geo('firebolt'), ox, oy + 2), far = Mh.igniteAt(B6, wz, Object.assign({}, Mh.geo('firebolt'), { range: 20 }), ox, oy + 2);
+      var rf8 = Mh.igniteAt(B6, wz, Mh.geo('rayoffrost'), ox, oy + 2), occ8 = Mh.igniteAt(B6, wz, Mh.geo('firebolt'), gb6.x, gb6.y), lit8 = Mh.igniteAt(B6, wz, Mh.geo('firebolt'), ox, oy);
+      okH('8 the second pool at 30 ft taken ' + !!near8 + '; refused: Ray of Frost at it ' + !rf8 + ', a range of 20 ft at it ' + !far + ', the goblin\'s oiled square ' + !occ8 + ' (the click there takes the goblin: ' + (UIh.spellTarget(B6, wz, Mh.geo('firebolt'), gb6.x, gb6.y) === gb6) + '), oil already alight ' + !lit8,
+        !!near8 && !rf8 && !far && !occ8 && !lit8 && UIh.spellTarget(B6, wz, Mh.geo('firebolt'), gb6.x, gb6.y) === gb6);
+      // 9. the list: with no foe standing, Fire Bolt is open while oil waits in sight, greyed with none
+      B6.hurt(gb6, 999, 'force'); B6.sweep(); D.rules.startTurn(wz);
+      var fbA = Mh.list(B6, wz).filter(function (x) { return x.id === 'firebolt'; })[0]; B6.oils = []; B6.webs = []; var fbB = Mh.list(B6, wz).filter(function (x) { return x.id === 'firebolt'; })[0];
+      okH('9 no foe standing: Fire Bolt with oil in sight ' + (fbA && fbA.ok) + ', with none ' + (fbB && fbB.ok) + ' ("' + (fbB && fbB.why) + '")', fbA && fbA.ok && fbB && !fbB.ok);
+      // 10. Enlarge/Reduce's 10 rounds on its ring line (the SPELLS ring and READY's), not on the cast card
+      var e10 = { id: 'enlargereduce', g: D.SPELLS.enlargereduce, sp: Mh.data('enlargereduce'), level: 2, slot: 2 }, s10 = Mh.summary(e10, wz);
+      okH('10 Enlarge/Reduce\'s ring line: "' + s10 + '"', /\(concentration, 10 rounds\)$/.test(s10));
+    } catch (e) { repH.errors.push(String(e && e.stack || e)); }
+    D.d = d0H;
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
     return;
   }
   // THE PIKE WALL (mode=pikewall1121; Soldiering's, Shape A of the leveling lane's 2026-11-20 (late) section, built 11-21 on Griz's "Go on 1-5" -- his lean: "join the pike wall

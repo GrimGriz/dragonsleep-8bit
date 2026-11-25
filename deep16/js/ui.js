@@ -265,7 +265,9 @@
   }
   // the Channel Divinity's options, one list of their own beside SPELLS (RULED 09-30, Griz: "should the channel divinity be a button similar to
   // spells?" -- "yes"): they draw on one use (u.feats.channel), and the list says how many are left
-  var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
+  // (greenagain, feedthem: the Oath of the Green Return's -- GREEN AGAIN and the free FEED THEM toggle beside it, RULED 2026-11-24, Griz: "Toggle the feed them as free action channel
+  // divinity ring"; GREEN AGAIN had sat under SKILLS since 10-30, against this list's rule -- js/features.js F.commands)
+  var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1, greenagain: 1, feedthem: 1 };
   // the PLAYS, a tab of their own as CHANNEL DIVINITY is (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", "3 - agreed, doe plays get their own tab like
   // channel divinity or something?"): the Drillyard's plays readied before the swing, CALL THE MARK, and Soldiering's WHEEL -- js/features.js F.playCommands. The tab counts the openings
   var PLAYS = { callmark: 1, play_pinshield: 1, play_bind: 1, play_breakstride: 1, play_wheel: 1 };
@@ -1072,7 +1074,7 @@
   UI.aimWords = function (g, n) {
     var see = g.see ? ' you can see' : '', foe = g.side === 'foe', rg = ' within ' + g.range + ' ft', o = g.see && g.obj ? ' or object' : '';
     switch (g.shape) {
-      case 'attack': return 'a foe' + see + rg + (g.see ? '' : ' (one unseen: at disadvantage)'); // (11-21, the reader of his 11-20 record: "FIRE BOLT: a foe in sight" on a target listed unseen -- a spell attack asks no sight in the SRD ("a creature or object within range"); unseen is disadvantage)
+      case 'attack': return 'a foe' + see + rg + (g.see ? '' : ' (one unseen: at disadvantage)') + (g.ignite ? '; or oil or a web on the ground you can see: it catches' : ''); // (ignite: Fire Bolt, 11-24 -- js/magic.js M.igniteAt) // (11-21, the reader of his 11-20 record: "FIRE BOLT: a foe in sight" on a target listed unseen -- a spell attack asks no sight in the SRD ("a creature or object within range"); unseen is disadvantage)
       case 'rays': return n + ' rays: click a foe' + see + ' for each (the same foe again is fine)';
       case 'darts': return n + ' darts: click a foe' + see + ' for each (the same foe again is fine)';
       case 'splash': return 'a foe' + see + rg + ' (one beside it is caught too)';
@@ -1164,6 +1166,7 @@
       var tg = spellTarget(B, u, g, x, y); // (the figure the mouse is on first, else the one standing there, else a rider on it)
       if (g.shape === 'allies' && B.picks.length && !tg) return 'self';
       if (tg) return 'ok';
+      if (!w && M.igniteAt(B, u, g, x, y)) return 'ok'; // (Fire Bolt at oil or a web on an empty square: js/magic.js M.igniteAt, 11-24)
       if (g.effects && !w && M.effectsAt(B, x, y).length && G.range(u, { x: x, y: y, size: 1 }) <= g.range && G.losPoint(u.x, u.y, x, y)) return 'ok'; // (a spell's area, its square empty: Dispel Magic -- js/grimoire.js M.effectsAt, 10-02)
       return M.missileDark(B, u, g, x, y) || M.guessDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into; a foe's square guessed in the dark, M.guessDark 10-02)
     }
@@ -1389,6 +1392,7 @@
       var turnedAway = function () {
         var wt = hv || w, refused = wt && M.whyNot(B, u, g, wt);
         if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + D.Battle.nm(wt) + ' ' + refused + '.{/}'], 120); }
+        else if (!wt && g.ignite && ((D.oil && (D.oil.at(B, x, y) || {}).lit === null) || M.webbed(B, x, y))) { D.sfx('error'); B.card(['{o}' + S.name + ': that square is out of range, out of sight or past a wall (' + g.range + ' ft, a clear line, one you can see).{/}'], 140); } // (oil or a web the bolt cannot light from here: M.igniteAt, 11-24)
       };
       if (g.shape === 'rays' || g.shape === 'darts') {
         if (v !== 'ok') return turnedAway();
@@ -1414,7 +1418,7 @@
       if (g.shape === 'around') return cast({ x: u.x, y: u.y }); // (always round the caster, wherever the click)
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line') { var zA = UI.aimZ(B, x, y); return cast(zA != null ? { x: x, y: y, z: zA } : { x: x, y: y }); } // (the point at the height picked, UI.stepAim: areas by height, 10-15)
       if (g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
-      return cast(spellTarget(B, u, g, x, y) || w || (M.guessDark(B, u, g, x, y) ? { x: x, y: y, size: 1, dark: true, name: 'the dark' } : null)); // (the guess: whoever stands there, or the dark itself)
+      return cast(spellTarget(B, u, g, x, y) || w || M.igniteAt(B, u, g, x, y) || (M.guessDark(B, u, g, x, y) ? { x: x, y: y, size: 1, dark: true, name: 'the dark' } : null)); // (the guess: whoever stands there, or the dark itself)
     }
   }
 

@@ -87,7 +87,7 @@
       // a spell that takes a creature, with no creature it may take (10-01b, Griz: "check for other targeting non-fails. I have a hold
       // person trying to find a target with only the clacker on the enemy team still standing"): greyed, and why, not a picker with
       // nothing in it -- the picker offers exactly what M.targetOK passes (ui.js). Magic Missile's darts may still go at the dark: not here
-      if (!why && !(o && o.anyTarget) && AIMED[g.shape] && !B.units.some(function (w) { return M.targetOK(B, u, g, w); })) why = M.noTarget(B, u, g);
+      if (!why && !(o && o.anyTarget) && AIMED[g.shape] && !B.units.some(function (w) { return M.targetOK(B, u, g, w); }) && !M.igniteAny(B, u, g)) why = M.noTarget(B, u, g); // (igniteAny: Fire Bolt with oil or a web in sight to light, 11-24)
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -138,6 +138,34 @@
     if (g.see || g.side === 'ally' || !(g.shape === 'single' || g.shape === 'splash')) return false;
     var s = G.map.at(x, y); if (!s || !s.open || Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 > (g.range || 0) || !G.losPoint(u.x, u.y, x, y)) return false;
     return !M.seesSq(B, u, x, y);
+  };
+  // FIRE BOLT AT OIL AND WEB (RULED 2026-11-24, Griz: "fire bolt web and oil squares"; SRD 5.1 Fire Bolt: "You hurl a mote of fire at a creature or object within range ... A flammable
+  // object hit by this spell ignites if it isn't being worn or carried"): a spell whose geometry carries `ignite` (data/spells.js: Fire Bolt alone -- Produce Flame and Sacred Flame name
+  // a creature, and the other cantrips are no fire) may be aimed at an empty square in range, in a clear line and in sight that holds oil not yet alight (js/oil.js B.oils) or a web
+  // (B.webs, strung or cast): it catches -- the oil as OIL.light, the web as fire burns it (M.burnWebs, which lights the oil under it too). No roll: the ground is no target that
+  // dodges (the flask thrown at a square oils it with none, 10-05). A square someone stands in is theirs: the click there is the creature, as every aim has it (the seat's call)
+  M.igniteAt = function (B, u, g, x, y) {
+    if (!B || !u || !g || !g.ignite || G.occupant(x, y)) return null;
+    var o = D.oil && D.oil.at(B, x, y), oil = !!(o && o.lit == null), web = !!(M.webbed && M.webbed(B, x, y));
+    if (!oil && !web) return null;
+    if (!M.inRange(u, g, x, y) || !M.seesSq(B, u, x, y)) return null; // (M.inRange: the range and a clear line)
+    if (M.globed && M.globed(B, u, { x: x, y: y }, 0)) return null; // (inside a Globe of Invulnerability cast from outside it: the spell has no effect there)
+    return { x: x, y: y, size: 1, ignite: true, oil: oil, web: web, id: 'ignite' + x + ',' + y, name: oil && web ? 'the oiled web' : web ? 'the web' : 'the oil on the ground' };
+  };
+  // is there a square it could light now (M.list: Fire Bolt is not greyed with no foe in range while oil or a web waits in sight)
+  M.igniteAny = function (B, u, g) {
+    if (!B || !g || !g.ignite) return false;
+    var sq = (B.oils || []).filter(function (o) { return o.lit == null; }).map(function (o) { return [o.x, o.y]; });
+    (B.webs || []).forEach(function (w) { (w.sq || []).forEach(function (q) { sq.push(q); }); });
+    return sq.some(function (q) { return !!M.igniteAt(B, u, g, q[0], q[1]); });
+  };
+  // the bolt at it (M.cast, the attack shape: t.ignite): the mote flies to the square and what is there catches
+  M.igniteSq = function* (B, u, t, head) {
+    FX.projectile(u, { x: t.x, y: t.y, size: 1 }, 'fire'); yield { fx: 1 };
+    B.card([head + ' -- at ' + t.name + ' (' + t.x + ',' + t.y + '): {o}it catches{/}.']);
+    if (t.web) M.burnWebs(B, [[t.x, t.y]], u.id); // (js/oil.js wraps it: the oil under the web catches with it)
+    var o = D.oil && D.oil.at(B, t.x, t.y); if (o && o.lit == null) D.oil.light(B, o);
+    yield 20;
   };
   // cone and line: from the caster toward the cursor. A cone is as wide as it is far (half-angle ~26.6); a line 5 ft wide.
   // (by height, 10-15: `tz`, the aim's height in drawing px, tilts it from the middle of the caster's body toward that point -- a cone widens up and down as it does across, a
@@ -469,8 +497,9 @@
       u.anim = 'idle'; return;
     }
 
+    if (t && t.ignite && g.ignite) { yield* M.igniteSq(B, u, t, head); u.anim = 'idle'; return; } // (Fire Bolt at oil or a web on the ground: M.igniteAt, 11-24)
     if (g.shape === 'attack' || g.shape === 'rays') {
-      var shots = (g.shape === 'rays' ? t.units : [t]).slice(), dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
+      var shots =(g.shape === 'rays' ? t.units : [t]).slice(), dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
       if (g.shape === 'rays') B.card([head + ' -- ' + shots.length + ' rays']);
       // Elemental Affinity on a spell attack (SRD 5.1: CHA "to one damage roll of that spell" -- 10-31, Griz: "yeah fix it"; it had reached only the spells that ask a save):
       // the first ray that lands carries it

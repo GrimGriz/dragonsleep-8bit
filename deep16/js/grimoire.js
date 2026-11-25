@@ -1086,7 +1086,9 @@
   }
   function sizeUndo(t, rec) { return function () { if (t.conds.enlarged === rec) { var k0 = D.spr.scaleOf(t); delete t.conds.enlarged; D.spr.regrow(t, k0); } }; }
   E.enlargereduce = {
-    summary: function () { return 'a creature you can see within 30 ft · an ally enlarged (+1d4 weapon damage, strong' + (D.RULES && D.RULES.enlargeReach ? ', +5 ft reach' : '') + ', drawn 1.5x), a foe reduced on a failed CON (-1d4, 0.7x); not one already so (concentration)'; },
+    // (the rounds on the line the spell is picked and readied from (the SPELLS ring, READY's ring): RULED 2026-11-24, Griz: "If 10 rounds is in where spell is readied we don't need
+    // it on card" -- his 11-22 "actual enlarge duration?"; the line said "(concentration)" alone. data/durations.js, the SRD's minute. Never on the cast card)
+    summary: function () { var r = M.duration('enlargereduce'); return 'a creature you can see within 30 ft · an ally enlarged (+1d4 weapon damage, strong' + (D.RULES && D.RULES.enlargeReach ? ', +5 ft reach' : '') + ', drawn 1.5x), a foe reduced on a failed CON (-1d4, 0.7x); not one already so (concentration' + (r ? ', ' + r + ' rounds' : '') + ')'; },
     cast: function* (B, u, t, slot, head, x) {
       var k0 = D.spr.scaleOf(t);
       if (t.side === u.side) {
