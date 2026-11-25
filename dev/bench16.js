@@ -25759,11 +25759,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         !kuTm && scTm && scTm.sheet === 'pt_tam' && wTm.join('|') === window.DS.DATA.npcs.tam.talk[0].say.join('|') && !/to come/.test(wTm.join(' ')) && !D.roam.def.room && !upW());
       // the night crews' five (10-28, the second cutter seat: the art desk's ART-104 to ART-108): Gull, Kael, Brennock and Vera on the shaft rows' street in their own
       // figures, each on their portrait with their first-game word and no counter line; Kess beside the flop-cellar's door, the same
+      // (KAEL'S SHELF since 11-25, Griz: "32 - yes" -- odds-1125: his word is the question now, THE SHELVES / LEAVE, as a shelves keeper's is; his shelf read, then LEAVE)
       ['gull', 'kael', 'brennock', 'vera'].forEach(function (id) {
-        var N = window.DS.DATA.npcs[id], want = sayW(id); // (before the word: a branch may be said once)
-        var ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = upW() ? D.top() : null, w = sc ? readW(sc) : []; if (g) driveW(g, null, 200);
-        okW(N.name + ' on the shaft rows in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): "' + String(w[0]).slice(0, 40) + '...", no counter line',
-          ku && ku.sheet === id + '_p1' && facedW(ku, R0) && ku.holdFacing === !!D.SHEETS[ku.sheet].anims.idle.drawn && sc && sc.sheet === 'pt_' + id && w.slice(0, want.length).join('|') === want.join('|') && !/to come/.test(w.join(' ')) && !upW());
+        var N = window.DS.DATA.npcs[id], want = sayW(id), shopK = CW.VENDORS[id] && CW.VENDORS[id].shop; // (before the word: a branch may be said once)
+        var ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = upW() ? D.top() : null, w = sc ? (shopK ? readQW(sc) : readW(sc)) : [];
+        var askK = shopK && sc && sc.wait && sc.wait.ask ? sc.wait.opts.join() : '', rowsK = [];
+        if (askK) { goW(sc, 'opt', 'THE SHELVES'); rowsK = sc.shop ? sc.rows().map(function (r) { return r.id; }) : []; goW(sc, 'back'); goW(sc, 'opt', 'LEAVE'); }
+        if (g) driveW(g, null, 200);
+        okW(N.name + ' on the shaft rows in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): "' + String(w[0]).slice(0, 40) + '...", ' + (shopK ? askK + ', the shelves ' + rowsK.join(', ') : 'no counter line'),
+          ku && ku.sheet === id + '_p1' && facedW(ku, R0) && ku.holdFacing === !!D.SHEETS[ku.sheet].anims.idle.drawn && sc && sc.sheet === 'pt_' + id && w.slice(0, want.length).join('|') === want.join('|') && !/to come/.test(w.join(' ')) &&
+          (!shopK || (askK === 'THE SHELVES,LEAVE' && rowsK.join() === window.DS.DATA.shops[shopK].items.join())) && !upW());
       });
       var wantKs = sayW('kess'), kuKs = B.units.filter(function (u) { return u.npc === 'kess'; })[0], gKs = TW.fire(B, trigW('keeper:kess')); driveW(gKs, upW, 200); var scKs = upW() ? D.top() : null, wKs = scKs ? readW(scKs) : []; driveW(gKs, null, 200);
       okW('Kess at the flop-cellar\'s door, inside since 10-28 later (no figure of hers on the street: ' + !kuKs + '), on her portrait (' + (scKs && scKs.sheet) + '): "' + String(wKs[0]).slice(0, 40) + '...", no counter line, the party still in the street',
