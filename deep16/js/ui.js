@@ -3248,7 +3248,7 @@
     var sen = [];
     if (u.truesight) sen.push('truesight ' + u.truesight + ' ft');
     if (u.darkvision) sen.push('darkvision ' + u.darkvision + ' ft');
-    if (u.blindsight) sen.push('blindsight ' + u.blindsight + ' ft' + (u.blind ? ' (blind past it)' : ''));
+    if (u.blindsight) sen.push('blindsight ' + u.blindsight + ' ft -- no hiding from it within that' + (u.tremor ? ', unless aloft' : '') + (u.blind ? ' (blind past it)' : '')); // (what it means for a hider, from the start: 11-25, his "add the blindsight to the inspect card without the hide fail" -- the line had said the range alone; HIDE greys with it, battle.js Battle.hideFinders)
     if (u.devilSight) sen.push('sees through magical darkness');
     if (u.seeInvisible) sen.push('sees the invisible');
     lines.push(sen.length ? '{c}' + sen.join(', ') + '{/}' : '{g}no darkvision: it sees by light{/}');

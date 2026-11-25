@@ -491,6 +491,9 @@
     };
     // a druid in a word's metal armour (one made or won before 10-21's ruling: R.canEquip) wears its kit's instead -- the Pocket DM puts the metal one in the pack (PK.druidMetal)
     if (cls === 'druid' && h.equip.armor && !R.canEquip(h, DS.DATA.items[h.equip.armor])) h.equip.armor = c.kit.armor || null;
+    // a cleric of another domain than Life in heavy armour (the kit's chain mail, or a word's made before 11-25) wears scale mail, the SRD cleric's kit without the proficiency --
+    // "(a) scale mail, (b) leather armor, or (c) chain mail (if proficient)" (R.armorTypes; his "9 - yes", the lanes desk's beefiness check)
+    if (cls === 'cleric' && h.equip.armor && !R.canEquip(h, DS.DATA.items[h.equip.armor])) h.equip.armor = 'scalemail';
     if (spec.loot) NPC.wear(h, spec.loot); // (the Pocket DM's winnings: `+item` on the word, worn where the class may -- 10-02)
     // skills the grid reads (Stealth, Perception): written at the level-1 proficiency, as the 8-bit sheets are (R.skill grows them)
     if (/rogue|ranger|monk|bard/.test(cls)) h.skills.Stealth = DS.mod(abil.dex) + 2;

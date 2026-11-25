@@ -1772,18 +1772,38 @@
       // 30 ft, spent click by click on the gold squares it can reach -- round walls and bodies, over a barrier up to 5 ft (a rail, a woodpile, a counter, a well's lip, a rise of
       // 5 ft), across a pit up to 10 ft (a drop of more than 5 ft, a square or two wide, to ground no lower than it left); SRD 5.1: "you can direct it over barriers up to 5
       // feet tall and jump it across pits up to 10 feet wide". A creature's square, any one of a big one's, is the ram: "that creature must make the saving throw against the
-      // sphere's damage, and the sphere stops moving this turn". STOP HERE ends its roll (the feet left go with it). Till then it went one straight line at the clicked point,
+      // sphere's damage, and the sphere stops moving this turn". END ROLL (till 11-25 STOP HERE) ends its roll (the feet left go with it). Till then it went one straight line at the clicked point,
       // stopped at the first closed square. The AI's roll is the same path toward its point, all at once
       var mv = { left: 30, rammed: null };
       if (t && t.x != null && !(t === u)) yield* sphereLeg(B, u, z, mv, t);
+      // THE SPHERE'S OWN RING (2026-11-25, Griz: "1 yes", on the lanes desk's lean -- STOP HERE renamed END ROLL, the roll split into MOVE and RAM, RAM greyed with no creature in
+      // reach -- after his "did we give it a wheel with move and ram, where ram grays out of and turn ends when you spend all the movement? maybe 'end roll' instead of end turn on
+      // that wheel? (i'm assuming default will be move and then ram most usecases)"; then "in my head the player clicking the FS on the ring swaps to the sphere's ring, since we're
+      // doing it's move like a player's move"): FLAMING SPHERE on the hero's ring swaps the ring to the sphere's own, drawn round the sphere -- MOVE (its gold squares; a click
+      // rolls it there, and the sphere's ring comes back with the feet left), RAM (a creature in its reach, lit; a click rolls it in: it saves, and the sphere stops -- greyed with
+      // the why when none is in reach), END ROLL (the feet left go with it). BACK, or X, from the squares or the creatures goes back to the sphere's ring. The hero's ring returns
+      // when the roll ends: the feet spent, a ram, or END ROLL. Till now one popup of every gold square, STOP HERE at its foot (11-24)
+      var sphereWho = function () { return { id: u.id, side: u.side, name: u.name, hp: u.hp, maxhp: u.maxhp, x: z.x, y: z.y, size: 1, conds: {}, sphereOf: u }; }; // (the ring round the sphere: js/ui.js cmdRing draws at its who)
       while (t === u && mv.left >= 5 && !mv.rammed && !(u.dead || u.hp <= 0) && zoneOf(B, u, 'flamingsphere') === z) {
         var reach = sphereReach(B, z, mv.left), keys = Object.keys(reach).filter(function (k) { return reach[k].end; });
         if (!keys.length) break;
-        var pk = keys.map(function (k) { return { x: reach[k].x, y: reach[k].y }; });
-        var opts = keys.map(function (k) { var r0 = reach[k]; return { label: r0.ram ? 'RAM ' + nm(B, r0.ram).toUpperCase() + ' (' + r0.cost + ' FT)' : 'ROLL ' + r0.cost + ' FT' + (r0.jump ? ', A JUMP' : ''), value: { x: r0.x, y: r0.y } }; });
-        opts.push({ label: 'STOP HERE', value: 0, no: true });
-        var to = yield { prompt: { who: u, title: u.name + ': THE FLAMING SPHERE -- ' + mv.left + ' FT LEFT', lines: ['A gold square rolls it there; a creature\'s square rams it.'], opts: opts, pick: pk, squares: true } };
-        if (!to) break;
+        var rolls = keys.filter(function (k) { return !reach[k].ram; }), rams = [];
+        keys.forEach(function (k) { var r0 = reach[k]; if (!r0.ram) return; var have = rams.filter(function (q) { return q.w === r0.ram; })[0]; if (!have) rams.push({ w: r0.ram, k: k }); else if (r0.cost < reach[have.k].cost) have.k = k; }); // (a big one's nearest square)
+        var ramNames = rams.map(function (q) { return nm(B, q.w); }).join(', ');
+        var ask = yield { prompt: { who: sphereWho(), ring: true, sphere: true, title: u.name + ': THE FLAMING SPHERE -- ' + mv.left + ' FT LEFT', lines: ['Roll it, ram with it, or end the roll (the bonus action is spent).'], opts: [
+          { label: 'MOVE', value: 'move', icon: 'move', ok: rolls.length > 0, why: 'no square it can roll to from here', note: 'Its gold squares: a click rolls it there (' + mv.left + ' ft left) -- round what stands in the way, over 5 ft, across a pit up to 10 ft.' },
+          { label: 'RAM', value: 'ram', icon: 'shove', ok: rams.length > 0, why: 'no creature within its ' + mv.left + ' ft', note: 'Into ' + ramNames + ': it saves (DEX ' + z.dc + ' or ' + z.dice + ' fire, half), and the sphere stops for this turn.' },
+          { label: 'END ROLL', value: 0, icon: 'end', no: true, note: 'The roll ends here; the feet left go with it.' }] } };
+        if (!ask) break;
+        var to = null;
+        if (ask === 'move') {
+          to = yield { prompt: { who: u, title: u.name + ': MOVE THE SPHERE -- ' + mv.left + ' FT LEFT', lines: ['A gold square rolls it there.'], pick: rolls.map(function (k) { return { x: reach[k].x, y: reach[k].y }; }), squares: true,
+            opts: rolls.map(function (k) { var r0 = reach[k]; return { label: 'ROLL ' + r0.cost + ' FT' + (r0.jump ? ', A JUMP' : ''), value: { x: r0.x, y: r0.y } }; }).concat([{ label: 'BACK', value: 0, no: true }]) } };
+        } else if (ask === 'ram') {
+          to = yield { prompt: { who: u, title: u.name + ': RAM WITH THE SPHERE', lines: ['A creature in its reach: it saves, and the sphere stops for this turn.'], pick: rams.map(function (q) { return q.w; }),
+            opts: rams.map(function (q) { var r0 = reach[q.k]; return { label: 'RAM ' + nm(B, q.w).toUpperCase() + ' (' + r0.cost + ' FT)', value: { x: r0.x, y: r0.y } }; }).concat([{ label: 'BACK', value: 0, no: true }]) } };
+        }
+        if (!to) continue; // (BACK: the sphere's ring again)
         yield* sphereLeg(B, u, z, mv, to);
       }
       if (!mv.rammed && mv.left < 30) B.card(['{y}' + u.name + '{/} rolls the flaming sphere ' + (30 - mv.left) + ' ft.'], 200);

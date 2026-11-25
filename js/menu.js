@@ -922,7 +922,8 @@
     var curE = this.list.cur();
     if (curE && curE.value === 'alt' && curE.note) wrap(curE.note, 210).slice(0, 2).forEach(function (l, i) { text(ctx, l, 22, y + 7 + i * 11, C.tan); }); // (THROWN's words while it is picked, 11-24)
     else {
-      text(ctx, fit('Armor: ' + (c && c.armor.length ? c.armor.join(', ') : 'none'), 210), 22, y + 7, C.grey);
+      var arT = c ? (R0.armorTypes ? R0.armorTypes(h) : c.armor) : []; // (a cleric's heavy armour by the Life Domain alone: R.armorTypes, 11-25)
+      text(ctx, fit('Armor: ' + (arT.length ? arT.join(', ') : 'none'), 210), 22, y + 7, C.grey);
       text(ctx, fit('Weapons: ' + (c ? c.weapons.join(', ') : ''), 210), 22, y + 18, C.grey);
     }
     var bx = 22 + text(ctx, 'BONDS ' + nb + '/' + (R0.ATTUNE_MAX || 3) + '   ', 22, y + 29, C.magic);

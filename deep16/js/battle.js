@@ -1183,7 +1183,9 @@
       if (off(s)) self.units.forEach(function (w) { if (w !== s && w.conc && w.conc.on && w.conc.on.indexOf(s) >= 0 && w.conc.on.every(off)) D.magic.endConc(self, w, w.conc.on.length > 1 ? 'every one it held is gone' : 'nothing left to hold'); });
       if (incap && s.holding && s.holding.length) self.release(s);
       // a hero's grapple ends when the grappler is incapacitated, or when the one held is out of its reach (SRD 5.1, grappled: "if an effect removes the grappled creature from the reach") -- 10-15
-      if (s.conds.grappled) { var gS = self.units.filter(function (x) { return x.id === s.conds.grappled.by; })[0], gIn = !gS || gS.dead || gS.fled || gS.left || gS.hp <= 0 || gS.conds.paralyzed || gS.conds.stunned || gS.conds.asleep || gS.conds.incapacitated; if (gone || gIn) self.letGo(gS, s, gone ? 'gone' : 'incap'); else if (G.dist(gS, s) > G.reachOf(gS)) self.letGo(gS, s, 'reach'); }
+      // (one down at 0 and held by a dragger is its cargo, held still -- WAGON DRILL, js/features.js F.aiWagonDrill, 11-25: "One dragger moves a grappled or unconscious body"; the
+      // SRD's grapple does not end when the one held drops. Any other grip on one at 0 ends as before)
+      if (s.conds.grappled) { var gS = self.units.filter(function (x) { return x.id === s.conds.grappled.by; })[0], gIn = !gS || gS.dead || gS.fled || gS.left || gS.hp <= 0 || gS.conds.paralyzed || gS.conds.stunned || gS.conds.asleep || gS.conds.incapacitated; var goneG = gone && !(!s.dead && !s.fled && !s.left && gS && D.features && D.features.wagonDrill && D.features.wagonDrill(gS)); if (goneG || gIn) self.letGo(gS, s, goneG ? 'gone' : 'incap'); else if (G.dist(gS, s) > G.reachOf(gS)) self.letGo(gS, s, 'reach'); }
       // and a creature's grip (restrained { grapple, by }: the chuul's pincer, the roper's tendril, a hug) the moment the one held is out of the holder's reach -- a shove, a
       // push, a step it was moved -- not at the holder's next turn (10-21, his 10-19 question "if chull grapple vivian and is shoved 5ft is vivian dragged 5 ft?": the SRD 5.1,
       // no -- the shove moves only the one shoved -- and the grapple ends when "an effect removes the grappled creature from the reach of the grappler"). The swirl and Whelm hold
@@ -1366,7 +1368,13 @@
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
     var mirH = u.cls === 'rogue' ? Battle.mirrorOn(this, u) : []; // (the Mirror's eye on her: HIDE greyed, the why said -- 11-03 night, his "2 - fair")
-    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && !mirH.length && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : mirH.length ? 'the mirror on ' + Battle.theWord(mirH[0]) + ' has you: nothing hides in front of the Mirror\'s eye' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    // HIDE GREYED WHERE IT CANNOT WORK (2026-11-25, Griz: "2 half of Viv's wasted bonus actions are 'end turn without' vs 'might as well try a hide' - add the blindsight to the inspect
+    // card without the hide fail, but grey out with reason"; the grid's rules lane 11-22 ~19:30Z lead 11, five Cunning Action hides SEEN): a foe that perceives her without sight finds her
+    // whatever she rolls (Battle.hideFinders) -- on the grid one such foe is enough (Battle.spots: every foe must lose her); in the simple fight a hide from one foe is a hide, so it
+    // greys only when every foe that could notice her finds her so (js/simple.js S.judge). Where some do and the rest may not, HIDE stays lit and its note names them
+    var hfH = u.cls === 'rogue' ? Battle.hideFinders(this, u) : null, hfOut = hfH && hfH.finders.length && (!this.simple || hfH.finders.length >= hfH.foes.length);
+    var hfWhy = hfH && hfH.finders.length ? Battle.hideFindersWhy(this, u, hfH.finders) : '';
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && !mirH.length && !hfOut && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : mirH.length ? 'the mirror on ' + Battle.theWord(mirH[0]) + ' has you: nothing hides in front of the Mirror\'s eye' : hfOut ? hfWhy + ': no hiding from it' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' + (hfWhy && !hfOut ? ' (' + hfWhy + ': it finds you still)' : '') });
     // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
     if (u.weapon && u.weapon.flame) {
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
@@ -4867,6 +4875,18 @@
   // Read by Battle.hide, the ring's HIDE (greyed with the why: his "2 - fair", 11-03 night) and the class AI's cover play (js/tactics.js), which hid into it every round and never
   // struck (his Harbinger fight of 11-03, read that night)
   Battle.mirrorOn = function (B, u) { return B.units.filter(function (w) { return w.mirrorEye && G.hostile(u, w) && G.standing(w) && RU.canAct(w) && G.los(w, u).clear && D.magic.inMirror(B, w, u); }); };
+  // who finds a hider whatever she rolls (11-25, the HIDE row's grey): the foes that could notice her (Battle.hide's list: against her, standing, able to act), and of them the ones
+  // that perceive her without sight -- blindsight to its range (not what a tremorsense one cannot feel, aloft), the snake familiar's caster to its 15 ft (Battle.spots); in the simple
+  // fight also one with blindsight she will meet in melee, a melee weapon in her hand (js/simple.js S.meetsInMelee)
+  Battle.hideFinders = function (B, u) {
+    var foes = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && !w.object && !w.left; });
+    var finders = foes.filter(function (w) { var d = G.dist(w, u); return (w.blindsight && d <= w.blindsight && !(w.tremor && G.aloft(u))) || (w.senseHidden && d <= w.senseHidden) || !!(B.simple && D.simple && D.simple.meetsInMelee && D.simple.meetsInMelee(w, u)); });
+    return { foes: foes, finders: finders };
+  };
+  Battle.hideFindersWhy = function (B, u, finders) {
+    var w = finders[0], more = finders.length > 1 ? ' and ' + (finders.length - 1) + ' more' : '';
+    return w.blindsight ? 'within ' + Battle.nm(w) + '\'s blindsight (' + w.blindsight + ' ft)' + more : 'within ' + Battle.nm(w) + '\'s ' + w.senseHidden + ' ft' + more;
+  };
   Battle.prototype.hide = function* (u, bonus) {
     var T = u.turn;
     if (Battle.mirrorOn(this, u).length && !(u.side === 'party' && !u.guest && !u.classAI)) return; // (one the AI runs sees the mirror and does not try: no action spent on it)

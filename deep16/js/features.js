@@ -1773,6 +1773,104 @@
     if (!free && u.turn) { u.turn.bonus = 0; if (u.turn.pikeMove != null) { u.turn.move = u.turn.pikeMove; delete u.turn.pikeMove; delete u.turn.rankHeld; } }
     if (B && B.card && !free) B.card(['{g}' + u.name + ' leaves the pike wall (the bonus action).{/}'], 180);
   };
+  // WAGON DRILL (RULED 2026-11-25, Griz: "3 - it more just how the patrol handles its encounters, recruitable or hostile. Dragging into unfavorable flanking could make it exciting
+  // without a rescue", then "6 - yes", built on this seat; the road and its rewards lane's 11-25 sections). His patrol page, The Fare Home, THE DRAGGERS: "Wagon Drill. Trained
+  // collectors, not killers: shove, grapple, drag. One dragger moves a grappled or unconscious body at half speed; two on one body move it at full speed. Against a standing foe they
+  // fight at pike-reach and give ground; the pike drops the moment there is cargo to carry." and "Bearing. ... They watch the downed, not the fight." A block with `wagonDrill`
+  // (the dragger, data/foes.js), at the head of its turn (js/ai.js): the downed first --
+  //   CARGO: a hero of the other side at 0 and not dead, held by no one, that it can come beside this turn -- it drops the pike (out of the pike wall at no cost: its reach weapon
+  //   gone), walks beside it and takes hold (the Attack; no contest from one unconscious -- the seat's call), and with the rest of its move drags it at half speed; a body a fellow
+  //   dragger already holds, it takes the other side, and the two carry it at full speed (the holder drags; the second keeps beside it).
+  //   WHERE: toward the patrol's footmen and sergeants -- its side's trained ranks, not a dragger -- the nearest of them, till it stands beside one: the hero lies in the patrol's
+  //   flank, away from the party (his "dragging into unfavorable flanking"); no wagon off the map, no rescue. Delivered, it holds on and watches the downed (a standing foe beside
+  //   it is struck with the cestus, the hand still free -- "a dragger can grapple and still strike"); it does not walk off with it.
+  //   UP AGAIN: the one it holds back on its feet, it lets go and takes the pike up (a standing foe is fought at pike-reach).
+  // Not built: giving ground before a standing foe; the footmen and sergeants turning on the dragged (his 01:00Z "the footmen and sergeants to focus dragged heroes" -- the 12:40Z
+  // ruling makes the flank the danger; their own choice of target is unchanged)
+  F.wagonDrill = function (u) { return !!(u && !u.dead && u.kind && D.FOES && D.FOES[u.kind] && D.FOES[u.kind].wagonDrill); };
+  function downedOne(w) { return !!w && !w.dead && w.hp <= 0 && !w.object && !w.left && !w.fled && !w.familiar && !w.summon; }
+  F.cargoOf = function (B, u) { var w = u && u.grappling ? B.units.filter(function (x) { return x.id === u.grappling; })[0] : null; return w && !w.dead && w.conds.grappled && w.conds.grappled.by === u.id ? w : null; };
+  function drillRanks(B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && !w.dead && w.hp > 0 && !w.object && !F.wagonDrill(w) && F.soldiering(w); }); }
+  function dropPike(B, u) {
+    if (u.conds.pikes) { delete u.conds.pikes; if (u.turn && u.turn.pikeMove != null) { u.turn.move = u.turn.pikeMove; delete u.turn.pikeMove; } } // (out of the pike wall at no cost: its reach weapon gone)
+    if (u.turn) delete u.turn.rankHeld;
+    if (u.pikeDown || !u.attacks || !u.attacks.pike) return;
+    u.pikeDown = { atk: u.attacks.pike, reach: u.reach }; var rest = {}; Object.keys(u.attacks).forEach(function (k) { if (k !== 'pike') rest[k] = u.attacks[k]; }); u.attacks = rest; u.reach = 5;
+    B.card(['{y}' + u.name + '{/} drops the pike: there is cargo to carry  {g}(Wagon Drill: the cestus leaves the hand free){/}'], 200);
+  }
+  function takePike(B, u) { if (!u.pikeDown) return; u.attacks = Object.assign({ pike: u.pikeDown.atk }, u.attacks); u.reach = u.pikeDown.reach; delete u.pikeDown; B.card(['{g}' + u.name + ' takes the pike up again.{/}'], 160); }
+  function nearestTo(list, p) { return list.slice().sort(function (a, b) { return G.dist(p, a) - G.dist(p, b); })[0] || null; }
+  // a square beside `w` the dragger can stand on and reach with `mv` feet, the cheapest (its own, if it stands beside already)
+  function besideSq(B, u, w, mv) {
+    if (G.dist(u, w) <= 5) return [u.x, u.y];
+    var rm = G.reach(u, mv), best = null;
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var xy = k.split(',').map(Number); if (G.dist(u, w, xy[0], xy[1]) > 5) return; if (!best || e.cost < best.c) best = { q: xy, c: e.cost }; }); // (u stood at xy: G.dist's ax, ay)
+    return best ? best.q : null;
+  }
+  // the drag: toward the nearest of the patrol's ranks, the body trailing (battle.js moveAlong pulls it into the square behind); a second dragger sharing it walks beside
+  // (judged by where the BODY lies: beside one of the ranks is delivered; else the dragger's square, of those its drag reaches, whose free square beside it puts the body nearest a
+  // rank -- and, between two alike, farther from the party -- the body set down there, beside the dragger, at the drag's end)
+  function bodyNear(ranks, body, x, y) { return ranks.length ? Math.min.apply(null, ranks.map(function (r) { return G.dist(r, body, null, null, x, y); })) : 1e9; }
+  function bodySpot(B, u, body, ranks, ux, uy) {
+    var best = null;
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+      var x = ux + dx, y = uy + dy, oc = G.occupant(x, y); if ((!dx && !dy) || (oc && oc !== body) || !G.canStand(body, x, y)) continue;
+      var d = bodyNear(ranks, body, x, y); if (!best || d < best.d) best = { q: [x, y], d: d };
+    }
+    return best;
+  }
+  F.drillDone = function (B, u, body) { return bodyNear(drillRanks(B, u), body, body.x, body.y) <= 5; };
+  function* drillDrag(B, u, body, mv) {
+    var ranks = drillRanks(B, u); if (!ranks.length || !(mv >= 5)) return false;
+    var now = bodyNear(ranks, body, body.x, body.y); if (now <= 5) return false; // (delivered: it lies beside the patrol's ranks)
+    var heroes = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; });
+    var rm = G.reach(u, mv), best = null;
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand || !e.cost) return; var xy = k.split(',').map(Number), sp = bodySpot(B, u, body, ranks, xy[0], xy[1]); if (!sp) return; var far = heroes.length ? Math.min.apply(null, heroes.map(function (h) { return G.dist(h, body, null, null, sp.q[0], sp.q[1]); })) : 0, s = sp.d * 10 - far; if (!best || s < best.s) best = { q: xy, d: sp.d, s: s }; });
+    if (!best || best.d >= now) return false;
+    var sh = body.conds.grappled && body.conds.grappled.share ? B.units.filter(function (x) { return x.id === body.conds.grappled.share; })[0] : null;
+    u.turn.move = mv; yield* B.exec(u, { do: 'move', x: best.q[0], y: best.q[1] }); u.turn.move = 0;
+    var put = bodySpot(B, u, body, ranks, u.x, u.y); // (set down beside it where it lies nearest the ranks -- the drag's end)
+    if (put && (put.q[0] !== body.x || put.q[1] !== body.y)) { body.tween = { fx: body.x, fy: body.y, fz: G.gzAt(body, body.x, body.y), t: 0, dur: B.pace ? B.pace(10, true) : 10, mode: 'walk' }; body.x = put.q[0]; body.y = put.q[1]; if (G.setup && B.map) G.setup(B.map, B.units); }
+    if (sh && !sh.dead && sh.hp > 0 && G.dist(sh, body) > 5) { // (the second keeps beside it: the free square beside the body nearest where it stood)
+      var spot = null; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var x = body.x + dx, y = body.y + dy; if ((dx || dy) && G.canStand(sh, x, y) && !G.occupant(x, y) && (!spot || G.dist(sh, sh, null, null, x, y) < G.dist(sh, sh, null, null, spot[0], spot[1]))) spot = [x, y]; }
+      if (spot) { sh.tween = { fx: sh.x, fy: sh.y, fz: G.gzAt(sh, sh.x, sh.y), t: 0, dur: B.pace ? B.pace(10, true) : 10, mode: 'walk' }; sh.x = spot[0]; sh.y = spot[1]; if (G.setup && B.map) G.setup(B.map, B.units); }
+    }
+    var m = nearestTo(ranks, body);
+    B.card(['{y}' + u.name + '{/} drags ' + nm(B, body) + ' toward ' + nm(B, m) + ' -- into the patrol\'s flank  {g}(' + (sh ? 'two carry it: full speed' : 'half speed') + '){/}'], 220);
+    return true;
+  }
+  F.aiWagonDrill = function* (B, u) {
+    if (!F.wagonDrill(u) || mine(u) || !u.turn || u.dead || u.hp <= 0 || !RU.canAct(u)) return false;
+    var T = u.turn, held = F.cargoOf(B, u);
+    if (held && !downedOne(held)) { B.letGo(u, held, 'release'); takePike(B, u); return false; } // (up again: a standing foe, fought at pike-reach)
+    if (!held && u.sharing) { var shd = B.units.filter(function (x) { return x.id === u.sharing; })[0]; if (shd && downedOne(shd) && shd.conds.grappled && shd.conds.grappled.share === u.id && G.dist(u, shd) <= 5) return true; delete u.sharing; } // (the second's turn: it keeps its side)
+    var mvAll = function () { return Math.max(T.move || 0, T.pikeMove || 0); }; // (a set pike's move is held in pikeMove)
+    if (held) {
+      var two = held.conds.grappled.share && B.units.some(function (x) { return x.id === held.conds.grappled.share && !x.dead && x.hp > 0 && G.dist(x, held) <= 5; });
+      var mv = two ? T.move : 5 * Math.floor((T.move || 0) / 10);
+      var moved = yield* drillDrag(B, u, held, mv);
+      if (!moved) { var foeBy = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G.dist(u, w) <= 5; })[0]; T.move = 0; return !foeBy; } // (delivered: it holds on, and strikes a standing foe beside it with the cestus)
+      return true;
+    }
+    // no cargo yet: the downed, nearest first -- one held by no one, or one a fellow dragger holds alone (the other side)
+    var downs = B.units.filter(function (w) { if (!downedOne(w) || !G.hostile(u, w)) return false; var g = w.conds.grappled; if (!g) return true; var hd = B.units.filter(function (x) { return x.id === g.by; })[0]; return !!(hd && F.wagonDrill(hd) && hd.side === u.side && !g.share); });
+    var pick = null, mvNow = mvAll();
+    downs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); }).some(function (w) { var q = besideSq(B, u, w, mvNow); if (q) pick = { w: w, q: q }; return !!q; });
+    if (!pick) { if (u.pikeDown) takePike(B, u); return false; } // (none it can come beside this turn: the pike in hand, it fights as it can)
+    dropPike(B, u); // (out of the pike wall at no cost, its held move given back)
+    if (T.move < mvNow) T.move = mvNow;
+    if (pick.q[0] !== u.x || pick.q[1] !== u.y) yield* B.exec(u, { do: 'move', x: pick.q[0], y: pick.q[1] });
+    var w = pick.w; if (G.dist(u, w) > 5 || !downedOne(w)) return true;
+    var g0 = w.conds.grappled;
+    if (g0) { g0.share = u.id; u.sharing = w.id; T.move = 0; B.card(['{y}' + u.name + '{/} takes the other side of ' + nm(B, w) + '  {g}(Wagon Drill: two on one body carry it at full speed){/}'], 200); return true; }
+    if (!(T.action > 0 || T.attacksLeft > 0)) return true;
+    T.action = 0; T.attacksLeft = 0;
+    w.conds.grappled = { by: u.id }; u.grappling = w.id; D.sfx('confirm');
+    B.card(['{y}' + u.name + '{/} takes hold of ' + nm(B, w) + ', down: {o}WAGON DRILL{/}  {g}(the Attack; no contest from one unconscious; dragged at half speed){/}'], 240);
+    yield 10;
+    yield* drillDrag(B, u, w, 5 * Math.floor((T.move || 0) / 10));
+    return true;
+  };
   F.markTargets = function (B, u) { return hostileNear(B, u, 60).filter(function (w) { return !w.dead && w.hp > 0 && !w.object && !(w.conds.calledMark && w.conds.calledMark.by === u.id); }); };
   F.callMark = function (B, u, t) {
     u.turn.bonus = 0; spendPlay(u); t.conds.calledMark = { by: u.id, side: u.side, hit: {} }; D.sfx('confirm');

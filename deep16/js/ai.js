@@ -269,6 +269,7 @@
     // the bestiary's own turn-taking (js/traits.js): the broodmother in the rock
     var handled = u.side === 'foe' && D.traits && D.traits.turn ? yield* D.traits.turn(B, u) : false;
     if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    if (D.features && D.features.aiWagonDrill && !u.classAI && (yield* D.features.aiWagonDrill(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; } // (WAGON DRILL, the Dominion's draggers: the downed first -- js/features.js, 11-25)
     if (D.features && D.features.aiWall && !u.classAI) yield* D.features.aiWall(B, u); // (a trained shield-bearer's wall: set, push, leave -- Soldiering, js/features.js, 11-20; a class NPC's runs in TX.FIRST)
     if (D.aidark) yield* D.aidark.first(B, u); // (the AI's own light, 11-13: put out when it wants the dark, struck -- the action -- when the dark is one-sided against it; js/aidark.js)
     if (u.traces) yield* traces(B, u);

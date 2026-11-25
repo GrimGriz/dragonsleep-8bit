@@ -20030,12 +20030,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         keep4.reverse().forEach(function (k) { var s = k[0]; Object.keys(s).forEach(function (kk) { if (!(kk in k[1])) delete s[kk]; }); Object.keys(k[1]).forEach(function (kk) { s[kk] = k[1][kk]; }); });
         if (m4.tallK != null) m4.tallK = null;
         Gg.setup(m4, B4.units.filter(function (w) { return !w.dead; }));
-        // the clicks: a square 10 ft on, then the goblin's square (a ram, and it stops); the bonus action spent once
+        // the clicks: a square 10 ft on, then the goblin's square (a ram, and it stops); the bonus action spent once -- since 11-25 by the sphere's own ring (grid-1125b, his "1 yes" and
+        // "the player clicking the FS on the ring swaps to the sphere's ring"): MOVE, then the square; RAM, then the goblin (mode grid1125b checks the ring itself)
         RUg.startTurn(w4); B4.active = w4; var b0 = w4.turn.bonus, n4 = nG(B4), picks4 = [];
-        var asked4 = runG(Mg.cast(B4, w4, 'flamingsphere', 2, w4), function (p, k) { picks4.push(p.opts.length); var want = k === 1 ? [X + 3, Y + 2] : [gs4[0].x, gs4[0].y], o = p.opts.filter(function (q) { return q.value && q.value.x === want[0] && q.value.y === want[1]; })[0]; return o ? o.value : 0; });
+        var asked4 = runG(Mg.cast(B4, w4, 'flamingsphere', 2, w4), function (p, k) { if (p.ring) return k === 1 ? 'move' : 'ram'; picks4.push(p.opts.length); var want = k === 2 ? [X + 3, Y + 2] : [gs4[0].x, gs4[0].y], o = p.opts.filter(function (q) { return q.value && q.value.x === want[0] && q.value.y === want[1]; })[0]; return o ? o.value : 0; });
         var l4 = logG(B4, n4), adj = Math.max(Math.abs(z4.x - gs4[0].x), Math.abs(z4.y - gs4[0].y)) === 1;
         okG('rolled by clicks: asked ' + asked4.length + ' (' + asked4.join('; ') + '), gold squares ' + picks4.join('/') + '; it stands ' + z4.x + ',' + z4.y + ' beside the goblin ' + adj + '; rammed (' + /rammed/.test(l4) + '), the bonus action ' + b0 + ' -> ' + w4.turn.bonus,
-          asked4.length === 2 && /30 FT LEFT/.test(asked4[0]) && /20 FT LEFT/.test(asked4[1]) && adj && /rammed/.test(l4) && w4.turn.bonus === 0);
+          asked4.length === 4 && /30 FT LEFT/.test(asked4[0]) && /MOVE THE SPHERE/.test(asked4[1]) && /20 FT LEFT/.test(asked4[2]) && /RAM WITH/.test(asked4[3]) && adj && /rammed/.test(l4) && w4.turn.bonus === 0);
       } else okG('the sphere: cast (none made)', false);
       // 5. B1: a heal on the claw's square (his "gennet shows in party / healing targeting viv")
       var B5 = mkG('?npc=chuul&lvl=3&vs=cleric:3:human,rogue:3:human,fighter:3:human'), c5 = cls(B5, 'cleric'), r5 = cls(B5, 'rogue'), f5 = cls(B5, 'fighter'), ch5 = foesG(B5)[0], o5 = openG(6, 4);
@@ -20204,6 +20205,98 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.d = d0H;
     var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
     document.body.appendChild(preH);
+    return;
+  }
+  // THE GRID SEAT grid-1125b, the lanes desk's second and third relays (mode=grid1125c; his answers of 2026-11-25 ~12:40Z and ~13:00Z): THE SPHERE'S OWN RING (js/grimoire.js
+  // flamingsphere -- "1 yes"; "in my head the player clicking the FS on the ring swaps to the sphere's ring"); HIDE greyed where a foe's blindsight finds her, and the card's line
+  // (battle.js Battle.hideFinders, ui.js inspect -- "2 ... add the blindsight to the inspect card without the hide fail, but grey out with reason"); a cleric's heavy armour by the
+  // Life Domain alone (js/rules.js R.armorTypes, deep16/js/classes.js -- "9 - yes"); WAGON DRILL (features.js F.aiWagonDrill -- "3 - it more just how the patrol handles its
+  // encounters, recruitable or hostile. Dragging into unfavorable flanking could make it exciting without a rescue", "6 - yes"). &wseeds=N: the watched wagons counted (6)
+  if (get('mode', '') === 'grid1125c') {
+    var repGc = { checks: [], errors: [] }, d0Gc = D.d, RUc = D.rules, GGc = D.grid, Mc = D.magic, FGc = D.features, UIc = D.ui, Rc = window.DS.R;
+    function okGc(what, v) { repGc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkGc(q, more) { var Bx = D.npcFight(q, Object.assign({ bench: true }, more || {})); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; if (more && more.simple && !Bx.simple && D.simple) D.simple.setup(Bx); return Bx; }
+    function openGc(w, h) { var m = GGc.map; for (var y = 2; y + h + 1 < m.h; y++) for (var x = 2; x + w + 1 < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function placeGc(B, list) { list.forEach(function (e) { e[0].x = e[1]; e[0].y = e[2]; }); GGc.setup(GGc.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; }
+    function onlyGc(B, keep) { B.units.forEach(function (w) { if (keep.indexOf(w) < 0) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } }); }
+    function sideGc(B, s) { return B.units.filter(function (w) { return w.side === s; }); }
+    function runGcR(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    // a generator stepped: each prompt handed to `answer` (its value back), the prompts seen
+    function stepGc(g, answer) { var v, k = 0, st, seen = []; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; var sv = st.value; if (sv && sv.prompt) { seen.push(sv.prompt); v = answer(sv.prompt, seen.length); } } return seen; }
+    var cardGc = function (u) { var seen = [], t0 = D.text; D.text = function (c, s) { seen.push(window.DS.stripCodes(String(s))); return t0.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; UIc.inspect(cv.getContext('2d'), u, { right: 6, y: 32, w: 4000 }); } finally { D.text = t0; } return seen.join(' / '); };
+    try {
+      // 1. THE SPHERE'S OWN RING: a wizard's sphere on an open row, the goblins out of its reach
+      var B1 = mkGc('?npc=goblin,goblin&lvl=5&vs=wizard:5:human'), w1 = sideGc(B1, 'party')[0], gs1 = sideGc(B1, 'foe'), o1 = openGc(14, 3), X = o1[0], Y = o1[1];
+      onlyGc(B1, [w1, gs1[0], gs1[1]]); placeGc(B1, [[w1, X + 13, Y + 1], [gs1[0], X + 12, Y], [gs1[1], X + 12, Y + 2]]); // (the wizard too out of the sphere's 30 ft: the sphere may ram one of ours, the caster too -- grid-1124's call) gs1.forEach(function (g) { g.hp = g.maxhp = 200; });
+      RUc.startTurn(w1); B1.active = w1; stepGc(Mc.cast(B1, w1, 'flamingsphere', 2, { x: X + 1, y: Y + 1 }), function (p) { return p.opts[0].value; });
+      var z1 = (B1.zones || []).filter(function (z) { return z.id === 'flamingsphere'; })[0]; z1.x = X + 1; z1.y = Y + 1; GGc.setup(GGc.map, B1.units.filter(function (w) { return !w.dead; }));
+      RUc.startTurn(w1); B1.active = w1;
+      var seq = ['move', 0, 'move', 'sq', 0], seen1 = stepGc(Mc.cast(B1, w1, 'flamingsphere', 2, w1), function (p, k) { var a = seq[k - 1]; if (a === 'sq') { var o = p.opts.filter(function (q) { return q.value && q.value.x === X + 3 && q.value.y === Y + 1; })[0]; return o ? o.value : 0; } return a; });
+      var r0 = seen1[0] || {}, ram0 = (r0.opts || []).filter(function (o) { return o.label === 'RAM'; })[0];
+      okGc('1 the roll\'s first ask is the sphere\'s own ring: ring ' + !!r0.ring + ' (on the ring: ' + !!(UIc.ringPrompt && UIc.ringPrompt(B1, r0)) + '), drawn round the sphere ' + !!(r0.who && r0.who.sphereOf === w1 && r0.who.x === X + 1 && r0.who.y === Y + 1) + ', "' + r0.title + '": ' + (r0.opts || []).map(function (o) { return o.label + (o.ok === false ? ' (greyed: ' + o.why + ')' : ''); }).join(', '),
+        !!r0.ring && UIc.ringPrompt(B1, r0) && r0.who && r0.who.sphereOf === w1 && /30 FT LEFT/.test(r0.title) && (r0.opts || []).map(function (o) { return o.label; }).join() === 'MOVE,RAM,END ROLL' && ram0 && ram0.ok === false && /no creature within its 30 ft/.test(ram0.why));
+      okGc('1b MOVE opens its gold squares (' + (seen1[1] && seen1[1].pick ? seen1[1].pick.length : 0) + ', squares ' + !!(seen1[1] && seen1[1].squares) + ', BACK at the foot ' + !!(seen1[1] && seen1[1].opts.slice(-1)[0].label === 'BACK') + '); BACK: the sphere\'s ring again ("' + (seen1[2] && seen1[2].title) + '"); MOVE, a square 10 ft on: the ring with "' + (seen1[4] && seen1[4].title) + '"; END ROLL ends it -- asked ' + seen1.length + ', the sphere at ' + z1.x + ',' + z1.y + ', the bonus action ' + w1.turn.bonus,
+        seen1.length === 5 && !!seen1[1].pick && seen1[1].squares && !seen1[1].ring && seen1[2].ring && /30 FT LEFT/.test(seen1[2].title) && /MOVE THE SPHERE/.test(seen1[3].title) && seen1[4].ring && /20 FT LEFT/.test(seen1[4].title) && z1.x === X + 3 && z1.y === Y + 1 && w1.turn.bonus === 0);
+      // 1c. RAM: a goblin 15 ft from the sphere -- RAM lit, its pick the goblin itself (a creature, not a square), and the roll ends on the ram
+      placeGc(B1, [[gs1[0], X + 6, Y + 1]]); RUc.startTurn(w1); B1.active = w1; var n1 = (B1.log || []).length;
+      var seen1c = stepGc(Mc.cast(B1, w1, 'flamingsphere', 2, w1), function (p, k) { if (k === 1) return 'ram'; return p.opts[0].value; });
+      var r1c = seen1c[0] || {}, ram1c = (r1c.opts || []).filter(function (o) { return o.label === 'RAM'; })[0], l1c = (B1.log || []).slice(n1).join(' / ');
+      okGc('1c RAM lit (' + !!(ram1c && ram1c.ok !== false) + ': "' + (ram1c && ram1c.note) + '"); its pick ' + (seen1c[1] ? seen1c[1].pick.map(function (w) { return w.id || (w.x + ',' + w.y); }).join(',') + ' "' + seen1c[1].opts[0].label + '"' : 'none') + '; asked ' + seen1c.length + '; rammed ' + /rammed/.test(l1c),
+        !!ram1c && ram1c.ok !== false && seen1c.length === 2 && seen1c[1].pick[0] === gs1[0] && !seen1c[1].squares && /RAM THE GOBLIN/.test(seen1c[1].opts[0].label) && /rammed/.test(l1c));
+      // 2. HIDE AND BLINDSIGHT: a rogue and the ochre jelly (blindsight 60) on the grid -- greyed with the why; with a goblin too, greyed still (on the grid every foe must lose her);
+      //    the jelly 70 ft off, lit. In the simple fight a hide from one is a hide: the jelly alone, greyed; the jelly and a goblin, lit, its note naming the jelly. The card's line
+      var hideOf = function (B, r) { RUc.startTurn(r); B.active = r; return (B.commands(r) || []).filter(function (c) { return c.id === 'hide'; })[0]; };
+      var B2 = mkGc('?npc=ochrejelly,goblin&lvl=3&vs=rogue:3'), r2 = sideGc(B2, 'party')[0], j2 = sideGc(B2, 'foe').filter(function (w) { return w.kind === 'ochrejelly'; })[0], g2 = sideGc(B2, 'foe').filter(function (w) { return w.kind === 'goblin'; })[0], o2 = openGc(14, 3);
+      onlyGc(B2, [r2, j2, g2]); g2.dead = true; g2.hp = 0; placeGc(B2, [[r2, o2[0], o2[1] + 1], [j2, o2[0] + 6, o2[1] + 1]]);
+      var h2a = hideOf(B2, r2); g2.dead = false; g2.hp = g2.maxhp; placeGc(B2, [[g2, o2[0] + 8, o2[1] + 2]]); var h2b = hideOf(B2, r2);
+      placeGc(B2, [[j2, o2[0] + 13, o2[1] + 1]]); g2.dead = true; g2.hp = 0; var far2 = GGc.dist(r2, j2), h2c = hideOf(B2, r2);
+      okGc('2 the grid: the jelly (blindsight ' + j2.blindsight + ') 30 ft off -- HIDE ok ' + !!(h2a && h2a.ok) + ' ("' + (h2a && h2a.why) + '"); a goblin beside it too, ok ' + !!(h2b && h2b.ok) + '; the jelly ' + far2 + ' ft off, ok ' + !!(h2c && h2c.ok),
+        !!h2a && !h2a.ok && /blindsight \(60 ft\).*no hiding from it/.test(h2a.why) && !!h2b && !h2b.ok && !!h2c && h2c.ok && far2 > 60);
+      var B2s = mkGc('?npc=ochrejelly,goblin&lvl=3&vs=rogue:3', { simple: true }), r2s = sideGc(B2s, 'party')[0], j2s = sideGc(B2s, 'foe').filter(function (w) { return w.kind === 'ochrejelly'; })[0], g2s = sideGc(B2s, 'foe').filter(function (w) { return w.kind === 'goblin'; })[0];
+      var h2d = hideOf(B2s, r2s); g2s.hp = 0; g2s.dead = true; var h2e = hideOf(B2s, r2s);
+      var c2 = cardGc(j2);
+      okGc('2b the simple fight: the jelly and a goblin -- HIDE ok ' + !!(h2d && h2d.ok) + ' ("' + (h2d && h2d.note) + '"); the jelly alone, ok ' + !!(h2e && h2e.ok) + ' ("' + (h2e && h2e.why) + '"); the jelly\'s card: "' + (c2.match(/blindsight[^/]*/) || [''])[0] + '"',
+        !!h2d && h2d.ok && /blindsight \(60 ft\).*finds you still/.test(h2d.note) && !!h2e && !h2e.ok && /no hiding from it/.test(h2e.why) && /blindsight 60 ft -- no hiding from it within that/.test(c2));
+      // 3. A CLERIC'S HEAVY ARMOUR: the Life Domain's alone
+      var cl = function (sub) { return { cls: 'cleric', lvl: 3, subclass: sub, equip: {} }; }, chain = window.DS.DATA.items.chainmail, scale = window.DS.DATA.items.scalemail;
+      var t3 = { life: Rc.armorTypes(cl('Life Domain')).join('/'), window: Rc.armorTypes(cl('the Window')).join('/'), none: Rc.armorTypes({ cls: 'cleric', lvl: 3, equip: {} }).join('/') };
+      var s3w = D.npc.sheet({ cls: 'cleric', lvl: 3, subclass: 'the Window' }), s3l = D.npc.sheet({ cls: 'cleric', lvl: 3, subclass: 'Life Domain' }), s3v = D.npc.sheet({ cls: 'cleric', lvl: 3, subclass: 'the Vigil' });
+      var u3w = D.npc.build({ cls: 'cleric', lvl: 3, subclass: 'the Window' }, 3, 'foe'), u3l = D.npc.build('cleric:3', 3, 'foe');
+      okGc('3 the armour a cleric is trained in: Life ' + t3.life + '; the Window ' + t3.window + '; no domain written (Ingrith\'s sheet) ' + t3.none + '; chain mail for the Window ' + Rc.canEquip(cl('the Window'), chain) + ', scale ' + Rc.canEquip(cl('the Window'), scale) +
+        '; the kit: the Window ' + s3w.equip.armor + ', the Vigil ' + s3v.equip.armor + ', Life ' + s3l.equip.armor + '; AC built -- a Window cleric 3 ' + RUc.ac(u3w) + ', the class floor\'s cleric 3 (Life) ' + RUc.ac(u3l),
+        /heavy/.test(t3.life) && !/heavy/.test(t3.window) && /heavy/.test(t3.none) && !Rc.canEquip(cl('the Window'), chain) && Rc.canEquip(cl('the Window'), scale) && s3w.equip.armor === 'scalemail' && s3v.equip.armor === 'scalemail' && s3l.equip.armor === 'chainmail' && RUc.ac(u3l) === 18);
+      var named3 = ['katarina', 'torvald', 'gennet', 'ingrith', 'matriarch', 'matriarchlama', 'wagonmender'].map(function (k) { var u = D.npc.build(k, null, 'foe'); return u ? k + ' (' + (u.src && u.src.subclass) + ', ' + (u.src && u.src.equip && u.src.equip.armor) + ') AC ' + RUc.ac(u) : k + ' none'; });
+      okGc('3b the named clerics (informational -- their armour light or medium already, but Life\'s): ' + named3.join('; '), true);
+      // 4. WAGON DRILL: the wagon's own fight, a hero down within the west dragger's reach this turn
+      var B4 = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, bench: true }); D.battle = B4; B4.enter(); var k4 = 0; while (!B4.order.length && k4++ < 400) B4.co.next(); B4.dark = false; B4.round = 2;
+      var by4 = function (id) { return B4.units.filter(function (w) { return w.id === id; })[0]; }, d1 = by4('bd1'), d2 = by4('bd2'), P4 = sideGc(B4, 'party'), h4 = P4[0];
+      P4.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); h4.x = d1.x; h4.y = d1.y + 3; h4.hp = 0; h4.ko = true; GGc.setup(GGc.map, B4.units.filter(function (w) { return !w.dead; })); B4.cache = null;
+      var ranks4 = function () { return B4.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.hp > 0 && !FGc.wagonDrill(w) && FGc.soldiering(w); }); }, near4 = function () { return Math.min.apply(null, ranks4().map(function (w) { return GGc.dist(w, h4); })); };
+      var at0 = h4.x + ',' + h4.y, nr0 = near4(), n4 = (B4.log || []).length;
+      RUc.startTurn(d1); B4.active = d1; var did1 = runGcR(FGc.aiWagonDrill(B4, d1)); B4.sweep(); // (the sweep a fight runs after every action: the cargo at 0 held still)
+      var l4a = (B4.log || []).slice(n4).join(' / ');
+      okGc('4 a hero down 15 ft from the dragger: it acts ' + did1 + '; the pike ' + (d1.pikeDown ? 'dropped (its attacks ' + Object.keys(d1.attacks).join(',') + ', reach ' + d1.reach + ')' : 'in hand') + '; it holds ' + (h4.conds.grappled && h4.conds.grappled.by === d1.id) + '; the body ' + at0 + ' -> ' + h4.x + ',' + h4.y + ', nearest of the ranks ' + nr0 + ' -> ' + near4() + ' ft; "' + l4a.replace(/R\d+ /g, '').slice(0, 300) + '"',
+        did1 === true && !!d1.pikeDown && !d1.attacks.pike && !!h4.conds.grappled && h4.conds.grappled.by === d1.id && near4() < nr0 && /WAGON DRILL/.test(l4a) && /drags/.test(l4a));
+      RUc.startTurn(d2); B4.active = d2; var did2 = runGcR(FGc.aiWagonDrill(B4, d2)); B4.sweep(); var shared = !!(h4.conds.grappled && h4.conds.grappled.share === d2.id);
+      var nr1 = near4(), at1 = h4.x + ',' + h4.y, n4b = (B4.log || []).length; RUc.startTurn(d1); B4.active = d1; runGcR(FGc.aiWagonDrill(B4, d1)); var l4b = (B4.log || []).slice(n4b).join(' / ');
+      okGc('4b the second dragger takes the other side (' + did2 + ', shared ' + shared + '); the holder\'s next drag: ' + at1 + ' -> ' + h4.x + ',' + h4.y + ' (' + (/full speed/.test(l4b) ? 'full speed' : /half speed/.test(l4b) ? 'half speed' : 'no drag') + '), nearest of the ranks ' + nr1 + ' -> ' + near4() + ' ft, the second beside it ' + (GGc.dist(d2, h4) <= 5),
+        did2 === true && shared && (/full speed/.test(l4b) || nr1 <= 5 || near4() <= nr1) && GGc.dist(d2, h4) <= 5);
+      h4.hp = 6; h4.ko = false; RUc.startTurn(d1); B4.active = d1; var did3 = runGcR(FGc.aiWagonDrill(B4, d1));
+      okGc('4c the hero up again (6 HP): the dragger lets go (' + !(h4.conds.grappled && h4.conds.grappled.by === d1.id) + ') and takes the pike up (' + !!d1.attacks.pike + ', reach ' + d1.reach + '); its turn goes on as a piker\'s (' + did3 + ')',
+        !(h4.conds.grappled && h4.conds.grappled.by === d1.id) && !!d1.attacks.pike && d1.reach === 10 && did3 === false);
+      // 4d. the watched wagon at 3, seeds 1-N: the drill as it falls in a whole fight (informational)
+      var NW4 = +get('wseeds', '6'), rows4 = [];
+      for (var s4 = 1; s4 <= NW4; s4++) {
+        D.seed = s4; var Bw = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, watch: true, bench: true }); D.battle = Bw; Bw.enter(); var r4 = drive(Bw), L4 = Bw.log || [];
+        var cnt = function (re) { return L4.filter(function (s) { return re.test(s); }).length; };
+        if (get('dbg', '') === String(s4)) repGc.log = L4.filter(function (s) { return /Dragger|WAGON|drags|goes down|falls|dies|dead/.test(s); }).slice(0, 90);
+        rows4.push('s' + s4 + ' ' + r4 + ' R' + Bw.round + ': downs ' + cnt(/ goes down|falls\b/) + ', taken hold ' + cnt(/WAGON DRILL/) + ', drags ' + cnt(/drags .* toward/) + ', shared ' + cnt(/takes the other side/) + ', let go ' + cnt(/takes the pike up again/));
+      }
+      okGc('4d the watched wagon at 3 (informational): ' + rows4.join('; '), true);
+    } catch (eGc) { repGc.errors.push(String(eGc && eGc.stack || eGc).slice(0, 900)); }
+    D.d = d0Gc;
+    var preGc = document.createElement('pre'); preGc.id = 'out'; preGc.textContent = 'BENCH16 ' + JSON.stringify(repGc);
+    document.body.appendChild(preGc);
     return;
   }
   // THE GRID SEAT grid-1125b (mode=grid1125b; his answers of 2026-11-25 ~12:05Z, by number): TWO WALLS weighed by the ground (js/features.js F.ownWall -- "I say add it to the AI as

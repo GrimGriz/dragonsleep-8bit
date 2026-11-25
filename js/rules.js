@@ -43,7 +43,7 @@
       caster: 'full', cast: 'cha', primary: 'cha', asi: { cha: 2 }
     },
     cleric: {
-      name: 'Cleric', hd: 8, saves: ['wis', 'cha'], armor: ['light', 'medium', 'heavy', 'shield'], weapons: ['simple'], // (heavy: the Life domain's)
+      name: 'Cleric', hd: 8, saves: ['wis', 'cha'], armor: ['light', 'medium', 'shield'], weapons: ['simple'], // (heavy: the Life domain's alone -- R.armorTypes, 11-25)
       caster: 'full', cast: 'wis', primary: 'wis', asi: { wis: 2 }
     },
     druid: {
@@ -784,11 +784,20 @@
     var ok = R.CLASSES[h.cls].weapons;
     return w.id === 'unarmed' || ok.indexOf(w.weapon.group) >= 0 || ok.indexOf(w.weapon.kind) >= 0;
   };
+  // the armour a hero is trained in: its class's, and a cleric's heavy armour by the Life Domain alone (SRD 5.1, Life's Bonus Proficiency: "you gain proficiency with heavy
+  // armor") -- RULED 2026-11-25, Griz: "9 - yes", on the lanes desk's beefiness check (the-lab\beefiness-check-2026-11-25.md: every cleric had heavy armour, so ours, the Window,
+  // the Vigil, the Keeping, carried Life's). A cleric with no domain written (an 8-bit sheet: Ingrith's) is the SRD's own, the Life Domain
+  R.armorTypes = function (h) {
+    var c = h && R.CLASSES[h.cls]; if (!c) return [];
+    var a = c.armor.slice();
+    if (h.cls === 'cleric' && (!h.subclass || h.subclass === 'Life Domain') && a.indexOf('heavy') < 0) a.splice(2, 0, 'heavy');
+    return a;
+  };
   R.canEquip = function (h, it) {
     if (!it) return true;
     var c = R.CLASSES[h.cls];
     if (it.kind === 'weapon') return R.isProfWeapon(h, it);
-    if (it.kind === 'armor') return c.armor.indexOf(it.armor.type) >= 0 && !(h.cls === 'druid' && it.armor.metal); // (SRD 5.1: druids "will not wear armor or use shields made of metal" -- RULED 10-21, Griz: "yes to all 3"; the game's shield is wood or metal, so a druid keeps it)
+    if (it.kind === 'armor') return R.armorTypes(h).indexOf(it.armor.type) >= 0 && !(h.cls === 'druid' && it.armor.metal); // (SRD 5.1: druids "will not wear armor or use shields made of metal" -- RULED 10-21, Griz: "yes to all 3"; the game's shield is wood or metal, so a druid keeps it)
     if (it.kind === 'shield') {
       var w = R.item(h.equip.weapon);
       return c.armor.indexOf('shield') >= 0;

@@ -309,12 +309,13 @@
   // read whole 11-24 with pypdf): "one warlock lady in command, a cleric under her, two sergeants who despise each other, and eight men" -- the lady `patrollady` below,
   // the line soldiers `dominion` above, and these four. The page's PHB pieces are read by the SRD (RULED 10-17, SRD-clean): each name says what was swapped
   // THE DRAGGER (THE DRAGGERS, fighter 1): "gladiator harness, pike and cestus"; the page's "two with glaives" among the line soldiers are these, with pikes (his
-  // ruling). AC 15 = studded leather 12 + DEX 2 + Defense 1. The SRD fighter 1's Second Wind (1d10+1), which the page leaves off. Wagon Drill (shove, grapple,
-  // drag the downed to the wagon) is NOT built: the dragger fights as a piker (RULED 11-24, Griz: "that's good for an encounter lane (though the footmen and sergeants to
+  // ruling). AC 15 = studded leather 12 + DEX 2 + Defense 1. The SRD fighter 1's Second Wind (1d10+1), which the page leaves off. WAGON DRILL BUILT 11-25 (`wagonDrill`,
+  // js/features.js F.aiWagonDrill -- RULED, Griz: "3 - it more just how the patrol handles its encounters, recruitable or hostile. Dragging into unfavorable flanking could make
+  // it exciting without a rescue", "6 - yes"): the downed first, the pike dropped, dragged into the patrol's flank. Before 11-25 it was NOT built: the dragger fought as a piker (RULED 11-24, Griz: "that's good for an encounter lane (though the footmen and sergeants to
   // focus dragged heroes), but these snoot wagons are on special assignment and aren't in 'dominion recruiting mode'" -- filed by the desk for a recruiting-mode encounter). CR 1/4 beside the SRD's Guard (1/8: AC 16, 11 HP, +3 1d6+1) and the pike trooper
   // (1/4: AC 16, 11 HP, +3 1d10+1) -- the seat's, the DMG's table not being the SRD's. His sheet dragger_p2 (ART-159, 66966123)
   dragger: {
-    name: 'Dragger', type: 'humanoid', sheet: 'dragger_p2', humanoid: true, soldiering: true, cr: '1/4', ac: 15, armor: 'studded leather', hp: 12, speed: 30, size: 1, reach: 10, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
+    name: 'Dragger', type: 'humanoid', sheet: 'dragger_p2', humanoid: true, soldiering: true, wagonDrill: true, cr: '1/4', ac: 15, armor: 'studded leather', hp: 12, speed: 30, size: 1, reach: 10, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
     abil: { str: 15, dex: 14, con: 14, int: 9, wis: 11, cha: 10 }, init: 2, perception: 10, athletics: 4,
     saves: { str: 4, dex: 2, con: 4, int: -1, wis: 0, cha: 0 }, // (the fighter's STR and CON, +2)
     attacks: {
@@ -322,7 +323,7 @@
       cestus: { name: 'Cestus', atk: 4, dice: '1d4', mod: 2, type: 'bludgeoning', reach: 5 } // ("the spiked wrap leaves the hand free: a dragger can grapple and still strike")
     },
     multi: 1, secondWind: '1d10+1',
-    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill not built; his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
+    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill built 11-25 (js/features.js F.aiWagonDrill); his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
   },
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the
