@@ -1255,9 +1255,12 @@
   F.canSet = function (u) { return !!(u && F.soldiering(u) && F.bearsShield(u) && !F.wallSet(u) && !u.conds.prone && RU.canAct(u) && u.turn && u.turn.bonus > 0); };
   // the front: a set mate's beside it (it joins that wall), else the straight way toward the nearest foe (the longer of the two distances; up/down on a tie)
   F.faceOf = function (B, u) {
-    var m = B.units.filter(function (w) { return w !== u && w.side === u.side && F.wallSet(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })[0];
+    var m = B.units.filter(function (w) { return w !== u && w.side === u.side && F.wallSet(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })[0] || chainWall(B, u); // (chainWall: a set one down the row, its mates between still to set -- 11-25)
     if (m) return m.conds.wall.face.slice();
-    var t = B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    // (the nearest foe it KNOWS of -- js/ai.js AI.heroes: seen, or heard beside it -- 11-25, the grid seat on the Line: watched at seed 1125, Vivian hid 30 ft west and the four
+    // set their wall facing her, west, with the rest of the party plain to the south; a foe hidden and not found is no front)
+    var kn = D.ai && D.ai.heroes ? D.ai.heroes(B, u).filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }) : null;
+    var t = (kn || B.units.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; })).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!t) return [0, -1];
     var dx = t.x - u.x, dy = t.y - u.y;
     return Math.abs(dy) >= Math.abs(dx) ? [0, Math.sign(dy) || -1] : [Math.sign(dx), 0];
@@ -1470,11 +1473,31 @@
     return B.units.some(function (w) { return w !== u && w.side === u.side && !w.familiar && F.wallReady(w); });
   };
   function sideWalls(B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && F.wallSet(w); }); }
+  // the set member whose front's row runs to u through trained shield-bearers standing in it, set the same way or still to set (11-25, the grid seat on the Line: four abreast
+  // on the bridge, the end man set first, and the man two along -- his mate between still to set -- found no open end to walk to and charged; in round one he sets where he
+  // stands, the wall's way, and the line fills in -- as rankSpots counts the squares behind Shields still to set)
+  function chainWall(B, u) {
+    if (!B || !u) return null;
+    var hit = null;
+    sideWalls(B, u).some(function (m) {
+      var f = m.conds.wall.face, p = [-f[1], f[0]];
+      return [1, -1].some(function (s) {
+        for (var i = 1; i <= 8; i++) {
+          var x = m.x + s * p[0] * i, y = m.y + s * p[1] * i;
+          if (x === u.x && y === u.y) { hit = m; return true; }
+          var o = G.occupant(x, y);
+          if (!o || o === u || o.side !== u.side || !F.wallReady(o) || !F.bearsShield(o) || (F.wallSet(o) && !sameFace(o, m))) return false;
+        }
+        return false;
+      });
+    });
+    return hit;
+  }
   // the squares at the line's ends (beside a set member, across its front) and behind it (the rank), open
   function lineSpots(B, u, set) {
     var out = [];
-    set.forEach(function (m) { var f = m.conds.wall.face, p = [-f[1], f[0]]; [[m.x + p[0], m.y + p[1]], [m.x - p[0], m.y - p[1]]].forEach(function (q) { if (!G.occupant(q[0], q[1]) && G.canStand(u, q[0], q[1])) out.push(q); }); });
-    return out;
+    set.forEach(function (m) { var f = m.conds.wall.face, p = [-f[1], f[0]]; [[m.x + p[0], m.y + p[1]], [m.x - p[0], m.y - p[1]]].forEach(function (q) { if ((q[0] === u.x && q[1] === u.y) || (!G.occupant(q[0], q[1]) && G.canStand(u, q[0], q[1]))) out.push(q); }); });
+    return out; // (its own square counts, as rankSpots' does -- 11-25, the grid seat on the Line: four guards abreast, the first set and the three beside it never joined, their own squares refused as occupied)
   }
   function rankSpots(B, u, set) {
     var out = [];
@@ -1534,6 +1557,7 @@
         if (walls.some(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })) { F.setShields(B, u); yield 10; }
         return;
       }
+      if (B.round === 1 && chainWall(B, u)) { F.setShields(B, u); yield 10; return; } // (round one, in the row a set member's front runs along, its mates between still to set: here -- chainWall, 11-25)
       var atEnd = yield* walkTo(B, u, lineSpots(B, u, walls));
       if (atEnd && F.canSet(u)) { F.setShields(B, u); yield 10; }
       return;

@@ -130,8 +130,12 @@
     { id: 'line', story: true, level: 4, map: 'bridge', name: 'The Line', sub: 'the bridge into the camp',
       intro: 'Six men in a line across the bridge: the Captain\'s stable, hired by the House to hold the camp. One gold a man a day. They are here for you.',
       from: 'the 8-bit game: events.js enter:warrens_a (five guards and their sergeant; hard for four at 4)', won: 'THE LINE BREAKS.',
+      // (Dunmore's men in formation, 11-25, RULED -- Griz: "a 'soldiering' flag determined by the engine building the fight?", "build both": the four shields and the pikeman behind
+      // them trained in Soldiering by this fight (js/battle.js Battle.drilled), the sergeant behind them not; the fifth guard, g5, the Line Guard pikeman since 11-25 -- the same
+      // square, the second rank behind g2 -- the seat's call: six men still, the CR the same)
+      soldiering: ['guard', 'guardpike'],
       foes: [{ id: 'g1', kind: 'guard', at: [8, 5] }, { id: 'g2', kind: 'guard', at: [9, 5] }, { id: 'g3', kind: 'guard', at: [10, 5] }, { id: 'g4', kind: 'guard', at: [11, 5] },
-             { id: 'g5', kind: 'guard', at: [9, 4] }, { id: 'sgt', kind: 'veteran', at: [10, 3] }], wave: null },
+             { id: 'g5', kind: 'guardpike', at: [9, 4] }, { id: 'sgt', kind: 'veteran', at: [10, 3] }], wave: null },
     { id: 'crew', story: true, level: 4, ladder: false, map: 'burial', name: 'The Night Crew', sub: 'the Burial, The One Law', music: 'boss',
       intro: 'Hask hefts the pry-bar, and Skell, his lieutenant, comes round the far side with his own. The wheelwright hangs back by the lamp. (The wheelwright runs for the stair when Hask falls.)',
       from: 'the 8-bit game: deep.js, The One Law\'s FIGHT (Hask, the wheelwright, two crewmen; the 8-bit game fights it at 5-6, hard for four at 4); the second game\'s fourth is Skell, Hask\'s lieutenant, in a crewman\'s place', won: 'THE CREW IS DOWN.',

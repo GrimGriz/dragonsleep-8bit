@@ -349,7 +349,24 @@
   // a story fight: one the 8-bit game sent (this.o.embed), or a story fight's own (data/fights.js `story`) at its door or on the bench -- never the Pocket DM,
   // the class floor or the climb. (10-06, Griz: "Can we successfully differentiate between ... the game grid and the pocket DM grid?")
   Battle.prototype.isStory = function () { return !!(this.o.embed || (this.fight && this.fight.story && !this.o.pocket && !this.o.npc && !this.o.climb)); };
+  // THE SOLDIERING FLAG BY THE FIGHT (RULED 2026-11-25, Griz: "2 - assuming the guard is used multiple places, a 'soldiering' flag determined by the engine building the fight?",
+  // then "build both"): a block worn in many places -- the Line Guard's, at the Line, the gulch, the inn, the Hex, the towns -- is trained only where a fight fields it in
+  // formation. The fight's `soldiering` (true: every foe of it; a list: the foes whose id, kind or group it names) or a foe entry's own `soldiering` (true, or false to leave one
+  // plain) sets u.soldiering as the unit is built, which js/features.js F.soldiering reads beside a block's own `soldiering: true` (the dwarves', the Dominion's) -- the same
+  // block at a gate stays plain. data/fights.js `line` is the first
+  Battle.prototype.drilled = function (f) {
+    if (!f) return false;
+    if (f.soldiering != null) return !!f.soldiering;
+    var s = this.fight && this.fight.soldiering;
+    if (s === true) return (f.side || 'foe') === 'foe';
+    return !!(s && s.indexOf && (s.indexOf(f.id) >= 0 || s.indexOf(f.kind) >= 0 || (f.group != null && s.indexOf(f.group) >= 0)));
+  };
   Battle.prototype.makeFoe = function (f) {
+    var u = this.makeFoe1(f);
+    if (u && this.drilled(f)) u.soldiering = true;
+    return u;
+  };
+  Battle.prototype.makeFoe1 = function (f) {
     var d = D.FOES[f.kind];
     // a sheet's `srd`: the SRD's reading of it everywhere but the story, which keeps its own (the cloaker's grip, an egg -- RULED 10-06, Griz: "Story Cloaker is riding
     // as is for the time being, it's an easter egg one. Cloaker's that are used in the Pocket DM should match SRD")

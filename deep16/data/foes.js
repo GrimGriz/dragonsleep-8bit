@@ -266,6 +266,18 @@
       throwspear: { name: 'Thrown Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', range: [20, 60], ranged: true, count: 2, row: 'throw' } }, // (row: guard_p2's own throw, the art desk's ART-WANTED-86, 11-19 -- tools/guard-spear-sheet.py)
     multi: 1, src: 'SRD 5.1 Guard (CR 1/8): spear, melee or thrown 20/60; content/monsters.json guard (the Line Guard); his own figure since 11-18, guard_p2 (the art desk\'s 77 fight figures, the man: padded jack, iron cap, the spear -- tools/folk-costume-sheet.py; the KayKit guard_p1 before, still the Hired Sword\'s and the Hired Blade\'s)'
   },
+  // THE LINE GUARD PIKEMAN (RULED 2026-11-25, Griz: "build both and outbox the Keep Back and any other rows we need for those two"; the art desk's clean-shaven pikeman,
+  // art-wanted 94, ART-158, guardpike_p2 -- the cutter's 9648eaa8): the Line Guard's block (SRD 5.1 Guard) with the SRD pike for his spear and shield -- two-handed, heavy,
+  // reach 10 ft, its opportunity attacks too (srd/04-equipment.md) -- so AC 14 (the chain shirt, no shield) and no spears to throw (both hands on the pike). CR 1/8 as the
+  // Guard (the seat's call: a heavier blow for 2 less AC). NOT trained by his block: Soldiering is the fight's, where it fields Dunmore's men in formation (a fight's
+  // `soldiering`, js/battle.js Battle.drilled) -- the Line's second rank, behind the four shields
+  guardpike: {
+    name: 'Line Guard Pikeman', type: 'humanoid', sheet: 'guardpike_p2', cr: '1/8', ac: 14, metalArmor: 'chain shirt', hp: 11, speed: 30, size: 1, reach: 10,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { pike: { name: 'Pike', atk: 3, dice: '1d10', mod: 1, type: 'piercing', reach: 10, kind: 'pike', props: ['heavy', 'reach', 'two-handed'] } },
+    multi: 1, src: 'SRD 5.1 Guard (CR 1/8) with a pike (11-25): the Line Guard in Captain Dunmore\'s stable, the second rank behind the shields -- chain shirt AC 14, no shield, the pike +3 1d10+1 reach 10 ft (srd/04-equipment.md: two-handed, heavy, reach); his figure guardpike_p2 (art-wanted 94); trained where a fight fields him in formation'
+  },
   // the ladder's wagon yard: two who rode guard on the wagon (SRD 5.1 Guard; the ladder's own, not the 8-bit game's)
   hiredsword: {
     name: 'Hired Sword', type: 'humanoid', sheet: 'guard_p1', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 30, size: 1, reach: 5,

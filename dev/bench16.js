@@ -19422,6 +19422,68 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preH);
     return;
   }
+  // THE SOLDIERING FLAG BY THE FIGHT AND THE LINE GUARD PIKEMAN (mode=soldier1125; RULED 2026-11-25, Griz: "2 - assuming the guard is used multiple places, a 'soldiering' flag
+  // determined by the engine building the fight?", then "build both and outbox the Keep Back and any other rows we need for those two"): the Line trains its four guards and the
+  // pikeman behind them (js/battle.js Battle.drilled, data/fights.js line `soldiering`), not the sergeant; the same block on the class floor stays plain; a block's own
+  // `soldiering` still trains (the dwarves); `true`, a group, and a foe's own `false`; the pikeman's numbers (AC 14, the pike 1d10 reach 10, no throw); round 1 on the AI, the
+  // four set a wall and the pikeman stands behind it; untrained (the flag off), they do not
+  if (get('mode', '') === 'soldier1125') {
+    var repSd = { checks: [], errors: [] }, FSd = D.features, RUSd = D.rules, GSd = D.grid;
+    function okSd(what, v) { repSd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runSd(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkSd(def) { var B = new D.Battle(def ? { fightDef: def, bench: true } : { fight: 'line', bench: true }); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; }
+    function byId(B, id) { return B.units.filter(function (w) { return w.id === id; })[0]; }
+    function trained(B) { return B.units.filter(function (w) { return w.side === 'foe' && FSd.soldiering(w); }).map(function (w) { return w.id; }).sort().join(','); }
+    var LINE = D.fight('line');
+    try {
+      D.seed = 1125;
+      // 1. the Line: g1-g4 and the pikeman g5 trained by the fight, the sergeant not; the block itself carries no soldiering
+      var B1 = mkSd(), g5 = byId(B1, 'g5'), sg = byId(B1, 'sgt');
+      okSd('1 the Line: trained ' + trained(B1) + ' (want g1-g5, not sgt); u.soldiering on g1 ' + !!byId(B1, 'g1').soldiering + '; the blocks\' own: guard ' + !!D.FOES.guard.soldiering + ', guardpike ' + !!D.FOES.guardpike.soldiering,
+        trained(B1) === 'g1,g2,g3,g4,g5' && !FSd.soldiering(sg) && !D.FOES.guard.soldiering && !D.FOES.guardpike.soldiering && !LINE.foes.some(function (f) { return f.soldiering != null; }));
+      // 2. the pikeman: his numbers, the pike in his hands, Soldiering's pike side (no shield: never a wall member)
+      var pk = g5.attacks.pike;
+      okSd('2 the pikeman ' + g5.name + ' (' + g5.sheet + '): AC ' + D.rules.ac(g5) + ', reach ' + g5.reach + ', the pike +' + pk.atk + ' ' + pk.dice + '+' + pk.mod + ' reach ' + pk.reach + '; attacks ' + Object.keys(g5.attacks).join(',') + '; a shield ' + FSd.bearsShield(g5) + ', the pike arm ' + !!FSd.pikeArm(g5) + ', pike ready ' + FSd.pikeReady(g5),
+        g5.kind === 'guardpike' && g5.sheet === 'guardpike_p2' && D.rules.ac(g5) === 14 && g5.reach === 10 && pk.dice === '1d10' && pk.reach === 10 && pk.kind === 'pike' && Object.keys(g5.attacks).join() === 'pike' && !FSd.bearsShield(g5) && !!FSd.pikeArm(g5) && FSd.pikeReady(g5) && FSd.wallReady(byId(B1, 'g1')));
+      // 3. the same blocks on the class floor: plain; a block's own `soldiering` (the dwarven pike trooper, the gate watch) still trains
+      var B3 = D.npcFight('?npc=guard,guard,guardpike,trooperpike,gatewatch&lvl=4&vs=fighter:4', {}); D.battle = B3; B3.enter(); var k3 = 0; while (!B3.order.length && k3++ < 400) B3.co.next();
+      var f3 = B3.units.filter(function (w) { return w.side === 'foe'; }), tr3 = f3.map(function (w) { return w.kind + ':' + FSd.soldiering(w); }).join(', ');
+      okSd('3 the class floor (no flag): ' + tr3, f3.every(function (w) { return FSd.soldiering(w) === !!D.FOES[w.kind].soldiering; }) && f3.filter(function (w) { return FSd.soldiering(w); }).length === 2);
+      // 4. the flag's other shapes: `true` (every foe, the sergeant too), a group name, a foe entry's own `false`
+      var defT = Object.assign({}, LINE, { soldiering: true, foes: LINE.foes.map(function (f) { return f.id === 'g3' ? Object.assign({}, f, { soldiering: false }) : f; }) });
+      var defG = Object.assign({}, LINE, { soldiering: ['dunmore'], foes: LINE.foes.map(function (f) { return f.id === 'g1' || f.id === 'g2' ? Object.assign({}, f, { group: 'dunmore' }) : f; }) });
+      var defN = Object.assign({}, LINE, { soldiering: null });
+      var tT = trained(mkSd(defT)), tG = trained(mkSd(defG)), tN = trained(mkSd(defN));
+      okSd('4 the flag: true with g3 false -> ' + tT + '; the group "dunmore" on g1, g2 -> ' + tG + '; none -> "' + tN + '"; the Line\'s own def untouched (' + JSON.stringify(D.fight('line').soldiering) + ')',
+        tT === 'g1,g2,g4,g5,sgt' && tG === 'g1,g2' && tN === '' && JSON.stringify(D.fight('line').soldiering) === '["guard","guardpike"]');
+      // 5. round 1 on the AI: the four shields set a wall facing the party and the pikeman takes the square behind one; the same men untrained (the flag off) do not
+      var form = function (B) {
+        B.round = 1; var gs = ['g1', 'g2', 'g3', 'g4'].map(function (id) { return byId(B, id); }), p5 = byId(B, 'g5');
+        gs.concat([p5]).forEach(function (u) { RUSd.startTurn(u); B.active = u; runSd(FSd.aiWall(B, u)); });
+        var set = gs.filter(function (u) { return FSd.wallSet(u); }), behind = set.some(function (m) { var f = m.conds.wall.face; return p5.x === m.x - f[0] && p5.y === m.y - f[1]; });
+        return { set: set.length, joined: set.filter(function (u) { return FSd.joined(u, B); }).length, face: set[0] && set[0].conds.wall.face.join(), at: p5.x + ',' + p5.y, behind: behind, pikeSet: !!FSd.pikeSet(p5, B) };
+      };
+      var r5 = form(mkSd()), r5n = form(mkSd(defN));
+      // 5b. the order the seed of his door brings: the end man (g4) first, then g2 two along with g3 still to set between them, then g3, g1 -- before, g2 and g1 found no open end
+      // and charged; now each sets where it stands (js/features.js chainWall), the wall's way
+      var B5b = mkSd(); B5b.round = 1; ['g4', 'g2', 'g3', 'g1', 'g5'].forEach(function (id) { var u = byId(B5b, id); RUSd.startTurn(u); B5b.active = u; runSd(FSd.aiWall(B5b, u)); });
+      var w5b = ['g1', 'g2', 'g3', 'g4'].map(function (id) { var u = byId(B5b, id); return id + (FSd.wallSet(u) ? ':' + u.conds.wall.face.join('') + (FSd.joined(u, B5b) ? 'j' : '') + '@' + u.x + ',' + u.y : ':-'); });
+      okSd('5b the end man first: ' + w5b.join(' ') + '; the pikeman pikes set ' + !!FSd.pikeSet(byId(B5b, 'g5'), B5b), w5b.every(function (s) { return /:01j@\d+,5$/.test(s); }) && !!FSd.pikeSet(byId(B5b, 'g5'), B5b));
+      okSd('5 round 1, trained: ' + r5.set + ' shields set (' + r5.joined + ' joined, facing ' + r5.face + '), the pikeman at ' + r5.at + ' behind one ' + r5.behind + ', pikes set ' + r5.pikeSet + '; untrained: ' + r5n.set + ' set, the pikeman behind ' + r5n.behind,
+        r5.set >= 2 && r5.joined >= 2 && r5.behind && r5n.set === 0);
+      // 7. the front faces a foe it knows of: a hidden one nearer to the west (watched at seed 1125, Vivian hid there and the wall turned west) does not turn it; found, it does
+      var B7 = mkSd(), g47 = byId(B7, 'g4'), ps7 = B7.units.filter(function (w) { return w.side === 'party'; }), hid = ps7[2];
+      ps7.forEach(function (w, i) { w.x = 9 + (i % 2); w.y = 12 + Math.floor(i / 2); }); hid.x = 5; hid.y = 7; hid.conds.hidden = true; GSd.setup(GSd.map, B7.units.filter(function (w) { return !w.dead; })); B7.cache = null;
+      var fH = FSd.faceOf(B7, g47).join(); delete hid.conds.hidden; var fS = FSd.faceOf(B7, g47).join();
+      okSd('7 the front: ' + hid.name + ' hidden at 5,7 (nearer, west of g4 at ' + g47.x + ',' + g47.y + '), the rest south -- faces ' + fH + ' (want 0,1); found, ' + fS + ' (want -1,0)', fH === '0,1' && fS === '-1,0');
+      // 6. the rows Soldiering plays for the two (the cutter's ask reads this): the shield-bearer's push and the pike's pikerank and keepback, where the sheets are in
+      var rowsOf = function (s) { return Object.keys(((D.SHEETS || {})[s] || {}).anims || {}); }, gR = rowsOf('guard_p2'), pR = rowsOf('guardpike_p2');
+      okSd('6 the rows (informational): guard_p2 push ' + (gR.indexOf('push') >= 0) + ', keepback ' + (gR.indexOf('keepback') >= 0) + '; guardpike_p2 ' + (pR.length ? 'pikerank ' + (pR.indexOf('pikerank') >= 0) + ', keepback ' + (pR.indexOf('keepback') >= 0) + ', attack ' + (pR.indexOf('attack') >= 0) : 'not on this tree (the cutter\'s 9648eaa8)'), true);
+    } catch (eSd) { repSd.errors.push(String(eSd && eSd.stack || eSd)); }
+    var preSd = document.createElement('pre'); preSd.id = 'out'; preSd.textContent = 'BENCH16 ' + JSON.stringify(repSd);
+    document.body.appendChild(preSd);
+    return;
+  }
   // THE PIKE WALL (mode=pikewall1121; Soldiering's, Shape A of the leveling lane's 2026-11-20 (late) section, built 11-21 on Griz's "Go on 1-5" -- his lean: "join the pike wall
   // (or just pike wall) like 'set shield' is under skills, where non-polearm masters get to use set and push back as moves called similar to the wall calling push (and
   // polearm-masters in the pike wall get a bonus to theirs) - and maybe move with marches and successful pushes"): SET PIKES on the ring behind a set shield, a bonus action,
