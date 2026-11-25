@@ -35029,6 +35029,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         okO(!!ldm && ldm.id === 'barley' && ldm.equip.armor === 'chainmail' && CO5.heroPortrait(ldm) === 'pt_barley_mail' && !!rvm.at.sq, 'the show\'s beat vivianmail: ' + (ldm ? ldm.id + ' in ' + ldm.equip.armor + ' on ' + CO5.heroPortrait(ldm) + ', beside her at ' + rvm.at.sq : 'NONE'));
         okO(CO5.heroPortrait(mail) === 'pt_barley_mail' && !boxedO(scM) && bM.length && bM.every(function (q) { return q.x >= CO5.OPEN.hero.left + hwM; }), 'Barley in his chain on his own bust (' + CO5.heroPortrait(mail) + '), the answers clear of it: ' + bM.map(function (q) { return q.x; }).join(','));
       } finally { CO5.heroSheet = hs0O; }
+      // 3b. THE DESK'S TWO OF ~12:40Z: Brennan's place as the town has it (his "27 - he seems down in the arena quarter in the actual game, have the line match"), and Hessle's
+      // "Thrane" (his "6 - Thrane")
+      var Bb5 = floorO('?roam=silverton&hour=10&lvl=3'), trB = (RO5.def.src8.triggers || []).filter(function (t) { return t.id === 'keeper:brennan'; })[0], distB = trB ? RO5.def.where(trB.rect[0], trB.rect[1]) : 'NO DOOR';
+      var QB = window.DS.DATA.quests, wB = [], qOf = function (id) { return (Array.isArray(QB) ? QB.filter(function (q) { return q.id === id; })[0] : QB[id]) || {}; };
+      ['errands', 'wheelwright'].forEach(function (id) { (qOf(id).steps || []).forEach(function (s) { if (s.door === 'brennan') wB.push(s.where); }); });
+      okO(/arena quarter/.test(distB) && wB.length === 2 && wB.every(function (w) { return /in the arena quarter north-east of the Hex/.test(w) && !/Fountain Street|second block/.test(w); }),
+        'Brennan\'s door (' + (trB ? trB.rect[0] + ',' + trB.rect[1] : '-') + ') stands in "' + distB + '", and the JOURNAL\'s two steps to him say so: ' + wB.join(' | '));
+      var hfA = [].concat((window.DS.DATA.text['hessle.fiveAlive'] || {}).t || []).join(' ');
+      okO(/Worth more to Thrane alive/.test(hfA) && !/Venn/.test(hfA), 'Hessle\'s word after the five: "' + hfA.slice(-60) + '"');
       // 4. THE SNOOT'S SIDES are its own page's probe (dev/snoot-probe.py: "the Harbinger's pack and every Dominion wagon are enemies") -- not here
       // 5. THE BANDS THAT STAY ON: at a tent in the yard by day and after dark, none at the table; the tent laid on its square, the gulch's own, standing in the way
       var HGo = D.hunger, at0o = HGo.at, on0o = HGo.on, bandO = function (id, kind) { return { id: id, kind: kind, to: 'inn', toName: 'the Halfway Inn', there: true, arrive: 0, t0: 0, from: [0, 0], toPt: [0, 0] }; };
