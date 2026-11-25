@@ -192,7 +192,80 @@ LOOK = dict(src=SRC, name='Patrol Lady', trim=False, tall=TALL, avoid=AVOID, bgt
     source='drawn by the art desk (ART-165, 11-25: art-wanted section 101, the Dominion\'s patrol lady, rapier and mirror, her trim in white, five views), '
            'cut by tools/dmlady-sheet.py over tools/mender-sheet.py\'s reader and tools/vivian-sheet.py; SW W NW mirrored')
 
+PT_REACH, PT_SEED, PT_WHITE = 200, 25, 230   # (her portrait's page: its slate shade and the coat's long piping reach further at its scale (at 60 the piping stayed white); a white seed this many px at least -- her
+                             #  eyes' catchlights are pure white too, a few px each; and near-white seeds too, at least PT_WHITE on every channel -- her coat's
+                             #  thin piping and the sash's tail by the counter are not the exact key here, and no steel shows in her portrait to be taken)
+
+
+PT_LOW = 0.45                                    # (of a portrait frame's height: below it, her coat, under her chin)
+FOLD_PT = ['#b8c3d4', '#8a96aa', '#636e82']      # (the silvers her piping snaps to at 1x)
+
+
+def portrait():
+    """her talking portrait pt_dmlady (tools/portrait-sheet.py cut_person) with her white trim -- sash, collar, piping, cuffs -- in the Dominion's crimson.
+    RULED 11-25, Griz, "good on the leans", on the cutter's lean: one portrait, the crimson, so she matches her fight sheets; the cuffs in each patron's
+    colour only where a screen tells the three ladies apart -- and none does (no fight shows a foe's talking portrait; only `?portraits&who=dmlady`), so
+    the crimson alone. The trim found as the sheets' is: on the source page (the exact white key, grown PT_REACH page px through light, never-warm pixels),
+    painted MARK, cut again by tools/portrait-sheet.py into a scratch copy, read back where the green landed, the plain cut recoloured by lightness"""
+    import shutil, tempfile
+    _o = sys.argv; sys.argv = sys.argv[:1]
+    sp = importlib.util.spec_from_file_location('portrait_sheet', os.path.join(ROOT, 'tools', 'portrait-sheet.py'))
+    PSM = importlib.util.module_from_spec(sp); sp.loader.exec_module(PSM)
+    sys.argv = _o
+    art = os.path.join(ROOT, 'deep16', 'art')
+    PSM.cut_person('dmlady')                                       # (the plain portrait, white as drawn)
+    keep = {x: open(os.path.join(art, 'pt_dmlady' + x), 'rb').read() for x in ('.png', '.json')}
+    pg = [p for p, _, _ in PSM.PEOPLE['dmlady'][3]['layout']][0]
+    tmp = tempfile.mkdtemp(prefix='dmlady-pt-')
+    a = np.asarray(Image.open(os.path.join(PSM.SRC, pg)).convert('RGBA')).copy()
+    rgb = a[..., :3].astype(int); mn, mx = rgb.min(-1), rgb.max(-1)
+    white = (mn >= PT_WHITE) & (mx - mn <= 25)
+    lab, n = ndimage.label(white, structure=np.ones((3, 3)))
+    if n:
+        sz = ndimage.sum(white, lab, range(1, n + 1))
+        white = np.isin(lab, 1 + np.where(np.asarray(sz) >= PT_SEED)[0])
+    light = (mn >= LIGHT) & (mx - mn <= 70) & (rgb[..., 2] >= rgb[..., 0] - 12)
+    trim, edge = white.copy(), white.copy()
+    for _ in range(PT_REACH):
+        edge = ndimage.binary_dilation(edge, np.ones((3, 3), bool)) & light & ~trim
+        trim |= edge
+    a[trim, :3] = MARK
+    os.makedirs(os.path.dirname(os.path.join(tmp, pg)), exist_ok=True)
+    Image.fromarray(a, 'RGBA').save(os.path.join(tmp, pg))
+    old = PSM.SRC
+    try:
+        PSM.SRC = tmp; PSM.cut_person('dmlady')
+        mk = np.asarray(Image.open(os.path.join(art, 'pt_dmlady.png')).convert('RGBA')).copy()
+    finally:
+        PSM.SRC = old
+        for x, b in keep.items():
+            open(os.path.join(art, 'pt_dmlady' + x), 'wb').write(b)
+        shutil.rmtree(tmp, ignore_errors=True)
+    im = np.asarray(Image.open(os.path.join(art, 'pt_dmlady.png')).convert('RGBA')).copy()
+    assert mk.shape == im.shape and ((mk[..., 3] > 0) == (im[..., 3] > 0)).all(), 'the marked portrait is not registered with the plain one'
+    g = mk[..., :3].astype(int)
+    m = (mk[..., 3] > 0) & (g[..., 1] - np.maximum(g[..., 0], g[..., 2]) >= 8)
+    fh = json.load(open(os.path.join(art, 'pt_dmlady.json')))['fh']
+    low = (np.arange(im.shape[0]) % fh >= PT_LOW * fh)[:, None]   # (the coat's long piping: two px of key white and slate on the page, too thin to carry
+    sil = np.zeros(im.shape[:2], bool)                             #  the mark through the box-down; at 1x it snaps to silver -- and no steel shows in her
+    for h in FOLD_PT:                                              #  portrait, her hair's highlights stand above PT_LOW: so the silvers below it are trim)
+        sil |= (np.abs(im[..., :3].astype(int) - np.array(hexrgb(h))).sum(-1) == 0)
+    m |= sil & low & (im[..., 3] > 0)
+    L = im[..., :3].astype(int).mean(-1)
+    lv = [m & (L >= LIT), m & (L >= MID) & (L < LIT), m & (L >= SHADE) & (L < MID)]
+    for k, c in zip(lv, DOMINION):
+        im[k, :3] = hexrgb(c)
+    Image.fromarray(im, 'RGBA').save(os.path.join(art, 'pt_dmlady.png'), optimize=True)
+    meta = json.load(open(os.path.join(art, 'pt_dmlady.json')))
+    meta['source'] = meta.get('source', '').split(' -- her trim in the Dominion')[0] + (' -- her trim in the Dominion\'s crimson %s, as her fight sheets\' sash, '
+                     'by tools/dmlady-sheet.py portrait (11-25, his "good on the leans")' % ', '.join(DOMINION))
+    json.dump(meta, open(os.path.join(art, 'pt_dmlady.json'), 'w'), indent=1)
+    print('  pt_dmlady: %d trim px in the crimson (%s lit, mid, shade)' % (int(sum(k.sum() for k in lv)), '/'.join(str(int(k.sum())) for k in lv)))
+
+
 if __name__ == '__main__':
+    if 'portrait' in sys.argv:
+        portrait(); sys.exit(0)
     register(overlay='overlay' in sys.argv)
     if 'frames' in sys.argv:
         for w in _W:

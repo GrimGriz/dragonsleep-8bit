@@ -20374,7 +20374,7 @@ true
 "source": "deep16/_src/davos/ART-98 (the art desk's ART-98, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_dmlady": {
-"image": "art/pt_dmlady.png?v=76b4e2661e",
+"image": "art/pt_dmlady.png?v=d748dd9ff0",
 "fw": 154,
 "fh": 156,
 "ax": 74,
@@ -20402,7 +20402,7 @@ true
 },
 "art": "ART-165",
 "door": "no one yet: no scene speaks to the Dominion's patrol (art-wanted 101)",
-"source": "deep16/_src/patrollady/2026-11-25-ART-165-PATROL-LADY/reference (the art desk's ART-165, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+"source": "deep16/_src/patrollady/2026-11-25-ART-165-PATROL-LADY/reference (the art desk's ART-165, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py -- her trim in the Dominion's crimson #801c1c, #4c1010, #240808, as her fight sheets' sash, by tools/dmlady-sheet.py portrait (11-25, his \"good on the leans\")"
 },
 "pt_dmmender": {
 "image": "art/pt_dmmender.png?v=1fee45e93f",
