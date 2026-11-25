@@ -629,6 +629,7 @@
   HX.LINES.davos = '{y}Davos Kren\'s door{/}: out of the Hex with {name}, stitched and standing ({hp}/{max}).';
   HX.toDavos = function* (B, u) {
     if (u) { u.ko = false; u.dead = false; u.hp = Math.max(u.hp, Math.max(1, Math.floor(u.maxhp / 2))); if (u.src) { u.src.ko = false; u.src.hp = u.hp; } }
+    if (u && D.hours && D.hours.spend) D.hours.spend(B, D.hours.TOOK.stitch); // (Davos' stitching, an hour on the town's clock: js/hours.js H16.spend, 11-25)
     var o = B.townAway, dq = o && o.def && o.def.marks && o.def.marks.doors && o.def.marks.doors['leech:davos'];
     if (o && dq) { // (the test door, no town under the Hex: stitched where they stand)
       o.at = dq.slice(); o.fw = [0, 1]; // (T.goOut faces the party back the way it came in, the reverse of o.fw: north, at his door)

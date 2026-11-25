@@ -604,7 +604,7 @@
     while ((yield sc.ask(q, [S.read, 'LEAVE'], 'attentive')) === 0) {
       if (st.silver() < S.price) { D.sfx('error'); q = S.poor; continue; }
       var m = H16.swannPick(st); if (!m) { q = S.dry; continue; }
-      st.silver(-S.price); D.sfx('coin');
+      st.silver(-S.price); D.sfx('coin'); H16.took(sc, 'reading'); // (a reading, half an hour on the clock: H16.spend, 11-25)
       var lines = [S.q[m.id] || m.text, S.next.replace('{where}', m.where || m.text)];
       if (H16.day() >= H16.NEWS_DAY && !f.swannWalks) { f.swannWalks = 1; lines.push(S.walks); }
       var cards = H16.byBox(lines); for (var i = 0; i < cards.length; i++) yield sc.say(cards[i], 'work'); q = S.again;
@@ -1130,10 +1130,34 @@
     if (S && S.t != null) { S.t += hrs; if (W.save) W.save(); } else if (B && B.roam) { var R0 = B.roam; R0.hour = (((R0.hour != null ? R0.hour : (D.roam.def.hour || 12)) + hrs) % 24 + 24) % 24; }
     var lo = S && D.house.lightsOut ? D.house.lightsOut(B) : []; if (lo.length && B && B.card) B.card(D.roam.wrap(['{g}' + lo.join(' ') + '{/}']), 220); // (a Light's hour up on the street: js/house.js H.lightsOut, 10-28)
   };
+  // THE TOWN'S CLOCK BY WHAT THE PARTY DOES (RULED 2026-11-22, Griz: "Take the lean", on the clock lane's section of that day -- his ask: "after implementing 1 long rest per day it
+  // feels like we stretched it too far. I don't want to have it count toward exhaustion, but we need to let the clock move a little more when the party is in those places"; built
+  // 11-25 by the seat engulf-1125): the walk's rate as it was; a talk on a portrait 10 minutes, a counter visit (THE SHELVES opened, whatever is bought or sold) 15, a service by
+  // its length -- Marta's meal or Swann's reading half an hour, Davos' stitching an hour -- the longest of them a visit's (js/counter.js C.talk spends it as the screen shuts:
+  // H16.took marks what was done); walking in a room or the Hex at the street's rate. All on THE WORLD's clock alone: no march walked, no exhaustion, and the day's march given
+  // back by those hours as a WAIT gives it (H16.marchBack). The street's turn is said when the hours bring it, as the walk's are (H16.turnDue on the floor's next beat)
+  H16.TOOK = { talk: 10, counter: 15, meal: 30, reading: 30, stitch: 60 };
+  H16.took = function (sc, what) { if (sc && H16.TOOK[what] && !(sc.took && H16.TOOK[sc.took] >= H16.TOOK[what])) sc.took = what; };
+  H16.tookMin = function (sc) { return H16.TOOK[(sc && sc.took) || 'talk']; };
+  // the clock as a visit sees it (THE WORLD's in the house, the floor's own hour on a test door): a visit whose own doing moves it -- a bed, a short rest, a wait at a place --
+  // is that long and no more (the seat's reading, 11-25: js/counter.js C.talk spends the talk's minutes only when the visit left the clock where it found it)
+  H16.clockAt = function (B) { var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null; return S && S.t != null ? S.t : B && B.roam ? B.roam.hour : null; };
+  // the town's floors the clock moves on so: Silverton's street, the Hex, and a room whose street keeps the hours (B.townAway: js/town.js T.goIn) -- not a mine's floors, which
+  // keep their own clock by the walk (js/mines.js M.tick), though they are town floors too
+  H16.townFloor = function (B) { var def = D.roam && D.roam.def, o = B && B.townAway; if (!def || !def.town || def.mine) return false; return !!(def.hours || def.hexIn || (def.room && o && o.def && o.def.hours)); };
+  H16.spend = function (B, min) {
+    if (!(min > 0)) return 0;
+    var hrs = min / 60; H16.pass(B, hrs); H16.marchBack(1, hrs);
+    if (D.house && D.house.trail) D.house.trail('clock', min + ' min'); // (the trail his NOTES carry: js/house.js H.trail)
+    return hrs;
+  };
   var arrive0 = D.roam.arrive;
   D.roam.arrive = function* (B) {
     var ev = yield* arrive0.apply(this, arguments), def = D.roam.def;
-    if (!ev && def && def.hours && !def.room && B.roam && D.battle === B) { var R0 = B.roam; R0.hourFt = (R0.hourFt || 0) + (def.ft || 5); if (R0.hourFt >= H16.FT_HOUR) { R0.hourFt -= H16.FT_HOUR; H16.pass(B, 1); } }
+    if (!ev && def && B.roam && D.battle === B && H16.townFloor(B)) { // (the street; and since 11-25 its rooms and the Hex, at the street's rate: H16.spend, the march back by it)
+      var R0 = B.roam; R0.hourFt = (R0.hourFt || 0) + (def.ft || 5);
+      if (R0.hourFt >= H16.FT_HOUR) { R0.hourFt -= H16.FT_HOUR; if (def.room) H16.spend(B, 60); else H16.pass(B, 1); }
+    }
     return ev;
   };
   // the turn: the hour's turn now not the street's -- laid again, and said

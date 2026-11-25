@@ -5861,11 +5861,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         offs4.indexOf('LONG REST') >= 0 && /\[\(LONG REST\) \| WAIT TILL A LONG REST: 12:00 \(15 HOURS\) \| SHORT REST: AN HOUR \| LEAVE\]/.test(o4) && /A long rest again from 12:00, midday\./.test(o4) && /REFUSED/.test(o4) && !/WOKE/.test(o4) && t4 === 21 && t4s === 22 && hp4 > 1);
       // 5. THE TOWN'S BEDS at 20:00, rested at 08:00: Aldwin's SLEEP greyed till midnight; Cassia's both sleeps -- A NIGHT'S SLEEP (eight hours, no morning page, the long rest's
       // end kept where it was, a short rest's dice), then STAY TILL RESTED (awake at 08:00 the day after: X = 12 hours, the morning, the end kept there)
-      var B5 = houseY('silverton', 'west', null, 20, null, 60); HY.cur.restEnd = 8; var offs5 = [], o5a = runY(B5, CY.talk(B5, 'aldwin'), ['LONG REST'], offs5), t5a = tY();
-      hurtY(B5, 'barley'); var o5n = runY(B5, CY.talk(B5, 'cassia'), [2]), t5n = tY(), hp5n = unitY(B5, 'barley').hp, e5n = HY.cur.restEnd;
+      var B5 = houseY('silverton', 'west', null, 20, null, 60); HY.cur.restEnd = 8; var offs5 = [], o5a = runY(B5, CY.talk(B5, 'aldwin'), ['LONG REST'], offs5), t5a = tY(); // (Aldwin's greyed bed a talk, ten minutes on the town's clock since 11-25 -- js/hours.js H16.spend, mode=townclock1125 -- so the clock back to 20:00 for Cassia's)
+      WY.state().t = 20; hurtY(B5, 'barley'); var o5n = runY(B5, CY.talk(B5, 'cassia'), [2]), t5n = tY(), hp5n = unitY(B5, 'barley').hp, e5n = HY.cur.restEnd;
       WY.state().t = 20; var o5t = runY(B5, CY.talk(B5, 'cassia'), [1, 0]), t5t = tY(), e5t = HY.cur.restEnd;
       okY('Aldwin\'s floor: ' + o5a.slice(o5a.indexOf('['), o5a.indexOf('[') + 60) + ' greyed ' + offs5.join() + ' (the clock ' + t5a + ') // Cassia\'s A NIGHT\'S SLEEP: ' + o5n.slice(o5n.indexOf('['), o5n.indexOf('[') + 140) + ' ... ' + o5n.slice(-140) + ' (the clock ' + t5n + ', Barley ' + hp5n + ', restEnd ' + e5n + ') // STAY TILL RESTED: ' + o5t.slice(o5t.indexOf('WOKE'), o5t.indexOf('WOKE') + 24) + ' (the clock ' + t5t + ', restEnd ' + e5t + ')',
-        offs5.indexOf('LONG REST') >= 0 && /\[\(LONG REST\) \| WAIT TILL A LONG REST: 00:00 \(4 HOURS\) \| SHORT REST: AN HOUR \| LEAVE\]/.test(o5a) && /A long rest again from 00:00, night\./.test(o5a) && t5a === 20 &&
+        offs5.indexOf('LONG REST') >= 0 && /\[\(LONG REST\) \| WAIT TILL A LONG REST: 00:00 \(4 HOURS\) \| SHORT REST: AN HOUR \| LEAVE\]/.test(o5a) && /A long rest again from 00:00, night\./.test(o5a) && Math.abs(t5a - (20 + 10 / 60)) < 1e-9 &&
         /\[\(LONG REST\) \| WAIT TILL A LONG REST: 00:00 \(4 HOURS\) \| A NIGHT'S SLEEP: TILL THE DAWN BELL, \d+ SP \| SHORT REST: AN HOUR \| LEAVE\]/.test(o5n) && /CARD: \w+ .*A night's sleep, and no long rest: one a day\./.test(o5n) && !/WOKE/.test(o5n) && t5n === 29 && hp5n > 1 && e5n === 8 &&
         /The wait runs on to 00:00, night: a long rest is open again\./.test(o5t) && /A long rest now\?.*\[LONG REST: 8 HOURS, \d+ SP \| SHORT REST: AN HOUR \| LEAVE\] > LONG REST/.test(o5t) && /WOKE MORNING/.test(o5t) && t5t === 32 && e5t === 32);
       // 6. THE WORLD (his "'wait' on world map works for short-rest or next bell"): at 20:00, rested at 08:00 -- CAMP's THE NIGHT greyed with its hour, WAIT beside it; the night
@@ -6023,12 +6023,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okZ('the Galleries\' bunkhouse at eleven at night: ' + o8.slice(o8.indexOf('['), o8.indexOf('[') + 90) + ' ... ' + o8.slice(o8.indexOf('WOKE'), o8.indexOf('WOKE') + 100) + ' (the clock 23 to ' + t8 + ', ' + WZ.hour() + ':00)',
         /\[LONG REST: 8 HOURS \| SHORT REST: AN HOUR \| LEAVE\]/.test(o8) && /WOKE MORNING: /.test(o8) && o8.indexOf(MZ.INNS['keeper:galbunk'].morning) >= 0 && t8 === 31 && WZ.hour() === 7);
       // 9. THE HEX'S BAR (the desk's lean 5; his "should allow short rest here, maybe talking to bartender?" and "make them by the gallon of ale"): either bartender's word, then A
-      // SHORT REST OVER ALE, 2 SP -- the purse two less, an hour on, the dice; the east bar's the same; with a silver, refused and nothing on the clock
+      // SHORT REST OVER ALE, 2 SP -- the purse two less, an hour on, the dice; the east bar's the same; with a silver, refused and nothing on the clock (since 11-25 the east bar's
+      // NOT NOW and the refusal are each a talk, ten minutes on the town's clock: js/hours.js H16.spend, mode=townclock1125 -- the rest's own hour still no talk's on top)
       var B9 = houseZ('silverton', 'west', null, 11, null, 10); driveZ(D.hex.goIn(B9, 'front'), 600); hurtZ(B9, 'barley'); var s9 = B9.roam.silver, o9 = runZ(B9, D.town.fire(B9, trigZ('talk:bartenderS')), ['A SHORT REST OVER ALE, 2 SP']), t9 = tZ(), hp9 = unitZ(B9, 'barley').hp, s9b = B9.roam.silver;
       var o9e = runZ(B9, D.town.fire(B9, trigZ('talk:bartenderE')), ['NOT NOW']); B9.roam.silver = 1; var o9p = runZ(B9, D.town.fire(B9, trigZ('talk:bartenderE')), ['A SHORT REST OVER ALE, 2 SP']), t9p = tZ();
       okZ('the Hex\'s south bar (' + RZ.def.key + '): ' + o9.slice(0, 380) + ' (the purse ' + s9 + ' to ' + s9b + ', the clock 11 to ' + t9 + ', Barley ' + hp9 + ') // the east bar: ' + o9e.slice(-90) + ' // with a silver: ' + o9p.slice(-70) + ' (the clock ' + t9p + ')',
         RZ.def.hexIn === 1 && /Ale by the gallon, the bench's way/.test(o9) && !/copper/.test(o9) && /Two silver the gallon, however many you are\. Sit as long as it lasts/.test(o9) && !/\/ OK \//.test(o9) && /\[A SHORT REST OVER ALE, 2 SP \| NOT NOW\] > A SHORT REST OVER ALE/.test(o9) && /A gallon jug and mugs/.test(o9) && /Barley spends/.test(o9) &&
-        s9b === s9 - 2 && t9 === 12 && hp9 > 1 && /\[A SHORT REST OVER ALE, 2 SP \| NOT NOW\] > NOT NOW/.test(o9e) && /The jug doesn't pour itself/.test(o9p) && t9p === 12 && B9.roam.silver === 1);
+        s9b === s9 - 2 && t9 === 12 && hp9 > 1 && /\[A SHORT REST OVER ALE, 2 SP \| NOT NOW\] > NOT NOW/.test(o9e) && /The jug doesn't pour itself/.test(o9p) && Math.abs(t9p - (12 + 20 / 60)) < 1e-9 && B9.roam.silver === 1);
       // 10. THE SHOW (deep16/?restshow, the eyes rows' door): each beat staged -- the floor, the hour, the four hurt -- and the Hex's beat in at the bar
       var beats10 = H6Z.REST_BEATS.filter(function (bt) { return bt.restAgo == null; }).map(function (bt) { try { CZ.servicePlay(bt); var B = topZ(); driveZ(B.co, 400); var hurt = B.roam.members.filter(function (u) { return u.src && u.hp < u.maxhp; }).length; return bt.id + ': ' + RZ.def.key + (RZ.def.hexIn ? ' ' + RZ.def.hexIn : '') + ' at ' + tZ() + ', ' + hurt + ' hurt, WAIT ' + H6Z.canWait(B); } catch (e10) { return bt.id + ': THREW ' + e10; } });
       okZ('?restshow, ' + H6Z.REST_BEATS.length + ' beats: ' + beats10.join('; '), beats10.length === 5 && beats10.every(function (o) { return !/THREW/.test(o) && / 4 hurt/.test(o); }) && /^wait: silverton at 9/.test(beats10[0]) && /^seep: glowseep at 12/.test(beats10[1]) && /^bunk: warrens at 12/.test(beats10[2]) && /^galbunk: galleries at 23/.test(beats10[3]) && /^hex: hex1 1 at 11/.test(beats10[4]) && typeof H6Z.restShow === 'function');
@@ -15034,6 +15035,86 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.d = d0EG;
     var preEG = document.createElement('pre'); preEG.id = 'out'; preEG.textContent = 'BENCH16 ' + JSON.stringify(repEG);
     document.body.appendChild(preEG);
+    return;
+  }
+  // THE TOWN'S CLOCK BY WHAT THE PARTY DOES, 11-25 (mode=townclock1125; the seat engulf-1125, the clock lane's 2026-11-22 section, RULED -- Griz: "Take the lean"): js/hours.js
+  // H16.spend beside H16.pass -- a talk on a portrait 10 minutes, a counter visit (THE SHELVES) 15, a service by its length (Marta's meal or Swann's reading half an hour, Davos'
+  // stitching an hour), walking in a room or the Hex at the street's rate; THE WORLD's clock alone (no march walked, no exhaustion), the day's march given back by those hours as a
+  // WAIT gives it; the walk's own rate (H16.FT_HOUR) as it was; the street's turn said when the hours bring it, as the walk's are. A morning's errands, ten talks, three counters,
+  // Marta's meal, a bout and Davos' stitching after it, six hundred of the street's squares: from about an hour and a half to about five
+  if (get('mode', '') === 'townclock1125') {
+    var repTC = { checks: [], errors: [] }, memTC = {}, stGTC = D.store.get, stSTC = D.store.set, HTC = D.house, CTC = D.counter, RTC = D.roam, WTC = D.world, H6TC = D.hours, muTC = D.music;
+    function okTC(what, v) { repTC.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveTC(g, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function topTC() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) { D.battle = s; driveTC(s.co, 2); } return s; }
+    // a generator run to its end on floor B: each counter screen answered in order by `ans` (a label or an index; none left: the last option), THE SHELVES left at once by BACK
+    function runTC(B, g, ans) {
+      var q = (ans || []).slice(), v, quiet = 0, seen = [];
+      for (var k = 0; k < 20000 && quiet < 400; k++) {
+        var s = D.top();
+        if (s instanceof CTC.Counter) { quiet = 0; var w = s.wait || {}, bs = s.buttons();
+          if (w.shelves) { seen.push('THE SHELVES'); s.press(bs.filter(function (b) { return b.go === 'back'; })[0]); }
+          else if (w.ask) { var ol = w.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }), a0 = q.length ? q.shift() : ol.length - 1, i0 = typeof a0 === 'string' ? ol.indexOf(a0) : a0; if (i0 == null || i0 < 0) i0 = ol.length - 1; seen.push('[' + ol.join(' | ') + '] > ' + ol[i0]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === i0; })[0]); }
+          else if (w.say) { seen.push([].concat(w.say).join(' ')); s.press(bs[0]); } else s.press(bs[0]);
+          if (s.done && D.top() === s) D.pop(); continue; }
+        if (s !== B) { D.pop(); continue; }
+        var st = g.next(v); v = undefined; if (st.done) break;
+        if (typeof st.value === 'number') { B.t += Math.max(1, st.value); quiet++; continue; }
+        if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; quiet = 0;
+      }
+      return window.DS.stripCodes(seen.join(' / '));
+    }
+    function houseTC(t, silver) {
+      HTC.playing = false; HTC.cur = null; var rec = HTC.fresh('barley'); if (silver != null) rec.silver = silver;
+      rec.at = { town: 'silverton', gate: 'west', sq: null, dir: null }; HTC.begin(rec, 0); var B = topTC(); WTC.state().t = t;
+      if (B && B.roam && RTC.def.hours && H6TC.turnDue(B)) driveTC(H6TC.turnPlay(B), 200);
+      return B;
+    }
+    function tTC() { return WTC.state().t; }
+    function minTC(a, b) { return Math.round((b - a) * 60 * 100) / 100; }
+    function exhTC() { return HTC.cur.party.map(function (h) { return HTC.exh(h); }).join(','); }
+    D.store.get = function (k) { return memTC[k] ? JSON.parse(memTC[k]) : null; }; D.store.set = function (k, v) { memTC[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1125);
+      okTC('0 H16.spend beside H16.pass (' + typeof H6TC.spend + '); the walk\'s rate as it was, ' + H6TC.FT_HOUR + ' ft an hour', typeof H6TC.spend === 'function' && H6TC.FT_HOUR === 15000);
+      var B1 = houseTC(6, 200), S1 = WTC.state();
+      // 1-4. each by its length: a talk on a portrait, a counter visit, Marta's meal, Davos' stitching
+      var a1 = tTC(); runTC(B1, CTC.talk(B1, 'mela')); var b1 = tTC();
+      okTC('1 a talk on a portrait, Mela at her door and LEAVE: ' + minTC(a1, b1) + ' minutes (want 10)', minTC(a1, b1) === 10);
+      var a2 = tTC(), o2 = runTC(B1, CTC.talk(B1, 'kasten'), ['THE SHELVES']), b2 = tTC();
+      okTC('2 a counter visit, Kasten\'s shelves: ' + minTC(a2, b2) + ' minutes (want 15) -- ' + o2.slice(0, 120), minTC(a2, b2) === 15 && /THE SHELVES/.test(o2));
+      var a3 = tTC(), o3 = runTC(B1, CTC.talk(B1, 'marta'), [0]), b3 = tTC();
+      okTC('3 a service, Marta\'s hot meal: ' + minTC(a3, b3) + ' minutes (want 30) -- ' + o3.slice(0, 140), minTC(a3, b3) === 30 && /HOT MEAL/.test(o3));
+      var dn = B1.roam.members.filter(function (m) { return m.src && (m.src.key || m.src.id) === 'barley'; })[0]; dn.hp = 0; dn.ko = true; dn.src.hp = 0; dn.src.ko = true;
+      var a4 = tTC(), o4 = runTC(B1, CTC.talk(B1, 'davos'), ['PAY']), b4 = tTC();
+      okTC('4 a service, Davos stitching Barley: ' + minTC(a4, b4) + ' minutes (want 60), Barley ' + dn.hp + ' HP', minTC(a4, b4) === 60 && dn.hp > 0);
+      // 5. a morning's errands, from dawn: ten talks, three counters, Marta's meal, a bout and Davos after it, six hundred of the street's squares -- the clock, the march, the exhaustion
+      var B5 = houseTC(6, 300), S5 = WTC.state(), DAY = HTC.DAYHEX; S5.todayHex = 3; var ex0 = exhTC(), t0 = tTC(), ft = RTC.def.ft || 5, sq = 600;
+      ['mela', 'mical', 'brennan', 'venhale', 'ondine', 'marin', 'mela', 'mical', 'brennan', 'venhale'].forEach(function (id) { runTC(B5, CTC.talk(B5, id)); });
+      ['kasten', 'lucia', 'vilar'].forEach(function (id) { runTC(B5, CTC.talk(B5, id), ['THE SHELVES']); });
+      runTC(B5, CTC.talk(B5, 'marta'), [0]);
+      var tw0 = tTC(), R5 = B5.roam; for (var i5 = 0; i5 < sq; i5++) { R5.mode = 'walk'; driveTC(RTC.arrive(B5), 50); } var tw1 = tTC(); // (the walk's own: R.arrive at each square, js/hours.js)
+      H6TC.pass(B5, (WTC.FIGHT_HOURS || 0.25)); // (a Hex bout's quarter hour, as js/hours.js's wrap of HX.bout passes it)
+      var d5 = B5.roam.members.filter(function (m) { return m.src && (m.src.key || m.src.id) === 'barley'; })[0]; d5.hp = 0; d5.ko = true; d5.src.hp = 0; d5.src.ko = true; runTC(B5, CTC.talk(B5, 'davos'), ['PAY']);
+      var hrs5 = tTC() - t0, did = (10 * 10 + 3 * 15 + 30 + 60) / 60, old5 = (tw1 - tw0) + (WTC.FIGHT_HOURS || 0.25), want5 = old5 + did, back5 = 3 - S5.todayHex; // (the walk passes whole hours, an hour each 15,000 ft: 18,000 ft is one)
+      okTC('5 a morning\'s errands: ' + (Math.round(hrs5 * 100) / 100) + ' hours on THE WORLD (want ' + (Math.round(want5 * 100) / 100) + '; before, the walk and the bout alone, ' + (Math.round(old5 * 100) / 100) + '); the walk ' + (Math.round((tw1 - tw0) * 100) / 100) + ' h at ' + ft + ' ft a square',
+        Math.abs(hrs5 - want5) < 0.02 && hrs5 >= 4.5 && hrs5 <= 6 && Math.abs((tw1 - tw0) - sq * ft / H6TC.FT_HOUR) < 0.21);
+      okTC('6 no march spent and no exhaustion: the march walked 3 to ' + (Math.round(S5.todayHex * 100) / 100) + ' of ' + DAY + ' (given back ' + (Math.round(back5 * 100) / 100) + ', want ' + (Math.round(DAY * did / 24 * 100) / 100) + ' for the ' + (Math.round(did * 100) / 100) + ' hours done), exhaustion ' + ex0 + ' to ' + exhTC(),
+        Math.abs(back5 - DAY * did / 24) < 0.01 && exhTC() === ex0);
+      // 7. walking in the Hex at the street's rate: an hour's feet on its floor is an hour, the march back by it
+      var B7 = houseTC(9, 50), S7 = WTC.state(); S7.todayHex = 2; driveTC(D.hex.goIn(B7, 'front'), 600); B7 = topTC() || B7; var hx = RTC.def && RTC.def.hexIn, R7 = B7.roam, f7 = RTC.def.ft || 5, a7 = tTC();
+      R7.hourFt = H6TC.FT_HOUR - f7; R7.mode = 'walk'; driveTC(RTC.arrive(B7), 50); var b7 = tTC();
+      okTC('7 walking in the Hex (floor ' + hx + '): the hour\'s last ' + f7 + ' ft passes an hour, ' + (Math.round((b7 - a7) * 100) / 100) + ' h (want 1), the march 2 to ' + (Math.round(S7.todayHex * 100) / 100), !!hx && Math.abs(b7 - a7 - 1) < 1e-6 && Math.abs(2 - S7.todayHex - DAY / 24) < 0.01);
+      // 8. the turn said when the hours bring it, as the walk's: a talk at 10:55 rings midday -- and the bread line is gone with the early turn
+      var B8 = houseTC(10 + 55 / 60, 50); var bl8 = B8.units.filter(function (u) { return /^breadline\d/.test(u.npc || ''); }).length; runTC(B8, CTC.talk(B8, 'mela'));
+      var due8 = H6TC.turnDue(B8), said8 = ''; if (due8) { var c08 = B8.card; B8.card = function (ls) { said8 += window.DS.stripCodes([].concat(ls).join(' ')); return c08.apply(this, arguments); }; driveTC(H6TC.turnPlay(B8), 200); B8.card = c08; }
+      var bl8b = B8.units.filter(function (u) { return /^breadline\d/.test(u.npc || '') && !u.dead && !u.left; }).length;
+      okTC('8 a talk at 10:55 brings midday: the turn due ' + due8 + ', its card "' + said8.slice(0, 60) + '"; the bread line ' + bl8 + ' to ' + bl8b, due8 && /midday/.test(said8) && bl8 > 0 && bl8b === 0);
+    } catch (eTC) { repTC.errors.push(String(eTC && eTC.stack || eTC).slice(0, 900)); }
+    HTC.playing = false; HTC.cur = null; D.store.get = stGTC; D.store.set = stSTC; D.music = muTC;
+    var preTC = document.createElement('pre'); preTC.id = 'out'; preTC.textContent = 'BENCH16 ' + JSON.stringify(repTC);
+    document.body.appendChild(preTC);
     return;
   }
   if (get('mode', '') === 'made1114') {

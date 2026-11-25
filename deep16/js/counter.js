@@ -340,7 +340,7 @@
     if (this.wait.face) this.setFace(this.wait.face);
     if (this.wait.say) this.pages = this.paginate(this.wait.say);
     if (this.wait.ask && this.hero) { this.pages = this.paginate(this.wait.ask); this.echo = null; } // (a hero's question: the keeper's words paged, the answers in the bubble)
-    if (this.wait.shelves) this.openShelves(this.wait.shelves);
+    if (this.wait.shelves) { this.openShelves(this.wait.shelves); if (D.hours && D.hours.took) D.hours.took(this, 'counter'); } // (a counter visit, 15 minutes on the town's clock: js/hours.js H16.spend, 11-25)
   };
   // the hero's answers up: a question in a hero's talk, on its last page of the keeper's words
   Counter.prototype.bubbling = function () { var w = this.wait || {}; return !!(this.hero && w.ask && this.page >= this.pages.length - 1); };
@@ -937,10 +937,12 @@
     var o = { id: id, name: nm, place: kp ? kp.name : rm ? rm.name : (door && door.name) || nm, what: kp ? (kp.name !== nm ? nm + ' at the counter' : '') : rm ? nm + ', behind the counter' : (door && door.what) || '' };
     o.script = v.script === 'winters' ? function (sc) { return C.winters(sc); } : v.script === 'ned' ? function (sc) { return C.ned(sc, B); } : v.script && C.SCRIPTS[v.script] ? function (sc) { return C.SCRIPTS[v.script](sc, B, id); } : shop && !v.own ? function (sc) { return C.shopkeeper(sc, B, id); } : function (sc) { return C.keeper(sc, B, id); };
     if (shop) o.place = shop.name;
+    var Hc = D.hours && D.hours.spend && B && B.roam && D.hours.townFloor(B) ? D.hours : null, c0 = Hc ? Hc.clockAt(B) : null; // (the town's clock by what the party does: js/hours.js H16.spend, 11-25)
     var sc = new Counter(B, o); D.push(sc);
     while (!sc.done) yield 1;
     if (sc.regear && B.roam && D.roam.regear) D.roam.regear(B); // (bought and put on: the floor's figures wear it -- js/roam.js R.regear)
     if (sc.next) yield* sc.next(B); // (what the talk leads to once the screen is down: a night slept -- C.inn, C.chapel)
+    if (Hc && Hc.clockAt(B) === c0) Hc.spend(B, Hc.tookMin(sc)); // (a talk 10 minutes, a counter 15, a service its length -- unless the visit's own bed, rest or wait moved the clock: that is its length)
   };
   // a keeper whose sales are to come: their word (and its doing) -- a shopkeeper with no word of their own says their first-game shop's greeting -- then a line
   // for the counter (js/town.js T.fire's, as before the screen)
@@ -1149,7 +1151,7 @@
     var cost = 5 * down.length;
     if ((yield sc.ask(L('leech.ask', { n: cost, names: down.map(function (u) { return u.name; }).join(', ') }), ['PAY', 'LEAVE'])) !== 0) return;
     if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor')); return; }
-    st.silver(-cost); D.sfx('coin');
+    st.silver(-cost); D.sfx('coin'); if (D.hours && D.hours.took) D.hours.took(sc, 'stitch'); // (Davos' stitching, an hour on the town's clock: js/hours.js H16.spend, 11-25)
     down.forEach(function (u) { u.ko = false; u.hp = Math.max(1, Math.floor(u.maxhp / 2)); if (u.hp > 0) u.dead = false; if (u.src) { u.src.ko = false; u.src.hp = u.hp; } });
     D.sfx('heal');
     yield sc.say(L('leech.done'));
@@ -1196,7 +1198,7 @@
       if ((yield sc.ask(L(free ? 'marta.wingsViv' : 'marta.wings', { n: n, cost: cost }), ['COOK THEM', 'NOT NOW'], 'attentive')) === 0) {
         if (cost > st.silver()) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); return; }
         if (cost) { st.silver(-cost); D.sfx('coin'); }
-        take(st, 'batwings', n); give(st, 'batpie', n); D.sfx('chest');
+        take(st, 'batwings', n); give(st, 'batpie', n); D.sfx('chest'); if (D.hours && D.hours.took) D.hours.took(sc, 'counter'); // (her pies cooked from what the party brought: a counter visit's 15 minutes, the seat's call -- js/hours.js H16.spend, 11-25)
         yield sc.say(L('marta.pies', { n: n }), 'work');
         return;
       }
@@ -1230,6 +1232,7 @@
     if ((yield sc.ask(q, ['A HOT MEAL (' + cost + ' sp)', 'LEAVE'], 'welcoming')) !== 0) return;
     if (cost > st.silver()) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); return; }
     if (cost) { st.silver(-cost); D.sfx('coin'); }
+    if (D.hours && D.hours.took) D.hours.took(sc, 'meal'); // (a meal, half an hour on the town's clock: js/hours.js H16.spend, 11-25)
     var lines = [M.served];
     eat.forEach(function (u) { if (C.mealOne(u)) { var n = D.house.exh(u.src); lines.push(F(n ? M.less : M.clear, { name: u.name, n: n })); } });
     if (lines.length === 1) lines.push(M.none);
