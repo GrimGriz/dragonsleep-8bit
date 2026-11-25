@@ -103,13 +103,14 @@
     // ---- the warlock by the book (CHAINMAIL pp.30-33; RULED 10-15: "Book basics for sure")
     function domDay(seed, setup) { var s = SN.newGame(seed); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); s.beats = []; SN.DOMINION.forEach(function (f) { s.units.push(SN.make(f, false)); }); setup(s); var g = SN.resolve(s), r = g.next(); while (!r.done) { var v = r.value; r = g.next(v && v.deep ? SN.standIn(s, v.deep) : undefined); } return s; }
     function on(s, id, at) { var u = SN.unit(s, id); u.on = true; u.state = 'ok'; u.at = at.slice(); u.order = { type: 'hold' }; return u; }
+    function bare(d) { (d.groups || []).forEach(function (g) { g.n = 0; }); d.figs = 0; return d; } // (a wagon with none of its men: its groups emptied too, the wagons mixed units since 11-24)
     ok(SN.POINTS.wizard === 80, 'p.33: a warlock is worth 80 points (was ' + SN.POINTS.wizard + ')');
     ok(SN.SAVES && SN.SAVES.hero === 9 && SN.SAVES.superhero === 6 && SN.SAVES.wraith === 7, 'p.31: a missile\'s saves -- heroes 9+, super-heroes 6+, wraiths 7+');
     ok(SN.bonus({ figs: 1, heroes: [{ type: 'wizard' }] }) === 0 && SN.bonus({ figs: 1, heroes: [{ type: 'hero' }] }) === 1 && SN.bonus({ figs: 1, heroes: [{ type: 'wraith' }] }) === 0, 'p.30: a hero adds 1 to his unit\'s dice; a wizard or a wraith adds nothing');
     var sw = domDay(11, function (s) { on(s, 'bat2', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     ok(sw.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz && b.cls === 'AF' && b.f === 2; }), 'p.30: the patrol lady fights as two Armored Foot, her own dice');
     ok(sw.beats.some(function (b) { return b.t === 'shock' && b.by === 'dm1'; }), 'p.30: a wizard affects enemy morale as a super-hero -- her charge makes them check');
-    var sv = domDay(12, function (s) { var b = on(s, 'bat2', [8, 5]); b.figs = b.figs0 = 60; var d = on(s, 'dm1', [8, 5]); d.figs = 0; });
+    var sv = domDay(12, function (s) { var b = on(s, 'bat2', [8, 5]); b.figs = b.figs0 = 60; var d = on(s, 'dm1', [8, 5]); bare(d); });
     var vol = sv.beats.filter(function (b) { return b.t === 'atk' && b.volley && b.tg === 'dm1'; })[0];
     ok(vol && vol.dice.some(function (x) { return x >= vol.need; }) && vol.k === 0, 'p.30: a wizard is impervious to normal missiles -- the volley hits and kills nothing' + (vol ? ' ([' + vol.dice.filter(function (x) { return x >= vol.need; }).length + ' hits] -> ' + vol.k + ')' : ' (no volley at her)'));
     var sl = domDay(13, function (s) { on(s, 'bat2', [8, 5]); on(s, 'patrol', [8, 5]); on(s, 'dm2', [8, 5]); });
@@ -117,7 +118,7 @@
     // (the first day of these whose fire ball falls on the patrol -- on some the patrol shies from her charge before a round is fought)
     var sf = null, sfs = 0; for (var q4 = 14; q4 < 90 && !sf; q4++) { var sx4 = domDay(q4, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); if (sx4.beats.some(function (b) { return b.t === 'fb' && b.tg === 'patrol'; })) { sf = sx4; sfs = q4; } }
     ok(sf && sf.beats.some(function (b) { return b.t === 'save' && b.need === 9; }), 'p.31: the fire ball falls on the paladin\'s unit and the paladin rolls his save (9+)' + (sf ? ' (day ' + sfs + ')' : ' (no fire ball fell on the patrol)'));
-    var sk = domDay(15, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 5]); d.figs = 0; d.heroes = [{ type: 'hero', name: 'a Warlock keyed as a Hero', missile: 'fireball' }]; });
+    var sk = domDay(15, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 5]); bare(d); d.heroes = [{ type: 'hero', name: 'a Warlock keyed as a Hero', missile: 'fireball' }]; });
     ok(sk.beats.some(function (b) { return b.t === 'fb' && b.u === 'dm1'; }) && !sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz; }) && sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.f === 4 && b.bonus === 1; }),
       'Book I p.17: a Warlock keyed as a Hero fights as a Hero (four figures, +1) and still throws his missile (RULED 10-15: the four by Book I)');
     // ---- the bench's stand-in (RULED 10-15: "the bench should read a complete gnoll slaughter ... keep at 32 figures") and the plains tribes (RULED 10-15)
@@ -232,7 +233,7 @@
       var d = SN.make(SN.DOMINION[0], true); sr.units.push(d); d.on = true; d.state = 'ok'; d.at = [13, 1];
       SN.fallBack(sr, a, 'rout'); var joined = f.figs === f0 + a0 && a.state === 'merged' && !SN.alive(a) && sr.beats.some(function (b) { return b.t === 'wit' && b.kind === 'rally' && b.to === 'patrol' && b.n === a0; });
       var l0 = sr.stats.lost['ours:HF'] || 0; SN.fallBack(sr, p, 'rout'); var pal = p.figs === 0 && SN.alive(p) && p.state === 'retreat' && SN.heroesOf(p).length === 1 && sr.stats.lost['ours:HF'] === l0 + 40;
-      var d0 = d.figs; SN.fallBack(sr, d, 'rout'); var dg = d.state === 'gone' && !SN.alive(d) && sr.stats.fled['dominion:' + d.cls] === d0;
+      var d0 = d.figs; SN.fallBack(sr, d, 'rout'); var dfl = 0; Object.keys(sr.stats.fled).forEach(function (k) { if (/^dominion:/.test(k)) dfl += sr.stats.fled[k]; }); var dg = d.state === 'gone' && !SN.alive(d) && dfl === d0; // (every kind of its men, 11-24: the wagon a mixed unit)
       SN.fallBack(sr, g, 'rout'); var gf = SN.greyfang(sr) === g && g.figs === 0;
       var gn = on(sr, 'sg1', [5, 2]); SN.fallBack(sr, gn, 'rout'); return [joined, pal, dg, gf, gn.state === 'rout' && gn.figs === 18 && !SN.same(gn.at, [5, 2])]; });
     ok(rj && rj.every(Boolean), 'his rule 10-15, a rout of men: Newland\'s crossbows run to the road patrol two hexes off and join it; Newland\'s heavy foot with no steady friend in reach scatter, their paladin cut free (p.30); a Dominion wagon\'s men scatter and it is gone; GreyFang\'s men scatter and he cuts free; a gnoll band routs as the book has it (' + (rj ? rj.join(' ') : 'threw') + ')');
@@ -242,6 +243,22 @@
       SN.partyResult(sw, P, D3, req, { result: 'won', share: 0.4, dead: 4, ladyDead: ld }, [7, 0]);
       return [nl === 3, req.enemies[i] === 'patrollady', req.contrib.reduce(function (s, c) { return s + c.n; }, 0) === 27, SN.heroesOf(SN.unit(sw, req.ladies[i])).length === 0, (sw.stats.killed['dominion:wizard'] || 0) === 1]; });
     ok(wl && wl.every(Boolean), 'his note 10-15, the Dominion on the grid: three wagons send their three patrol ladies and 27 soldiers (thirty a grid), and a lady killed there dies on the map (' + (wl ? wl.join(' ') : 'threw') + ')');
+    // ---- the Dominion's patrol whole (RULED 11-24, Griz: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger")
+    var dw = tk(function () {
+      var cw = SN.newGame(71); cw.party8 = null; var W1 = SN.make(SN.DOMINION[0], true), G = function (w) { return W1.groups.filter(function (g) { return g.grid === w; })[0]; };
+      var shape = SN.DOMINION.every(function (f) { var u = SN.make(f, true), c = SN.compNow(u); return u.figs === 11 && c.dominion === 4 && c.dragger === 4 && c.sergeantblade === 1 && c.sergeantledger === 1 && c.mender === 1 && SN.heroesOf(u).filter(SN.isWiz).length === 1 && SN.mends(u); });
+      var cls = G('dominion').cls === 'HF' && G('dragger').cls === 'LF' && G('sergeantblade').cls === 'AF' && G('sergeantledger').cls === 'AF' && G('mender').cls === 'HF' && W1.def === 'HF';
+      W1.form = 'column'; var road = SN.roadBonus(W1) === 2;
+      W1.at = [7, 0]; cw.units.push(W1); var req = SN.band(cw, [W1], [7, 0]), en = req.enemies.join(','), words = SN.bandWords(req);
+      var fields = en === 'patrollady,dominion,dominion,dominion,dominion,dragger,dragger,dragger,dragger,sergeantblade,sergeantledger,mender';
+      // two draggers and the Blade fall on the grid: those men come off the map, the line untouched
+      var at = []; Object.keys(req.whose).forEach(function (i) { var w = req.whose[i][1]; if ((w === 'dragger' && at.filter(function (x) { return req.whose[x][1] === 'dragger'; }).length < 2) || w === 'sergeantblade') at.push(+i); });
+      SN.partyResult(cw, SN.unit(cw, 'party'), [W1], req, { result: 'escaped', share: 0.25, dead: at.length, deadAt: at }, [7, 0]); // (the four got out: the wagon does not break, so its men are as the grid left them)
+      var exact = G('dragger').n === 2 && G('sergeantblade').n === 0 && G('dominion').n === 4 && G('sergeantledger').n === 1 && G('mender').n === 1;
+      // the mender is the wagon's cleric while she stands; the dusk's mending raises the ranks, never a dead sergeant
+      var r0 = SN.rating(W1); G('mender').n = 0; SN.sync(W1); var r1 = SN.rating(W1), short = SN.short(W1) === 2;
+      return [shape, cls, road, fields, words === 'a patrol lady, 4 line soldiers, 4 draggers, 2 sergeants and a mender', exact, r0 - r1 === 1 && !SN.mends(W1), short]; });
+    ok(dw && dw.every(Boolean), 'his ruling 11-24, a Dominion wagon: a patrol lady, a mender, two sergeants, four line soldiers and four draggers -- each type its CHAINMAIL class (HF line and mender, LF draggers, AF sergeants), the wagon\'s road bonus kept (its men ride), the grid fielding the same, who falls there coming off the map by kind, the mender the wagon\'s cleric while she stands (' + (dw ? dw.join(' ') : 'threw') + ')');
     // ---- the Gray Keeping's matriarchs (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young
     // ones. Give the superhero entangle?"; "all 8 leans are go"): OD&D Book I's clerics -- the Eldest a Patriarch ("Superhero - 1"), the band's a Lama
     var MW = FF('gkw'), MB = FF('gk2'), MY = FF('gk1'), Me = (MW.heroes || [])[0], Ml = (MB.heroes || [])[0];

@@ -28,9 +28,10 @@
       foes.forEach(function (f) { if (f.dead && lady(f)) ladyDead[req.ladies[f.i8]] = true; });
       var chief = function (f) { return !!req.chiefs && req.chiefs[f.i8] != null; }, chiefDead = {}; // (a matriarch is her unit's hero, not one of its men: SN.band, 10-16)
       foes.forEach(function (f) { if (f.dead && chief(f)) { var c = req.chiefs[f.i8]; (chiefDead[c[0]] = chiefDead[c[0]] || []).push(c[1]); } });
-      var dead = foes.filter(function (f) { return f.dead && !lady(f) && !chief(f); }).length, allyDead = {};
+      var deadF = foes.filter(function (f) { return f.dead && !lady(f) && !chief(f); }), dead = deadF.length, allyDead = {};
+      var deadAt = deadF.map(function (f) { return f.i8; }).filter(function (i) { return i != null; }); // (11-24: which list places fell -- a Dominion wagon's men come off the map by kind, SN.band `whose`)
       (m.party || []).forEach(function (p) { var mm = /^ally-(.+)-\d+$/.exec(p.id || ''); if (mm && p.hp <= 0) allyDead[mm[1]] = (allyDead[mm[1]] || 0) + 1; });
-      done({ result: m.result, share: foes.length ? down / foes.length : (m.result === 'won' ? 1 : 0), party: m.party, foes: foes, dead: dead, allyDead: allyDead, ladyDead: ladyDead, chiefDead: chiefDead });
+      done({ result: m.result, share: foes.length ? down / foes.length : (m.result === 'won' ? 1 : 0), party: m.party, foes: foes, dead: dead, deadAt: deadAt, allyDead: allyDead, ladyDead: ladyDead, chiefDead: chiefDead });
     }
     function onMsg(e) {
       if (e.source !== fr.contentWindow || !e.data) return;

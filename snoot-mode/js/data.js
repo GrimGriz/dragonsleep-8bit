@@ -161,16 +161,30 @@
       note: 'Mr. Ripples\' made gnoll, mirror eyes in both sockets: a Wraith on the books\' terms (pp.33-34), his six mirror hyenas giant wolves (p.37).' }
   ];
   // the Dominion (his word 10-14: "2 days after the Harbinger starts head hunting bring in 3 dominion units from the west road - kat's wagon
-  // loadout"; "not cannon for mode test"): Kat's wagon as the serial has it -- the patrol lady, an elder sergeant, a dozen soldiers, the wagon;
-  // the lady a CHAINMAIL warlock (p.30), the soldiers heavy foot, the wagon baggage (p.21)
-  SN.DOMINION = [
-    { id: 'dm1', side: 'dominion', name: "a Dominion wagon", kind: 'the Dominion', cls: 'HF', def: 'HF', figs: 12, morale: 5, wagon: true, move: 3,
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: 'fireball' }], sheets: ['npcwarlock_p0', 'trooper_p0'] },
-    { id: 'dm2', side: 'dominion', name: "a Dominion wagon", kind: 'the Dominion', cls: 'HF', def: 'HF', figs: 12, morale: 5, wagon: true, move: 3,
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: 'lightning' }], sheets: ['npcwarlock_p0', 'trooper_p0'] },
-    { id: 'dm3', side: 'dominion', name: "a Dominion wagon", kind: 'the Dominion', cls: 'HF', def: 'HF', figs: 12, morale: 5, wagon: true, move: 3,
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: 'fireball' }], sheets: ['npcwarlock_p0', 'trooper_p0'] }
-  ];
+  // loadout"; "not cannon for mode test"): the lady a CHAINMAIL warlock (p.30), the wagon baggage (p.21).
+  // EACH WAGON RE-MANNED 11-24 (RULED, Griz: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger" -- the seat dominion-1124):
+  // his patrol page The Fare Home's "one warlock lady in command, a cleric under her, two sergeants who despise each other, and eight men"; Kat's book, 01:29, "two
+  // sergeants ... eight soldiers ... and the lady", 05:22 "The other two wagons carry menders". Till then each was a lady and twelve heavy foot, all on trooper_p0.
+  // Each type its own row on the Combat Table (a mixed unit, RULED 10-15) and its own figure; its CHAINMAIL class from the book's lists (pp.14-15, rules-source.md
+  // §5): the line soldiers HEAVY FOOT ("men-at-arms"; half plate and shield); the draggers LIGHT FOOT (the pike's "Swiss and landsknechte"; a studded harness);
+  // each sergeant ARMORED FOOT (the book's own "sergeants"; full plate), a group of one each, the two never one row (the page: "never the same flank"); the mender
+  // HEAVY FOOT (a breastplate), a group of one, `mender`: the wagon's `cleric` (+1 morale, mending at dusk) while she stands. `grid`: what each is on DEEP16's grid
+  // (deep16/data/foes.js), so a wagon met there fields the same, man for man. `rides`: the men ride the wagon (01:29, "Our wagon carries myself; two sergeants
+  // ...; eight soldiers ...; and the lady"), so it keeps the wagon's road bonus (p.10). `comp`: the same men by grid word -- its count is SN.compNow's, read off
+  // the groups. The line soldiers' group is first: a hero fights with a unit's first type (the lady fights as her own two Armored Foot)
+  var WAGON = function (id, missile) {
+    return { id: id, side: 'dominion', name: 'a Dominion wagon', kind: 'the Dominion', cls: 'HF', def: 'HF', wagon: true, rides: true, move: 3, cleric: true,
+      groups: [
+        { cls: 'HF', def: 'HF', n: 4, name: 'line soldiers', grid: 'dominion', sheets: ['dominion_p1'] },
+        { cls: 'LF', def: 'LF', n: 4, name: 'draggers', grid: 'dragger', sheets: ['dragger_p2'] },
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', sheets: ['dominion_p1'] }, // (on the line soldier's figure till the sergeant's sheet: art-wanted 97)
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', sheets: ['dominion_p1'] },
+        { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['npccleric_p0'] } // (on the stock cleric's figure till hers: art-wanted 98)
+      ],
+      comp: { dominion: 4, dragger: 4, sergeantblade: 1, sergeantledger: 1, mender: 1 },
+      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: missile }], sheets: ['npcwarlock_p0', 'dominion_p1'] };
+  };
+  SN.DOMINION = [WAGON('dm1', 'fireball'), WAGON('dm2', 'lightning'), WAGON('dm3', 'fireball')];
   SN.DAY0 = 14; SN.HUNT = 18; SN.LAST = 28; // (the Pit two days after the Skylights, Day 14; the exchange ~18-21 -- the clock lane; the battle stops at Day 28 whatever stands)
   SN.STACK = 3; // (units of one side a hex, the Pit excepted)
 
