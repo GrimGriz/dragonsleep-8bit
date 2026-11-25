@@ -362,8 +362,8 @@
     return !!(s && s.indexOf && (s.indexOf(f.id) >= 0 || s.indexOf(f.kind) >= 0 || (f.group != null && s.indexOf(f.group) >= 0)));
   };
   Battle.prototype.makeFoe = function (f) {
-    var u = this.makeFoe1(f);
-    if (u && this.drilled(f)) u.soldiering = true;
+    var u = Battle.prototype.makeFoe1.call(this, f); // (by the prototype: js/pocketdm.js borrows makeFoe on a reading object of its own, with makeFoe0 and isStory alone)
+    if (u && Battle.prototype.drilled.call(this, f)) u.soldiering = true;
     return u;
   };
   Battle.prototype.makeFoe1 = function (f) {
