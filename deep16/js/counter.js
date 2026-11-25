@@ -82,7 +82,8 @@
     // the night crews' five on the shaft rows (10-28, the second cutter seat: the art desk's ART-104 to ART-108, new identities from their original briefs): Gull of
     // the day-labor corner, Kael of the timber yard, Brennock the renderer-knacker (not Brennan), Vera the rag-and-bone (not Venn Hale), on the street where they stood;
     // Kess of the flop-cellars (not Kessler) beside her door. None has a first-game shop: their first-game word on their faces, as their cards said it, no counter line
-    gull: { sheet: 'pt_gull', wait: '' }, kael: { sheet: 'pt_kael', wait: '' }, brennock: { sheet: 'pt_brennock', wait: '' }, vera: { sheet: 'pt_vera', wait: '' }, kess: { sheet: 'pt_kess', wait: '' },
+    // Kael's shelf since 11-25 (Griz: "32 - yes", on "Kale - polearm shelf?"): the SRD's polearms at the timber yard, content/shops.json kael -- odds-1125
+    gull: { sheet: 'pt_gull', wait: '' }, kael: { sheet: 'pt_kael', shop: 'kael' }, brennock: { sheet: 'pt_brennock', wait: '' }, vera: { sheet: 'pt_vera', wait: '' }, kess: { sheet: 'pt_kess', wait: '' },
     // the Hex's two hatches onto the concourse (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor" -- js/hex.js HX.PEOPLE): Higertha
     // at Mama's, her shelves (Higertha is the register's reserved: no words of hers, the scene's line only); the cold-food concession's hired youth, its own shelf (C.SHOP16)
     // (her own shelf since 10-28 later, C.SHOP16.higertha: his "Lucia is mama and is saying Higertha's line" -- the first game's "Mama mixes, I sell" is the hatch's, not Mama's)

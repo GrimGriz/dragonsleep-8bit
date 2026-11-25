@@ -1586,7 +1586,7 @@
     mical: ['Whatever comes in on a wagon waits in my warehouses till it\'s sold or sent on. I keep the manifests: the lists of what each load ought to hold.'],
     brennan: ['Horseshoes, wheels, barrels, harness: whatever keeps the wagons and the mines moving. Dwarven tools under rune-warranty cost three times as much.'],
     venhale: ['Fighters for the Hex train and sleep here, and some of them are owned. When you fight on the card, the one across the sand is often mine.'],
-    kael: ['Timber props hold the shafts up so the mines don\'t come down on the crews. Ladders and poles for getting down them.'],
+    kael: ['Timber props hold the shafts up so the mines don\'t come down on the crews. Ladders and poles for getting down them.', 'The long poles with iron on the end are for the road: a pike or a glaive keeps a gnoll ten feet off you.'], // (the second line since 11-25, his shelf -- odds-1125, invented.json kael-polearm-shelf-1125)
     vera: ['Rag-and-bone: what people throw out, or can\'t explain having, goes round the Rows through me. I trade with the Rows, not with strangers.'], // (10-29 night: no claim to sell to the party -- his "vera doesn't actually sell and claims to")
     brennock: ['When an animal dies, it comes to me. Tallow for the candles, glue for the joiners: nothing goes to waste.'],
     gull: ['Anyone who wants a day\'s work stands at my corner at dawn, and anyone who needs hands comes to pick them. The guano mine\'s taking cull hands now.'],
