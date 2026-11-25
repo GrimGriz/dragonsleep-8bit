@@ -27613,6 +27613,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       trs.forEach(function (tr) {
         [ab7, cA, cB].concat(trs).forEach(function (w) { if (MRr.freeEnslaved) MRr.freeEnslaved(B7, w); w.conds = {}; w.maxhp = w.hp = 300; w.dead = false; delete w.conc; w._dpr = null; });
         trs.forEach(function (o) { if (o !== tr) { o.hp = 0; o.dead = true; at(o, 0, 0); } });
+        // (no Haste for the wizard here, 11-25: since the bonus-action spell is weighed against the action's best -- js/tactics.js TX.bonusFirst, his "3 - yes to both" -- the
+        // enslaved wizard opens with Haste on itself, where a bonus spell first used to leave it a cantrip at the cleric; this check is whom it turns on, not its opener)
+        if (tr.cls === 'wizard') tr.known = (tr.known || []).filter(function (id) { return id !== 'haste'; });
         at(ab7, s7[0] + 9, s7[1]); at(tr, s7[0] + 2, s7[1]); at(cB, s7[0] + 3, s7[1]); at(cA, s7[0] + 2, s7[1] + 1); B7.cache = null;
         MM.concentrate(B7, cA, 'bless', 'Bless', function () {}, []);
         pinM(1, function () { runM(MRr.enslave ? MRr.enslave(B7, ab7, tr) : null); });
