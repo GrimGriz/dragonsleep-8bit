@@ -253,6 +253,19 @@
       equip: { weapon: 'dagger', armor: 'leather' }, pact: 'blade', pactForm: 'longsword',
       known: ['eldritchblast', 'chilltouch', 'poisonspray', 'hellishrebuke', 'command', 'holdperson', 'scorchingray', 'vampirictouch', 'mirrorimage'],
       invocations: ['agonizing', 'devilsight'] },
+    // the rest of a Dominion patrol (11-24, the seat dominion-1124, on Griz's "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger"):
+    // his patrol page The Fare Home's two sergeants and its cleric, by the SRD (data/foes.js sergeantblade, sergeantledger, mender -- each block's `src` says what was
+    // swapped). Their armour's AC is the block's (`buildAC`: the game's items have no full plate or breastplate); the kit here is what they swing and what weighs.
+    // Keyed apart from the bestiary's words, as patrolladyw is, so ?npc=sergeantblade finds the block (its HP, its AC) and not a bare build
+    bladesergeant: { name: 'Sergeant (the Blade)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'Champion', style: 'gwf', abil: { str: 16, dex: 10, con: 14, int: 9, wis: 11, cha: 12 },
+      equip: { weapon: 'greatsword', armor: 'splint', shield: null }, alt: 'handaxe', noPrecast: true, look: 'dominion_p1' },
+    ledgersergeant: { name: 'Sergeant (the Ledger)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'Champion', style: 'dueling', abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 },
+      equip: { weapon: 'longsword', armor: 'splint', shield: 'shield' }, alt: 'handaxe', noPrecast: true, look: 'dominion_p1' },
+    // the mender, cleric 3 of the Window (Katarina's domain, Tronupholen's menders): the page's list but Thaumaturgy (not in the game's spells) -- its Trickery's own
+    // four are the Window's always-prepared here
+    wagonmender: { name: 'Mender', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', abil: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 },
+      equip: { weapon: 'mace', armor: 'scalemail', shield: null }, look: 'npccleric_p0',
+      known: ['sacredflame', 'guidance', 'bless', 'healingword', 'sanctuary', 'shieldoffaith', 'holdperson', 'spiritualweapon'] },
     // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
     // distinct"; invented.json #the-rimeglass). The 8-bit sheet's AC 12: no Mage Armor up
@@ -704,6 +717,7 @@
     if (d.resist) u.resist = (u.resist || []).concat(d.resist).filter(function (x, i, a) { return a.indexOf(x) === i; });
     u.lightSensitive = !!d.lightSensitive; u.condImmune = d.condImmune || null; u.perception = d.perception || u.perception;
     u.type = d.type || 'humanoid';
+    if (d.buildAC) { u.baseAC = d.ac; if (d.metalArmor) u.metalArmor = d.metalArmor; } // (the block's armour where the game's items have none: the Dominion's plate and breastplate, 11-24)
     return u;
   };
   // a guest of the 8-bit game whose register class the 8-bit sheet does not carry (Ingrith: a fighter there, a cleric in the

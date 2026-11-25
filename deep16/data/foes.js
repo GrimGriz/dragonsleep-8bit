@@ -291,8 +291,10 @@
   // patrol's LINE SOLDIERS (dominion-patrol-the-fare-home.pdf: fighter 2, "two with glaives, two with sword and shield"); two
   // rolled d4 3 and 4, the sword-and-shield pair: half plate, shield, Defense style. His drawn figure since 11-24 (art-wanted 95, the art desk's ART-159:
   // tools/dominion-sheet.py): dominion_p2 -- the longsword's `attack`, the shield's `push`, and his Light Crossbow's own `lightcrossbow` row
+  // SOLDIERING since 11-24 (Griz, 11-21: "Dominion still needs it"; 11-24, a wagon met on the grid "with Soldiering's wall and pike rank" -- the seat dominion-1124):
+  // the line soldiers set the shield wall, the draggers' pikes strike through it (js/features.js F.soldiering, the block's trait, as the dwarven troops')
   dominion: {
-    name: 'Dominion Soldier', type: 'humanoid', sheet: 'dominion_p2', humanoid: true, cr: '1/2', ac: 19, metalArmor: 'half plate', shield: true, hp: 20, speed: 30, size: 1, reach: 5,
+    name: 'Dominion Soldier', type: 'humanoid', sheet: 'dominion_p2', humanoid: true, soldiering: true, cr: '1/2', ac: 19, metalArmor: 'half plate', shield: true, hp: 20, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 4, dex: 1, con: 4, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -301,6 +303,61 @@
     },
     multi: 1, secondWind: '1d10+2', actionSurge: true, // (ai.js brute: once each; review 09-28 #16)
     src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320) -- SENSES (ours, 11-10): Stealth none, its DEX check (+1), because a line soldier in heavy armour (AC 19); passive Perception 10, because 10 + WIS +0, no Perception skill'
+  },
+  // THE DOMINION'S PATROL WHOLE (RULED 11-24, Griz: "we'll waive the glaive and call that the draggers pike, request dominion sergeant and cleric art, and dominion wagon
+  // for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger"; the seat dominion-1124). His patrol page, The Fare Home (dominion-patrol-the-fare-home.pdf,
+  // read whole 11-24 with pypdf): "one warlock lady in command, a cleric under her, two sergeants who despise each other, and eight men" -- the lady `patrollady` below,
+  // the line soldiers `dominion` above, and these four. The page's PHB pieces are read by the SRD (RULED 10-17, SRD-clean): each name says what was swapped
+  // THE DRAGGER (THE DRAGGERS, fighter 1): "gladiator harness, pike and cestus"; the page's "two with glaives" among the line soldiers are these, with pikes (his
+  // ruling). AC 15 = studded leather 12 + DEX 2 + Defense 1. The SRD fighter 1's Second Wind (1d10+1), which the page leaves off. Wagon Drill (shove, grapple,
+  // drag the downed to the wagon) is NOT built: the dragger fights as a piker. CR 1/4 beside the SRD's Guard (1/8: AC 16, 11 HP, +3 1d6+1) and the pike trooper
+  // (1/4: AC 16, 11 HP, +3 1d10+1) -- the seat's, the DMG's table not being the SRD's. His sheet dragger_p2 (ART-159, 66966123)
+  dragger: {
+    name: 'Dragger', type: 'humanoid', sheet: 'dragger_p2', humanoid: true, soldiering: true, cr: '1/4', ac: 15, armor: 'studded leather', hp: 12, speed: 30, size: 1, reach: 10, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
+    abil: { str: 15, dex: 14, con: 14, int: 9, wis: 11, cha: 10 }, init: 2, perception: 10, athletics: 4,
+    saves: { str: 4, dex: 2, con: 4, int: -1, wis: 0, cha: 0 }, // (the fighter's STR and CON, +2)
+    attacks: {
+      pike: { name: 'Pike', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 10, kind: 'pike', props: ['heavy', 'reach', 'two-handed'] },
+      cestus: { name: 'Cestus', atk: 4, dice: '1d4', mod: 2, type: 'bludgeoning', reach: 5 } // ("the spiked wrap leaves the hand free: a dragger can grapple and still strike")
+    },
+    multi: 1, secondWind: '1d10+1',
+    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill not built; his sheet dragger_p2 -- SENSES (ours, 11-24): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
+  },
+  // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
+  // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the
+  // page's (`buildAC`: the game's items have no full plate). Trained in Soldiering: the Ledger's shield joins the wall. On the line soldier's figure till their own
+  // sheets come back (art-wanted 97)
+  // SERGEANT OF THE RIGHT HAND, "the Blade": fighter 3, the Champion as the page has him, Great Weapon Fighting, the greatsword; the handaxe to throw
+  sergeantblade: {
+    name: 'Sergeant (the Blade)', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, soldiering: true, cr: '2', ac: 18, metalArmor: 'plate', hp: 28, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 10, con: 14, int: 9, wis: 11, cha: 12 }, init: 0, perception: 10, athletics: 5,
+    saves: { str: 5, dex: 0, con: 4, int: -1, wis: 0, cha: 1 },
+    attacks: { greatsword: { name: 'Greatsword', atk: 5, dice: '2d6', mod: 3, type: 'slashing', reach: 5, gwf: true } },
+    multi: 1, secondWind: '1d10+3', actionSurge: true, build: 'bladesergeant', buildAC: true, // (the attack above stands if the build cannot)
+    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE RIGHT HAND, "the Blade" (fighter 3 Champion: AC 18 full plate, HP 28, Athletics +5, Intimidation +3, crits on 19-20, Second Wind 1d10+3, Action Surge, Great Weapon Fighting; greatsword +5 2d6+3, handaxe +5 1d6+3 20/60) -- SENSES (ours, 11-24): Stealth none, a sergeant in full plate; passive Perception 10'
+  },
+  // SERGEANT OF THE LEFT HAND, "the Ledger": the page's Battle Master is the PHB's -- read as the SRD's one fighter archetype, the Champion, its superiority dice (Trip,
+  // Menacing, Riposte) left off; the Dueling style, the longsword and shield. His javelins (+5 1d6+3 30/120) are thrown as the kit's handaxes (+5 1d6+3 20/60): the game
+  // has no javelin
+  sergeantledger: {
+    name: 'Sergeant (the Ledger)', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, soldiering: true, cr: '2', ac: 20, metalArmor: 'plate', shield: true, hp: 28, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 }, init: 0, perception: 12, athletics: 5,
+    saves: { str: 5, dex: 0, con: 4, int: 1, wis: 1, cha: 0 },
+    attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 5, type: 'slashing', reach: 5 } },
+    multi: 1, secondWind: '1d10+3', actionSurge: true, build: 'ledgersergeant', buildAC: true,
+    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE LEFT HAND, "the Ledger" (fighter 3 Battle Master -- read as the SRD\'s Champion, no superiority dice: AC 20 full plate and shield, HP 28, Athletics +5, Perception +2, Second Wind 1d10+3, Action Surge, Dueling; longsword +5 1d8+5; javelin +5 1d6+3 30/120 thrown as a handaxe) -- SENSES (ours, 11-24): Stealth none, full plate; passive Perception 12, 10 + WIS +1 + proficiency'
+  },
+  // THE MENDER (the page's GLASS-CLERIC, cleric 3, "her holy symbol is a small mirror on a cord"; Kat's book 03:21, "a mender of my office is addressed Mender";
+  // dominion.md, "MENDERS OUTRANK SERGEANTS", clerics of Tronu): the page's Trickery Domain is the PHB's -- read as our own, the Window, Tronupholen's menders'
+  // (Katarina's; js/classes.js NPC.SUBS -- its Doubling is the page's Invoke Duplicity, the Hand on the Neck its blessing), built by the class with the page's list.
+  // AC 15: breastplate 14 + DEX 1 (the page's 16 does not add up; the game has no breastplate: `buildAC`). On the stock cleric's figure till her own comes back (art-wanted 98)
+  mender: {
+    name: 'Mender', type: 'humanoid', sheet: 'npccleric_p0', humanoid: true, cr: '1', ac: 15, metalArmor: 'breastplate', hp: 24, speed: 30, size: 1, reach: 5,
+    abil: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 }, init: 1, perception: 12,
+    saves: { str: 0, dex: 1, con: 2, int: 0, wis: 4, cha: 3 },
+    attacks: { mace: { name: 'Mace', atk: 2, dice: '1d6', mod: 0, type: 'bludgeoning', reach: 5 } }, // ("She would rather not")
+    multi: 1, build: 'wagonmender', buildAC: true,
+    src: 'dominion-patrol-the-fare-home.pdf THE GLASS-CLERIC (cleric 3, Trickery -- read as our Window: AC 16 breastplate read as 15, HP 24 3d8+6, WIS 15, spell DC 12 +4, slots 4/2; sacred flame, guidance, thaumaturgy; bless, healing word, sanctuary, shield of faith; hold person, spiritual weapon; mace +2 1d6) -- SENSES (ours, 11-24): Stealth none, its DEX check (+1); passive Perception 12, 10 + WIS +2'
   },
   veteran: {
     name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 30, size: 1, reach: 5,
