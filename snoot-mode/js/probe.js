@@ -180,8 +180,8 @@
     var ev = null; for (var q5 = 100; q5 < 300 && !ev; q5++) { var se = fday(q5, function (s) { var p = on(s, 'patrol', [8, 5]); p.order = { type: 'avoid' }; var g = on(s, 'sg1', [7, 5]); g.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); var eb = se.beats.filter(function (b) { return b.t === 'evade'; })[0]; if (eb && eb.ok) ev = se; }
     var pe = ev && SN.unit(ev, 'patrol');
     ok(ev && !SN.same(pe.at, [8, 5]) && !atk1(ev, 'patrol') && !atk1(ev, 'sg1'), 'Book III p.20: a unit under AVOID that a band comes at rolls to slip a hex away -- and no blow is struck' + (pe ? ' (the patrol now at ' + pe.at + ')' : ''));
-    ok(tk(function () { var sd = SN.newGame(61); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var w1 = SN.unit(sd, 'dm1'); w1.at = [8, 3]; SN.AI.dominion(sd, w1); return w1.order.type === 'avoid'; }),
-      'the Dominion\'s wagons at the inn are under AVOID (the seat\'s lean, ruled)');
+    ok(tk(function () { var sd = SN.newGame(61); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var w1 = SN.unit(sd, 'dm1'); w1.at = [8, 3]; w1.errand = null; SN.AI.dominion(sd, w1); return w1.order.type === 'avoid'; }),
+      'a Dominion wagon with no errand, at the inn, is under AVOID (the seat\'s lean, ruled; since 11-25 each of the three has an errand)');
     // (11-25, odds-1125, his "47 yes" on striking the 11-14 reading -- Savine's wagon "will go for him": the Harbinger's pack and the Dominion are enemies, and one hex holding
     // a wagon and the pack is a fight between them)
     ok(tk(function () { var sd = SN.newGame(62); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var hb = sd.units.filter(function (u) { return u.harbinger; })[0], w1 = SN.unit(sd, 'dm1');
@@ -284,14 +284,30 @@
       SN.useMap(SN.WORLDMAP); try {
         var s = SN.newGame(73); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); SN.DOMINION.forEach(function (f) { var u = SN.make(f, true); u.at = SN.WEST.slice(); s.units.push(u); });
         var t = SN.unit(s, 'dm3'), d1 = SN.unit(s, 'dm1'), G0 = SN.GARRISON, gar = !!G0 && G0.off && eq(G0.near, [63, 23]) && G0.ft === 681 && eq(G0.at, [18, 0]);
+        d1.errand = null; // (a wagon with no errand still walks to the inn: the errands are checked below, 11-25)
         SN.AI.dominion(s, t); SN.AI.dominion(s, d1); var toG = t.order.type === 'move' && eq(t.order.to, G0.at), toInn = d1.order.type === 'move' && eq(d1.order.to, SN.INN);
         var b = SN.unit(s, 'bb3'); b.on = true; b.at = [12, 6]; s.log = []; SN.AI.dominion(s, t);
         var div = t.order.type === 'move' && eq(t.order.to, [12, 6]) && !!t.diverted && s.log.some(function (l) { return /turns off its road and goes for the festival war-camp/.test(l.text); });
         s.head = true; SN.AI.dominion(s, t); var back = t.order.type === 'move' && eq(t.order.to, G0.at); s.head = false;
-        t.at = G0.at.slice(); b.on = false; SN.AI.dominion(s, t); var holds = t.order.type === 'hold';
-        return [gar, toG, toInn, div, back, holds];
+        t.at = G0.at.slice(); b.on = false; SN.AI.dominion(s, t); var leaves = t.state === 'left' && !SN.alive(t) && !!s.garrison && s.stats.left.indexOf('dm3') >= 0 && s.log.some(function (l) { return /up the climb, to build its toll garrison/.test(l.text); });
+        return [gar, toG, toInn, div, back, leaves];
       } finally { SN.useMap(SN.FIXTURE); } });
-    ok(tr && tr.every(Boolean), 'his ruling 11-25, Tronu\'s wagon: its garrison\'s hex the near map\'s (63,23), 681 ft, off the board -- it makes for the fork (18,0), the board\'s hex on the road to it, while the other wagons walk to the inn; a unit of the plains in the field and it turns off to go for them (the log says so); the Snoot gone home, back toward the garrison; there, it holds (' + (tr ? tr.join(' ') : 'threw') + ')');
+    ok(tr && tr.every(Boolean), 'his rulings 11-25, Tronu\'s wagon: its garrison\'s hex the near map\'s (63,23), 681 ft, off the board -- it makes for the fork (18,0), the board\'s hex on the road to it; a unit of the plains in the field and it turns off to go for them (the log says so); the Snoot gone home, back toward the garrison; there, the plains gone, off the board up the climb (st.garrison) (' + (tr ? tr.join(' ') : 'threw') + ')');
+    // ---- THE ERRANDS (RULED 11-25, his "leans approved unless indicated below"): Savine's hunts the Harbinger's pack, and, he put down, turns back west and off the board;
+    // the Old One's rides to the fork and off it toward Silverton
+    var er = tk(function () {
+      SN.useMap(SN.WORLDMAP); try {
+        var s = SN.newGame(74); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); SN.DOMINION.forEach(function (f) { var u = SN.make(f, true); u.at = SN.WEST.slice(); s.units.push(u); });
+        var sv = SN.unit(s, 'dm1'), ol = SN.unit(s, 'dm2'), H = SN.unit(s, 'harb'); H.on = true; s.log = [];
+        SN.AI.dominion(s, sv); var hunts = sv.order.type === 'move' && eq(sv.order.to, H.at) && s.log.some(function (l) { return /toward the Harbinger's pack/.test(l.text); });
+        sv.at = [5, 2]; H.beaten = s.day + 2; SN.AI.dominion(s, sv); var west = !!sv.done && sv.order.type === 'move' && eq(sv.order.to, SN.WEST);
+        H.beaten = 0; sv.at = [5, 2]; SN.AI.dominion(s, sv); var stays = sv.order.type === 'move' && eq(sv.order.to, SN.WEST); // (once turned for home, his coming again does not turn it back)
+        sv.at = SN.WEST.slice(); SN.AI.dominion(s, sv); var gone = sv.state === 'left' && !SN.alive(sv);
+        SN.AI.dominion(s, ol); var toFork = ol.order.type === 'move' && eq(ol.order.to, SN.FORK) && eq(SN.FORK, [18, 0]);
+        ol.at = SN.FORK.slice(); SN.AI.dominion(s, ol); var north = ol.state === 'left' && !!s.tower && s.log.some(function (l) { return /toward Silverton, and is gone/.test(l.text); });
+        return [hunts, west, stays, gone, toFork, north];
+      } finally { SN.useMap(SN.FIXTURE); } });
+    ok(er && er.every(Boolean), 'his rulings 11-25, the errands: Savine\'s wagon goes for the Harbinger\'s pack (the log says so), he put down it turns back west and stays turned, and at the west road\'s end is off the board; the Old One\'s makes for the fork (18,0) and goes off it toward Silverton (' + (er ? er.join(' ') : 'threw') + ')');
     // ---- the Gray Keeping's matriarchs (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young
     // ones. Give the superhero entangle?"; "all 8 leans are go"): OD&D Book I's clerics -- the Eldest a Patriarch ("Superhero - 1"), the band's a Lama
     var MW = FF('gkw'), MB = FF('gk2'), MY = FF('gk1'), Me = (MW.heroes || [])[0], Ml = (MB.heroes || [])[0];
@@ -356,6 +372,7 @@
     ok(mx && mx.every(Boolean), 'his design 10-16: the witness never fills the death-watch (the seat-tribe\'s women), and the march\'s pop-up warns of Insect Plague and Entangle on the moot (' + (mx ? mx.join(' ') : 'threw') + ')');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0, diverts = 0;
+    var errs = { dm1: { left: 0, on: 0, down: 0 }, dm2: { left: 0, on: 0, down: 0 }, dm3: { left: 0, on: 0, down: 0 }, hunt: 0 }; // (the errands' ends, 11-25)
     for (var seed = 1; seed <= 8; seed++) {
       var s = SN.newGame(seed * 7919); s.party8 = null; var deeps = [], days = 0;
       while (!s.over && days++ < 40) {
@@ -374,6 +391,13 @@
       ends.push('seed ' + seed * 7919 + ': ' + (s.over ? 'over Day ' + s.day : 'NOT OVER') + (s.head ? ', head Day ' + s.head.day + ' (' + s.head.how + ')' : ', no head') + ', score ' + (s.tally ? s.tally.score : '?') + ', witness ' + s.stats.witness);
       var txt = s.log.map(function (l) { return l.text; }).join('\n');
       if (/A Dominion wagon turns off its road and goes for/.test(txt)) diverts++; // (Tronu's wagon, 11-25: js/ai.js AI.tronu)
+      // (the errands, 11-25: each wagon off the board where its errand says, or still on its way -- js/ai.js AI.errand)
+      var lf = s.stats.left || [];
+      ['dm1', 'dm2', 'dm3'].forEach(function (id) { var w = SN.unit(s, id); if (!w) return; errs[id][lf.indexOf(id) >= 0 ? 'left' : SN.alive(w) ? 'on' : 'down']++; });
+      if (/toward the Harbinger's pack/.test(txt)) errs.hunt++;
+      if (lf.indexOf('dm1') >= 0 && !/goes back along the west road and is gone/.test(txt)) inv.push(seed + ': Savine\'s wagon left, not by the west road');
+      if (lf.indexOf('dm2') >= 0 && !/toward Silverton, and is gone/.test(txt)) inv.push(seed + ': the Old One\'s wagon left, not toward Silverton');
+      if (lf.indexOf('dm3') >= 0 && !/to build its toll garrison/.test(txt)) inv.push(seed + ': Tronu\'s wagon left, not up the climb');
       if (seed === 1 && /[?&]dump\b/.test(location.search)) s.log.forEach(function (l) { out.push('LOG d' + l.day + ' [' + l.kind + '] ' + l.text); });
       if (/undefined|NaN|\[object/.test(txt)) inv.push(seed + ': the log says ' + (/undefined|NaN|\[object[^\]]*\]/.exec(txt) || [''])[0]);
       if (!s.over) inv.push(seed + ': the battle never ended');
@@ -385,6 +409,8 @@
     ok(domOk && dom0.length >= 6, 'the Dominion comes on the west road two days after the hunt began (' + dom0.length + ' battles)');
     ok(fills > 0, 'the witness fills a winner somewhere (' + fills + ' figures went over in eight battles)');
     ok(bands > 0, 'the four fight a war-band on the grid somewhere (' + bands + ' asks)');
+    var ew = function (id) { var e = errs[id]; return e.left + ' off the board, ' + e.on + ' still on it, ' + e.down + ' destroyed'; };
+    ok(errs.hunt > 0 && errs.dm2.left > 0, 'the errands in the eight whole battles (11-25): Savine\'s wagon hunted the Harbinger in ' + errs.hunt + ', at the end ' + ew('dm1') + '; the Old One\'s ' + ew('dm2') + '; Tronu\'s ' + ew('dm3') + ' -- each that left, by its own road (the invariants above)');
     ok(diverts > 0, 'Tronu\'s wagon turns off its road for the plains tribes in a whole battle (11-25, his "they divert toward the barbarians in the snoot": ' + diverts + ' of ' + dom0.length + ' battles the Dominion came in)');
     out.push('SNOOTPROBE ' + out.filter(function (l) { return /^(ok|FAIL)/.test(l); }).length + ' checks, ' + (bad ? bad + ' FAILED' : 'all ok'));
     return out;

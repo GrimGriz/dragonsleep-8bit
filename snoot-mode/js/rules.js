@@ -311,7 +311,7 @@
     if (st.domDay != null && st.day >= st.domDay && !st.domIn) {
       st.domIn = true;
       SN.DOMINION.forEach(function (f) { var u = SN.make(f, true); u.at = SN.freeNear(st, SN.WEST, u); st.units.push(u); });
-      SN.say(st, 'Three Dominion wagons come along the west road, a lady on each bench and in each a mender, two sergeants and sixteen men. They have come to watch.', 'dominion', SN.WEST); // (sixteen since 11-25: the lady's guard, js/data.js)
+      SN.say(st, 'Three Dominion wagons come along the west road, a lady on each bench and in each a mender, two sergeants and sixteen men, each on its own business.', 'dominion', SN.WEST); // (sixteen since 11-25: the lady's guard, js/data.js; "They have come to watch" re-cut with the errands, RULED 11-25 -- by his words of 11-15 none came to watch)
       st.events.push({ kind: 'dominion' });
     }
     if (st.huntDay != null && !st.head) { var hb = SN.unit(st, 'harb'); if (hb && hb.beaten && hb.beaten <= st.day) { hb.beaten = 0; SN.say(st, 'The Harbinger walks out of the mirror again on the moot ground.', 'hunt', hb.at); } }
@@ -712,6 +712,13 @@
     SN.beat(st, { t: 'inst', u: u.id, dice: r, need: need, ok: s >= need });
     if (s >= need) SN.say(st, u.name + ' have lost ' + u.lost + ' of ' + u.figs0 + ' and hold together (' + r.join('+') + '=' + s + ', needed ' + need + ').', 'roll', u.at);
     else { SN.say(st, u.name + ' have lost ' + u.lost + ' of ' + u.figs0 + ' and break apart (' + r.join('+') + '=' + s + ', needed ' + need + '): ' + (SN.heroesOf(u).length ? 'the men scatter; ' + SN.heroesOf(u).map(function (x) { return x.name; }).join(' and ') + ' fight on alone.' : 'the unit is gone.'), 'roll', u.at); SN.scatter(st, u); }
+  };
+  // a unit off the board on its own errand (11-25, the Dominion's wagons: Savine's west, the Old One's and Tronu's north at the fork): no longer on the field, not lost, not fled --
+  // `left` (SN.alive is false), and st.stats.left names it
+  SN.leave = function (st, u, text) {
+    u.state = 'left'; u.on = false; u.leftDay = st.day; u.order = { type: 'hold' };
+    (st.stats.left = st.stats.left || []).push(u.id);
+    if (text) SN.say(st, text, 'dominion', u.at);
   };
   SN.scatter = function (st, u) {
     if (SN.heroesOf(u).length && u.figs > 0) { if (u.groups) u.groups.forEach(function (g) { g.n = 0; }); u.figs = 0; return; } // (the heroes stay: the last figures killed are always theirs, p.30)

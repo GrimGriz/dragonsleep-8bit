@@ -144,7 +144,8 @@ def main():
     miles = lambda h: ((W['hexMi'] * (h[0] - (h[1] - (h[1] & 1)) // 2 + h[1] / 2.0) - gx) ** 2 + (W['hexMi'] * S3 / 2 * h[1] - gy) ** 2) ** 0.5 # (a hex's middle to the garrison, miles)
     gat = GH if inbox(GH) and walk(GH) else min(road_hex, key=lambda h: (dist(h, GH), miles(h))) # (the nearest road hex, by hexes and then by miles: the fork, where the road north leaves)
     garrison = {'at': loc(gat), 'off': not inbox(GH), 'near': list(GARRISON_NEAR), 'world': list(GH), 'ft': gn[0][3], 'name': 'the toll garrison, one hex up the Coldridge Route'}
-    M = {'name': 'world', 'from': W.get('from'), 'box': [C0, R0, C1, R1], 'W': C1 - C0 + 1, 'H': R1 - R0 + 1, 'rows': rows, 'garrison': garrison,
+    fork = site['fork']; assert inbox(fork) and fork in road_hex, ('the fork is not a road hex on the board', fork)  # (the Old One's and Tronu's way off the board, 11-25)
+    M = {'name': 'world', 'from': W.get('from'), 'box': [C0, R0, C1, R1], 'W': C1 - C0 + 1, 'H': R1 - R0 + 1, 'rows': rows, 'garrison': garrison, 'fork': loc(fork),
          'roads': [{'name': n, 'hexes': [loc(h) for h in run]} for n, run in roads], 'places': places,
          'pit': loc(pit), 'moot': loc(moot), 'inn': loc(inn), 'west': loc(wend), 'south': loc(send), 'seats': {'skull': loc(SKULL), 'wall': loc(WALL), 'gray': loc(HOME)}, 'mane': loc(HOME), 'forces': FORCES, 'drop': DROP,
          'roadpt': loc(roadpt), 'beside': loc(beside[0]), 'start': {k: loc(h) for k, h in START.items()}, 'farms': farms, 'farmAt': farm_at, 'other': other}

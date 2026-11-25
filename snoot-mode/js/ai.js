@@ -122,7 +122,7 @@
   };
   AI.dominion = function (st, u) {
     u.order = { type: 'hold' };
-    if (u.garrison && AI.tronu(st, u)) return;
+    if (u.errand && AI.errand(st, u)) return; // (each wagon's own errand, 11-25; a wagon with none holds the inn as before)
     var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.worth(x) <= 8; })[0]; // (what is small: a handful of men -- eight Line Guards' worth, SN.WORTH)
     if (near) { go(st, u, near.at); return; }
     var inn = SN.INN.slice();
@@ -143,8 +143,40 @@
       return true;
     }
     var G = SN.GARRISON; if (!G) return false;
-    if (!SN.same(u.at, G.at)) { if (go(st, u, G.at.slice())) return true; }
+    if (!SN.same(u.at, G.at)) { go(st, u, G.at.slice()); return true; }
+    // (there, the plains tribes gone from the field or the Snoot over: off the board up the climb to build (RULED 11-25, the errands' lean 4) -- the garrison's mark for the
+    // second game's road is st.garrison, read by nothing yet)
+    if (G.off) { st.garrison = { day: st.day, near: G.near || null }; SN.leave(st, u, 'A Dominion wagon takes the road north from ' + SN.placeName(u.at) + ', up the climb, to build its toll garrison.'); return true; }
     u.order = { type: 'hold' }; return true;
+  };
+  // THE ERRANDS (RULED 11-25, Griz: "leans approved unless indicated below", the seat's seven -- the lane's 11-25 snoot-1125 section; js/data.js SN.DOMINION `errand`)
+  AI.errand = function (st, u) {
+    if (u.errand === 'garrison') return AI.tronu(st, u);
+    if (u.errand === 'harbinger') return AI.savine(st, u);
+    if (u.errand === 'tower') return AI.oldOne(st, u);
+    return false;
+  };
+  // SAVINE'S (11-15, his "She thinks the wagons are hunting Mr Ripples, but they're mistakenly chasing the harbinger - her wagon will go for him"): after the Harbinger's pack
+  // wherever it is, through whoever stands in the way; once he is put down (beaten back to the mirror) or the head is taken, her errand is done -- back west and off the board
+  AI.savine = function (st, u) {
+    var H = SN.unit(st, 'harb');
+    if (!u.done && H && SN.alive(H) && H.on && !H.beaten && !st.head) {
+      if (!u.hunting) { u.hunting = st.day; SN.say(st, 'A Dominion wagon turns off its road toward the Harbinger\'s pack.', 'dominion', u.at); }
+      if (!SN.same(H.at, u.at)) go(st, u, H.at.slice()); else u.order = { type: 'hold' };
+      return true;
+    }
+    if (!u.done) { u.done = st.day; SN.say(st, 'A Dominion wagon\'s hunt is over: it turns back west.', 'dominion', u.at); }
+    var W = SN.WEST.slice();
+    if (!SN.same(u.at, W)) { go(st, u, W); return true; }
+    SN.leave(st, u, 'A Dominion wagon goes back along the west road and is gone.'); return true;
+  };
+  // THE OLD ONE'S (11-15, his "on the way to seize control of the wizard school/tower riding under the others pretenses - hostile to anything that comes between them and that
+  // goal, they'll be a problem in silverton after"): the west road to the fork and off the board north toward Silverton -- it seeks no fight, and fights what stands in its road
+  AI.oldOne = function (st, u) {
+    var F = SN.FORK; if (!F) return false;
+    if (!SN.same(u.at, F)) { go(st, u, F.slice()); return true; }
+    st.tower = { day: st.day }; // (the wagon gone toward Silverton, for the road after: read by nothing yet)
+    SN.leave(st, u, 'A Dominion wagon takes the road north from ' + SN.placeName(u.at) + ' toward Silverton, and is gone.'); return true;
   };
 
   // ---------------------------------------------------------------- the bench's hand for our side (the probe's whole battle; ?watch)
