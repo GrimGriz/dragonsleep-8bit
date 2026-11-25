@@ -19323,6 +19323,103 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePy);
     return;
   }
+  // THE LEDGER'S PLAYS (mode=ledger1125; the leveling lane, 2026-11-25 ~16:35Z -- the seat snoot-1125, on Griz's "Ledger:  Drilyard plays:  with 'spook' instead of 'cow" and
+  // "ledger to first that finishes is good"): three Drillyard plays any Drillyard fighter may learn -- on the pick list, the register and the maker's line; the Ledger a Drillyard 3
+  // in the Champion's place (his three, four openings, DC 13; the Blade still the Champion); TAKE THE LEGS (a STR save or prone; a Huge one not offered), SPOOK (a WIS save or
+  // frightened of him till the end of his next turn, by the clock), STRIKE BACK (a melee miss at him answered, the reaction and an opening; not twice a round; a player's asked);
+  // a story hero picking the three on the pick page, its figure knowing them and its ring readying TAKE THE LEGS; the Ledger on his patrol's door, watched (&fights=N, 6): each
+  // play by the AI's own choice somewhere, no errors
+  if (get('mode', '') === 'ledger1125') {
+    var repLd = { checks: [], errors: [], watched: [] }, d0Ld = D.d, RLd = window.DS.R, RULd = D.rules, FLd = D.features;
+    function okLd(what, v) { repLd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runLd(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function plainLd(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function logLd(B, n0) { return (B.log || []).slice(n0).map(plainLd).join(' / '); }
+    // the Ledger against one at 3 (a fighter 3 unless named), the two beside each other, the Ledger's turn begun
+    function mkLd(vs) {
+      var B = D.npcFight('?npc=sergeantledger&lvl=3&vs=' + (vs || 'fighter:3'), {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 3000) B.co.next(); B.dark = false;
+      var L = B.units.filter(function (w) { return w.side === 'foe' && !w.object; })[0], f = B.units.filter(function (w) { return w.side === 'party' && !w.object; })[0], ok = false;
+      f.maxhp = f.hp = 400; L.maxhp = L.hp = 400;
+      for (var dy = -1; dy <= 1 && !ok; dy++) for (var dx = -1; dx <= 1 && !ok; dx++) { var x = L.x + dx, y = L.y + dy; if ((dx || dy) && D.grid.canStand(f, x, y)) { f.x = x; f.y = y; ok = true; } }
+      D.grid.setup(B.map, B.units); RULd.startTurn(L); B.active = L; return { B: B, L: L, f: f, ok: ok };
+    }
+    // d20s by turn: the first `hits` of them `hi`, the rest `lo` (an attack, then a save)
+    function pinLd(hits, hi, lo) { var k = 0; D.d = function (n) { if (n === 20) { k++; return k <= hits ? hi : lo; } return d0Ld(n); }; }
+    try {
+      D.seed = 1125;
+      // 1. the three on the pick list, the register, the maker's line
+      var op = ((D.npc.OPTIONS.fighter || [])[0] || { opts: [] }).opts.map(function (o) { return o.id; }), dy = (RLd.SUBCLASSES.fighter.opts.filter(function (o) { return o.id === 'drillyard'; })[0] || {}).desc || '';
+      okLd('the Drillyard\'s plays: ' + op.join(', ') + '; the register ' + ['takethelegs', 'spook', 'strikeback'].map(function (k) { return k + ' ' + !!(D.FEATURES && D.FEATURES[k]); }).join(', ') + '; the maker\'s line names them ' + /TAKE THE LEGS.*SPOOK.*STRIKE BACK/.test(dy),
+        ['takelegs', 'spook', 'strikeback'].every(function (k) { return op.indexOf(k) >= 0; }) && op.length === 8 && ['takethelegs', 'spook', 'strikeback'].every(function (k) { return !!(D.FEATURES && D.FEATURES[k]); }) && /TAKE THE LEGS.*SPOOK.*STRIKE BACK/.test(dy));
+      // 2. the Ledger a Drillyard 3; the Blade still the Champion; a hero's openings as they were
+      var sL = D.npc.sheet(D.npc.spec('ledgersergeant')), sB = D.npc.sheet(D.npc.spec('bladesergeant')), sH = D.npc.sheet(Object.assign(D.npc.spec('fighter:3'), { subclass: 'the Drillyard' }));
+      var h0 = mkLd();
+      okLd('the Ledger: ' + sL.subclass + ' ' + sL.lvl + ', plays ' + JSON.stringify(sL.plays) + ', openings ' + sL.feats.openings + ', crit at ' + RLd.critRange(sL) + '; on the grid (?npc=sergeantledger) ' + h0.L.subclass + ', openings ' + h0.L.feats.openings + ', the DC ' + FLd.playDC(h0.L) + ', AC ' + RULd.ac(h0.L) + '; the Blade ' + sB.subclass + '; a hero Drillyard 3: ' + sH.feats.openings + ' openings',
+        sL.subclass === 'the Drillyard' && sL.lvl === 3 && (sL.plays || []).join() === 'takelegs,spook,strikeback' && sL.feats.openings === 4 && RLd.critRange(sL) === 20 && h0.L.subclass === 'the Drillyard' && h0.L.feats.openings === 4 && FLd.playDC(h0.L) === 13 && RULd.ac(h0.L) === 20 && sB.subclass === 'Champion' && sH.feats.openings === 2);
+      // 3. TAKE THE LEGS by the AI's choice on a wizard 3 (weaker at STR than WIS): a hit, the STR save failed -- prone; the opening spent, one play a turn; saved -- on its feet, the
+      // opening spent
+      var h1 = mkLd('wizard:3'), n1 = (h1.B.log || []).length, o1 = h1.L.feats.openings; pinLd(1, 18, 2); runLd(h1.B.exec(h1.L, { do: 'attack', target: h1.f })); D.d = d0Ld;
+      var l1 = logLd(h1.B, n1), p1 = !!h1.f.conds.prone, o1b = h1.L.feats.openings; h1.f.conds.prone = false;
+      var n1b = (h1.B.log || []).length; pinLd(1, 18, 2); runLd(h1.B.exec(h1.L, { do: 'attack', target: h1.f })); D.d = d0Ld; var l1b = logLd(h1.B, n1b);
+      RULd.startTurn(h1.L); h1.B.active = h1.L; var n1c = (h1.B.log || []).length; pinLd(1, 18, 19); runLd(h1.B.exec(h1.L, { do: 'attack', target: h1.f })); D.d = d0Ld; var l1c = logLd(h1.B, n1c);
+      okLd('TAKE THE LEGS (placed ' + h1.ok + '; the wizard\'s STR save ' + FLd.saveOf(h1.f, 'str') + ', WIS ' + FLd.saveOf(h1.f, 'wis') + '): "' + ((l1.match(/TAKE THE LEGS[^/]*/) || [''])[0]) + '" -- prone ' + p1 + ', openings ' + o1 + ' -> ' + o1b + '; a second hit that turn plays nothing (' + !/TAKE THE LEGS/.test(l1b) + '); the next turn, saved: "' + ((l1c.match(/TAKE THE LEGS[^/]*/) || [''])[0]) + '", prone ' + !!h1.f.conds.prone + ', openings ' + h1.L.feats.openings,
+        h1.ok && /TAKE THE LEGS.*DC 13.*PRONE/.test(l1) && p1 && o1b === o1 - 1 && !/TAKE THE LEGS/.test(l1b) && /keeps its feet/.test(l1c) && !h1.f.conds.prone && h1.L.feats.openings === o1 - 2);
+      // 3b. a Huge one: no legs to take -- SPOOK, the next he knows, in its place
+      var g3 = { size: 3, conds: {}, hp: 10, noProne: false }; okLd('a Huge one\'s legs are not taken (' + !FLd.legsTakeable(g3) + '); a Large one\'s are (' + FLd.legsTakeable({ size: 2, conds: {}, hp: 10 }) + ')', !FLd.legsTakeable(g3) && FLd.legsTakeable({ size: 2, conds: {}, hp: 10 }));
+      // 4. SPOOK by the AI's choice on a fighter 3 (weaker at WIS than STR): a hit, the WIS save failed -- frightened of the Ledger; through the end of his turn, gone at the end of his next
+      var h2 = mkLd(); var n2 = (h2.B.log || []).length; pinLd(1, 18, 2); runLd(h2.B.exec(h2.L, { do: 'attack', target: h2.f })); D.d = d0Ld;
+      var l2 = logLd(h2.B, n2), fr = h2.f.conds.frightened, fr0 = !!fr && fr.by === h2.L.id;
+      D.magic.tick(h2.B, h2.L, 'end'); var fr1 = !!h2.f.conds.frightened; RULd.startTurn(h2.f); D.magic.tick(h2.B, h2.f, 'end'); var fr2 = !!h2.f.conds.frightened; RULd.startTurn(h2.L); D.magic.tick(h2.B, h2.L, 'end'); var fr3 = !!h2.f.conds.frightened;
+      okLd('SPOOK (the fighter\'s STR save ' + FLd.saveOf(h2.f, 'str') + ', WIS ' + FLd.saveOf(h2.f, 'wis') + '; no TAKE THE LEGS ' + !/TAKE THE LEGS/.test(l2) + '): "' + ((l2.match(/SPOOK[^/]*/) || [''])[0]) + '" -- frightened of the Ledger ' + fr0 + '; at the end of his turn still ' + fr1 + ', of the fighter\'s ' + fr2 + ', of his next ' + fr3,
+        /SPOOK.*DC 13.*FRIGHTENED/.test(l2) && !/TAKE THE LEGS/.test(l2) && fr0 && fr1 && fr2 && !fr3);
+      // 5. STRIKE BACK: the fighter misses him in melee -- one blow back, the reaction and an opening; a second miss that round, none; no openings, none
+      var h3 = mkLd(); RULd.startTurn(h3.f); h3.B.active = h3.f; h3.L.reaction = 1; var o3 = h3.L.feats.openings, n3 = (h3.B.log || []).length;
+      pinLd(1, 2, 15); runLd(h3.B.attack(h3.f, h3.L, h3.f.weapon, {})); D.d = d0Ld; var l3 = logLd(h3.B, n3), r3 = h3.L.reaction, o3b = h3.L.feats.openings;
+      var n3b = (h3.B.log || []).length; pinLd(1, 2, 15); runLd(h3.B.attack(h3.f, h3.L, h3.f.weapon, {})); D.d = d0Ld; var l3b = logLd(h3.B, n3b);
+      h3.L.reaction = 1; h3.L.feats.openings = 0; var n3c = (h3.B.log || []).length; pinLd(1, 2, 15); runLd(h3.B.attack(h3.f, h3.L, h3.f.weapon, {})); D.d = d0Ld; var l3c = logLd(h3.B, n3c);
+      okLd('STRIKE BACK: "' + ((l3.match(/STRIKE BACK[^/]*/) || [''])[0]) + '" -- reaction ' + r3 + ', openings ' + o3 + ' -> ' + o3b + '; a second miss that round answered ' + /STRIKE BACK/.test(l3b) + '; with no openings ' + /STRIKE BACK/.test(l3c),
+        /STRIKE BACK/.test(l3) && r3 === 0 && o3b === o3 - 1 && !/STRIKE BACK/.test(l3b) && !/STRIKE BACK/.test(l3c));
+      // 5b. a player's Drillyard fighter who knows it is asked (the prompt's first answer, STRIKE BACK)
+      var h4 = mkLd(); h4.f.subclass = 'the Drillyard'; h4.f.plays = ['takelegs', 'spook', 'strikeback']; h4.f.feats.openings = 2; h4.f.reaction = 1; RULd.startTurn(h4.L); h4.B.active = h4.L;
+      var asked = false, n4 = (h4.B.log || []).length; pinLd(1, 2, 15); (function () { var g = h4.B.attack(h4.L, h4.f, h4.L.weapon, {}), v, k = 0, st; while (k++ < 6000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { if (/STRIKE BACK/.test(st.value.prompt.title || '')) asked = true; v = st.value.prompt.opts[0].value; } } })(); D.d = d0Ld;
+      okLd('a player\'s fighter is asked STRIKE BACK? (' + asked + ') and strikes back: "' + ((logLd(h4.B, n4).match(/STRIKE BACK[^/]*/) || [''])[0]) + '", openings ' + h4.f.feats.openings, asked && /STRIKE BACK/.test(logLd(h4.B, n4)) && h4.f.feats.openings === 1);
+      // 6. a story hero picks the three on the pick page; its figure knows them; its ring readies TAKE THE LEGS
+      window.DS.autoPicks = false;
+      var bL = RLd.makeHero('barley'); bL.xp = RLd.XP_LEVEL[3]; RLd.levelUp(bL); var rec = (bL.picks || []).filter(function (r) { return r.lvl === 3; })[0];
+      RLd.applyPick(bL, rec, { archetype: 'the Drillyard' }); var pa = (rec.asks || []).filter(function (a) { return a.key === 'plays'; })[0], rows = pa ? (pa.rows || []).map(function (r) { return r.id; }) : [];
+      var lines = pa ? RLd.applyPick(bL, rec, { plays: ['takelegs', 'spook', 'strikeback'] }) : []; window.DS.autoPicks = true;
+      var uL = D.save.unitOf(bL, false, null), Bp = mkLd(); var slot = Bp.f; uL.x = slot.x; uL.y = slot.y; uL.id = slot.id; Bp.B.units[Bp.B.units.indexOf(slot)] = uL; D.grid.setup(Bp.B.map, Bp.B.units); RULd.startTurn(uL); Bp.B.active = uL;
+      var cmds = FLd.playCommands(Bp.B, uL).map(function (c) { return c.id + (c.ok ? '' : '(no)'); }); runLd(Bp.B.exec(uL, { do: 'play_takelegs' }));
+      okLd('the pick page: PLAYS offers ' + rows.join(', ') + '; Barley takes the three -- "' + (lines || []).join(' ') + '", his plays ' + JSON.stringify(bL.plays) + '; his figure knows them ' + ['takelegs', 'spook', 'strikeback'].map(function (k) { return FLd.knowsPlay(uL, k); }).join(',') + '; the ring\'s PLAYS ' + cmds.join(', ') + '; TAKE THE LEGS readied ' + (uL.turn.armPlay === 'takelegs'),
+        ['takelegs', 'spook', 'strikeback'].every(function (k) { return rows.indexOf(k) >= 0 && FLd.knowsPlay(uL, k); }) && (bL.plays || []).join() === 'takelegs,spook,strikeback' && cmds.indexOf('play_takelegs') >= 0 && cmds.indexOf('play_spook') >= 0 && uL.turn.armPlay === 'takelegs');
+      // 7. the Ledger watched at 3, the AI's on both sides: on the class floor against the four (?npc=sergeantledger&vs=barley:3,aurdin:3,vivian:3,lymen:3&lvl=3&watch) -- each
+      // play by the AI's own choice somewhere, no errors; and on his patrol's door (?fight=snootwagon&lvl=3&watch), informational: there he sets the east flank's wall and holds
+      // it, and the four seldom come to him (seeds 1-6 on 11-25: one swing in six fights). reads=<n>: that class-floor fight's lines by the Ledger and the four
+      var NW = 6, tot = { legs: 0, spook: 0, back: 0, err: 0 }, wall = [];
+      for (var s = 1; s <= NW; s++) {
+        D.seed = s; D.lastError = null; var e0 = errs.length;
+        var Bw = D.npcFight('?npc=sergeantledger&lvl=3&vs=barley:3,aurdin:3,vivian:3,lymen:3&watch', {}); D.battle = Bw; Bw.enter(); var rw = drive(Bw), Lw = (Bw.log || []).map(plainLd);
+        var c = function (re) { return Lw.filter(function (x) { return re.test(x); }).length; }, Lu = Bw.units.filter(function (w) { return w.kind === 'sergeantledger'; })[0];
+        var row = { seed: s, res: rw, rounds: Bw.round, legs: c(/TAKE THE LEGS/), spook: c(/ SPOOK:/), back: c(/STRIKE BACK/), sub: Lu && Lu.subclass, plays: Lu && (Lu.plays || []).join(','), open: Lu && Lu.feats && Lu.feats.openings, swings: c(/^R\d+ Sergeant \(the Ledger\) > /), at: c(/ > Sergeant \(the Ledger\) /), hp: Lu && Lu.hp };
+        tot.legs += row.legs; tot.spook += row.spook; tot.back += row.back; if (errs.length > e0 || D.lastError) tot.err++; repLd.watched.push(row);
+        if (String(s) === get('reads', '')) repLd.log =Lw.filter(function (x) { return /Ledger|^R\d+ (Barley|Aurdin|Vivian|Lymen) /.test(x); }).slice(0, 80); // (seed=<n>: that watched fight's Ledger lines)
+      }
+      okLd('the Ledger against the four at 3 on the class floor, watched, ' + NW + ' seeds: TAKE THE LEGS ' + tot.legs + ', SPOOK ' + tot.spook + ', STRIKE BACK ' + tot.back + ', errors ' + tot.err + ' -- ' + repLd.watched.map(function (r) { return 's' + r.seed + ' ' + r.res + ' R' + r.rounds + ' ' + r.legs + '/' + r.spook + '/' + r.back + ' (openings left ' + r.open + ', his swings ' + r.swings + ', at him ' + r.at + ')'; }).join('; '),
+        tot.err === 0 && tot.legs > 0 && tot.spook > 0 && tot.back > 0);
+      for (var s2 = 1; s2 <= NW; s2++) {
+        D.seed = s2; var e2 = errs.length;
+        var Bv = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, watch: true, bench: true }); D.battle = Bv; Bv.enter(); var rv = drive(Bv), Lv = (Bv.log || []).map(plainLd);
+        var cv = function (re) { return Lv.filter(function (x) { return re.test(x); }).length; }, Lvu = Bv.units.filter(function (w) { return w.kind === 'sergeantledger'; })[0];
+        wall.push('s' + s2 + ' ' + rv + ' R' + Bv.round + ' ' + cv(/TAKE THE LEGS/) + '/' + cv(/ SPOOK:/) + '/' + cv(/STRIKE BACK/) + ' (' + (Lvu && Lvu.subclass) + ', his swings ' + cv(/^R\d+ Sergeant \(the Ledger\) > /) + ', at him ' + cv(/ > Sergeant \(the Ledger\) /) + (errs.length > e2 ? ', ERRORS' : '') + ')');
+      }
+      okLd('the Ledger on his patrol\'s door, watched at 3 (informational: he holds the east flank\'s wall): ' + wall.join('; '), true);
+    } catch (e) { repLd.errors.push(String(e && e.stack || e)); }
+    D.d = d0Ld; window.DS.autoPicks = true;
+    if (errs.length) repLd.errors = repLd.errors.concat(errs.slice(0, 5));
+    var preLd = document.createElement('pre'); preLd.id = 'out'; preLd.textContent = 'BENCH16 ' + JSON.stringify(repLd);
+    document.body.appendChild(preLd);
+    return;
+  }
   // THE SNOOT'S THREE WAGONS (mode=snoot1125; the snoot lane, 2026-11-25 -- the seat snoot-1125, on Griz's "1 - we need all 3 patron specific patrol ladys for the snoot, each
   // with flavored spell list" and "Snoot wagons get 8 extra troops (6 foot, 2 dragger) (not a recruiting wagon)"; functional only, his "no point in benching til it's finished
   // being built as far as balance goes, functional benches make sense"): the three ladies' lists -- each her patron's, from the SRD warlock's and her patron's own and nothing
@@ -19857,7 +19954,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var fd = RWh.FEATS.soldiering, po = ((D.npc.OPTIONS.fighter || [])[0] || {}).opts || [], s7 = D.npc.sheet(Object.assign(D.npc.spec('fighter:7'), { subclass: 'the Drillyard' }));
       var fx1 = RWh.playsFix(['wheel', 'bind', 'holdground']), wd = RWh.picksParse(RWh.picksWord({ 3: { archetype: 'the Drillyard', plays: ['wheel', 'bind', 'holdground'] } })), shP = D.npc.heroSheet({ hero: 'barley', lvl: 5, picks: wd });
       okWh('the register: Soldiering ' + (fd && fd.name) + ' STR ' + (fd && fd.str) + ' second ' + (fd && fd.second) + '; the PLAYS offered ' + po.map(function (o) { return o.id; }).join(',') + '; at 7 ' + JSON.stringify(s7.plays) + '; an old list wheel,bind,holdground -> ' + fx1 + '; a card\'s Barley ' + JSON.stringify(shP.plays),
-        fd && fd.str === 13 && fd.second && po.length === 5 && !po.some(function (o) { return o.id === 'wheel'; }) && s7.plays.join() === 'bind,breakstride,pinshield,callmark,holdground' && fx1.join() === 'bind,holdground,breakstride' && (shP.plays || []).join() === 'bind,holdground,breakstride');
+        fd && fd.str === 13 && fd.second && po.length === 8 /* (five, and the Ledger's three since 11-25: mode=ledger1125) */ && !po.some(function (o) { return o.id === 'wheel'; }) && s7.plays.join() === 'bind,breakstride,pinshield,callmark,holdground' && fx1.join() === 'bind,holdground,breakstride' && (shP.plays || []).join() === 'bind,holdground,breakstride');
       // 2. both trained: the hit asks, the two trade squares, the friend's reaction spent, the hitter's kept
       var h1 = mkWh(true, true), f1 = h1.f.x + ',' + h1.f.y, m1 = h1.m.x + ',' + h1.m.y, s1 = []; hitWh(h1, wantW, s1);
       okWh('both trained (placed ' + h1.ok + '): the fighter ' + f1 + ' -> ' + h1.f.x + ',' + h1.f.y + ', the friend ' + m1 + ' -> ' + h1.m.x + ',' + h1.m.y + ', the friend\'s reaction ' + h1.m.reaction + ', the hitter\'s ' + h1.f.reaction + '; asked ' + s1.join(' / '),
@@ -33272,6 +33369,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       rimestep: /Rime Step/, sculptspells: /sculpted/, potentcantrip: /potent/, elementalaffinity: /affinity/, discipleoflife: /CURE WOUNDS/, blessedhealer: /blessed healer/, destroyundead: /DESTROYED/,
       darkonesblessing: /Dark One's Blessing/, agonizingblast: /1d10\+\d/, pactoftheblade: /\(pact\)/, pactofthetome: /SACRED FLAME/, auraofprotection: /aura \+/, auraofdevotion: /proof against/,
       gonefromsight: /GONE FROM SIGHT/, heshowsneverspeaks: /proof against/, thepastime: /THE PASTIME[\s\S]*put back out of the glass/, // (the Pact of the Fae King, ours: 11-25)
+      takethelegs: /TAKE THE LEGS[^\n]*vs DC/, spook: /SPOOK[^\n]*vs DC/, strikeback: /STRIKE BACK/, // (the Ledger's three, ours: 11-25)
       steelwill: /steel will/, mindlessrage: /fearless/, wakeful: /vigil keeps/, supremesneak: /supreme sneak/, pitfists: /Fists/, fightingstyle_archery: /Shortbow/, fightingstyle_gwf: /Greatsword/, repellingblast: /Eldritch Blast/ };
     var repW ={ total: 0, fired: [], demo: [], card: [], blocked: [], silent: [], errors: [], byClass: {} };
     try {

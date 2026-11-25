@@ -1181,8 +1181,16 @@
     // and the play stood; only a target the blow leaves unable to react is cut)
     if (F.knowsPlay(att, 'bind') && tgt.reaction > 0 && RU.canAct(tgt)) opts.push({ label: 'BIND: no reactions till its turn', value: 'bind' });
     if (F.knowsPlay(att, 'breakstride') && !tgt.conds.stride) opts.push({ label: 'BREAK STRIDE: 10 ft less speed', value: 'breakstride' });
+    // THE LEDGER'S PLAYS (2026-11-25, the seat snoot-1125 -- RULED, Griz: "Ledger:  Drilyard plays:  with 'spook' instead of 'cow"; the leveling lane's 11-25 ~16:35Z section):
+    // TAKE THE LEGS, a STR save or prone (Large or smaller -- a shove's own reach, SRD 5.1: the seat's, his to overrule); SPOOK, a WIS save or frightened of the fighter till the
+    // end of its next turn. The DC 8 + proficiency + STR (F.playDC)
+    if (F.knowsPlay(att, 'takelegs') && F.legsTakeable(tgt)) opts.push({ label: 'TAKE THE LEGS: a STR save or prone', value: 'takelegs' });
+    if (F.knowsPlay(att, 'spook') && !RU.immuneTo(tgt, 'frightened') && !(tgt.conds.frightened && tgt.conds.frightened.by === att.id)) opts.push({ label: 'SPOOK: a WIS save or frightened', value: 'spook' });
     var pick;
-    if (!mine(att)) { if (!opts.length) return; pick = opts[0].value; } // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride. WHEEL left for the feat Soldiering, 11-20: F.wheel)
+    if (!mine(att)) { if (!opts.length) return; pick = opts[0].value; // (the class AI: the first that bears on the fight -- a pinned shield, a bind, a broken stride. WHEEL left for the feat Soldiering, 11-20: F.wheel)
+      // (TAKE THE LEGS or SPOOK, both open: the one whose save the creature is the weaker at -- STR or WIS, a tie the legs; the seat's, 11-25: first-listed alone, SPOOK came only
+      // on a creature already down, none in six watched fights)
+      if (pick === 'takelegs' && opts.some(function (o) { return o.value === 'spook'; }) && F.saveOf(tgt, 'wis') < F.saveOf(tgt, 'str')) pick = 'spook'; }
     else {
       // A CHOSEN MOVE, NOT A HIT'S QUESTION (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", then "3 - agreed"): the player readies the play on the ring's
       // PLAYS before the swing (F.readyPlay, below), and the hit carries it out with no prompt; a miss keeps it readied for the turn's next swing, and the opening is spent only on
@@ -1196,11 +1204,46 @@
     if (pick === 'pinshield') { tgt.conds.shieldPinned = { by: att.id }; B.card(['  {y}PIN THE SHIELD{/}: ' + D.Battle.nm(tgt) + '\'s shield is pinned  {g}(-2 AC till ' + att.name + '\'s next turn){/}'], 220); }
     else if (pick === 'bind') { tgt.reaction = 0; B.card(['  {y}BIND{/}: ' + D.Battle.nm(tgt) + ' is bound up  {g}(no reactions till its next turn){/}'], 220); }
     else if (pick === 'breakstride') { tgt.conds.stride = { by: att.id }; B.card(['  {y}BREAK STRIDE{/}: ' + D.Battle.nm(tgt) + ' is slowed  {g}(10 ft less speed through its next turn){/}'], 220); }
+    else if (pick === 'takelegs') {
+      var dcL = F.playDC(att), svL = RU.save(tgt, 'str', dcL);
+      B.card(['  {y}TAKE THE LEGS{/}: ' + D.Battle.nm(tgt) + ' STR ' + RU.saveText(svL) + ' vs DC ' + dcL + '  ' + (svL.ok ? '{n}keeps its feet{/}' : '{o}PRONE{/}')], 240);
+      if (!svL.ok && !(F.holdGround && F.holdGround(B, tgt, 'prone'))) tgt.conds.prone = true; // (HOLD GROUND, 10-30)
+    }
+    else if (pick === 'spook') {
+      var dcS = F.playDC(att), svS = RU.save(tgt, 'wis', dcS, false, 'frightened');
+      B.card(['  {y}SPOOK{/}: ' + D.Battle.nm(tgt) + ' WIS ' + RU.saveText(svS) + ' vs DC ' + dcS + '  ' + (svS.ok ? '{n}holds its nerve{/}' : '{o}FRIGHTENED{/}  {g}(of ' + att.name + ', till the end of ' + att.name + '\'s next turn){/}')], 240);
+      // (till the end of the fighter's next turn: `fresh` for the AI's turn-end sweep, js/ai.js AI.turn -- kept one turn-end, gone the next -- and `till` for a player's fighter,
+      // whose turns that sweep never ends: the end of this turn and then of the next, grimoire.js)
+      if (!svS.ok) tgt.conds.frightened = { by: att.id, fresh: true, till: { who: att.id, at: 'end', n: B.active === att ? 2 : 1 }, endText: '{who} gets a grip on itself.' };
+    }
     yield 12;
   };
-  var PLAY_WORD = { pinshield: 'PIN THE SHIELD', bind: 'BIND', breakstride: 'BREAK STRIDE' };
-  var PLAY_NOTE = { pinshield: 'on your next hit, its shield\'s +2 off its AC till your next turn', bind: 'on your next hit, it takes no reactions till its next turn', breakstride: 'on your next hit, 10 ft less speed through its next turn' };
+  // the save DC of a play that asks one (the Ledger's, 11-25): 8 + proficiency + STR -- 13 for the Ledger, his page's
+  F.playDC = function (u) { return 8 + (u.prof || 2) + D.mod((u.abil || {}).str || 10); };
+  // a creature's save bonus at an ability, as RU.save reads it before its auras and conditions
+  F.saveOf = function (t, ab) { return t.saves && t.saves[ab] != null ? t.saves[ab] : D.mod((t.abil || {})[ab] || 10); };
+  // TAKE THE LEGS finds legs to take: standing, not proof against prone, Large or smaller
+  F.legsTakeable = function (t) { return !!t && !t.dead && t.hp > 0 && !t.conds.prone && !t.noProne && !RU.immuneTo(t, 'prone') && (t.size || 1) <= 2; };
+  var PLAY_WORD = { pinshield: 'PIN THE SHIELD', bind: 'BIND', breakstride: 'BREAK STRIDE', takelegs: 'TAKE THE LEGS', spook: 'SPOOK' };
+  var PLAY_NOTE = { pinshield: 'on your next hit, its shield\'s +2 off its AC till your next turn', bind: 'on your next hit, it takes no reactions till its next turn', breakstride: 'on your next hit, 10 ft less speed through its next turn',
+    takelegs: 'on your next hit, a STR save or it falls prone', spook: 'on your next hit, a WIS save or it is frightened of you till the end of your next turn' };
   F.PLAY_WORD = PLAY_WORD;
+  // STRIKE BACK (the Ledger's third, 11-25, his ruling as above): a play and the reaction -- a creature that misses the fighter in melee takes one weapon attack back. On Answer Back's
+  // hook (battle.js attack calls F.answerBack on a miss): Answer Back first, and a reaction it spent is spent. No once-a-turn: it is the foe's turn (as HOLD GROUND). A player's fighter
+  // is asked (an opening is spent); the AI's always strikes back while it has one
+  var answerBack0 = F.answerBack;
+  F.answerBack = function* (B, att, tgt, atk, melee) {
+    if (answerBack0) yield* answerBack0.apply(this, arguments);
+    if (!melee || !atk || atk.spell || !F.knowsPlay(tgt, 'strikeback') || !feat(tgt, 'openings') || !(tgt.reaction > 0) || !RU.canAct(tgt) || tgt.dead || tgt.hp <= 0) return;
+    if (!att || att === tgt || att.dead || att.hp <= 0 || !G.hostile(tgt, att) || !tgt.weapon || tgt.weapon.ranged || G.dist(tgt, att) > G.reachOf(tgt)) return;
+    if (mine(tgt)) {
+      var go = yield { prompt: { who: tgt, title: tgt.name + ': STRIKE BACK?', lines: [Nm(B, att) + ' has missed you. One attack back with the ' + tgt.weapon.name.toLowerCase() + ' (your reaction and an opening; ' + tgt.feats.openings + ' left).'], opts: [{ label: 'STRIKE BACK', value: 1 }, { label: 'NOT THIS TIME', value: 0, no: true }] } };
+      if (!go) return;
+    }
+    tgt.reaction = 0; tgt.feats.openings--; D.sfx('confirm');
+    B.card(['{y}' + Nm(B, tgt) + '{/}: {o}STRIKE BACK{/}  {g}(the reaction and an opening: one attack back at ' + nm(B, att) + '){/}'], 200);
+    yield* B.attack(tgt, att, tgt.weapon, { oa: true, answer: true }); // (as Answer Back's: a blow back, not an opportunity attack)
+  };
   // readying a play (the player's, on the ring's PLAYS): picked again, it is set down. Free -- the opening goes on the hit
   F.readyPlay = function (B, u, id) {
     if (u.turn.armPlay === id) { delete u.turn.armPlay; B.card(['{g}' + u.name + ' sets down ' + PLAY_WORD[id] + '.{/}'], 140); return; }
@@ -1272,7 +1315,7 @@
   // CHANNEL DIVINITY is; js/ui.js PLAYS): the Drillyard's on-hit plays it knows, CALL THE MARK (its bonus-action play), and Soldiering's WHEEL. Each readied one reads READIED
   F.playCommands = function (B, u) {
     var T = u.turn, out = [], swing = T.action > 0 || T.attacksLeft > 0;
-    if (F.drill(u)) ['pinshield', 'bind', 'breakstride'].forEach(function (id) {
+    if (F.drill(u)) ['pinshield', 'bind', 'breakstride', 'takelegs', 'spook'].forEach(function (id) { // (TAKE THE LEGS and SPOOK, the Ledger's, 11-25)
       if (!F.knowsPlay(u, id)) return;
       var on = T.armPlay === id;
       out.push({ id: 'play_' + id, label: PLAY_WORD[id] + (on ? ' (READIED)' : ''), cost: 'F', icon: 'attack', skill: true, ok: on || (canPlay(u) && swing),
@@ -2358,7 +2401,7 @@
         return;
       }
       case 'wideswing': if (F.followThrough(u) && F.heavyInHand(u) && !u.turn.wideDone) F.wideSwing(B, u); yield 10; return;
-      case 'play_pinshield': case 'play_bind': case 'play_breakstride': { var pid = c.do.slice(5); if (F.knowsPlay(u, pid) && (u.turn.armPlay === pid || canPlay(u))) { F.readyPlay(B, u, pid); yield 8; } return; } // (the ring's PLAYS: readied before the swing, 11-20)
+      case 'play_pinshield': case 'play_bind': case 'play_breakstride': case 'play_takelegs': case 'play_spook': { var pid = c.do.slice(5); if (F.knowsPlay(u, pid) && (u.turn.armPlay === pid || canPlay(u))) { F.readyPlay(B, u, pid); yield 8; } return; } // (the ring's PLAYS: readied before the swing, 11-20)
       case 'play_wheel': if (F.soldiering(u)) { yield* F.readyWheel(B, u); yield 8; } return;
       case 'callmark':
         t = yield* pickOne(B, u, 'CALL THE MARK', F.markTargets(B, u), 'A foe within 60 ft: each friend\'s first hit on it +2.');

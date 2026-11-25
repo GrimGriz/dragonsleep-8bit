@@ -270,7 +270,7 @@
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1, greenagain: 1, feedthem: 1 };
   // the PLAYS, a tab of their own as CHANNEL DIVINITY is (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", "3 - agreed, doe plays get their own tab like
   // channel divinity or something?"): the Drillyard's plays readied before the swing, CALL THE MARK, and Soldiering's WHEEL -- js/features.js F.playCommands. The tab counts the openings
-  var PLAYS = { callmark: 1, play_pinshield: 1, play_bind: 1, play_breakstride: 1, play_wheel: 1 };
+  var PLAYS = { callmark: 1, play_pinshield: 1, play_bind: 1, play_breakstride: 1, play_takelegs: 1, play_spook: 1, play_wheel: 1 }; // (the Ledger's two on-hit plays, 11-25)
   function playsTab(u, pl) { var dr = D.features && D.features.drill && D.features.drill(u), left = (u.feats && u.feats.openings) || 0, on = pl.some(function (x) { return / \(READIED\)$/.test(x.label); });
     return { id: 'plays', label: 'PLAYS' + (dr ? ' (' + left + ')' : '') + (on ? ' *' : ''), cost: 'F', ok: pl.some(function (x) { return x.ok; }), why: dr && !left ? 'no openings left (a short rest)' : 'nothing to ready now', sub: 'plays', icon: 'attack', items: pl, note: 'readied before the swing, carried out on the hit' }; }
   // a command's `front` (10-08): true puts it on the first ring whatever its state (DENIM DAMAGE), 'live' only while it can be used (MONKEY FLURRY -- 10-07, Griz: "put denny's flurry on the

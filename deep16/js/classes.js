@@ -181,7 +181,11 @@
       { id: 'breakstride', name: 'Break Stride', desc: 'on a hit, its speed 10 ft less through its next turn' },
       { id: 'pinshield', name: 'Pin the Shield', desc: 'on a hit, its shield adds nothing to its AC till your next turn' },
       { id: 'callmark', name: 'Call the Mark', desc: 'a bonus action: each friend\'s first hit on one creature +2 till your next turn' },
-      { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' }] }],
+      { id: 'holdground', name: 'Hold Ground', desc: 'the reaction: not pushed, not knocked prone' },
+      // (the Ledger's three, 11-25 -- RULED, Griz: "Ledger:  Drilyard plays:  with 'spook' instead of 'cow"; any Drillyard fighter's to learn; the DC 8 + proficiency + STR)
+      { id: 'takelegs', name: 'Take the Legs', desc: 'on a hit, a STR save or it falls prone (Large or smaller)' },
+      { id: 'spook', name: 'Spook', desc: 'on a hit, a WIS save or it is frightened of you till the end of your next turn' },
+      { id: 'strikeback', name: 'Strike Back', desc: 'the reaction: one that misses you in melee takes one weapon attack back' }] }],
     // the Hunter's Prey (SRD 5.1, the Hunter's choice at 3 -- 11-20, the leveling lane §8 item 10; js/features.js F.prey): Colossus Slayer was every Hunter's till then
     ranger: [{ key: 'prey', word: 'PREY', at: 3, sub: 'Hunter', opts: [
       { id: 'colossus', name: 'Colossus Slayer', desc: 'once a turn, a weapon hit on one already hurt deals 1d8 more' },
@@ -322,7 +326,11 @@
     // Keyed apart from the bestiary's words, as patrolladyw is, so ?npc=sergeantblade finds the block (its HP, its AC) and not a bare build
     bladesergeant: { name: 'Sergeant (the Blade)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'Champion', style: 'gwf', abil: { str: 16, dex: 10, con: 14, int: 9, wis: 11, cha: 12 },
       equip: { weapon: 'greatsword', armor: 'splint', shield: null }, alt: 'handaxe', noPrecast: true, look: 'dmsergeant_p2' }, // (his own figure in each kit since 11-25, ART-163: art-wanted 99)
-    ledgersergeant: { name: 'Sergeant (the Ledger)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'Champion', style: 'dueling', abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 },
+    // THE LEDGER A DRILLYARD 3 (2026-11-25, the seat snoot-1125 -- RULED, Griz: "Ledger:  Drilyard plays:  with 'spook' instead of 'cow"): his page's Battle Master's Trip,
+    // Menacing and Riposte as the Drillyard's TAKE THE LEGS, SPOOK and STRIKE BACK (DC 13 by his STR), in the Champion's place; four openings, his page's 4d8 (the desk's lean,
+    // standing for his overrule -- a hero's are two at 3rd). The Blade stays the Champion, his page
+    ledgersergeant: { name: 'Sergeant (the Ledger)', cls: 'fighter', lvl: 3, race: 'human', subclass: 'the Drillyard', style: 'dueling', abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 },
+      plays: ['takelegs', 'spook', 'strikeback'], openings: 4,
       equip: { weapon: 'longsword', armor: 'splint', shield: 'shield' }, alt: 'handaxe', noPrecast: true, look: 'dmsergeantshield_p2' },
     // the mender, cleric 3 of the Window (Katarina's domain, Tronupholen's menders): the page's list but Thaumaturgy (not in the game's spells) -- its Trickery's own
     // four are the Window's always-prepared here
@@ -534,7 +542,7 @@
     // the Pact of the Fae King (ours, 11-25 -- NPC.SUBS above; js/features.js): GLAMOUR at 1 (the sheet's; Disguise Self is not on the grid), GONE FROM SIGHT at 6 (once a short rest),
     // HE SHOWS, NEVER SPEAKS at 10 (NPC.unit: no charm), THE PASTIME at 14 (once a long rest)
     if (sub === NPC.FAE && cls === 'warlock') { h.glamour = true; if (lvl >= 6) h.feats.goneFromSight = 1; if (lvl >= 10) h.unCharmed = true; if (lvl >= 14) h.feats.pastime = 1; }
-    if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = lvl >= 7 ? 3 : 2; h.plays = (window.DS.R.playsFix(spec.plays) || ['bind', 'breakstride', 'pinshield', 'callmark', 'holdground']).slice(0, lvl >= 7 ? 5 : 3); } // (WHEEL gone to the feat Soldiering, 11-20: R.playsFix) // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
+    if (sub === 'the Drillyard' && cls === 'fighter' && lvl >= 3) { h.feats.openings = spec.openings || (lvl >= 7 ? 3 : 2); h.plays = (window.DS.R.playsFix(spec.plays) || ['bind', 'breakstride', 'pinshield', 'callmark', 'holdground']).slice(0, lvl >= 7 ? 5 : 3); } // (WHEEL gone to the feat Soldiering, 11-20: R.playsFix) // (the Drillyard's openings, a short rest, and its plays: js/features.js F.drill -- ours, 10-30)
     if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
     if (sub === 'the Lampwright' && cls === 'rogue' && lvl >= 3) h.known = (h.known || []).concat(['light', 'dancinglights'].filter(function (id) { return (h.known || []).indexOf(id) < 0; })); // (Wick-Lore: Light and Dancing Lights, INT -- ours, 11-03)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);

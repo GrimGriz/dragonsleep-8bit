@@ -332,7 +332,8 @@
   // desk's ART-163, cut 11-25 (tools/dmsergeant-sheet.py) as dmsergeant_p2, the greatsword, and dmsergeantshield_p2, the longsword and shield with the wall's `push`
   // -- one man, one face, each kit a sheet (they stood on the line soldier's dominion_p1 till then). Each leads four men, two line soldiers and two draggers (RULED 11-24: "I like the sergeant for every 4 men (2
   // and 2 dragger)"): the wagon's squads, snoot-mode/js/data.js and data/fights.js snootwagon. Both Champions within the SRD (RULED 11-24: "3 - we can Champion within
-  // SRD for both sergeants and file the need for his feat with the leveling lane" -- the Ledger's trip, menace and riposte wait there as a feat)
+  // SRD for both sergeants and file the need for his feat with the leveling lane" -- the Ledger's trip, menace and riposte wait there as a feat; they came 11-25 as three
+  // Drillyard plays, and the Ledger a Drillyard 3: below)
   // SERGEANT OF THE RIGHT HAND, "the Blade": fighter 3, the Champion as the page has him, Great Weapon Fighting, the greatsword; the handaxe to throw
   sergeantblade: {
     name: 'Sergeant (the Blade)', type: 'humanoid', sheet: 'dmsergeant_p2', humanoid: true, soldiering: true, cr: '2', ac: 18, metalArmor: 'plate', hp: 28, speed: 30, size: 1, reach: 5,
@@ -344,14 +345,15 @@
   },
   // SERGEANT OF THE LEFT HAND, "the Ledger": the page's Battle Master is the PHB's -- read as the SRD's one fighter archetype, the Champion, its superiority dice (Trip,
   // Menacing, Riposte) left off; the Dueling style, the longsword and shield. His javelins (+5 1d6+3 30/120) are thrown as the kit's handaxes (+5 1d6+3 20/60): the game
-  // has no javelin
+  // has no javelin. A DRILLYARD 3 SINCE 11-25 (RULED, Griz: "Ledger:  Drilyard plays:  with 'spook' instead of 'cow"; the seat snoot-1125): the page's Trip, Menacing and
+  // Riposte as the Drillyard's TAKE THE LEGS, SPOOK and STRIKE BACK, DC 13 by his STR, four openings for the page's 4d8 (js/classes.js NPC.NAMED ledgersergeant)
   sergeantledger: {
     name: 'Sergeant (the Ledger)', type: 'humanoid', sheet: 'dmsergeantshield_p2', humanoid: true, soldiering: true, cr: '2', ac: 20, metalArmor: 'plate', shield: true, hp: 28, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 10, con: 14, int: 12, wis: 12, cha: 10 }, init: 0, perception: 12, athletics: 5,
     saves: { str: 5, dex: 0, con: 4, int: 1, wis: 1, cha: 0 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 5, type: 'slashing', reach: 5 } },
     multi: 1, secondWind: '1d10+3', actionSurge: true, build: 'ledgersergeant', buildAC: true,
-    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE LEFT HAND, "the Ledger" (fighter 3 Battle Master -- read as the SRD\'s Champion, no superiority dice: AC 20 full plate and shield, HP 28, Athletics +5, Perception +2, Second Wind 1d10+3, Action Surge, Dueling; longsword +5 1d8+5; javelin +5 1d6+3 30/120 thrown as a handaxe) -- SENSES (ours, 11-10): Stealth none, full plate; passive Perception 12, 10 + WIS +1 + proficiency'
+    src: 'dominion-patrol-the-fare-home.pdf SERGEANT OF THE LEFT HAND, "the Ledger" (fighter 3 Battle Master -- read as ours, the Drillyard, since 11-25: Trip, Menacing and Riposte as TAKE THE LEGS, SPOOK and STRIKE BACK, DC 13, four openings for the 4d8; till then the SRD\'s Champion: AC 20 full plate and shield, HP 28, Athletics +5, Perception +2, Second Wind 1d10+3, Action Surge, Dueling; longsword +5 1d8+5; javelin +5 1d6+3 30/120 thrown as a handaxe) -- SENSES (ours, 11-10): Stealth none, full plate; passive Perception 12, 10 + WIS +1 + proficiency'
   },
   // THE MENDER (the page's GLASS-CLERIC, cleric 3, "her holy symbol is a small mirror on a cord"; Kat's book 03:21, "a mender of my office is addressed Mender";
   // dominion.md, "MENDERS OUTRANK SERGEANTS", clerics of Tronu): the page's Trickery Domain is the PHB's -- read as our own, the Window, Tronupholen's menders'

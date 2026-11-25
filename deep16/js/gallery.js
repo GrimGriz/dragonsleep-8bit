@@ -283,6 +283,7 @@
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
     soldiering_wheel: { mate: null, nfoe: 1 }, soldiering_wall: { mate: null, nfoe: 2 }, soldiering_pike: { mate: null, foe: 2, nfoe: 1 }, soldiering_pikewall: { mate: null, nfoe: 1 }, // (the feat Soldiering, ours, 11-20: the demo builds its own mates; the pike wall 11-21)
     setplays: { mate: null }, callthemark: { mate: 'flank' }, holdground: { mate: null }, moreplays: { mate: null }, // (the Drillyard, ours, 10-30)
+    takethelegs: { mate: null }, spook: { mate: null }, strikeback: { mate: null }, // (the Ledger's three, 11-25)
     stabdebut: { mate: null }, openingnight: { mate: null }, // (Cutthroat, ours: a foe that hasn't had its turn)
     wicklore: { mate: null }, hoodedlamp: { mate: null }, pinthelight: { foe: 3, mate: null }, byherownlight: { mate: null }, // (the Lampwright, ours, 11-03: no friend beside the foe)
     evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
@@ -314,6 +315,7 @@
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
     soldiering_wheel: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_wall: { picks: { 4: { asi: { feat: 'soldiering' } } } }, soldiering_pike: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike' } }, soldiering_pikewall: { picks: { 4: { asi: { feat: 'soldiering' } } }, equip: { weapon: 'pike', shield: null } }, // (Soldiering at 4)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
+    takethelegs: { plays: ['takelegs', 'spook', 'strikeback'] }, spook: { plays: ['takelegs', 'spook', 'strikeback'] }, strikeback: { plays: ['takelegs', 'spook', 'strikeback'] }, // (the Ledger's three, 11-25)
     pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] },
     heshowsneverspeaks: { maxLvl: 14 }, thepastime: { maxLvl: 14 }, // (the Fae King's 10th and 14th: a warlock stood past the class's 9, as a named one is -- 11-25)
     // (the SRD's invocations of 11-20: the Armor wants no armour worn, the Blade its pact weapon at 5)
@@ -647,6 +649,11 @@
       },
       callthemark: function* (c) { yield* fire(B.exec(c.hero, { do: 'callmark' })); yield 30; if (c.mate) { D.rules.startTurn(c.mate); B.active = c.mate; yield* fire(B.exec(c.mate, { do: 'attack', target: c.foes[0] })); B.active = c.hero; } },
       holdground: function* (c) { var u = c.hero; u.reaction = 1; yield 20; D.magic.push(B, c.foes[0], u, 10); yield 50; },
+      // the Ledger's three (11-25): each on-hit play readied on the ring's PLAYS and carried by the hit, its save on the card; STRIKE BACK on a foe's missed blow (the prompt's
+      // first answer, STRIKE BACK)
+      takethelegs: function* (c) { yield* swing(c, null, 4, false, 'play_takelegs'); yield 30; },
+      spook: function* (c) { yield* swing(c, null, 4, false, 'play_spook'); yield 30; },
+      strikeback: function* (c) { yield* foeStrike(c, 4, { atk: -20, until: function (k) { return k.hero.reaction === 0; } }); yield 40; },
       uncannydodge: function* (c) { yield* foeStrike(c, 5, { until: struck }); },
       deflectmissiles: function* (c) { yield* foeStrike(c, 5, { ranged: true, until: struck }); },
       rimedoubles: function* (c) { c.hero.images = 3; yield* foeStrike(c, 6, { atk: 40, until: function (k) { return !!(k.foes[0].conds.frosted); } }); },
