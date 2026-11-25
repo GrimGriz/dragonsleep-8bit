@@ -4647,14 +4647,46 @@
 "source": "drawn by the art desk (ART-163 PAGE 4, 11-25: art-wanted section 99, the Dominion's sergeant with the longsword and shield and the shield wall's Push, in five views), cut by tools/dmsergeant-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
 "dmwagon_p1": {
-"_note": "the Dominion's prison wagon over dominionroad's 2x2 covered wagon (tools/dmwagon-sheet.py, art-wanted 107, ART-169, 2026-11-25): each piece a box x,y,w,h and its anchor ax,ay, the back corner of its 2x2 footprint; named by the way its front faces; the scene starts shut, the recruits' encounter swaps to _open at the same anchor, a turn on the road swaps the heading",
-"image": "art/dmwagon_p1.png?v=aab1c61ea0",
+"_note": "the Dominion's prison wagon over dominionroad's 2x2 covered wagon (tools/dmwagon-sheet.py, art-wanted 107, ART-169, 2026-11-25): a row a piece, as goblincamp_p1 (js/circles.js sheetAt draws a row with the sheet's ax,ay -- the 2x2 footprint's CENTRE -- at iso.center(x0 + 0.5, y0 + 0.5)); `tiles` the same pieces as boxes x,y,w,h with js/innprops.js's anchor, the footprint's back corner; named by the way its front faces; the scene starts shut, the recruits' encounter swaps to _open at the same anchor, a turn on the road swaps the heading",
+"image": "art/dmwagon_p1.png?v=ad5cc1a00a",
 "fw": 160,
 "fh": 110,
 "ax": 78,
-"ay": 58,
+"ay": 90,
+"cols": 1,
 "prop": true,
-"anims": {},
+"anims": {
+"dmwagon_nw": {
+"row": 0,
+"frames": 1,
+"fps": 1
+},
+"dmwagon_nw_open": {
+"row": 1,
+"frames": 1,
+"fps": 1
+},
+"dmwagon_ne": {
+"row": 2,
+"frames": 1,
+"fps": 1
+},
+"dmwagon_ne_open": {
+"row": 3,
+"frames": 1,
+"fps": 1
+},
+"dmwagon_se": {
+"row": 4,
+"frames": 1,
+"fps": 1
+},
+"dmwagon_sw": {
+"row": 5,
+"frames": 1,
+"fps": 1
+}
+},
 "foot": {
 "dmwagon_nw": [
 2,
@@ -4687,11 +4719,11 @@
 ],
 "tiles": {
 "dmwagon_nw": "0,0,160,110,78,58",
-"dmwagon_nw_open": "160,0,160,110,78,58",
-"dmwagon_ne": "320,0,160,110,78,58",
-"dmwagon_ne_open": "480,0,160,110,78,58",
-"dmwagon_se": "640,0,160,110,78,58",
-"dmwagon_sw": "800,0,160,110,78,58"
+"dmwagon_nw_open": "0,110,160,110,78,58",
+"dmwagon_ne": "0,220,160,110,78,58",
+"dmwagon_ne_open": "0,330,160,110,78,58",
+"dmwagon_se": "0,440,160,110,78,58",
+"dmwagon_sw": "0,550,160,110,78,58"
 },
 "source": "drawn by the art desk (ART-169, 11-25: art-wanted section 107, the Dominion prison wagon with roof storage, two facings shut and open and two drive-off views), packed by tools/dmwagon-sheet.py"
 },

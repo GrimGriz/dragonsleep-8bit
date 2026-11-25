@@ -12,8 +12,10 @@ HEAD 2 the tail to lower left (front upper right) -- each shut and locked, and s
 left, shut. The scene starts shut; the recruits' encounter swaps to open at the same origin; a turn on the road changes the cell, not the anchor.
 
 THE PIECES are named by the way the wagon's front faces on screen: dmwagon_nw (HEAD 1), dmwagon_nw_open, dmwagon_ne (HEAD 2), dmwagon_ne_open, dmwagon_se
-(HEAD 3), dmwagon_sw (HEAD 4). Each piece's anchor (ax, ay) is js/innprops.js's -- the BACK corner of its footprint on the ground (the top of the 2x2
-diamond, 2 x 16 px above its centre on the 64 x 32 grid: js/iso.js TW, TH) -- so (78, 58); `centre` keeps the art desk's (78, 90).
+(HEAD 3), dmwagon_sw (HEAD 4) -- a row each, stacked as goblincamp_p1's are, so js/circles.js sheetAt (the road camp's tents and heaps) draws one with
+the sheet's (ax, ay) = the art desk's (78, 90), the footprint's centre, at iso.center(x0 + 0.5, y0 + 0.5) for a wagon on squares x0..x0+1, y0..y0+1.
+`tiles` keeps each piece as a box for js/topview.js TV.piece with js/innprops.js's anchor, the BACK corner of its footprint (the top of the 2x2 diamond,
+2 x 16 px above its centre on the 64 x 32 grid: js/iso.js TW, TH) -- (78, 58).
 
 NOT TAKEN: the art desk's ART-169-REAR-BENCH-REV-REVIEW (its front bench raised to HEADs 3 and 4's height, on HEADs 1 and 2), sorted beside as
 deep16/_src/dmwagon/2026-11-25-ART-169-REAR-BENCH-REV/: its own REVIEW.md calls it "for review before promotion to the cutter handoff". Swap its four cells
@@ -39,7 +41,7 @@ AX, AY = CENTRE[0], CENTRE[1] - 32                                # (the back co
 def main(check=False):
     pal = json.load(open(os.path.join(ROOT, 'deep16', 'palette.json')))['ramps']
     ok = set(tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for r in pal.values() for h in r)
-    sheet = np.zeros((CH, CW * len(CELLS), 4), np.uint8); tiles = {}
+    sheet = np.zeros((CH * len(CELLS), CW, 4), np.uint8); tiles, anims = {}, {}   # (a row a piece, as goblincamp_p1: js/circles.js sheetAt)
     for k, (name, fn) in enumerate(CELLS):
         a = np.asarray(Image.open(os.path.join(BATCH, fn)).convert('RGBA'))
         assert a.shape[:2] == (CH, CW), (fn, a.shape)
@@ -47,20 +49,24 @@ def main(check=False):
         assert set(np.unique(a[..., 3]).tolist()) <= {0, 255}, fn + ': not hard alpha'
         off = set(map(tuple, a[on][:, :3].tolist())) - ok
         assert not off, '%s: %d colours off the 64' % (fn, len(off))
-        sheet[:, k * CW:(k + 1) * CW] = a
-        tiles[name] = '%d,0,%d,%d,%d,%d' % (k * CW, CW, CH, AX, AY)
+        sheet[k * CH:(k + 1) * CH] = a
+        tiles[name] = '0,%d,%d,%d,%d,%d' % (k * CH, CW, CH, AX, AY)
+        anims[name] = {'row': k, 'frames': 1, 'fps': 1}
     art = os.path.join(ROOT, 'deep16', 'art')
     Image.fromarray(sheet, 'RGBA').save(os.path.join(art, 'dmwagon_p1.png'), optimize=True)
     meta = {'_note': 'the Dominion\'s prison wagon over dominionroad\'s 2x2 covered wagon (tools/dmwagon-sheet.py, art-wanted 107, ART-169, 2026-11-25): '
-                     'each piece a box x,y,w,h and its anchor ax,ay, the back corner of its 2x2 footprint; named by the way its front faces; the scene '
-                     'starts shut, the recruits\' encounter swaps to _open at the same anchor, a turn on the road swaps the heading',
-            'image': 'art/dmwagon_p1.png', 'fw': CW, 'fh': CH, 'ax': AX, 'ay': AY, 'prop': True, 'anims': {},
+                     'a row a piece, as goblincamp_p1 (js/circles.js sheetAt draws a row with the sheet\'s ax,ay -- the 2x2 footprint\'s CENTRE -- at '
+                     'iso.center(x0 + 0.5, y0 + 0.5)); `tiles` the same pieces as boxes x,y,w,h with js/innprops.js\'s anchor, the footprint\'s back '
+                     'corner; named by the way its front faces; the scene starts shut, the recruits\' encounter swaps to _open at the same anchor, a '
+                     'turn on the road swaps the heading',
+            'image': 'art/dmwagon_p1.png', 'fw': CW, 'fh': CH, 'ax': CENTRE[0], 'ay': CENTRE[1], 'cols': 1, 'prop': True, 'anims': anims,
             'foot': {n: [2, 2] for n, _ in CELLS}, 'centre': list(CENTRE), 'tiles': tiles,
             'source': 'drawn by the art desk (ART-169, 11-25: art-wanted section 107, the Dominion prison wagon with roof storage, two facings shut and '
                       'open and two drive-off views), packed by tools/dmwagon-sheet.py'}
     json.dump(meta, open(os.path.join(art, 'dmwagon_p1.json'), 'w'), indent=1)
     print('  dmwagon_p1: %dx%d, %s' % (sheet.shape[1], sheet.shape[0], ', '.join(n for n, _ in CELLS)))
     if check:
+        sheet = np.concatenate([sheet[k * CH:(k + 1) * CH] for k in range(len(CELLS))], 1)   # (the check lays them side by side)
         cv = np.zeros((CH + 40, CW * len(CELLS), 3), np.uint8); cv[...] = (14, 22, 52)
         for k in range(len(CELLS)):
             cx, cy = k * CW + CENTRE[0], CENTRE[1]
