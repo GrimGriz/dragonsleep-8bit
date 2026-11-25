@@ -4337,7 +4337,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         tg.length > 0 && !tg.some(function (id) { return /orrinPath|pellPath|dueChild/.test(id); }) && d6.kind === 'doran' && d6.yields && d6.side === 'foe' && d6.hp === 32 && f6.doranFights === 1 && !Y6.orrin && !Y6.pell && [Y6.kid].every(function (u) { return u.bystander && u.look; })); // (the boys stay in, 11-05: his "I don't think she'd bring the boys out")
       // 7. THE SHOW: ?show=secondact, its beats staged on the floor without a word of error (each entered and its script's first business run a little)
       var beatsAc = AcB.BEATS.map(function (b) { try { AcB.play(b); var Bb = topAc(); if (!Bb || !Bb.roam) return b.id + ': NO FLOOR'; driveAc(Bb.co, null, 30); return b.id + ': ' + RAc.def.key + ' at ' + Bb.roam.token.x + ',' + Bb.roam.token.y; } catch (e3) { return b.id + ': THREW ' + e3; } });
-      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 16 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function');
+      okAc('?show=secondact, ' + AcB.BEATS.length + ' beats: ' + beatsAc.join('; '), AcB.BEATS.length === 17 && beatsAc.every(function (o) { return !/THREW|NO FLOOR/.test(o); }) && typeof AcB.show === 'function'); // (17 since 11-24: the seat eyes-1124's gennetdown)
       // 8. THE SHOW'S DOORS AS HE FOUND THEM (11-21): the signs from the big room, as the game plays the due's night (his "this door put me in front of the inn"); Elsbeth earned on the
       // path in her own figure (his "there's a townswoman figure")
       var sg8 = beatsAc.filter(function (o) { return /^signs:/.test(o); })[0] || '', rw8 = beatsAc.filter(function (o) { return /^ringwarm:/.test(o); })[0] || '';
@@ -19153,6 +19153,48 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // D11: the second act's show takes &seed=, set as the beat begins and again as the lake fight begins
       var A11 = D.secondact; A11.show('?show=secondact&beat=offerwater&lvl=3&seed=1124'); var sq11 = A11.seedQ; A11.show('?show=secondact&beat=offerwater&lvl=3'); var sq11b = A11.seedQ;
       okE4('D11 ?show=secondact&seed=1124: the show holds ' + sq11 + ' (and ' + sq11b + ' without it); A.play and A.lakeFight set it', sq11 === 1124 && sq11b === null && /A\.seedQ != null\) D\.seed = A\.seedQ/.test(String(A11.play)) && /A\.seedQ != null\) D\.seed = A\.seedQ/.test(String(A11.lakeFight)));
+      // D11 GENNET DOWN AND REACHED (RULED 11-24/25, Griz: "Gennet Doors pinned rolls yes"): ?show=secondact&beat=gennetdown&lvl=3 -- the take held, her grab; wounded, it keeps her;
+      // its next turn pinned: she goes down in its claws, its other pincer takes one of ours; a heal on its square finds her (js/ui.js heldIn: the downed first); healed, it killed: she lives
+      var HD = D.house, AD = D.secondact, dnD = { grabbed: false, struck: null, cut: null, pick: null, healed: null, asked: [] }, ai0D = D.ai.turn;
+      HD.playing = false; HD.cur = null; D.scenes.length = 0;
+      AD.show('?show=secondact&beat=gennetdown&lvl=3'); HD.freshLvl = 3;
+      try { AD.play(AD.BEATS.filter(function (b) { return b.id === 'gennetdown'; })[0]); } finally { HD.freshLvl = 0; }
+      var BD = D.top(); if (BD && BD.baking) { BD.baking = false; BD.enter(); }
+      (BD.roam.members || []).forEach(function (u) { u.guest = true; u.classAI = true; }); // (the four by the bench's script below: as the show's held hands, then a blow, then the heal)
+      var gnD = function () { return BD.units.filter(function (u) { return u.kind === 'gennet'; })[0]; }, chD = function () { return BD.units.filter(function (u) { return u.kind === 'chuul'; })[0]; };
+      D.ai.turn = function* (B, u) {
+        var c = chD(), g = gnD(), held = !!(c && g && g.inClaws && g.inClaws.by === c.id);
+        if (u.side !== 'party' || !c || !g || u === g) return yield* ai0D.apply(this, arguments);
+        if (held) dnD.grabbed = true;
+        if (held && !dnD.struck && g.hp > 0) { dnD.struck = u.name; var d5 = D.d; D.d = function (k) { return k === 20 ? 19 : d5.apply(this, arguments); }; try { yield* B.attack(u, c, u.weapon || u.attacks[Object.keys(u.attacks)[0]]); } finally { D.d = d5; } return; }
+        var hsD = D.Battle.clawHeld(B, c);
+        if (dnD.struck && !dnD.healed && hsD.indexOf(g) >= 0 && hsD.length >= 2) { // (its pinned turn done: two in its claws)
+          dnD.cut = { hp: g.hp + '/' + g.maxhp, paralyzed: !!g.conds.paralyzed, others: hsD.filter(function (h) { return h !== g; }).map(function (h) { return h.name; }) };
+          B.hoverUnit = null; var pk = D.ui.heldIn(B, u, c); dnD.ask = B.heldAmbig ? B.heldAmbig.list.map(function (h) { return h.name; }).join(' or ') : 'not asked (' + (pk && pk.name) + ')';
+          B.hoverUnit = g; dnD.pick = (D.ui.heldIn(B, u, c) || {}).name; B.hoverUnit = null; B.heldAmbig = null;
+          var hp0D = g.hp; B.heal(g, 8); dnD.healed = u.name + ', ' + hp0D + ' to ' + g.hp + ' hp';
+          B.hurt(c, 999, 'force'); return;
+        }
+        yield 4;
+      };
+      try {
+        var coD = BD.co, vD, quietD = 0;
+        for (var kD = 0; kD < 120000 && quietD < 300; kD++) {
+          var sD = D.top();
+          if (sD instanceof D.counter.Counter) { quietD = 0; var wD = sD.wait || {}, bsD = sD.buttons(); if (wD.ask) { var iD = wD.opts.length - 1; sD.press(bsD.filter(function (b) { return b.go === 'opt' && b.k === iD; })[0]); } else sD.press(bsD[0]); continue; }
+          if (sD instanceof HD.Morning) break;
+          if (sD !== BD) { if (sD instanceof D.Battle && sD.roam) break; D.pop(); continue; }
+          var stD = coD.next(vD); vD = undefined;
+          if (stD.done) break;
+          if (typeof stD.value === 'number') { BD.t += Math.max(1, stD.value); quietD++; continue; }
+          if (stD.value && stD.value.prompt) { var pD = stD.value.prompt, labsD = pD.opts.map(function (o) { return o.label; }), jD = labsD.indexOf('STAY AT THE WATER'); if (jD < 0) jD = pD.opts.length - 1; dnD.asked.push(pD.title + ' > ' + labsD[jD]); vD = pD.opts[jD].value; quietD = 0; continue; }
+          quietD = 0;
+        }
+      } finally { D.ai.turn = ai0D; }
+      var fD = BD.roam.flags, gEnd = gnD();
+      okE4('D11 ?show=secondact&beat=gennetdown&lvl=3: ' + dnD.asked.join('; ') + ' -- in its claws ' + dnD.grabbed + ', wounded by ' + dnD.struck + '; after its pinned turn Gennet ' + JSON.stringify(dnD.cut) + '; a heal on its square asks WHICH ONE? ' + dnD.ask + ', with the pointer on her goes to ' + dnD.pick + ' (healed: ' + dnD.healed + '); the end: dead ' + !!fD.gennetDead + ', taken ' + !!fD.gennetTaken + ', the lake ' + (fD.lakeDone ? 'done' : 'not done') + ', she ' + (gEnd ? gEnd.hp + ' hp' : 'gone'),
+        dnD.grabbed && !!dnD.struck && !!dnD.cut && dnD.cut.others.length >= 1 && /Gennet Waterby/.test(dnD.ask || '') && / or /.test(dnD.ask || '') && dnD.pick === 'Gennet Waterby' && !!dnD.healed && !fD.gennetDead && !fD.gennetTaken && !!fD.lakeDone); // (she lives: neither dead nor taken, and it killed -- off the floor after, as the scene ends)
+      HD.playing = false; HD.cur = null; D.scenes.length = 0;
       // THE MENUS: the four laid as the fight begins (&conds=), the menu opened on the first of ours
       var B12 = fightE4('?npc=giantspider&lvl=3&conds=poisoned:1,restrained:2,paralyzed:3,light:4'), o12 = oursE4(B12), MNe = window.DS.MENU, PALe = D.PAL.ramps;
       D.rules.startTurn(o12[0]); B12.active = o12[0]; var req12 = B12.req; B12.req = Object.assign({}, req12 || {}, { turn: o12[0] }); D.ui.openMenu(B12); B12.req = req12; var m12 = B12.menu && B12.menu.m, host12 = m12 && m12.host; // (the hero's turn begun: EQUIP in a fight reads its turn's costs)
