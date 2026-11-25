@@ -280,15 +280,15 @@
     var st = e.stage || {}, m = st.more || {}, b = { flags: {} };
     if (st.door) {
       var q = st.door.split('?')[1] || '', g = function (k) { var r = new RegExp('[?&]' + k + '=([^&]+)').exec('?' + q); return r ? decodeURIComponent(r[1]) : null; };
-      b.day = g('day') != null ? +g('day') : null; b.hour = g('hour') != null ? +g('hour') : null; b.lvl = g('lvl') != null ? +g('lvl') : 3; b.renown = 0;
+      b.day = g('day') != null ? +g('day') : null; b.hour = g('hour') != null ? +g('hour') : null; b.lvl = g('lvl') != null ? +g('lvl') : 3; b.renown = null; // (renown null: the stage's own -- a beat's play may set it after the NEW GAME is made, the true word's 3)
       (g('flags') || '').split(',').forEach(function (k) { if (k) b.flags[k] = 1; });
     } else if (st.show) {
       var bt = beatOf(st.show, st.beat) || {};
-      b.day = bt.day != null ? bt.day : null; b.hour = bt.hour != null ? bt.hour : bt.t != null ? bt.t % 24 : null; b.renown = bt.renown || 0; b.lvl = bt.lvl || 3; b.lead = bt.lead || '';
+      b.day = bt.day != null ? bt.day : null; b.hour = bt.hour != null ? bt.hour : bt.t != null ? bt.t % 24 : null; b.renown = bt.renown != null ? bt.renown : null; b.lvl = bt.lvl || 3; b.lead = bt.lead || '';
       Object.keys(bt.flags || {}).forEach(function (k) { b.flags[k] = bt.flags[k]; });
     } else if (st.sit) {
       var s = (DS.SIT16 || {})[st.sit] || {};
-      b.day = s.day != null ? s.day : null; b.hour = s.hour != null ? s.hour : null; b.renown = s.renown || 0; b.lvl = s.lvl || 3; b.lead = s.lead || '';
+      b.day = s.day != null ? s.day : null; b.hour = s.hour != null ? s.hour : null; b.renown = s.renown != null ? s.renown : null; b.lvl = s.lvl || 3; b.lead = s.lead || '';
       Object.keys(s.flags || {}).forEach(function (k) { b.flags[k] = s.flags[k]; });
     }
     if (m.renown != null) b.renown = m.renown; if (m.day != null) b.day = m.day; if (m.hour != null) b.hour = m.hour;
@@ -299,7 +299,7 @@
   function drawStage() {
     var o = CUR.o, e = CUR.e, st = e.stage || {};
     $('stageFrom').innerHTML = 'staged by ' + (st.door ? 'the door <code>' + esc(st.door) + '</code>' : st.show ? 'the show beat <code>' + esc(st.show + ' · ' + st.beat) + '</code>' : st.sit ? 'the situation <code>?at=' + esc(st.sit) + '</code>' : '?');
-    $('sDay').value = o.day == null ? '' : o.day; $('sHour').value = o.hour == null ? '' : o.hour; $('sRenown').value = o.renown || 0; $('sLvl').value = o.lvl || 3; $('sLead').value = o.lead || ''; $('sDice').value = o.dice || '';
+    $('sDay').value = o.day == null ? '' : o.day; $('sHour').value = o.hour == null ? '' : o.hour; $('sRenown').value = o.renown == null ? '' : o.renown; $('sRenown').placeholder = o.had != null ? String(o.had) : ''; $('sLvl').value = o.lvl || 3; $('sLead').value = o.lead || ''; $('sDice').value = o.dice || '';
     $('sDayNote').textContent = o.day == null ? '(the stage\'s own)' : '';
     var fl = $('flags'); fl.innerHTML = '';
     o.off = o.off || {};
@@ -309,7 +309,7 @@
       fl.appendChild(b);
     });
   }
-  ['sDay', 'sHour', 'sRenown', 'sLvl', 'sLead', 'sDice'].forEach(function (id) { $(id).addEventListener('change', function () { var o = CUR.o, v = $(id).value; if (id === 'sDay') o.day = v === '' ? null : +v; if (id === 'sHour') o.hour = v === '' ? null : +v; if (id === 'sRenown') o.renown = +v || 0; if (id === 'sLvl') o.lvl = +v || 3; if (id === 'sLead') o.lead = v; if (id === 'sDice') o.dice = v; }); });
+  ['sDay', 'sHour', 'sRenown', 'sLvl', 'sLead', 'sDice'].forEach(function (id) { $(id).addEventListener('change', function () { var o = CUR.o, v = $(id).value; if (id === 'sDay') o.day = v === '' ? null : +v; if (id === 'sHour') o.hour = v === '' ? null : +v; if (id === 'sRenown') o.renown = v === '' ? null : +v || 0; if (id === 'sLvl') o.lvl = +v || 3; if (id === 'sLead') o.lead = v; if (id === 'sDice') o.dice = v; }); });
   var diceOf = function (o) { if (!o.dice) return null; var a = []; for (var i = 0; i < 200; i++) a.push(o.dice === 'high' ? 19 : 2); return a; }; // (the inn's d20s, In.d20: In.pinned as a show beat pins them)
   $('addFlagBtn').onclick = function () { var v = $('addFlag').value.trim(); if (!v) return; var p = v.split('='), k = p[0].trim(), val = p.length > 1 ? (isNaN(+p[1]) ? p[1].trim() : +p[1]) : 1; CUR.o.flags[k] = val; $('addFlag').value = ''; drawStage(); };
   $('addFlag').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') $('addFlagBtn').onclick(); });
@@ -349,7 +349,7 @@
       q += (q.length > 1 ? '&' : '') + 'lvl=' + (o.lvl || 3) + (o.day != null ? '&day=' + o.day : '') + (o.hour != null ? '&hour=' + o.hour : '');
       var plain = Object.keys(flags).filter(function (k) { return /^[A-Za-z0-9_:]+$/.test(k); });
       if (plain.length) q += '&flags=' + plain.join(',');
-      C.testRenown = o.renown || 0;
+      C.testRenown = o.renown != null ? o.renown : 0;
       var nb = R.make(q); D.push(nb);
       if (nb.roam) Object.keys(flags).forEach(function (k) { if (flags[k] !== 1) nb.roam.flags[k] = flags[k]; }); // (a flag with a value of its own -- wagonOutcome: 'quiet' -- set on the floor; the door's &flags= sets only 1)
       if (o.dice) In.pinned = diceOf(o);
@@ -357,7 +357,7 @@
     }
     if (st.show) {
       var bt0 = beatOf(st.show, st.beat); if (!bt0) throw new Error('no beat ' + st.show + '/' + st.beat + ' in the game');
-      var bt = Object.assign({}, bt0, { flags: flags, renown: o.renown });
+      var bt = Object.assign({}, bt0, { flags: flags }); if (o.renown != null) bt.renown = o.renown;
       if (o.day != null) bt.day = o.day; if (o.hour != null) { bt.hour = o.hour; if (bt.t != null) bt.t = (o.day != null ? o.day : Math.floor(bt.t / 24)) * 24 + o.hour; }
       if (o.lead) bt.lead = o.lead;
       if (o.dice) bt.dice = diceOf(o);
@@ -368,7 +368,7 @@
     }
     if (st.sit) {
       var s0 = (DS.SIT16 || {})[st.sit]; if (!s0) throw new Error('no situation ' + st.sit);
-      var s1 = Object.assign({}, s0, { flags: flags, renown: o.renown, lvl: o.lvl || s0.lvl });
+      var s1 = Object.assign({}, s0, { flags: flags, lvl: o.lvl || s0.lvl }); if (o.renown != null) s1.renown = o.renown;
       if (o.day != null) s1.day = o.day; if (o.hour != null) s1.hour = o.hour; if (o.lead) s1.lead = o.lead;
       if (m.inv) s1.give = (s0.give || []).concat(m.inv);
       DS.SIT16.__sim = s1;
@@ -423,11 +423,11 @@
   }
   function noteOn(n, who, said, tags, meta) {
     var sw = stageWords(), o = CUR.o, e = CUR.e, hh = sw.hour != null ? ('0' + Math.floor(sw.hour)).slice(-2) + ':' + ('0' + Math.round((sw.hour % 1) * 60)).slice(-2) : '';
-    var cond = (tags || []).filter(function (t) { return t.c === 'series'; }).map(function (t) { return t.t; }).concat(['renown ' + (o.renown || 0), 'level ' + (o.lvl || 3)]).join(' · ');
+    var cond = (tags || []).filter(function (t) { return t.c === 'series'; }).map(function (t) { return t.t; }).concat(['renown ' + (o.had != null ? o.had : o.renown || 0), 'level ' + (o.lvl || 3)]).join(' · ');
     var w0 = norm(said), stamp = '-- day ' + (sw.day != null ? sw.day : '?') + (hh ? ' · ' + hh : '') + ' · ' + sw.place + ' · the scene simulator: ' + e.title + ' · line ' + n + (who ? ' (' + who + ')' : '') + ': "' + w0.slice(0, 70) + (w0.length > 70 ? '…' : '') + '" · ' + cond + ' --';
     stamp = stamp.replace(/\n/g, ' ');
     notes.items.push({ stamp: stamp, scene: e.id, title: e.title, stage: JSON.parse(JSON.stringify(e.stage)), staged: { day: sw.day, hour: sw.hour, place: sw.place },
-      conditions: { day: o.day, hour: o.hour, renown: o.renown, lvl: o.lvl, lead: o.lead || null, flags: Object.assign({}, o.flags), off: Object.keys(o.off || {}) },
+      conditions: { day: o.day, hour: o.hour, renown: o.had != null ? o.had : o.renown, lvl: o.lvl, lead: o.lead || null, flags: Object.assign({}, o.flags), off: Object.keys(o.off || {}) },
       line: n, who: who || null, said: strip(said), marks: (tags || []).map(function (t) { return t.t; }), page: location.href, at: new Date().toISOString() });
     if (notes.items.length > 400) notes.items.splice(0, notes.items.length - 400);
     SIM.openNotes(stamp);
@@ -629,7 +629,9 @@
     $('sceneTitle').textContent = e.title; $('sceneSub').textContent = e.why || '';
     var how;
     try { REC = false; how = stage(e, o); } catch (err) { sys('could not stage it: ' + err.message); console.error(err); return Promise.resolve(); }
-    sys('staged: ' + how + ' · renown ' + (o.renown || 0) + ' · level ' + (o.lvl || 3) + (o.lead ? ' · ' + o.lead + ' leads' : ''));
+    if (o.renown != null) { if (H.playing && H.cur) H.cur.renown = o.renown; else C.testRenown = o.renown; } // (his renown laid after the staging: a beat's play may set its own once the NEW GAME is made)
+    try { o.had = C.renownOf ? C.renownOf() : o.renown; } catch (e2) { o.had = o.renown; } drawStage();
+    sys('staged: ' + how + ' · renown ' + o.had + (o.renown == null ? ' (the stage\'s own)' : '') + ' · level ' + (o.lvl || 3) + (o.lead ? ' · ' + o.lead + ' leads' : ''));
     SIM.flush();
     return SIM.drive({ talk: e.talk || autoTalk(e), use: e.use }).then(function () { }, function (err) { if (err !== STOP) sys('the scene broke: ' + (err && err.message)); });
   };
