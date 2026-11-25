@@ -257,6 +257,25 @@
         yield* B.attack(u, tw, ra); u.anim = 'idle';
       }
     }
+    // THE DRAGGER'S NET AND HOOK (11-25, the seat module-1125 -- RULED, Griz: "good on the leans", on his "27 - we're building a module with those guys in it?": the rows were
+    // held till a show threw a net): one with a net (data/foes.js `net`, js/features.js F.netOf) still in hand and its `net` row shown fewer than twice by the end of its second
+    // turn throws it at the nearest watcher it can net (up within its 15 ft first); one with the hooked pike, its `hook` at one standing within the pike's 10 ft -- through the
+    // engine's own throw and hook (F.throwNet, F.hook), the action lent for the beat, the dice as they fall: a net thrown once each, so two of the creature show it twice
+    var FT = D.features; // (the hook first, from the end of its FIRST turn: a hook or a net that lands brings Wagon Drill's hold, and the pike is dropped for the cargo)
+    if (FT && FT.hook && u.attacks && u.attacks.pike && D.spr.anim(u.sheet, 'hook') && ((u.showSeen || {}).hook || 0) < 2 && u.showTurns >= 1 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
+      var hw = (yield* inReach(B, u, u.attacks.pike.reach || 10, function (w) { return !w.conds.prone && !w.noProne && !RU.immuneTo(w, 'prone'); }))[0];
+      if (hw) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its hook yet. At ' + hw.name + ', to see it.'], 200);
+        if (u.turn) u.turn.action = 1; yield* FT.hook(B, u, hw); u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    if (FT && FT.netOf && FT.netOf(u) && !u.netGone && D.spr.anim(u.sheet, 'net') && ((u.showSeen || {}).net || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
+      var nw = (yield* inReach(B, u, (FT.netOf(u).range || [5, 15])[1], function (w) { return FT.netCan(u, w); }))[0];
+      if (nw) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not thrown its net yet. At ' + nw.name + ', to see it.'], 200);
+        if (u.turn) u.turn.action = 1; yield* FT.throwNet(B, u, nw); u.anim = 'idle'; u.animT = B.t;
+      }
+    }
     // one with a breath row of its own it has not shown twice, from the end of its second turn (the winter wolf's Cold Breath, 10-22: the AI breathes when it catches
     // two, or one with nobody in its reach, and walked in among the watchers it seldom has either; spent, it comes back on a 5 or 6): the breath back, and at the
     // watchers through the rule's own M.breathe, aimed as the AI aims it

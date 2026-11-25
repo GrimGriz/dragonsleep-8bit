@@ -35,8 +35,8 @@ FACE = {'S': 0, 'SE': 7, 'E': 6, 'NE': 5, 'N': 4}
 MIRROR = {1: 7, 2: 6, 3: 5}
 ROWS = {'keepback': (10, 3), 'shove': (10, 3), 'net': (10, 3), 'hook': (10, 3), 'push': (10, 3)}   # (row: fps, release -- each page's printed 4)
 PIKE = ('dragger', '2026-11-25-ART-166-PIKE-WALL')
-HELD = {'net', 'hook'}   # (marked `held`: js/show.js SH.wanted passes them by -- the show throws no net; js/sprites.js S.anim still serves them, so the
-                         #  seat nets-1125's F.throwNet and F.hook play them where they land. A cutter may drop this once a show stages the net)
+HELD = set()             # (net and hook were marked `held` till a show staged the net -- js/show.js SH.wanted passed them by; DROPPED 11-25 by the seat module-1125, RULED,
+                         #  Griz: "good on the leans", on his "27": THE FARE HOME's bench saw both rows play in its fights and the show's director now throws a net and a hook)
 FIG = {'dragger_p2': dict(avoid=['fire'], bgtol=20, crown=20, steel=True, tall=52, pages=[
            PIKE + ('sources/ART-166_DRAGGER_HEAD-*_%s.png', ['keepback', 'shove']),
            ('dragger', '2026-11-25-ART-168-NET-HOOK', 'source/ART-168-H0*-P01-%s-source.png', ['net', 'hook'])]),   # (ART-168, art-wanted 106: js/features.js

@@ -5075,8 +5075,7 @@
 "ay": 76,
 "frames": 6,
 "fps": 10,
-"release": 3,
-"held": true
+"release": 3
 },
 "hook": {
 "y": 7680,
@@ -5086,8 +5085,7 @@
 "ay": 76,
 "frames": 6,
 "fps": 10,
-"release": 3,
-"held": true
+"release": 3
 }
 },
 "name": "Dragger",

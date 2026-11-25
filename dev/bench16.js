@@ -1534,15 +1534,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   if (get('mode', '') === 'shows1125') {
     var repV = { checks: [], errors: [] };
     try {
-      ['mender', 'greyfang', 'amara', 'willem', 'torvald'].forEach(function (kind) {
-        D.seed = seed0 * 7919;
+      ['mender', 'greyfang', 'amara', 'willem', 'torvald', 'dragger', 'dragger@3'].forEach(function (kindAt) { // (the dragger since 11-25 night: his net and hook unheld, the director's throw and hook -- at seed 3 too, where his own AI threw one net alone)
+        var kind = kindAt.split('@')[0], sdV = +(kindAt.split('@')[1] || seed0);
+        D.seed = sdV * 7919;
         var BV = D.show.fight('?show=' + kind + '&lvl=3', { bench: true }); D.battle = BV; BV.enter();
         var resV = drive(BV), under = [], rows = [];
         Object.keys(BV.showTally || {}).forEach(function (sheet) { D.show.wanted(sheet, BV.showKind[sheet]).forEach(function (r) { var c = BV.showTally[sheet][r] || 0; rows.push(r + ' ' + c); if (c < 2) under.push(r + ' ' + c); }); });
         // (the director's own swing of a class-built creature's weapon, read off the fight's lines: the dice may bring the row by opportunity attacks alone -- they did for the mender and
         // GreyFang on main's file at this seed -- so the beat itself is checked where the creature is built by its class and its sheet has the `attack` row)
-        var swung = (BV.log || []).filter(function (l) { return /THE SHOW.*has not shown its [^.]+ yet\. One at /.test(String(l)); }).length, built = kind !== 'amara';
-        repV.checks.push((under.length || resV !== 'won' || !rows.length || (built && !swung) ? 'FAIL ' : 'ok   ') + '?show=' + kind + '&lvl=3: every row twice, the show ' + resV + ' in ' + BV.round + ' rounds' + (under.length ? ' -- under two: ' + under.join(', ') : '') + ' (' + rows.filter(function (s) { return /^(attack|run|traces|sitdown) /.test(s); }).join(', ') + ')' + (built ? '; the director swung its weapon ' + swung + 'x' : ''));
+        var swung = (BV.log || []).filter(function (l) { return /THE SHOW.*has not shown its [^.]+ yet\. One at /.test(String(l)); }).length, built = ['mender', 'greyfang', 'willem', 'torvald'].indexOf(kind) >= 0;
+        repV.checks.push((under.length || resV !== 'won' || !rows.length || (built && !swung) ? 'FAIL ' : 'ok   ') + '?show=' + kind + '&lvl=3' + (sdV !== seed0 ? ' (seed ' + sdV + ')' : '') + ': every row twice, the show ' + resV + ' in ' + BV.round + ' rounds' + (under.length ? ' -- under two: ' + under.join(', ') : '') + ' (' + rows.filter(function (s) { return /^(attack|run|traces|sitdown|net|hook) /.test(s); }).join(', ') + ')' + (built ? '; the director swung its weapon ' + swung + 'x' : ''));
       });
       var wntW = D.show.wanted('willemglass_p2', 'willem'), wntT = D.show.wanted('torvald_p2', 'torvald');
       repV.checks.push((wntW.indexOf('traces') < 0 && wntT.indexOf('sitdown') < 0 && wntT.indexOf('sit') >= 0 && wntW.indexOf('run') >= 0 ? 'ok   ' : 'FAIL ') + 'passed by: Willem\'s traces and Torvald\'s sitdown (the gallery plays them); still wanted: his run, Torvald\'s sit');
