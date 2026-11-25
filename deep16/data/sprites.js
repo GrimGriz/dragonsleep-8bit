@@ -4646,6 +4646,55 @@
 ],
 "source": "drawn by the art desk (ART-163 PAGE 4, 11-25: art-wanted section 99, the Dominion's sergeant with the longsword and shield and the shield wall's Push, in five views), cut by tools/dmsergeant-sheet.py over tools/vivian-sheet.py; SW W NW mirrored"
 },
+"dmwagon_p1": {
+"_note": "the Dominion's prison wagon over dominionroad's 2x2 covered wagon (tools/dmwagon-sheet.py, art-wanted 107, ART-169, 2026-11-25): each piece a box x,y,w,h and its anchor ax,ay, the back corner of its 2x2 footprint; named by the way its front faces; the scene starts shut, the recruits' encounter swaps to _open at the same anchor, a turn on the road swaps the heading",
+"image": "art/dmwagon_p1.png?v=aab1c61ea0",
+"fw": 160,
+"fh": 110,
+"ax": 78,
+"ay": 58,
+"prop": true,
+"anims": {},
+"foot": {
+"dmwagon_nw": [
+2,
+2
+],
+"dmwagon_nw_open": [
+2,
+2
+],
+"dmwagon_ne": [
+2,
+2
+],
+"dmwagon_ne_open": [
+2,
+2
+],
+"dmwagon_se": [
+2,
+2
+],
+"dmwagon_sw": [
+2,
+2
+]
+},
+"centre": [
+78,
+90
+],
+"tiles": {
+"dmwagon_nw": "0,0,160,110,78,58",
+"dmwagon_nw_open": "160,0,160,110,78,58",
+"dmwagon_ne": "320,0,160,110,78,58",
+"dmwagon_ne_open": "480,0,160,110,78,58",
+"dmwagon_se": "640,0,160,110,78,58",
+"dmwagon_sw": "800,0,160,110,78,58"
+},
+"source": "drawn by the art desk (ART-169, 11-25: art-wanted section 107, the Dominion prison wagon with roof storage, two facings shut and open and two drive-off views), packed by tools/dmwagon-sheet.py"
+},
 "dominion_p1": {
 "image": "art/dominion_p1.png?v=013c939be5",
 "fw": 96,
