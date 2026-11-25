@@ -105,6 +105,7 @@ def pike_look(R):
 
 # ---------------------------------------------------------------- guard_p2's three rows
 ADD = [('push', 10, 3), ('pikeattack', 12, 3), ('pikerank', 10, 3)]   # (row, fps, release)
+HELD = {'pikeattack'}   # (a row cut and not played yet -- js/show.js SH.wanted passes it by: his block carries a spear; `push` and `pikerank` the show knows)
 
 
 def idle_height(base, meta, f):
@@ -166,6 +167,8 @@ def add_rows(R, check=False):
                 cell = blk[f * FH + max(0, dy):f * FH + max(0, dy) + hh, i * fw + max(0, dx):i * fw + max(0, dx) + ww]
                 on = sub[..., 3] > 0; cell[on] = sub[on]
         meta['anims'][row] = {'y': int(y0), 'fw': fw, 'fh': FH, 'ax': ax, 'ay': AY, 'frames': n, 'fps': fps, 'release': rel}
+        if row in HELD:
+            meta['anims'][row]['held'] = True
         if clip:
             print('  %s clipped top or bottom at the cell: %s' % (row, ', '.join(clip)))
         blocks.append((row, blk)); y0 += 8 * FH

@@ -8879,7 +8879,8 @@
 "ay": 76,
 "frames": 8,
 "fps": 12,
-"release": 3
+"release": 3,
+"held": true
 },
 "pikerank": {
 "y": 8448,
