@@ -421,6 +421,14 @@
     "buckleBy": "set: deep16/js/inn.js In.buckleBy (the wagon night's coin, 11-24: 'willem' or 'amara' works the buckles at the greys' heads); read: In.toTraces, In.yardFight",
     "dueAway": "set: deep16/js/inn.js In.dueAway (a due's night the party was away for, played offstage by its offering: its cycle, 11-24); read: In.dueAway, M.SCENES.elsbeth",
     "dueAwayCard": "set: deep16/js/inn.js In.dueAway (the offering taken: 'kept' or 'goblin'); read: the inn floor's arrive, In.dueAwayCard (said once as the party comes in)",
-    "dueAwaySaid": "set: deep16/js/inn.js M.SCENES.elsbeth (her line on the missed due said, its cycle, 11-24); read: the same"
+    "dueAwaySaid": "set: deep16/js/inn.js M.SCENES.elsbeth (her line on the missed due said, its cycle, 11-24); read: the same",
+    "nellNamed": "set: deep16/js/inn.js In.nellVisit (the first hero who asks her name out back), In.barnYard close (asked by the barn); read: In.nellName, In.barnS, the barn yard close (11-24)",
+    "nellAsker": "set: deep16/js/inn.js In.nellVisit (the hero who asked her name); read: nothing yet",
+    "nellLooked": "set: deep16/js/inn.js In.nellVisit (the look at her said once); read: the same",
+    "nellHad": "set: deep16/js/inn.js In.nellVisit (the pieces of her road told: newland, tower, wagon, counting -- one a visit); read: In.nellVisit, In.nellCanTake",
+    "nellLieSeen": "set: deep16/js/inn.js In.gennetAfterVisit (her lie about the girl read by Insight, DC 13); read: In.nellCanTake (TAKE HER open)",
+    "nellTaken": "set: deep16/js/inn.js In.nellTake (TAKE HER: round to the barn yard); read: nothing yet",
+    "gennetAfter": "set: deep16/js/inn.js In.gennetAfterVisit (her first talk after the wagon night had); read: In.gennetAfterDue",
+    "gennetOwed": "set: deep16/js/inn.js where the wagon night's outcome is set (the yard, the bribe, the quiet night, slept through, the chase back, the wagon brought in: 11-24); read: In.gennetAfterDue; cleared by In.gennetAfterVisit"
   }
 }

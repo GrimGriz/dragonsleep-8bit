@@ -5680,6 +5680,100 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preR);
     return;
   }
+  // THE FOUR STORY SCENES AND WILLEM'S PAGES, 11-24 (mode=scenes1124; the inn seat inn-1124 on his "Nell is approved, add the scene / Elsbeth scene go / Gennet scene go / Doran
+  // scene go" and "Splitting into pages is good - I am thinking it's not good enough to be an egg though"): Elsbeth's first two tellings on the flip, in her own voice, Vivian
+  // primed; Nell's name, a piece of her road a visit, TAKE HER into the barn yard's talk; Gennet the morning after, her lie read; Doran back from the Pit once; the book's pages
+  if (get('mode', '') === 'scenes1124') {
+    var repS4 = { checks: [], errors: [], notes: [] }, memS4 = {}, stGS4 = D.store.get, stSS4 = D.store.set, HS4 = D.house, CS4 = D.counter, RS4 = D.roam, InS4 = D.inn, muS4 = D.music;
+    function okS4(what, v) { repS4.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topS4() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) { D.battle = s; var k = 0; while (k++ < 2 && s.co) { var st = s.co.next(); if (st.done) break; } } return s; }
+    function stageS4(day, hour, flags, at, inside) { InS4.play({ key: InS4.KEY, at: at || [24, 17], hour: hour, day: day, inside: inside == null ? true : inside, flags: Object.assign({ reachedInn: 1, gennetNamed: 1, mealHad: 1 }, flags || {}) }); return topS4(); }
+    // a generator run to its end: a flip answered by the next of `want` ({ key, id } -- the hero, the line's id), else its hero's last line; an ask its last; lines pressed
+    function runS4(B, g, want, cap) {
+      var seen = [], v, k = 0, q = (want || []).slice(), c0 = B.card; B.card = function (ls) { seen.push('CARD: ' + window.DS.stripCodes([].concat(ls).join(' '))); return c0.apply(this, arguments); };
+      try {
+        while (k++ < (cap || 40000)) {
+          var s = D.top();
+          if (s instanceof CS4.Counter) {
+            var w = s.wait || {}, bs = s.buttons();
+            if (w.flip) {
+              var wt = q.length ? q.shift() : null, at = -1, kk = -1;
+              w.flip.list.forEach(function (x, i) { if (at >= 0 || !wt) return; if (wt.key && x.key !== wt.key) return; var j = x.ids.indexOf(wt.id); if (j >= 0) { at = i; kk = j; } });
+              seen.push('FLIP@' + (w.flip.list[w.flip.at] || {}).key + ' [' + [].concat(w.ask || []).join(' ') + '] ' + w.flip.list.map(function (x) { return x.key + ':' + x.ids.map(function (id, j) { return id + (x.marks[j] ? '*' : ''); }).join('/'); }).join(' ') + ' > ' + (at >= 0 ? w.flip.list[at].key + ':' + wt.id : 'last'));
+              if (at >= 0) { s.flipTo(at); bs = s.buttons(); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === kk; })[0]); }
+              else { var lo = (w.opts || []).length - 1; s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === lo; })[0]); }
+            } else if (w.ask) { var ol = w.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }), ia = typeof q[0] === 'string' ? ol.indexOf(q[0]) : -1; if (ia >= 0) q.shift(); else ia = ol.length - 1; seen.push('[' + ol.join(' | ') + '] > ' + ol[ia]); s.press(bs.filter(function (b) { return b.go === 'opt' && b.k === ia; })[0]); } // (a plain ask: the next of `want` when it is that ask's label, else its last)
+            else { if (w.say) seen.push((w.who ? w.who.name + ': ' : '') + window.DS.stripCodes([].concat(w.say).join(' '))); s.press(bs[0]); }
+            if (s.done && D.top() === s) D.pop(); continue;
+          }
+          if (s && s !== B && !(s instanceof CS4.Counter)) { D.pop(); continue; }
+          var st = g.next(v); v = undefined; if (st.done) break;
+          if (typeof st.value === 'number') { B.t += Math.max(1, st.value); continue; }
+          if (st.value && st.value.prompt) { v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; continue; }
+        }
+      } finally { B.card = c0; }
+      return seen.join(' / ');
+    }
+    function fireS4(B, npc) { var u = B.units.filter(function (x) { return x.npc === npc; })[0]; return D.town.fire(B, { town: 'talk', npc: npc, id: 'talk:' + npc }, u ? [u.x, u.y] : null); }
+    D.store.get = function (k) { return memS4[k] ? JSON.parse(memS4[k]) : null; }; D.store.set = function (k, v) { memS4[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1124); InS4.stay = true;
+      // 1. ELSBETH ON THE FLIP: day 13, nine in the morning (Gennet at the well), the counting seen at supper and kept quiet -- Vivian first, shaded; an idle word first (nothing told),
+      // then Vivian's line (the first telling, in her own voice), then Aurdin's (the second)
+      var BE = stageS4(13, 9, { mealWrong: 1, wagonCycle: 0, wagonOutcome: 'quiet' }, [32, 21], true), fE = BE.roam.flags;
+      var e0 = runS4(BE, fireS4(BE, 'elsbeth'), [{ key: 'lymen', id: 'idle' }]), t0 = fE.elsbethTier || 0;
+      var e1 = runS4(BE, fireS4(BE, 'elsbeth'), [{ key: 'vivian', id: 'open' }]), t1 = fE.elsbethTier;
+      var e2 = runS4(BE, fireS4(BE, 'elsbeth'), ['ASK HER MORE', { key: 'aurdin', id: 'open' }]), t2 = fE.elsbethTier;
+      okS4('ELSBETH ON THE FLIP: an idle word "' + e0.slice(0, 260) + '" (tier ' + t0 + ') // Vivian\'s "' + e1.slice(0, 300) + '" (tier ' + t1 + ') // Aurdin\'s "' + e2.slice(0, 300) + '" (tier ' + t2 + ')',
+        /FLIP.*vivian:open\*/.test(e0) && /lymen:idle/.test(e0) && /FLIP@vivian /.test(e0) && /The girl focuses on her work/.test(e0) && t0 === 0 &&
+        /"My brother Tobin was fourteen\. Mother went the third night\. Father hasn't said either name since\."/.test(e1) && t1 === 1 &&
+        /aurdin:open\*/.test(e2) && /"The god is an animal\. I've seen it/.test(e2) && /"I've decided not to know the rest\."/.test(e2) && t2 === 2);
+      HS4.playing = false; HS4.cur = null;
+      // 2. NELL OUT BACK: her plate, her face; the first asks her name (Nell); a piece of her road a visit, the counting opening TAKE HER; TAKE HER -- round to the barn yard,
+      // Gennet's "Where are you taking her?", the talk to an end
+      var BN = stageS4(13, 10, { kidAtInn: 1, glamourBroken: 1, glamourSeen: 1, wagonCycle: 0, wagonOutcome: 'inn', dueOffC: 0, dueOff: 'kept' }, [42, 12], false), fN = BN.roam.flags;
+      var gu = BN.units.filter(function (u) { return u.npc === 'adoptedKid'; })[0], plate0 = gu && gu.name, face = CS4.SHEETOF.adoptedKid ? CS4.SHEETOF.adoptedKid() : null;
+      var n1 = runS4(BN, fireS4(BN, 'adoptedKid'), [{ key: 'barley', id: 'name' }]), plate1 = gu && gu.name;
+      var n2 = runS4(BN, fireS4(BN, 'adoptedKid'), [{ key: 'lymen', id: 'piece' }]), can2 = InS4.nellCanTake(fN);
+      var n3 = runS4(BN, fireS4(BN, 'adoptedKid'), [{ key: 'aurdin', id: 'piece' }]), can3 = InS4.nellCanTake(fN);
+      var n4 = runS4(BN, fireS4(BN, 'adoptedKid'), [{ id: 'take' }, { id: 'hush' }, { id: 'keep' }]), end4 = BN.roam.barnEnd; // (the yard's talk walked to END A: "Easy. Nobody's hurt." then "Keep her, then.")
+      okS4('NELL: the plate "' + plate0 + '" then "' + plate1 + '", the face ' + face + '; the name "' + n1.slice(-120) + '"; Lymen\'s piece "' + n2.slice(-140) + '" (TAKE HER ' + can2 + '); Aurdin\'s "' + n3.slice(-140) + '" (TAKE HER ' + can3 + '); TAKE HER "' + n4.slice(0, 500) + '" -- the end ' + JSON.stringify(end4),
+        plate0 === 'A small girl' && plate1 === 'Nell' && face === 'pt_keptchild' && /barley:name/.test(n1) && /"Nell\."/.test(n1) && fN.nellNamed === 1 && fN.nellAsker === 'barley' &&
+        /Newland\. By the sea wall/.test(n2) && can2 === false && /She counts\. At the window/.test(n3) && can3 === true &&
+        /Nell takes a hand and comes away from the water/.test(InS4.saidBlack.join(' ')) && /Where are you taking her\?/.test(n4) && !!end4 && !!end4.end && fN.nellTaken === 1);
+      HS4.playing = false; HS4.cur = null;
+      // 3. GENNET THE MORNING AFTER: the yard won, Doran gone with them -- her opener; Vivian names the girl, the lie and its read by the best Insight (DC 13); her regard cooled;
+      // the next talk her rooms as ever
+      var BG = stageS4(13, 9, { kidAtInn: 1, glamourBroken: 1, wagonCycle: 0, wagonOutcome: 'inn', gennetOwed: 1, doranAway: 1, doranPit: 1, innRegard: 2 }, [10, 16], false), fG = BG.roam.flags;
+      var bestI = 0; BG.roam.members.forEach(function (u) { if (u.src && !u.src.guest) bestI = Math.max(bestI, InS4.passive(u.src, 'Insight')); });
+      var g1 = runS4(BG, fireS4(BG, 'gennet'), [{ key: 'vivian', id: 'vivian' }]), reg1 = fG.innRegard;
+      var g2 = runS4(BG, fireS4(BG, 'gennet'), ['NOT NOW']);
+      okS4('GENNET THE MORNING AFTER: "' + g1.slice(0, 420) + '" -- the best Insight ' + bestI + ', the lie read ' + !!fG.nellLieSeen + ', her regard 2 to ' + reg1 + ' // the next talk "' + g2.slice(0, 120) + '"',
+        /Doran's taken the little ones home/.test(g1) && /vivian:vivian/.test(g1) && /She's for the kitchen/.test(g1) && (bestI >= 13) === !!fG.nellLieSeen && (bestI < 13 || /\(insight\) The answer was ready before the question/.test(g1)) && reg1 === 1 && fG.gennetAfter === 1 && !/Doran's taken/.test(g2));
+      HS4.playing = false; HS4.cur = null;
+      // 4. DORAN BACK FROM THE PIT: at the woodpile, the first meeting since -- the Pit's two lines on his axe face, then Lymen's GreyFang; once only
+      var BD = stageS4(16, 10, { wagonCycle: 0, wagonOutcome: 'inn', doranPit: 1, kidAtInn: 1, glamourBroken: 1 }, [16, 24], false), fD = BD.roam.flags;
+      var d1 = runS4(BD, fireS4(BD, 'doranYard'), [{ key: 'lymen', id: 'lymen' }]), d2 = runS4(BD, fireS4(BD, 'doranYard'), []);
+      okS4('DORAN BACK FROM THE PIT: "' + d1.slice(0, 400) + '" // again "' + d2.slice(0, 100) + '"',
+        /GreyFang's house at the Pit took them\. All seven\./.test(d1) && /It's getting worse down there\. The Snoot\./.test(d1) && /lymen:lymen/.test(d1) && /keep a list of where Newland's families went/.test(d1) && fD.doranPitSaid === 1 && !/GreyFang's house/.test(d2));
+      HS4.playing = false; HS4.cur = null;
+      // 5. WILLEM'S BOOK INTO PAGES: used from the pack, the book gone and six sheets in; Falstaff buys them at his prices; Aurdin at level 3 copies Shield, not Hypnotic Pattern
+      var inv5 = [{ id: 'willembook', n: 1 }], env5 = { where: 'world', party: [], take: function (id) { inv5.forEach(function (s) { if (s.id === id) s.n--; }); }, give: function (id, n) { var s = inv5.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n || 1; else inv5.push({ id: id, n: n || 1 }); } };
+      var it5 = DS.DATA.items.willembook, l5 = HS4.field.item('willembook', { name: 'Aurdin' }, env5) || [], got5 = inv5.filter(function (s) { return s.n > 0; }).map(function (s) { return s.id; });
+      var FS = CS4.SHOP16.falstaff, buys5 = InS4.WPAGES.map(function (id) { return id + ' ' + (CS4.buys({ buys: 'sheets' }, FS, id, DS.DATA.items[id]) ? FS.prices[id] : 'no'); });
+      InS4.play({ key: InS4.KEY, at: [24, 17], hour: 10, day: 13, inside: true, flags: { reachedInn: 1 } }); topS4(); var aur5 = HS4.cur.party.filter(function (h) { return (h.key || h.id) === 'aurdin'; })[0];
+      var w5a = aur5 ? HS4.field.learnWhy('sheet_shield', aur5, HS4.cur.party) : 'no Aurdin', w5b = aur5 ? HS4.field.learnWhy('sheet_hypnoticpattern', aur5, HS4.cur.party) : 'no Aurdin';
+      okS4('WILLEM\'S BOOK INTO PAGES: the use ' + JSON.stringify(it5 && it5.use) + '; "' + l5.join(' ').slice(0, 200) + '"; the pack ' + got5.join(', ') + '; Falstaff ' + buys5.join(', ') + '; Aurdin (level ' + (aur5 && aur5.lvl) + ') Shield "' + w5a + '", Hypnotic Pattern "' + w5b + '"',
+        !!it5 && it5.use && it5.use.effect === 'pages' && it5.use.field === true && got5.indexOf('willembook') < 0 && InS4.WPAGES.every(function (id) { return got5.indexOf(id) >= 0; }) && /Mage Armor, Shield, Mirror Image, Invisibility, Blur, Hypnotic Pattern/.test(l5.join(' ')) &&
+        buys5.every(function (b) { return !/ no$/.test(b); }) && (w5a === '' || /knows Shield already/.test(w5a)) && /cannot cast spells of its level yet/.test(w5b));
+    } catch (eS4) { repS4.errors.push(String(eS4 && eS4.stack || eS4).slice(0, 900)); }
+    HS4.playing = false; HS4.cur = null; if (InS4) { InS4.stay = false; InS4.pinned = null; }
+    D.store.get = stGS4; D.store.set = stSS4; D.music = muS4;
+    var preS4 = document.createElement('pre'); preS4.id = 'out'; preS4.textContent = 'BENCH16 ' + JSON.stringify(repS4);
+    document.body.appendChild(preS4);
+    return;
+  }
   // HIS PLAY OF DAYS 8-18, THE INN'S FOURTEEN, 11-24 (mode=inn1124; the inn seat inn-1124 on the lanes desk's §A, every lean RULED by his "leans otherwise approved", the buckle
   // by his "go ahead with the 50/50"): the boat drawn only where the floor has it (A1); the floor's tune back after a floor fight and a fight tune started on one (A2); the alone
   // supper read from the house (A3); the yard's end on screen -- the search, the camera, Doran and Katarina UP on the box, the fade (A5, A6); the band that stays on stood (A7);
