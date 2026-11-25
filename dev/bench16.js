@@ -4595,7 +4595,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (D.top() === bP) D.pop(); bP.o.onDone('fed');
         backP = D.top() === BW; for (kP = 0; kP < 400; kP++) { if (gP.next().done) break; }
       }
-      okF2('the landlord fed from the bucket: the Settling over (' + (bP.brokeHow ? 'BROKE: ' + bP.brokeHow : BW.roam.flags.otyughFed ? 'fed' : 'not fed') + '), the Wet\'s tune again (' + mus2.join(' > ') + ')', bP !== BW && backP && !bP.brokeHow && BW.roam.flags.otyughFed && mus2.indexOf('boss') >= 0 && mus2.indexOf('title') < 0 && mus2[mus2.length - 1] === w8m);
+      okF2('the landlord fed from the bucket: the Settling over (' + (bP.brokeHow ? 'BROKE: ' + bP.brokeHow : BW.roam.flags.otyughFed ? 'fed' : 'not fed') + '), the Wet\'s tune again (' + mus2.join(' > ') + ')', bP !== BW && backP && !bP.brokeHow && BW.roam.flags.otyughFed && mus2.indexOf('undertow') >= 0 && mus2.indexOf('title') < 0 && mus2[mus2.length - 1] === w8m);
       // 2. THE FIGHTS (his "combat turns the whole zone into a fight and the stirges kill npc", the Glowseep by night; "not a grid fight", the dens): each on a field of its own,
       // the road's way, the crew out of it
       var BS = testF2('?roam=glowseep&hour=22'), RS = BS.roam; RS.token.x = 20; RS.token.y = 14; D.grid.setup(BS.map, BS.units); BS.focus(RS.token); // (in the bog, where its fights come)
@@ -6294,7 +6294,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var SVz = D.survivors, S7 = WZ4.state ? null : null, def7 = { key: InZ4.UP }, due7 = null;
       var B7c = stageZ4(13, 10, {}, [24, 17], true); var RD = RZ4.def; RZ4.def = { key: InZ4.UP }; var S7s = WZ4.state(); S7s.svAt = { site: 'inn', since: S7s.t - 5 }; var ar0 = SVz.arrivals; SVz.arrivals = function () { return [band('bz3', 'farm')]; }; B7c.roam.mode = 'walk'; B7c.roam.path = null; due7 = SVz.arriveDue(B7c); RZ4.def = RD; var dueDown = SVz.arriveDue(B7c); SVz.arrivals = ar0; SVz.next = null;
       okZ4('A7 the bands staying on: by day ' + day7.join(' ') + '; by evening ' + eve7.join(' ') + '; a band\'s coming upstairs ' + due7 + ', downstairs ' + dueDown + ' [' + diag7 + ']',
-        day7.length === 5 && day7.indexOf('band0_0@6,14') >= 0 && day7.indexOf('band1_1@6,17') >= 0 && eve7.length === 5 && eve7.indexOf('band0_0@27,15') >= 0 && due7 === false && dueDown === true);
+        day7.length === 5 && day7.indexOf('band0_0@7,14') >= 0 && day7.indexOf('band1_1@7,24') >= 0 && eve7.length === 5 && eve7.indexOf('band0_0@7,14') >= 0 && due7 === false && dueDown === true); // (at their tents in the yard by day and evening since 11-25, his "not add to dinner and have them with a tent in the inn yard" -- odds-1125; mode=odds1125)
       HZ4.playing = false; HZ4.cur = null;
       // A8. A DUE MISSED, PLAYED OFFSTAGE: the girl kept out back gone the day after the first feeding the party was away for; the due's own day nothing yet; no offering, nothing
       var d0 = InZ4.dueDay(0), f8a = { kidAtInn: 1, dueOffC: 0, dueOff: 'kept' }, o8a = InZ4.dueAway(f8a, d0), f8b = { kidAtInn: 1, dueOffC: 0, dueOff: 'kept' }, o8b = InZ4.dueAway(f8b, d0 + 1), o8c = InZ4.dueAway(f8b, d0 + 2), f8d = { dueOffC: 0, dueOff: 'none' }, o8d = InZ4.dueAway(f8d, d0 + 1), f8e = { kidAtInn: 1, dueOffC: 0, dueOff: 'kept', lakeDone: 1 }, o8e = InZ4.dueAway(f8e, d0 + 1);
@@ -13013,7 +13013,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // there, the tail, his page and he climbs home
       var B6 = testQ('?roam=galleries_g4&guest=dace&at=10,9'), tr6 = trigQ(B6, 10, 9), b6 = pullQ(B6, RQ.fire(B6, tr6, [10, 9])), cl6 = b6 && b6.units.filter(function (u) { return u.kind === 'cloaker'; })[0], dc6 = b6 && b6.units.filter(function (u) { return u.vital; })[0];
       okQ('the cloaker on the grid (' + (b6 ? (b6.simple ? 'simple!' : 'the grid') + ', ' + b6.map.w + ' x ' + b6.map.h + ', cut ' + !!b6.map.def.cut + ', story ' + b6.isStory() + ', egg ' + b6.fight.gimmick + ', tune ' + b6.fight.music : 'no fight') + '); its bite the story\'s grip (' + !!(cl6 && cl6.attacks.bite && cl6.attacks.bite.grapple) + ', not the SRD\'s ride ' + !!(cl6 && cl6.attacks.bite && cl6.attacks.bite.attach) + '); Dace in it, vital, the class AI, lit (' + !!(dc6 && dc6.vital && dc6.classAI && dc6.conds.light) + ')',
-        !!tr6 && tr6.id === 'cloaker' && !!b6 && !b6.simple && b6.map.w === 16 && b6.map.h === 16 && !!b6.map.def.cut && b6.isStory() && b6.fight.gimmick === 'darkness' && b6.fight.music === 'boss' && !!cl6 && !!cl6.attacks.bite.grapple && !cl6.attacks.bite.attach && !!dc6 && dc6.id === 'dace' && dc6.classAI && !!dc6.conds.light);
+        !!tr6 && tr6.id === 'cloaker' && !!b6 && !b6.simple && b6.map.w === 16 && b6.map.h === 16 && !!b6.map.def.cut && b6.isStory() && b6.fight.gimmick === 'darkness' && b6.fight.music === 'gallery' && !!cl6 && !!cl6.attacks.bite.grapple && !cl6.attacks.bite.attach && !!dc6 && dc6.id === 'dace' && dc6.classAI && !!dc6.conds.light);
       var fl6 = B6.roam.flags; if (b6) { endQ(B6, b6, 'won'); var t6 = talkQ(B6, 0); }
       okQ('won with him there: the tail (' + has(B6, 'cloakertail') + '), his page (' + (t6 && t6.said.some(function (s) { return /Three of it/.test(s); })) + ', ' + has(B6, 'sheet_mirrorimage') + '), home (' + !dace(B6) + '); flags ' + ['cloakerKilled', 'daceSheet', 'daceDone'].map(function (k) { return k + ' ' + !!fl6[k]; }).join(', ') + '; the cloaker\'s square quiet (' + !trigQ(B6, 10, 9) + ')',
         has(B6, 'cloakertail') && has(B6, 'sheet_mirrorimage') && !dace(B6) && fl6.cloakerKilled && fl6.daceSheet && fl6.daceDone && !fl6.daceWith && !trigQ(B6, 10, 9) && !!t6 && t6.said.some(function (s) { return /climbs back up to the house/.test(s); }) && D.top() === B6);
@@ -34953,6 +34953,103 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         endR();
       }, failR);
     } catch (e0R) { failR(e0R); }
+    return;
+  }
+  // THE ODDS OF 11-25 (mode=odds1125; the seat odds-1125, on Griz's answers of 11-25 to the desk's open questions): 1. Kael's polearm shelf ("32 - yes") -- his counter opens
+  // THE SHELVES, the SRD's five at the SRD's prices, nothing bought back; 2. the story battles' four songs ("33 - Keeper in the Wet, landlord, cloaker, glory seekers with anchor
+  // pin", the cocoon rescue and the ettercap named 11-22) -- each a whole song, each fight dealt its song, the gulch's two fought in place carrying theirs to the fight's tune,
+  // a random fight still `battle`; 3. Vivian's hire ("44 - ... the element placing on screen that blocks the talk isn't an art issue") -- a hero answering with no talking
+  // portrait stands in the hero box BESIDE the answers, either side, and Barley in his chain on his bust; 4. the Snoot's sides ("47 yes") -- the Harbinger's pack and the
+  // Dominion enemies; 5. the bands that stay on ("...have them with a tent in the inn yard for their 'staying on'") -- at a tent in the yard by day and after dark, none at
+  // the supper's table, the tent the gulch's own, standing in the way; none on the wagon night
+  if (get('mode', '') === 'odds1125') {
+    var repO = { checks: [], errors: [] }, CO5 = D.counter, RO5 = D.roam, InO = D.inn, HO = D.house, GuO = D.gulch, AUO = window.DS.audio;
+    var okO = function (c, s) { repO.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var stGO = D.store.get, stSO = D.store.set, memO = {}, mu0 = D.music, songsO = [];
+    D.store.get = function (k) { return memO[k]; }; D.store.set = function (k, v) { memO[k] = v; }; D.music = function (id) { songsO.push(id); };
+    var driveO = function (g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); };
+    var topO = function () { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveO(s.co, null, 2); return s; };
+    var floorO = function (q) { var B = RO5.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topO(); };
+    try {
+      // 1. KAEL'S SHELF: his counter, his word, THE SHELVES -- spear, pike, glaive, halberd, quarterstaff at the SRD's price (silver: gp x 10), SELL shut
+      var SHk = window.DS.DATA.shops.kael, ITk = window.DS.DATA.items, SRDk = { spear: 10, pike: 50, glaive: 200, halberd: 200, quarterstaff: 2 }, badK = [];
+      Object.keys(SRDk).forEach(function (id) { if (!ITk[id] || ITk[id].price !== SRDk[id]) badK.push(id + ' ' + (ITk[id] ? ITk[id].price : 'MISSING')); });
+      okO(!!SHk && SHk.items.join() === Object.keys(SRDk).join() && SHk.buys === false && !badK.length && CO5.VENDORS.kael.shop === 'kael' && !CO5.VENDORS.kael.wait,
+        'Kael\'s shelf: ' + (SHk ? SHk.name + ' -- ' + SHk.items.join(', ') + ', buys ' + SHk.buys : 'NONE') + (badK.length ? '; WRONG PRICES ' + badK.join('; ') : ', SRD-priced') + '; his counter on it: ' + JSON.stringify(CO5.VENDORS.kael));
+      var Bk = floorO('?roam=silverton&hour=10&lvl=3'), uK = Bk.units.filter(function (u) { return u.npc === 'kael'; })[0];
+      var Bk2 = floorO('?roam=silverton&hour=21&lvl=3'), uK2 = Bk2.units.filter(function (u) { return u.npc === 'kael'; })[0]; D.scenes.length = 0; D.push(Bk); topO();
+      var gK = CO5.talk(Bk, 'kael'), scK = null; driveO(gK, function () { var s = D.top(); if (s instanceof CO5.Counter) scK = s; return !!scK; }, 50);
+      for (var kk = 0; scK && kk < 400 && !(scK.wait && scK.wait.opts); kk++) { scK.update(); var okB = scK.wait && !scK.wait.opts && scK.buttons().filter(function (b) { return b.go === 'ok' || b.go === 'next'; })[0]; if (okB) scK.press(okB); }
+      var wK = scK && scK.wait || {};
+      okO(!!scK && (wK.opts || []).join() === 'THE SHELVES,LEAVE', 'his word at his counter (by day at ' + (uK ? uK.x + ',' + uK.y : 'NOT STOOD') + ', after dark at ' + (uK2 ? uK2.x + ',' + uK2.y : 'NOT STOOD') + ' on silverton): "' + [].concat(wK.ask || wK.say || []).join(' ') + '" ' + JSON.stringify(wK.opts || null));
+      if (scK && wK.opts) {
+        scK.press(scK.buttons().filter(function (b) { return b.go === 'opt' && b.label === 'THE SHELVES'; })[0]);
+        var rowsK = scK.shop ? scK.rows().map(function (r) { return r.label + ' ' + r.right; }) : [], sellK = scK.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0];
+        okO(scK.shopId === 'kael' && rowsK.join() === 'Spear 10 sp,Pike 50 sp,Glaive 200 sp,Halberd 200 sp,Quarterstaff 2 sp' && (!sellK || !!sellK.off), 'THE SHELVES: ' + scK.shopId + ' -- ' + rowsK.join('; ') + '; SELL ' + (sellK ? (sellK.off ? 'shut' : 'OPEN') : 'none'));
+        var stK = scK.st; if (stK.silver() < 300) stK.silver(300 - stK.silver());
+        var s0K = stK.silver(), nPk = stK.inv.filter(function (s) { return s.id === 'pike'; }).reduce(function (a, s) { return a + s.n; }, 0);
+        scK.press(scK.buttons().filter(function (b) { return b.row && b.label === 'Pike'; })[0]); scK.sub = null;
+        var nPk2 = stK.inv.filter(function (s) { return s.id === 'pike'; }).reduce(function (a, s) { return a + s.n; }, 0);
+        okO(stK.silver() === s0K - 50 && nPk2 === nPk + 1 && SHk.thanks.indexOf(scK.msg) >= 0, 'a buy: the pike, silver ' + s0K + ' > ' + stK.silver() + ', pikes ' + nPk + ' > ' + nPk2 + ', "' + scK.msg + '"');
+        scK.close();
+      }
+      // 2. THE STORY BATTLES' SONGS: four whole songs; the six fights dealt theirs; the gulch's two fought in place carry theirs to the fight's tune; a random fight `battle`
+      var SGO = AUO && AUO.SONGS || {}, badS = [];
+      ['silk', 'undertow', 'gallery', 'glory'].forEach(function (k) { var s = SGO[k], ln = s ? s.tracks.map(function (t) { return t.notes.reduce(function (a, n) { return a + n[1]; }, 0); }) : []; if (!s || !s.loop || ln.length !== 4 || ln.some(function (x) { return x !== 256; })) badS.push(k + ' ' + (s ? ln.join('/') : 'MISSING')); });
+      okO(!badS.length, 'the four songs, each 16 bars a loop, every voice the same length (js/audio.js: silk, undertow, gallery, glory)' + (badS.length ? ' -- WRONG ' + badS.join('; ') : ''));
+      var WANTS = { snared: 'silk', ettercap: 'silk', wet: 'undertow', keeper: 'undertow', cloaker: 'gallery', snoot: 'glory' }, gotS = Object.keys(WANTS).map(function (id) { var f = D.fight(id); return id + ' ' + (f ? f.music : 'NONE'); });
+      okO(Object.keys(WANTS).every(function (id) { var f = D.fight(id); return f && f.story && f.music === WANTS[id]; }) && D.fight('snoot-ladder').music === 'boss' && D.fight('landlord').music === 'boss',
+        'the story fights dealt theirs: ' + gotS.join(', ') + ' (the ladders\' own keep boss: snoot-ladder ' + D.fight('snoot-ladder').music + ', the landlord\'s ' + D.fight('landlord').music + ')');
+      var eng0 = RO5.engage, capO = [], Bg = floorO('?roam=webgulch&hour=10&lvl=3');
+      RO5.engage = function* (B, grp, lurk, why) { capO.push((grp && grp.music) + '/' + why + '/' + (grp && grp.flag)); RO5.fightTune(grp); };
+      var tokO = function (rect) { var t = Bg.roam.token; t.x = rect[0]; t.y = rect[1]; t.tween = null; Bg.roam.path = null; D.grid.setup(D.grid.map, Bg.units); }; // (the party where the fight's step is: the hollow's, the lair's neck)
+      try { songsO = []; tokO(GuO.LAD.rect); driveO(GuO.snaredInPlace(Bg, true), null, 3000); var sLad = songsO.slice(); songsO = []; tokO(GuO.LAIR.rect); driveO(GuO.lairInPlace(Bg, true), null, 3000); var sLair = songsO.slice(); }
+      finally { RO5.engage = eng0; }
+      okO(capO.length === 2 && /^silk\/snared\//.test(capO[0]) && /^silk\/ettercap\//.test(capO[1]) && sLad.indexOf('silk') >= 0 && sLair.indexOf('silk') >= 0, 'Web Gulch\'s two fought where you stand carry their song to the fight: the snared lad ' + capO[0] + ' (played ' + sLad.join('>') + '), the lair ' + capO[1] + ' (played ' + sLair.join('>') + ')');
+      var A0 = AUO && AUO.songId; if (AUO) AUO.songId = 'dungeon'; songsO = []; var tR = RO5.fightTune({}); if (AUO) AUO.songId = A0;
+      okO(tR === 'battle' && songsO.join() === 'battle' && RO5.FIGHT_TUNES.silk && RO5.FIGHT_TUNES.glory, 'a random fight on a floor still plays battle (' + tR + '); the four count as fight tunes (a set fight\'s own runs on)');
+      // 3. VIVIAN'S HIRE: a hero with no talking portrait in the hero box beside the answers, on either side; Barley in his chain on his bust, the answers clear of him
+      var hs0O = CO5.heroSheet, cvO = document.createElement('canvas'); cvO.width = D.W; cvO.height = D.H; var cxO = cvO.getContext('2d');
+      CO5.heroSheet = function (h) { return h.sheetO || hs0O(h); };
+      var boxedO = function (sc) { return CO5.openBoxed ? CO5.openBoxed(sc) : !CO5.heroPortrait(sc.hero); }; // (before 11-25 there was no such call: the box was there all the same)
+      var openO = function (hero, side) { var sc = new CO5.Counter(null, { id: 'vivian', name: 'Vivian', place: 'Vice row', what: 'selling candles', room: true, open: true, bg: function () { return false; }, script: function (s) { s.hero = hero; if (side) s.heroSide = side; return (function* () { yield s.ask(['Candles? I sell them to everyone.'], ['BUY A CANDLE (1 SP)', 'NOT NOW']); })(); } }); sc.sheet = 'pt_viviancandle'; sc.typeAt = { w: sc.wait, page: sc.page, t0: -1e9, doneT: 0 }; return sc; };
+      try {
+        var noPt = { id: 'barley', key: 'barley', name: 'Barley', sheetO: 'barley_p1' }, offO = [];
+        ['left', 'right'].forEach(function (side) {
+          var sc = openO(noPt, side), bx = sc.bubbleButtons ? sc.bubbleButtons() : [], ob = bx.filter(function (q) { return /CANDLE|NOT NOW/.test(q.label || (q.lines || []).join(' ')); });
+          sc.draw(cxO); // (the box is drawn at the counter's HB: 8 from its side, 86 wide)
+          var clear = ob.length === 2 && ob.every(function (q) { return side === 'left' ? q.x >= 8 + 86 : q.x + q.w <= D.W - 8 - 86; });
+          if (!boxedO(sc) || !clear) offO.push(side + ': ' + (boxedO(sc) ? 'boxed' : 'NOT boxed') + ', answers at ' + ob.map(function (q) { return q.x + '+' + q.w; }).join(' '));
+          else offO.push(side + ' ok (' + ob.map(function (q) { return q.x + '+' + q.w; }).join(' ') + ')');
+        });
+        okO(offO.every(function (s) { return / ok \(/.test(s); }), 'a hero with no talking portrait (Barley on a sheet with none) in the hero box BESIDE the answers, both clear of the box: ' + offO.join('; '));
+        var mail = { id: 'barley', key: 'barley', name: 'Barley', sheetO: 'barley_p3' }, scM = openO(mail, 'left'), bM = scM.bubbleButtons ? scM.bubbleButtons() : [], fuM = D.SHEETS.pt_barley_mail_full, hwM = fuM ? Math.round(fuM.fw * CO5.OPEN.papa.s) : 0;
+        scM.draw(cxO);
+        var bvm = (D.company.BEATS || []).filter(function (b) { return b.id === 'vivianmail'; })[0], rvm = bvm && D.company.stage(bvm), ldm = rvm && rvm.party[0];
+        okO(!!ldm && ldm.id === 'barley' && ldm.equip.armor === 'chainmail' && CO5.heroPortrait(ldm) === 'pt_barley_mail' && !!rvm.at.sq, 'the show\'s beat vivianmail: ' + (ldm ? ldm.id + ' in ' + ldm.equip.armor + ' on ' + CO5.heroPortrait(ldm) + ', beside her at ' + rvm.at.sq : 'NONE'));
+        okO(CO5.heroPortrait(mail) === 'pt_barley_mail' && !boxedO(scM) && bM.length && bM.every(function (q) { return q.x >= CO5.OPEN.hero.left + hwM; }), 'Barley in his chain on his own bust (' + CO5.heroPortrait(mail) + '), the answers clear of it: ' + bM.map(function (q) { return q.x; }).join(','));
+      } finally { CO5.heroSheet = hs0O; }
+      // 4. THE SNOOT'S SIDES are its own page's probe (dev/snoot-probe.py: "the Harbinger's pack and every Dominion wagon are enemies") -- not here
+      // 5. THE BANDS THAT STAY ON: at a tent in the yard by day and after dark, none at the table; the tent laid on its square, the gulch's own, standing in the way
+      var HGo = D.hunger, at0o = HGo.at, on0o = HGo.on, bandO = function (id, kind) { return { id: id, kind: kind, to: 'inn', toName: 'the Halfway Inn', there: true, arrive: 0, t0: 0, from: [0, 0], toPt: [0, 0] }; };
+      HGo.at = function (site) { return site === 'inn' ? [bandO('bo1', 'farm'), bandO('bo2', 'road')] : []; }; HGo.on = true;
+      var stageO = function (hour, inside, flags) { InO.play({ key: InO.KEY, at: [24, 17], hour: hour, day: 13, inside: inside, flags: Object.assign({ reachedInn: 1, gennetNamed: 1, mealHad: 1 }, flags || {}) }); return topO(); };
+      var bandsAt = function (B) { return B.units.filter(function (u) { return /^band\d/.test(String(u.npc)); }).map(function (u) { return u.npc + '@' + u.x + ',' + u.y; }); };
+      var tentsAt = function () { var rs = (RO5.def.names8 || RO5.def).rows, out = []; rs.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (r.charAt(x) === 'N') out.push(x + ',' + y); }); return out; }; // (the floor's own names: the grid's rows carry the grid's letters)
+      try {
+        var Bd = stageO(10, false), dayB = bandsAt(Bd), dayT = tentsAt(), legN = ((RO5.def.names8 || RO5.def).legend || {}).N, stand = D.grid.canStand(Bd.roam.token, 5, 15), isoT = ((D.iso.map || {}).props || []).filter(function (p) { return p.kind === 'tent'; }).map(function (p) { return p.sq.x + ',' + p.sq.y; });
+        HO.playing = false; HO.cur = null;
+        var Be = stageO(23, true), eveB = bandsAt(Be), eveT = tentsAt(); HO.playing = false; HO.cur = null;
+        var Bw = stageO(23, false, { wagonIn: 1 }), wagB = bandsAt(Bw), wagT = tentsAt(); HO.playing = false; HO.cur = null;
+        var yard = ['band0_0@7,14', 'band0_1@7,15', 'band0_2@7,16', 'band1_0@7,23', 'band1_1@7,24'].join();
+        okO(dayB.join() === yard && dayT.join() === '5,15,5,24' && legN === 'tent' && stand === false, 'by day at their tents in the yard: ' + dayB.join(' ') + '; the tents laid at ' + dayT.join(' ') + ' (' + legN + '), the square ' + (stand ? 'WALKABLE' : 'in the way') + (isoT.length ? ', drawn on the diamonds at ' + isoT.join(' ') : ''));
+        okO(eveB.join() === yard && eveT.join() === '5,15,5,24' && !eveB.some(function (s) { return /@2\d,1\d$/.test(s); }), 'after dark, the party in at supper: still at their tents (' + eveB.join(' ') + '), none at the long table');
+        okO(!wagB.length && !wagT.length, 'the wagon night: no band stood and no tent (' + wagB.length + ' stood, ' + wagT.length + ' tents)');
+      } finally { HGo.at = at0o; HGo.on = on0o; HO.playing = false; HO.cur = null; }
+    } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
+    D.store.get = stGO; D.store.set = stSO; D.music = mu0;
+    if (errs.length) repO.errors = repO.errors.concat(errs); var fO = repO.checks.filter(function (c) { return /^FAIL/.test(c); }).length; repO.ok = !fO && !repO.errors.length; repO.summary = (repO.checks.length - fO) + '/' + repO.checks.length + ' checks';
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(repO); document.body.appendChild(preO);
     return;
   }
   // BARLEY'S CHAIN-MAIL BUST AND THE ANCHOR-PIN (mode=mailpin1124; 11-24, the cutter seat cutter-1124c, on the art desk's ART-161 and ART-162 -- Griz's "if we lack the barley
