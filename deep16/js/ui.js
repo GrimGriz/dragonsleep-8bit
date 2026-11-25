@@ -732,7 +732,14 @@
   // WHICH OF THEM (11-24, the desk's B1 on his 11-23 lake fight with Gennet -- "gennet shows in party / healing targeting viv"; the lean RULED by his "leans otherwise approved": the
   // first of ours in the claws took every heal on its square, so with Vivian and Gennet both held Lay on Hands and Cure Wounds went to Vivian): the figure the mouse is on, if it
   // is one of them; else the one down, if one is; else the first, with B.heldAmbig set for UI.command to ask WHICH ONE? (battle.js exec 'whichheld')
-  function heldAll(B, u, w) { if (!w || !G.hostile(u, w) || !D.Battle.clawHeld) return []; return D.Battle.clawHeld(B, w).filter(function (h) { return h.side === u.side && !h.dead; }); }
+  // (and one of ours inside the shambling mound -- engulfed, no cover: js/engulf.js E.heldFor, 11-25; one inside the cube has total cover, and is nobody's to touch from outside)
+  function heldAll(B, u, w) { if (!w || !G.hostile(u, w) || !D.Battle.clawHeld) return []; return D.Battle.clawHeld(B, w).filter(function (h) { return h.side === u.side && !h.dead; }).concat(D.engulf ? D.engulf.heldFor(B, u, w) : []); }
+  // PULL OUT's friend: the one the mouse is on, else the square's -- or, the square a holder's, one of ours inside it (the cube: js/engulf.js, 11-25)
+  function pullPick(B, u, w) {
+    var ok = D.Battle.whelmed(u, B.units), hv = B.hoverUnit; if (hv && ok.indexOf(hv) >= 0) return hv;
+    if (w && ok.indexOf(w) >= 0) return w;
+    return w ? ok.filter(function (h) { var e = h.conds && h.conds.engulfed; return !!e && e.by === w.id; })[0] || null : null;
+  }
   function heldIn(B, u, w) {
     var hs = heldAll(B, u, w); B.heldAmbig = null;
     if (hs.length <= 1) return hs[0] || null;
@@ -741,7 +748,7 @@
     B.heldAmbig = { t: B.t, list: hs.slice() };
     return dn[0] || hs[0];
   }
-  function heldNear(B, u, h) { var by = h && h.inClaws && B.units.filter(function (c) { return c.id === h.inClaws.by; })[0]; return !!by && G.dist(u, by) <= 5; }
+  function heldNear(B, u, h) { if (h && h.conds && h.conds.engulfed && D.engulf) return D.engulf.near(B, u, h); var by = h && h.inClaws && B.units.filter(function (c) { return c.id === h.inClaws.by; })[0]; return !!by && G.dist(u, by) <= 5; }
   UI.heldIn = heldIn;
   // THE FIGURE THE MOUSE IS ON IS THE CLICK'S TARGET (11-03, Griz, his Pocket DM fights: "see stirge targetting difficulties" and "The 5-foot flight above 4 foes targeting (manticore)"): occ is
   // G.occupant's answer, the creature standing on the square first, and a flier aloft over it, a rider on its head or shoulder, a big body's other squares are all "that square's" creature
@@ -774,7 +781,7 @@
     var best = null, bd = -1e9, pick = null, pd = -1e9, pv = 0, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal || u.object) return;
-      var p = u.riding && u.master ? perchPos(B, u, z) : u.inClaws ? clawPos(B, u) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
+      var p = u.riding && u.master ? perchPos(B, u, z) : u.inClaws ? clawPos(B, u) : (u.conds && u.conds.engulfed && insidePos(B, u)) || unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder) (engulfed: picked where it is drawn, inside -- js/engulf.js, 11-25)
       var lf = !u.riding && lyingFrame(u), lm = lf && D.spr.frameMask(u.sheet, lf[0], u.facing || 0, lf[1]), lk = D.spr.scaleOf(u) * z; // (lying flat: the frame it lies at, its pixels as drawn -- sprites.js S.frameMask, 10-05)
       var onLie = !!lm && D.spr.frameHit(lm, (mx - p.x) / lk, (my - p.y) / lk, 2);
       if (!onLie && !(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z) && !(s > 1 && !u.riding && UI.inCube(UI.cubeHull(B, u), mx, my))) return;
@@ -1127,7 +1134,7 @@
     // ring to do it for the first attack on the darkmantle"): hv above, for any foe the mouse is on -- a rider, a flier aloft, a big body (11-03)
     if (!s || !s.open) return 'no';
     if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
-    if (tool === 'pullout') return w && D.Battle.whelmed(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (PULL OUT: a friend the water elemental holds, it beside you -- 10-14)
+    if (tool === 'pullout') return pullPick(B, u, w) ? 'ok' : 'no'; // (PULL OUT: a friend the water elemental holds, it beside you -- 10-14; or one inside the gelatinous cube, picked on its square -- js/engulf.js, 11-25)
     if (tool === 'breaktendril') return w && D.Battle.breakable(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (BREAK THE TENDRIL: the one it holds -- you, or a friend beside you -- 10-02)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       // a rope's square (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it (unless someone is on it - in which case I think they'll
@@ -1325,7 +1332,7 @@
     var T = u.turn, tool = B.tool, w = occ(x, y), hv = hoveredAt(B, x, y), foe = liveFoe(u, hv) || liveFoe(u, w), v = UI.valid(B, u, x, y); // (hv: the figure the mouse is on -- the click is on it, a foe first: UI.valid)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
-    if (tool === 'pullout') { if (v === 'ok') return UI.command(B, u, { do: 'pullout', target: w }); return B.card(['{o}Pull out: a friend the water elemental holds, the elemental beside you.{/}'], 120); }
+    if (tool === 'pullout') { if (v === 'ok') return UI.command(B, u, { do: 'pullout', target: pullPick(B, u, w) }); return B.card(['{o}Pull out: a friend the water elemental or the gelatinous cube holds, it beside you.{/}'], 120); } // (the cube's: js/engulf.js, 11-25)
     if (tool === 'breaktendril') { if (v === 'ok') return UI.command(B, u, { do: 'breaktendril', target: w }); return B.card(['{o}Break the tendril: the one it holds -- yourself, or a friend beside you.{/}'], 120); }
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (v === 'cut') return UI.command(B, u, { do: 'cutrope', x: x, y: y }); // (a rope a foe hangs on: struck from its top -- 10-04 night)
@@ -1817,7 +1824,7 @@
   // footprints share a square tie on depth (or a Huge one lying has the deeper corner), and the tie fell to the order of B.units. One lying -- dead, at 0, or prone -- is drawn
   // first: whoever stands on any square of it is drawn just after it. Riders and one held in claws keep their own place (perchPos, clawPos)
   UI.liftOverFallen = function (objs) {
-    var us = objs.filter(function (o) { return o.unit && !o.unit.riding && !o.unit.inClaws; });
+    var us = objs.filter(function (o) { return o.unit && !o.unit.riding && !o.unit.inClaws && !(o.unit.conds && o.unit.conds.engulfed); }); // (nor one engulfed: insidePos, 11-25)
     var lies = function (u) { return u.dead || u.hp <= 0 || !!(u.conds && u.conds.prone); };
     var down = us.filter(function (o) { return lies(o.unit); }); if (!down.length) return objs;
     var meets = function (a, b) { var sa = a.size || 1, sb = b.size || 1; return a.x < b.x + sb && b.x < a.x + sa && a.y < b.y + sb && b.y < a.y + sa; };
@@ -1947,6 +1954,21 @@
     return { x: hp.x + p1.x - p0.x, y: hp.y + p1.y - p0.y, depth: hp.depth + cp.x + cp.y + 0.05, gz: hp.gz, claw: true };
   }
   UI.clawPos = clawPos; // (dev/bench16.js mode=innfights1106)
+  // INSIDE IT (js/engulf.js, 11-25, Griz: "sounds like both are enemy and player sharing a square conditions as well, with the cutter firing out some fancy wiring"): one engulfed is
+  // drawn at its holder's middle (several in the cube, each a little toward its own square of it), just in front of the holder's figure -- held up in the cube and drifting, faint
+  // and tinted the ooze's green; sunk to the chest in the mound, its vines drawn over it (unitObj; js/engulf.js E.drawVines). Going in, it eases from where it stood (E.take's tween)
+  function insidePos(B, u) {
+    var e = u.conds && u.conds.engulfed, h = e && B.units.filter(function (w) { return w.id === e.by; })[0];
+    if (!h || h.left) return null;
+    var c = D.engulf && D.engulf.cfg(h), cube = !!(c && c.kind === 'cube'), hp = unitPos(B, h), s = h.size || 1, sl = e.slot || [0, 0], ws = u.size || 1;
+    var ox = sl[0] + (ws - 1) / 2 - (s - 1) / 2, oy = sl[1] + (ws - 1) / 2 - (s - 1) / 2, kq = cube ? 0.45 : 0.2; // (its square from the holder's middle, drawn closer in)
+    var c0 = D.iso.center(0, 0, 0), c1 = D.iso.center(ox * kq, oy * kq, 0), p0 = D.iso.toScreen(c0.x, c0.y), p1 = D.iso.toScreen(c1.x, c1.y);
+    var bob = cube ? Math.round(2 * Math.sin(B.t / 14 + (u.id || '').length)) : 0, lift = cube ? 10 : -14; // (up off the cube's floor, drifting; down into the heap)
+    var p = { x: hp.x + p1.x - p0.x, y: hp.y + p1.y - p0.y - lift - bob, depth: hp.depth + 0.02, gz: hp.gz, inside: cube ? 'cube' : 'mound', base: hp.y + 2 };
+    var tw = u.tween; if (tw && tw.dur && tw.t < tw.dur) { var q = unitPos(B, u), kk = Math.max(0, Math.min(1, tw.t / tw.dur)); p.x = q.x + (p.x - q.x) * kk; p.y = q.y + (p.y - q.y) * kk; }
+    return p;
+  }
+  UI.insidePos = insidePos; // (dev/bench16.js mode=engulf1125)
   // where a rider sits on the one it rides -- drawn there (unitObj) and picked there by the mouse (UI.pickUnit; 10-01, Griz: "I can't get any indication I'm
   // mousing over the one on his head"). k: the pixels' scale (1 on the world canvas, the zoom on the screen). The one it rides drawn bigger (Enlarge) carries it higher
   // SEATS (11-03, Griz: "see stirge targetting difficulties"): several riders on one host (the stirges -- Battle.attach keeps each one's record) all took the one spot, drawn over each other and
@@ -2006,6 +2028,7 @@
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
     if (u.inClaws && !u.dead && !u.left) { p = clawPos(B, u); var hCl = p.claw && B.units.filter(function (w) { return w.id === u.inClaws.by; })[0]; if (hCl) u.facing = ((hCl.facing || 0) + 4) % 8; } // (in a chuul's claws: drawn at the claw, facing it -- battle.js clawIn, 11-06)
+    if (u.conds && u.conds.engulfed && !u.dead && !u.left) { var ipE = insidePos(B, u); if (ipE) p = ipE; } // (engulfed: drawn inside its holder -- insidePos, js/engulf.js, 11-25)
     if (u.kind === 'keeper' && u.dead && B.t - (u.deadT || B.t) > 50) return null; // (a destroyed Keeper is gone from the water: only calm waves stay, js/keeper.js)
     if (u.left) return null; // out of the fight, the way they came in
     if (u.kind === 'keeper' && D.keeper && !u.dead && (!u.anim || u.anim === 'idle')) D.keeper.face(B, u); // (it faces the party, idle: js/keeper.js)
@@ -2066,6 +2089,7 @@
         // hiding (10-07, the goblin's Hide: its sheet's `hide` row, a crouch behind its shield): the row plays at the Hide (battle.js hide sets it, the once-rows above), and while it stays
         // hidden and would stand idle it keeps the row's last frame -- the crouch held; one that walks or strikes shows that, and one found stands up
         if (!down && u.inClaws && p.claw && has('flinch')) { anim = 'flinch'; o.frame = D.spr.anim(u.sheet, 'flinch').frames - 1; o.once = false; } // (in its claws: caught, the flinch's last frame held -- battle.js clawIn, 11-06)
+        if (!down && p.inside && (anim === 'idle' || anim === 'walk') && has('flinch')) { anim = 'flinch'; o.frame = D.spr.anim(u.sheet, 'flinch').frames - 1; o.once = false; } // (engulfed: caught, the same -- js/engulf.js, 11-25)
         if (!down && u.conds.hidden && anim === 'idle' && has('hide')) { anim = 'hide'; o.frame = D.spr.anim(u.sheet, 'hide').frames - 1; o.once = false; }
         // the water elemental holding what it whelmed (SRD 5.1 Whelm, js/ai.js whelm): swollen round them, its Whelm row's last frame held, the hide's way (10-14)
         if (!down && anim === 'idle' && u.whelm && (u.holding || []).some(function (w) { return G.standing(w); }) && has('whelm')) { anim = 'whelm'; o.frame = D.spr.anim(u.sheet, 'whelm').frames - 1; o.once = false; }
@@ -2118,7 +2142,8 @@
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.poisoned && !down) { var tP = UI.condTint(u, B.t); o.tint = tP[0]; o.tintAlpha = tP[1]; } // (poisoned, a tint of its own: UI.condTint, 11-24)
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; } // (webbed, its web over the figure too: js/looks.js LK.web)
-        if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head' || u.perch === 'over'))) {
+        if (!down && p.inside && !u.flash) { o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, p.inside === 'cube' ? 0.62 : 0.6); o.tint = p.inside === 'cube' ? '#3f9c8c' : R('moss', 2); o.tintAlpha = 0.45; } // (inside it: faint, in its holder's colour -- js/engulf.js, 11-25)
+        if (!u.ethereal && !(u.dead && !has('hurt')) && !p.inside && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head' || u.perch === 'over'))) {
           var s = u.size || 1, gp = p;
           if (G.aloft(u) && !u.tween) { var gc = D.iso.center(u.x + (s - 1) / 2, u.y + (s - 1) / 2, G.groundAt(u, u.x, u.y)); gp = D.iso.toScreen(gc.x, gc.y); ctx.strokeStyle = 'rgba(214,220,232,.5)'; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(gp.x, gp.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.setLineDash([]); } // (aloft: its shadow on the ground under it, a faint line up to it -- flight at a height, 10-08)
           ctx.fillStyle = gp !== p ? 'rgba(6,5,10,.6)' : 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(gp.x, gp.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
@@ -2136,7 +2161,7 @@
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
         // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
         var lift = u.lift && !u.riding && !down ? u.lift + (u.onCounter ? 0 : Math.round(2 * Math.sin(B.t / 6))) : 0; // (one sat on a counter does not bob: Ned's rat, js/town.js)
-        var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
+        var wet = !down && !lift && !p.inside ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim; // (inside a holder: no water line of its own -- js/engulf.js, 11-25)
         if (!down) an0 = D.spr.inHand(u, an0, !!B.roam); // (what is in the hand: Aurdin's staff rows while he holds it, its planted rest on the roam -- sprites.js S.inHand, 10-20)
         if (u.kind === 'keeper' && u.flooding) { /* it is the swirl about someone: drawn with the walls' props (js/keeper.js), no humanoid */ }
         else if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
@@ -2145,6 +2170,9 @@
           ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, wl, cw * 2, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
           var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5, rh = rw * 0.38; if (u.kind === 'keeper') { rw = 58 + Math.sin(B.t / 9) * 2; rh = 29 + Math.sin(B.t / 9); } /* (the Keeper's water line is the ellipse in its own 2x2: Griz 10-03, "the 2x2 centred on the circle around his thighs") */ ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rh, 0, 0, 7); ctx.stroke(); ctx.restore();
           if (wet.sink) for (var bi = 0; bi < 3; bi++) { var bp = ((B.t + bi * 17) % 40) / 40; ctx.fillStyle = 'rgba(200,225,245,' + (0.7 * (1 - bp)).toFixed(2) + ')'; ctx.fillRect(Math.round(p.x - 4 + bi * 4 + Math.sin((B.t + bi * 9) / 5) * 1.5), Math.round(wl - bp * 14), 1 + (bi % 2), 1 + (bi % 2)); } // (the breath going up)
+        } else if (p.inside === 'mound') { // (inside the shambling mound: sunk into the heap to the chest -- nothing drawn under its foot line -- and its vines over it: js/engulf.js, 11-25)
+          ctx.save(); ctx.beginPath(); ctx.rect(p.x - 80, p.y - 240, 160, p.base - (p.y - 240)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, p.y, body); ctx.restore();
+          if (D.engulf) D.engulf.drawVines(ctx, B, u, p, 1);
         } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x + (lift && u.liftX ? u.liftX : 0), p.y - lift, body); // (u.liftX: one carried rides to the side, at the shoulder -- the inn's kept child, js/inn.js BY.shoulder, 11-18)
         // ?footprint: the Keeper's mechanical squares (what the grid, the ice and the area spells ask), their centre, and its water line, over the drawing (Griz 10-03: check the 2x2 against the ring)
         if (D.footprintDebug && u.kind === 'keeper' && !u.dead) {

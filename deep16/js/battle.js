@@ -1069,6 +1069,7 @@
         this.active = u;
         this.carryCheck(); // (a carrier fallen, or the carried up again: set down -- 10-13)
         if (u.carriedBy) { this.active = null; continue; } // (carried: no turn of its own)
+        if (u.engulfing && D.engulf) yield* D.engulf.turnStart(this, u); // (the ones it has engulfed, at the start of its turn: the mound's crush, the cube's acid -- js/engulf.js, 11-25)
         if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
         else { var fromR = null; if (this.rec && D.rec && D.rec.aiTurn) { try { D.rec.aiTurn(this, u); fromR = D.rec.foeFrom ? D.rec.foeFrom(this, u) : null; } catch (eR) { /* (the record must never stop a turn) */ } } if (G.aloft(u) && !u.floats && !(D.flightAI && D.flightAI.on(this.fight) && u.flies)) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); if (fromR) { try { D.rec.foeWalked(this, u, fromR); } catch (eR2) { /* (as above) */ } } } // (a watched fight's turns of ours are steps in its play record: js/record.js REC.aiTurn, 11-03 night; a foe's walk a line of the record's own, REC.foeWalked, 11-18) // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
@@ -1493,7 +1494,7 @@
     if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: (((Battle.attOf(pulls[0].master, pulls[0]) || pulls[0].master.conds.attached || {}).dc || 13) > 1 ? 'a STR check, DC ' + ((Battle.attOf(pulls[0].master, pulls[0]) || pulls[0].master.conds.attached || {}).dc || 13) : 'an action, no check') + ': ' + Battle.theWord(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) }); // (a stirge comes off for the action alone, SRD 5.1: the note said "a STR check, DC 1" -- the bestiary lane's 2.2, 11-13; the rider's own record, not the first one's: Battle.attOf)
     // PULL OUT (SRD 5.1 Water Elemental, Whelm: anyone within 5 ft of the elemental, a DC 14 STR check as an action): a friend it holds (10-14)
     var drowning = Battle.whelmed(u, this.units);
-    if (drowning.length) out.push({ id: 'pullout', label: 'PULL OUT', cost: 'A', icon: 'free', tool: 'pullout', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + drowning[0].conds.restrained.dc + ': a friend out of the water elemental, the elemental beside you' });
+    if (drowning.length) out.push({ id: 'pullout', label: 'PULL OUT', cost: 'A', icon: 'free', tool: 'pullout', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + drowning[0].conds.restrained.dc + (drowning[0].conds.restrained.engulf ? ': a friend out of the gelatinous cube, the cube beside you -- 3d6 acid to your arm' : ': a friend out of the water elemental, the elemental beside you') }); // (the cube's: js/engulf.js, 11-25)
     // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"): the one it holds,
     // or a friend beside; the tendril is struck at with ATTACK on the held one's square (tendrilOn). 10-02, handoff-2026-10-01-the-tendrils-and-ready
     var brks = Battle.breakable(u, this.units);
@@ -2208,7 +2209,7 @@
         yield 30; return;
       }
       case 'pullout': { // PULL OUT: a friend out of the water elemental (SRD 5.1 Whelm: a DC 14 STR check as an action; Athletics, as breakFree and PULL IT OFF read it)
-        var pw = c.target, pr = pw && pw.conds.restrained; if (!pr || !pr.whelm || Battle.whelmed(u, this.units).indexOf(pw) < 0) return;
+        var pw = c.target, pr = pw && pw.conds.restrained; if (!pr || !(pr.whelm || pr.engulf) || Battle.whelmed(u, this.units).indexOf(pw) < 0) return; // (or out of the gelatinous cube: js/engulf.js, 11-25)
         var ph = this.units.filter(function (x) { return x.id === pr.by; })[0], en2 = u.conds.enlarged, ce2 = RU.checkEdges(u, 'str');
         var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down)) || ce2.dis.length > 0;
         var b1 = D.d(20), b2 = D.d(20), e20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
@@ -2216,6 +2217,9 @@
         T.action = 0; RU.spendHelp(u); D.sfx('run');
         this.card(['{y}' + u.name + '{/} reaches into ' + Battle.theWord(ph) + ' for ' + pw.name + ' and pulls: STR d20 ' + e20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + ' = ' + pt2 + ' vs DC ' + pr.dc + '  ' + (pt2 >= pr.dc ? '{n}OUT{/}' : '{g}the water holds on{/}')]);
         if (pt2 >= pr.dc) { this.release(ph, pw); FX.sparkle(pw, 'blue', 12); }
+        // (the cube's: "the creature making the attempt takes 10 (3d6) acid damage", SRD 5.1 -- out or not; js/engulf.js, 11-25)
+        var pcE = pr.engulf && D.engulf && ph && D.engulf.cfg(ph), plE = pcE && pcE.pull;
+        if (plE) { var raE = D.roll(plE.dice); this.card(['{y}' + u.name + '{/}\'s arm in the ooze: ' + plE.dice + ' ' + RU.fmtRolls(raE.rolls) + ' = {r}' + raE.total + '{/} ' + plE.type], 220); this.hurt(u, raE.total, plE.type, {}); }
         yield 30; return;
       }
       case 'breaktendril': { // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
@@ -2511,6 +2515,7 @@
       u.x = nx; u.y = ny;
       if (u.carrying) this.carryAlong(u); // (one carried out of the fight rides along: pickUp, 10-13)
       if (u.clawing) this.clawAlong(u); // (and one in its claws: Battle.clawIn, 11-06)
+      if (u.engulfing && D.engulf) D.engulf.sync(this, u); // (and the ones it has engulfed, inside it: js/engulf.js, 11-25)
       var dropFt = G.map.def.climb && !u.flies && !u.climbs && !rpS && !hung0 ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down, as one on a rope does)
       if (csD && !csDmiss) dropFt = 0; // (climbed down: no fall)
       if (u.hang && !G.hanging(u)) delete u.hang; // (off the rope: at its top, or stepped away from its foot)

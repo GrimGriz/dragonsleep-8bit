@@ -14920,17 +14920,120 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okMD('1 Lightning Absorption: 100 HP + 12 lightning = ' + hpL + ' (want 112); at ' + (MO.maxhp - 3) + ' of ' + MO.maxhp + ' it stops at ' + hpTop + '; 12 fire leaves ' + hpF + ' (want 94, resisted); its charged row ' + MO.anim, hpL === 112 && hpTop === MO.maxhp && hpF === 94);
       MO.hp = MO.maxhp; FI.x = MO.x + 2; FI.y = MO.y; D.grid.setup(D.grid.map, BMd.units);
       D.d = function (n) { return n === 20 ? 18 : d0MD.apply(this, arguments); };
-      BMd.active = MO; D.rules.startTurn(MO); drainMd(BMd.attack(MO, FI, MO.attacks.slam));
-      var gr = FI.conds.restrained && FI.conds.restrained.grapple ? FI.conds.restrained : null, held = (MO.holding || []).indexOf(FI) >= 0, hp0 = FI.hp;
-      drainMd(BMd.attack(MO, FI, MO.attacks.engulf)); var hp1 = FI.hp;
-      okMD('2 Engulf, the cube\'s rule: a Slam that hits grips the fighter (grappled ' + !!(gr && gr.by === MO.id) + ', held ' + held + ', escape DC ' + (gr && gr.dc) + '); Engulf lands on the one it holds: ' + hp0 + ' to ' + hp1 + ' HP',
-        !!(gr && gr.by === MO.id && gr.dc === 14) && held && hp1 < hp0 && !!MO.attacks.engulf.needsHeld);
+      // (2 since 11-25: Engulf by the SRD, js/engulf.js -- both Slams hitting it grip it, DC 14, and engulf it; mode=engulf1125 has the rest. Till then: one Slam gripped, and an Engulf blow landed)
+      BMd.active = MO; D.rules.startTurn(MO); drainMd(BMd.attack(MO, FI, MO.attacks.slam)); var one = !FI.conds.restrained, hp0 = FI.hp;
+      drainMd(BMd.attack(MO, FI, MO.attacks.slam)); var hp1 = FI.hp;
+      var gr = FI.conds.restrained && FI.conds.restrained.grapple ? FI.conds.restrained : null, held = (MO.holding || []).indexOf(FI) >= 0;
+      okMD('2 Engulf by the SRD: one Slam\'s hit grips nothing (' + one + '); the second\'s grips the fighter (escape DC ' + (gr && gr.dc) + ', held ' + held + ') and engulfs him (' + !!FI.conds.engulfed + '); the second Slam\'s ' + hp0 + ' to ' + hp1 + ' HP',
+        one && !!(gr && gr.by === MO.id && gr.dc === 14) && held && !!(FI.conds.engulfed && FI.conds.engulfed.by === MO.id) && hp1 < hp0);
       var SM = D.SHEETS.shamblingmound_p1 && D.SHEETS.shamblingmound_p1.anims, want = ['idle', 'walk', 'slam', 'slam2', 'engulf', 'charged', 'flinch', 'hurt', 'prone'];
       okMD('3 its sheet: ' + (SM ? want.map(function (r) { return r + ' ' + (SM[r] ? SM[r].frames : 0); }).join(', ') : 'none') + ' (want 6 8 6 6 8 6 4 6 2)', !!SM && want.map(function (r) { return SM[r] ? SM[r].frames : 0; }).join() === '6,8,6,6,8,6,4,6,2');
     } catch (eMD) { repMD.errors.push(String(eMD && eMD.stack || eMD).slice(0, 900)); }
     D.d = d0MD;
     var preMD = document.createElement('pre'); preMD.id = 'out'; preMD.textContent = 'BENCH16 ' + JSON.stringify(repMD);
     document.body.appendChild(preMD);
+    return;
+  }
+  // ENGULF BY THE SRD, 11-25 (mode=engulf1125; the seat engulf-1125, the grid's rules lane 2026-11-22 ~19:30Z item 2, Griz: "sounds like both are enemy and player sharing a
+  // square conditions as well, with the cutter firing out some fancy wiring"): js/engulf.js -- ENGULFED, the held one inside its holder's space, moving with it.
+  // The shambling mound (srd/monsters/s.md): two Slams, both hitting a Medium or smaller one -> grappled (escape DC 14) and engulfed (blinded, restrained, no air), one
+  // at a time, a DC 14 CON save at the start of each of its turns or 2d8 + 4. The gelatinous cube (srd/monsters/o.md): Pseudopod; Engulf a move into the squares of
+  // Large-or-smaller creatures, DC 12 DEX each (pushed aside on a success; 3d6 acid and engulfed on a failure), 6d6 acid at the start of each of its turns, out by a
+  // DC 12 STR check (no Acrobatics), pulled out by one beside it (DC 12 STR, 3d6 acid to the puller), total cover inside it, Ooze Cube (pushed into it: the save at
+  // disadvantage). And the look: drawn inside, by UI.insidePos
+  if (get('mode', '') === 'engulf1125') {
+    var repEG = { checks: [], errors: [], notes: [] }, d0EG = D.d;
+    function okEG(what, v) { repEG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var drainEG = function (g) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } while (!r.done && n++ < 5000); return r.value; };
+    var pinEG = function (d20, d6) { D.d = function (n) { return n === 20 && d20 != null ? d20 : n === 6 && d6 != null ? d6 : n === 8 && d6 != null ? d6 : d0EG.apply(this, arguments); }; };
+    var inFoot = function (h, w) { return w.x >= h.x && w.y >= h.y && w.x < h.x + (h.size || 1) && w.y < h.y + (h.size || 1); };
+    var shotEG = function (B, h, tag) { // (&shots=1: the real draw of the fight, on its holder -- for the seat's own eyes; js/ui.js insidePos)
+      if (!get('shots', '')) return;
+      try { var cv = document.createElement('canvas'); cv.width = 480; cv.height = 270; B.units.forEach(function (u) { delete u.tween; }); B.t += 40; B.focus(h); D.ui.drawBattle(cv.getContext('2d'), B); (repEG.shots = repEG.shots || {})[tag] = cv.toDataURL('image/png'); } catch (eSh) { repEG.notes.push('shot ' + tag + ': ' + eSh); }
+    };
+    var openAt = function (B, ws) { // (a flat open 9 x 7 of floor: room for the walks)
+      var m = D.grid.map; for (var y = 1; y + 7 < m.h; y++) for (var x = 1; x + 9 < m.w; x++) { var z = m.gz(x, y), ok = true; for (var j = 0; j < 7 && ok; j++) for (var i = 0; i < 9 && ok; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z || (D.grid.wallAt && D.grid.wallAt(x + i, y + j))) ok = false; } if (ok) return [x, y]; }
+      return null;
+    };
+    try {
+      okEG('0 js/engulf.js loaded (D.engulf)', !!D.engulf);
+      // --- THE SHAMBLING MOUND
+      var BM = D.npcFight('?npc=shamblingmound&vs=fighter:5,cleric:5,wizard:5&lvl=5', {}); D.battle = BM; BM.enter(); var kM = 0; while (!BM.order.length && kM++ < 400) BM.co.next(); BM.dark = false;
+      var MO = BM.units.filter(function (u) { return u.kind === 'shamblingmound'; })[0], pty = BM.units.filter(function (u) { return u.side === 'party'; });
+      var FI = pty.filter(function (u) { return /fighter/i.test(u.cls || ''); })[0] || pty[0], CL = pty.filter(function (u) { return /cleric/i.test(u.cls || ''); })[0] || pty[1], WZ = pty.filter(function (u) { return /wizard/i.test(u.cls || ''); })[0] || pty[2];
+      var at = openAt(BM); BM.units.forEach(function (u) { if (u.side === 'party' && u !== FI && u !== CL && u !== WZ) { u.x = -50; u.y = -50; } });
+      MO.x = at[0] + 3; MO.y = at[1] + 2; FI.x = MO.x - 1; FI.y = MO.y; CL.x = MO.x + 2; CL.y = MO.y + 1; WZ.x = at[0] + 8; WZ.y = at[1] + 6; D.grid.setup(D.grid.map, BM.units);
+      okEG('M1 its routine is the SRD\'s two Slams, no Engulf blow (multi ' + JSON.stringify(MO.multi) + ', attacks ' + Object.keys(MO.attacks).join(',') + ')', Array.isArray(MO.multi) && MO.multi.join() === 'slam,slam' && !MO.attacks.engulf && !(MO.attacks.slam && MO.attacks.slam.grapple));
+      FI.hp = FI.maxhp = 200; CL.hp = CL.maxhp = 200;
+      pinEG(18, 4); BM.active = MO; D.rules.startTurn(MO);
+      drainEG(BM.attack(MO, FI, MO.attacks.slam));
+      var one = !FI.conds.restrained && !FI.conds.grappled && !FI.conds.engulfed;
+      okEG('M2 one Slam that hits grips no one (SRD: both must hit): restrained ' + !!FI.conds.restrained + ', engulfed ' + !!FI.conds.engulfed, one);
+      drainEG(BM.attack(MO, FI, MO.attacks.slam));
+      var eg = FI.conds.engulfed, rs = FI.conds.restrained;
+      okEG('M3 the second Slam\'s hit on the same one: engulfed by it ' + !!(eg && eg.by === MO.id) + ', restrained (escape DC ' + (rs && rs.dc) + '), blinded ' + !!FI.conds.blinded + ', inside its space ' + inFoot(MO, FI) + ' (' + FI.x + ',' + FI.y + '), the square\'s creature the mound ' + (D.grid.occupant(FI.x, FI.y) === MO),
+        !!(eg && eg.by === MO.id) && !!(rs && rs.dc === 14 && rs.by === MO.id) && !!FI.conds.blinded && inFoot(MO, FI) && D.grid.occupant(FI.x, FI.y) === MO);
+      shotEG(BM, MO, 'mound');
+      drainEG(BM.attack(MO, CL, MO.attacks.slam)); drainEG(BM.attack(MO, CL, MO.attacks.slam));
+      okEG('M4 one at a time: two Slams on the cleric with the fighter inside -- grappled (DC ' + (CL.conds.restrained && CL.conds.restrained.dc) + ', only ' + !!(CL.conds.restrained && CL.conds.restrained.only) + '), not engulfed ' + !CL.conds.engulfed,
+        !CL.conds.engulfed && !!(CL.conds.restrained && CL.conds.restrained.by === MO.id && CL.conds.restrained.only && CL.conds.restrained.dc === 14) && !inFoot(MO, CL));
+      if (D.engulf && D.engulf.free) D.engulf.free(BM, CL); else BM.release(MO, CL);
+      var hpA = FI.hp; pinEG(2, 4); BM.card = BM.card; if (D.engulf) drainEG(D.engulf.turnStart(BM, MO)); var hpB = FI.hp;
+      pinEG(19, 4); if (D.engulf) drainEG(D.engulf.turnStart(BM, MO)); var hpC = FI.hp;
+      okEG('M5 the start of its turn: a failed DC 14 CON save takes 2d8 + 4 (pinned 4s: 12) -- ' + hpA + ' to ' + hpB + '; a saved one none -- ' + hpB + ' to ' + hpC, hpA - hpB === 12 && hpC === hpB);
+      CL.x = at[0]; CL.y = at[1] + 6; D.d = d0EG; BM.active = MO; D.rules.startTurn(MO); var mx0 = MO.x; // (the cleric out of its way)
+      drainEG(BM.moveAlong(MO, [[MO.x + 1, MO.y], [MO.x + 2, MO.y]], { spend: true, noOA: true }));
+      okEG('M6 it moves and the one inside moves with it: the mound ' + mx0 + ' to ' + MO.x + ', the fighter at (' + FI.x + ',' + FI.y + ') inside ' + inFoot(MO, FI), MO.x === mx0 + 2 && inFoot(MO, FI) && !!FI.conds.engulfed);
+      BM.active = FI; D.rules.startTurn(FI); pinEG(20, 4); drainEG(D.magic.breakFree(BM, FI)); D.d = d0EG;
+      var out = !FI.conds.engulfed && !FI.conds.restrained && !FI.conds.blinded && !inFoot(MO, FI) && D.grid.dist(MO, FI) <= 5 && D.grid.occupant(FI.x, FI.y) === FI;
+      okEG('M7 out by the escape (DC 14): engulfed ' + !!FI.conds.engulfed + ', blinded ' + !!FI.conds.blinded + ', set down beside it at (' + FI.x + ',' + FI.y + ') ' + D.grid.dist(MO, FI) + ' ft, its own square ' + (D.grid.occupant(FI.x, FI.y) === FI), out);
+      // --- THE GELATINOUS CUBE
+      var BC = D.npcFight('?npc=cube&vs=fighter:5,cleric:5,wizard:5&lvl=5', {}); D.battle = BC; BC.enter(); var kC = 0; while (!BC.order.length && kC++ < 400) BC.co.next(); BC.dark = false;
+      var CU = BC.units.filter(function (u) { return u.kind === 'cube'; })[0], pc = BC.units.filter(function (u) { return u.side === 'party'; });
+      var F2 = pc.filter(function (u) { return /fighter/i.test(u.cls || ''); })[0] || pc[0], C2 = pc.filter(function (u) { return /cleric/i.test(u.cls || ''); })[0] || pc[1], W2 = pc.filter(function (u) { return /wizard/i.test(u.cls || ''); })[0] || pc[2];
+      var at2 = openAt(BC); BC.units.forEach(function (u) { if (u.side === 'party' && u !== F2 && u !== C2 && u !== W2) { u.x = -50; u.y = -50; } });
+      delete CU.conds.hidden; CU.x = at2[0] + 1; CU.y = at2[1] + 2; F2.x = CU.x + 3; F2.y = CU.y; C2.x = CU.x + 3; C2.y = CU.y + 3; W2.x = at2[0] + 8; W2.y = at2[1] + 6; D.grid.setup(D.grid.map, BC.units);
+      F2.hp = F2.maxhp = 200; C2.hp = C2.maxhp = 200; W2.hp = W2.maxhp = 200;
+      var ps = CU.attacks.pseudopod;
+      okEG('C1 its blows: Pseudopod +4, 3d6 acid (' + (ps ? ps.atk + ' ' + ps.dice + ' ' + ps.type : 'none') + '); no Digest blow, no Engulf blow (' + Object.keys(CU.attacks).join(',') + ')', !!ps && ps.atk === 4 && ps.dice === '3d6' && ps.type === 'acid' && !CU.attacks.digest && !CU.attacks.engulf && !!(D.engulf && (D.engulf.cfg(CU) || {}).move));
+      var cx0 = CU.x, hpF0 = F2.hp; BC.active = CU; D.rules.startTurn(CU); pinEG(2, 3);
+      if (D.engulf) drainEG(D.engulf.cubeEngulf(BC, CU, [F2]));
+      var e2 = F2.conds.engulfed, r2 = F2.conds.restrained;
+      okEG('C2 Engulf, a failed DC 12 DEX save: it moved in (' + cx0 + ' to ' + CU.x + '), 3d6 acid (pinned 3s: 9) -- ' + hpF0 + ' to ' + F2.hp + ', engulfed ' + !!(e2 && e2.by === CU.id) + ', restrained (DC ' + (r2 && r2.dc) + '), not blinded ' + !F2.conds.blinded + ', inside ' + inFoot(CU, F2),
+        CU.x !== cx0 && hpF0 - F2.hp === 9 && !!(e2 && e2.by === CU.id) && !!(r2 && r2.dc === 12) && !F2.conds.blinded && inFoot(CU, F2));
+      shotEG(BC, CU, 'cube');
+      var hpC0 = C2.hp, cxy = [C2.x, C2.y]; BC.active = CU; D.rules.startTurn(CU); pinEG(19, 3);
+      if (D.engulf) drainEG(D.engulf.cubeEngulf(BC, CU, [C2]));
+      okEG('C3 Engulf, a saved DEX save: pushed aside, not taken -- the cleric from (' + cxy + ') to (' + C2.x + ',' + C2.y + '), engulfed ' + !!C2.conds.engulfed + ', inside ' + inFoot(CU, C2) + ', ' + hpC0 + ' to ' + C2.hp + ' HP',
+        !C2.conds.engulfed && !inFoot(CU, C2) && C2.hp === hpC0 && (C2.x !== cxy[0] || C2.y !== cxy[1]) && Math.max(Math.abs(C2.x - cxy[0]), Math.abs(C2.y - cxy[1])) === 1);
+      var hpD0 = F2.hp; pinEG(10, 3); if (D.engulf) drainEG(D.engulf.turnStart(BC, CU)); D.d = d0EG;
+      okEG('C4 the start of its turn: 6d6 acid to the one inside (pinned 3s: 18) -- ' + hpD0 + ' to ' + F2.hp + '; it plays its digest row (' + CU.anim + ')', hpD0 - F2.hp === 18);
+      C2.x = CU.x + 2; C2.y = CU.y; D.grid.setup(D.grid.map, BC.units); W2.x = CU.x - 1; W2.y = CU.y + 2;
+      var losOut = D.grid.los(C2, F2), losIn = D.grid.los(CU, F2);
+      okEG('C5 total cover inside it (Ooze Cube): the cleric beside it has no line to the fighter (' + losOut.clear + ', ' + losOut.why + '), cannot strike him (' + BC.canHit(C2, F2) + '); the cube can (' + losIn.clear + ')', !losOut.clear && !BC.canHit(C2, F2) && losIn.clear);
+      F2.abil.str = 8; F2.abil.dex = 20; delete F2.athletics; delete F2.acrobatics; BC.active = F2; D.rules.startTurn(F2); pinEG(8, 3);
+      var said = [], cardEG0 = BC.card; BC.card = function (l) { said.push((l || []).join(' ')); return cardEG0.apply(this, arguments); };
+      drainEG(D.magic.breakFree(BC, F2)); BC.card = cardEG0; D.d = d0EG; // (d20 8: STR's +2 is 10, short; DEX's +5 would be 13 -- the grip's way out, which the cube's is not)
+      okEG('C6 out of it by a DC 12 STR check, no Acrobatics: STR 8, DEX 20, d20 8 -- ' + (said[0] || '').replace(/\{\w\}|\{\/\}/g, '').slice(0, 120) + ' -- still inside ' + !!F2.conds.engulfed, /STR/.test(said[0] || '') && !/DEX/.test(said[0] || '') && !!F2.conds.engulfed);
+      BC.active = C2; D.rules.startTurn(C2); pinEG(20, 3); var hpP = C2.hp;
+      drainEG(BC.exec(C2, { do: 'pullout', target: F2 })); D.d = d0EG;
+      okEG('C7 pulled out by one beside it: DC 12 STR, the puller takes 3d6 acid (pinned 3s: 9) -- ' + hpP + ' to ' + C2.hp + '; the fighter out ' + !F2.conds.engulfed + ' at (' + F2.x + ',' + F2.y + '), ' + D.grid.dist(CU, F2) + ' ft from it',
+        !F2.conds.engulfed && !F2.conds.restrained && hpP - C2.hp === 9 && !inFoot(CU, F2) && D.grid.dist(CU, F2) <= 5);
+      // Ooze Cube: one pushed into its space is engulfed, its save at disadvantage (two d20s, the lower: pinned 15 then 3 -- the 3)
+      W2.x = CU.x - 2; W2.y = CU.y; F2.x = CU.x - 3; F2.y = CU.y; D.grid.setup(D.grid.map, BC.units); var seqEG = [15, 3], hpW = W2.hp;
+      D.d = function (n) { return n === 20 ? (seqEG.length ? seqEG.shift() : 15) : n === 6 ? 3 : d0EG.apply(this, arguments); };
+      D.magic.push(BC, F2, W2, 2); D.d = d0EG;
+      okEG('C8 Ooze Cube: the wizard pushed into its space saves at disadvantage (15 and 3: the 3) and is engulfed ' + !!(W2.conds.engulfed && W2.conds.engulfed.by === CU.id) + ', inside ' + inFoot(CU, W2) + ', 3d6 acid ' + (hpW - W2.hp),
+        !!(W2.conds.engulfed && W2.conds.engulfed.by === CU.id) && inFoot(CU, W2) && hpW - W2.hp === 9);
+      // the look: drawn inside its holder (UI.insidePos), over the cube's own figure
+      delete W2.tween; // (its ease in, done)
+      var ip = D.ui && D.ui.insidePos ? D.ui.insidePos(BC, W2) : null, hp = D.ui.unitPos(BC, CU), ob = D.ui.unitObj(BC, W2);
+      okEG('D1 drawn inside the cube: UI.insidePos ' + (ip ? Math.round(ip.x - hp.x) + ',' + Math.round(ip.y - hp.y) + ' from its centre, depth ' + (ip.depth - hp.depth).toFixed(3) : 'none') + '; its figure drawn ' + !!ob,
+        !!ip && Math.abs(ip.x - hp.x) <= 24 && ip.y <= hp.y + 4 && ip.depth > hp.depth && !!ob && Math.abs(ob.depth - ip.depth) < 1e-6);
+    } catch (eEG) { repEG.errors.push(String(eEG && eEG.stack || eEG).slice(0, 900)); }
+    D.d = d0EG;
+    var preEG = document.createElement('pre'); preEG.id = 'out'; preEG.textContent = 'BENCH16 ' + JSON.stringify(repEG);
+    document.body.appendChild(preEG);
     return;
   }
   if (get('mode', '') === 'made1114') {

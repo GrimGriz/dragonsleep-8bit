@@ -967,11 +967,13 @@
     abil: { str: 18, dex: 8, con: 16, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10, stealth: 2,
     saves: { str: 4, dex: -1, con: 3, int: -3, wis: 0, cha: -3 },
     attacks: {
-      slam: { name: 'Slam', atk: 7, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5, grapple: { dc: 14, max: 1, size: 'M' } },
-      engulf: { name: 'Engulf', atk: 7, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5, needsHeld: true, autoHitHeld: true }
+      slam: { name: 'Slam', atk: 7, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5, engulfPair: true }
     },
-    multi: ['slam', 'slam', 'engulf'], resist: ['cold', 'fire'], absorb: ['lightning'], condImmune: ['blinded', 'deafened', 'exhaustion'],
-    src: 'SRD 5.1 Shambling Mound (CR 5, 1,800 XP; Large plant, unaligned): AC 15 (natural armor), 136 HP (16d10 + 48), speed 20 (swim 20: no swimming on the grid yet); STR 18 DEX 8 CON 16 INT 5 WIS 10 CHA 5; Stealth +2; resists cold and fire; Lightning Absorption (lightning heals it the damage dealt: js/traits.js TR.absorbs, read in js/battle.js hurt -- in place of its immunity); immune to blinded, deafened, exhaustion; blindsight 60 ft (blind beyond); Multiattack two Slams +7 2d8 + 4 bludgeoning. STAND-INS, the seat\'s, on the gelatinous cube\'s rule (js/battle.js grapple, ai.js needsHeld): one Slam that hits grips (escape DC 14, Medium or smaller), not both hitting; Engulf hits the one it holds on its turn for 2d8 + 4 with no DC 14 CON save, and the held one is restrained but not blinded or unable to breathe; it can hold one. Met nowhere yet: its place in the Glowseep is Griz\'s word'
+    // ENGULF BY THE SRD (11-25, the seat engulf-1125, the grid's rules lane 11-22 item 2; Griz: "sounds like both are enemy and player sharing a square conditions as well"):
+    // js/engulf.js -- both Slams hitting one Medium or smaller target: grappled (escape DC 14) and ENGULFED, inside its space, moving with it
+    engulf: { kind: 'mound', size: 'M', max: 1, escape: 14, blind: true, start: { ab: 'con', dc: 14, dice: '2d8', mod: 4, type: 'bludgeoning' } },
+    multi: ['slam', 'slam'], resist: ['cold', 'fire'], absorb: ['lightning'], condImmune: ['blinded', 'deafened', 'exhaustion'],
+    src: 'SRD 5.1 Shambling Mound (CR 5, 1,800 XP; Large plant, unaligned): AC 15 (natural armor), 136 HP (16d10 + 48), speed 20 (swim 20: no swimming on the grid yet); STR 18 DEX 8 CON 16 INT 5 WIS 10 CHA 5; Stealth +2; resists cold and fire; Lightning Absorption (lightning heals it the damage dealt: js/traits.js TR.absorbs, read in js/battle.js hurt -- in place of its immunity); immune to blinded, deafened, exhaustion; blindsight 60 ft (blind beyond); Multiattack two Slams +7 2d8 + 4 bludgeoning -- both hitting a Medium or smaller target, it is grappled (escape DC 14) and the mound uses its Engulf on it: blinded, restrained and unable to breathe, a DC 14 CON save at the start of each of the mound\'s turns or 2d8 + 4 bludgeoning, moving with the mound, one at a time (js/engulf.js, 11-25; till then the seat\'s stand-ins of 11-14: one Slam gripped, Engulf a third blow with no save). A second target both Slams hit while one is engulfed is grappled only (the seat\'s reading). Met nowhere yet: its place in the Glowseep is Griz\'s word'
   },
   // THE WEREWOLF AS THE PRIEST (11-14, the hyena-stirge seat, on the lanes desk's relay of Griz's "Lean: do both together" -- his 11-11 ruling 3, "leans are solid":
   // a story fight opens with the priest, who shifts to the hybrid as his first action; the road's random fights stay `werewolf`, the hybrid). The SRD 5.1 Werewolf
@@ -1498,11 +1500,14 @@
     abil: { str: 14, dex: 3, con: 20, int: 1, wis: 6, cha: 1 }, init: -4, perception: 8,
     saves: { str: 2, dex: -4, con: 5, int: -5, wis: -2, cha: -5 },
     attacks: {
-      engulf: { name: 'Engulf', atk: 4, dice: '3d6', mod: 0, type: 'acid', reach: 5, grapple: { dc: 12, max: 1, size: 'L' } },
-      digest: { name: 'Digest', atk: 4, dice: '6d6', mod: 0, type: 'acid', reach: 5, needsHeld: true, autoHitHeld: true }
+      pseudopod: { name: 'Pseudopod', atk: 4, dice: '3d6', mod: 0, type: 'acid', reach: 5 }
     },
-    multi: ['engulf', 'digest'], condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],
-    src: 'SRD 5.1 Gelatinous Cube (CR 2, Large, transparent: it starts hidden); content/monsters.json cube (leg two): Engulf read as a grip (escape DC 12), Digest on the one it has, as the 8-bit game runs them; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner)', todo: 'its moving into your square is not read'
+    // ENGULF BY THE SRD (11-25, the seat engulf-1125, the grid's rules lane 11-22 item 2): js/engulf.js -- its action, a move up to its speed into the squares of Large or
+    // smaller creatures, DC 12 DEX each (a success pushed 5 ft aside; a failure 3d6 acid and ENGULFED), 6d6 acid at the start of each of its turns, a DC 12 STR check to
+    // get out, one beside it pulls one out (DC 12 STR, 3d6 acid to the puller); one Large or four Medium or smaller inside, with total cover (Ooze Cube)
+    engulf: { kind: 'cube', move: true, size: 'L', room: 4, escape: 12, str: true, cover: true, ooze: true, save: { ab: 'dex', dc: 12 }, dice: '3d6', type: 'acid', start: { dice: '6d6', type: 'acid' }, pull: { dc: 12, dice: '3d6', type: 'acid' } },
+    multi: 1, condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],
+    src: 'SRD 5.1 Gelatinous Cube (CR 2, 450 XP; Large ooze, unaligned): AC 6, 84 HP (8d10 + 40), speed 15; STR 14 DEX 3 CON 20 INT 1 WIS 6 CHA 1; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner); blindsight 60 ft (blind beyond); Transparent (it starts hidden: js/battle.js LURK); Ooze Cube (one inside has total cover; one that enters its space -- pushed in, js/magic.js M.push -- is engulfed, its save at disadvantage; one Large or up to four Medium or smaller inside); its one action Pseudopod (+4, 3d6 acid) or Engulf (js/engulf.js, 11-25: a move up to its speed, its own, into Large or smaller creatures\' spaces -- DC 12 DEX, pushed 5 ft aside on a success, 3d6 acid and engulfed on a failure: restrained, no air, 6d6 acid at the start of each of its turns, moving with it; out by an action and a DC 12 STR check, or pulled out by one within 5 ft, DC 12 STR and 3d6 acid to the puller). Till 11-25: content/monsters.json\'s 8-bit Engulf read as a grip and Digest a second blow'
   },
   // its art since 09-27: Griz's Grok sheet (pipeline 2, tools/crawler-sheet.py; crawler_p2), the snake stand-in retired
   crawler: {

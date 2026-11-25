@@ -1230,17 +1230,22 @@
     if (D.features && D.features.holdGround && D.features.holdGround(B, w, 'push')) return; // (the Drillyard's HOLD GROUND: not moved -- js/features.js, 10-30)
     if (w.hang && G.hanging(w)) { B.clingSave(w, 0, w.hang.rope ? ' is knocked off the rope' : ' is knocked off the face'); return; } // (a climber pushed -- Thunderwave, Gust of Wind -- comes off and falls its height, no second save; it had walked its foot square along the street and stood there unhurt. 10-05, Griz: "2 agreed")
     if (w.riding) return; // (a rider -- a darkmantle on a head, a familiar on its wizard -- goes where the one it rides goes: battle.js mount)
+    if (w.conds && w.conds.engulfed) return; // (one engulfed goes where its holder goes: js/engulf.js, 11-25)
     var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0, st = G.map.def.step, fell = 0, aloft = G.aloft && G.aloft(w);
     if (!dx && !dy) return;
     // over an edge: a square 10 ft or more below the one it stands on is where it goes down, and the push ends there (SRD 5.1, Falling: "1d6 bludgeoning damage for every
     // 10 feet it fell ... lands prone"; the shove's knock-off, battle.js knockOff, the same dice). Before, the push set Vivian down on the street from the Skylights' 45 ft
     // roof with no fall (the grid's rules §2h, "unchecked"; the bug-fix seat, 10-14, dev/bench16.js fix1014). One in the air moves in the air
+    var oozeH = null;
     for (var i = 0; i < n; i++) {
-      if (!G.canStand(w, w.x + dx, w.y + dy)) break;
+      // Ooze Cube (SRD 5.1: "Other creatures can enter the space, but a creature that does so is subjected to the cube's Engulf and has disadvantage on the saving throw"):
+      // pushed on into a gelatinous cube with room for it -- the Engulf, after the push (js/engulf.js, 11-25)
+      if (!G.canStand(w, w.x + dx, w.y + dy)) { if (D.engulf && !w.object) oozeH = D.engulf.oozeAt(B, w.x + dx, w.y + dy, w); break; }
       var dz = G.gzAt(w, w.x, w.y) - G.gzAt(w, w.x + dx, w.y + dy);
       w.x += dx; w.y += dy; moved++;
       if (!aloft && dz >= 4 * st) { fell = dz; break; }
     }
+    if (oozeH && !fell && D.engulf.oozeIn(B, oozeH, w)) return; // (into the cube: engulfed -- js/engulf.js, 11-25)
     if (!moved) return;
     if (B.forced) B.forced(w); // (a forced move: the readied strikes asked when the action is done -- battle.js readyForced, the grid's rules §2.5)
     w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: B.pace(fell ? 16 : 10, true), mode: fell ? 'drop' : undefined }; // (a shove on an AI-run unit's turn keeps to the pace: Battle.prototype.pace)
@@ -1274,7 +1279,7 @@
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR. Stone is no web: the stoning's restraint
     // ends only by its save at the end of the next turn (SRD 5.1, the basilisk's gaze; 10-21, his "turning to stone added a 'break free' option ... struggling against web")
     if (!u.conds.restrained || u.conds.restrained.kind === 'stone') return;
-    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, grip = r.grapple || r.kind === 'tentacles', en0 = u.conds.enlarged; // (r.weak: the roper's tendril, js/traits.js)
+    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, grip = (r.grapple && !r.str) || r.kind === 'tentacles', en0 = u.conds.enlarged; // (r.weak: the roper's tendril, js/traits.js) (r.str: out of the gelatinous cube, "a DC 12 Strength check" -- no Acrobatics: js/engulf.js, 11-25)
     // a STR check: Enlarge is advantage on it, Reduce disadvantage (SRD), against poisoned, frightened and the weak grip's disadvantage
     // ... and Enhance Ability on the ability it raised, Heat Metal's burning armour on every check (rules.js checkEdges). One ability's check, looked at:
     // its bonus (the modifier, the proficiency of the skill its class has) and the edges on it -- 10-01: a grip's pick between STR (Athletics) and DEX
@@ -1293,7 +1298,7 @@
     u.turn.action = 0; RU.spendHelp(u); // (a friend's Help on it, spent on this check -- 10-01c)
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     // (11-21, the reader of his 11-20 record: "The Willem tears at the web: STR d20 18 = 17" -- a named foe's own name with no article (Battle.nm), and the check's bonus shown between the die and the sum)
-    B.card([(u.side === 'foe' ? '{r}' + D.Battle.nm(u, true) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : r.kind === 'tentacles' ? ' wrestles the tentacles: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (lk.bonus ? (lk.bonus > 0 ? ' +' : ' ') + lk.bonus : '') + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    B.card([(u.side === 'foe' ? '{r}' + D.Battle.nm(u, true) + '{/}' : '{y}' + u.name + '{/}') + (r.engulf ? (r.str ? ' heaves against the ooze: ' : ' wrenches at the vines: ') : r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : r.kind === 'tentacles' ? ' wrestles the tentacles: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (lk.bonus ? (lk.bonus > 0 ? ' +' : ' ') + lk.bonus : '') + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot < r.dc && D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due: a failed check, a Due -- 10-30)
     if (tot >= r.dc) {
       // (torn free: it goes on through the web this turn, with what the turn would have left it -- the walking startTurn set (Haste's double, Slow's half, Ray of Frost's

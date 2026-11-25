@@ -327,10 +327,24 @@
     // (11-20, the formation seat: shown FEWER THAN TWICE, as the show's own law -- every row twice -- and the check (dev/bench16.js mode=show) read it; till then a row seen once
     // was let be, and when the SRD's cover on DEX saves turned the show's dice the green hag's claw and the shambling mound's Engulf each came up one short. A blow that wants
     // one it holds -- the mound's Engulf -- is struck at the one it holds, where it holds one in reach)
+    // ENGULF BY THE SRD (11-25, js/engulf.js): one that engulfs when a pair of its blows both land (the shambling mound's two Slams) and has shown its engulf fewer than twice
+    // by its second turn -- the one inside let go, then the pair at a watcher in reach, the d20 pinned to land: the take through the engine's own blows (the show's line-up
+    // is one run of dice -- bestiary lane, 11-15: "a beat with the dice pinned for the mound would end it")
+    var egK = D.engulf && D.engulf.cfg(u) && Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].engulfPair; })[0];
+    if (egK && D.spr.anim(u.sheet, 'engulf') && ((u.showSeen || {}).engulf || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 1 && !u.riding) {
+      var egA = u.attacks[egK], egW = (yield* inReach(B, u, egA.reach || u.reach || 5, function (w) { return !w.conds.engulfed && D.Battle.sizeCat(w) <= D.Battle.SIZE.M && w.hp > 0; }))[0];
+      if (egW) {
+        D.engulf.inside(B, u).forEach(function (w) { B.release(u, w); });
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its engulf twice yet. Both ' + String(egA.name).toLowerCase() + 's at ' + egW.name + ', the dice pinned, to see it.'], 200);
+        var d0E = D.d, act0 = B.active; D.d = function (n) { return n === 20 ? 17 : d0E.apply(this, arguments); }; B.active = u; if (u.turn) u.turn.engulfPair = {};
+        try { yield* B.attack(u, egW, egA); if (D.grid.standing(egW) && egW.hp > 0) yield* B.attack(u, egW, egA); } finally { D.d = d0E; B.active = act0; }
+        u.animT = B.t;
+      }
+    }
     var heldBy = function (w) { var c = w.conds || {}; return [c.grappled, c.restrained, c.engulfed].some(function (h) { return h && h.by === u.id; }); };
     var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && r && ((u.showSeen || {})[r] || 0) < 2 && (!a.needsHeld || B.units.some(function (w) { return w !== u && !w.dead && w.hp > 0 && heldBy(w) && D.grid.dist(u, w) <= (a.reach || u.reach || 5); })); })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
-      var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5, ma.needsHeld ? heldBy : null))[0];
+      var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5, ma.needsHeld ? heldBy : function (w) { return !(w.conds.engulfed && (w.conds.engulfed.by === u.id || D.engulf.sealedFrom(u, w))); }))[0]; // (not at the one it has engulfed, left for its crush, nor one inside another's cube, out of reach -- js/engulf.js, 11-25)
       if (mw) {
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
         yield* B.attack(u, mw, ma); u.anim = 'idle'; u.animT = B.t;

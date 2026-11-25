@@ -22,11 +22,11 @@
     // (blindsight perceives without sight -- SRD 5.1 -- so a hidden one inside its reach is known to it: the bulette's tremorsense under the road found no hidden Vivian 10 ft
     // off and the Breach never ended, 10-02)
     // (bystander: one the AI never targets and that never acts -- the Halfway Inn's boys and the child on the path, js/secondact.js, 11-04; an area still catches them)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!w.bystander || (w.offering && u.wantsOffering)) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && !(D.engulf && D.engulf.sealedFrom(u, w)) && G.standing(w) && (!w.bystander || (w.offering && u.wantsOffering)) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!w.bystander || (w.offering && u.wantsOffering)) && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    return B.units.filter(function (w) { return w.side !== u.side && !(D.engulf && D.engulf.sealedFrom(u, w)) && G.standing(w) && (!w.bystander || (w.offering && u.wantsOffering)) && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
   }
   // the creature's own eyes from another square (the AI weighing a move)
   function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }
@@ -1531,6 +1531,8 @@
     }
     // Whelm (the water elemental: its action, when it has it back -- recharge 4-6 -- on those beside it, or it closes on one first)
     if (!grudge && u.whelm && u.whelm.ready && T.action) { if (yield* whelm(B, u, hs)) return; }
+    // the gelatinous cube's Engulf (SRD 5.1: its action, a move into their squares -- js/engulf.js, 11-25): when someone it can take in is in that move, else its Pseudopod
+    if (!grudge && T.action && D.engulf && (D.engulf.cfg(u) || {}).move) { if (yield* D.engulf.cubeEngulf(B, u, hs)) return; }
     // Tentacle Slam, instead of the bites and lashes, on what it already holds (the 8-bit game: half the time)
     if (u.slam && u.holding.length && T.action && D.d(100) <= (u.slam.chance || 0.5) * 100) { yield* slam(B, u); return; }
     var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u, hs); }).sort(function (a, b) { return a.hp - b.hp; }); // (reachOf with hs: a tendril no one in its reach can be held by counts for nothing, and it walks in to bite -- 10-02)
