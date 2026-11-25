@@ -749,10 +749,13 @@
     yield 10;
   };
   // ANSWER BACK (6): raging, one who misses him in melee gets one blow back (the reaction) -- battle.js attack calls it on a miss
+  // ONCE A RAGE (TRIMMED 11-25, Griz: "8 - The bar is weird. There's the thin SRD thinness vs what players with PHB/DMG are used to for subclasses. Answer Back seems a little strong,
+  // the other two can sit as they are" -- the beefiness check's trim, the smallest reading: every round it was the Berserker's Retaliation, which the SRD gives at 14). Kept on the
+  // rage's own condition, so a new rage -- FIRST BLOOD's too -- brings it back
   F.answerBack = function* (B, att, tgt, atk, melee) {
-    if (!melee || atk.spell || !sub(tgt, 'Path of the Sand', 6) || !tgt.conds.raging || tgt.reaction <= 0 || !RU.canAct(tgt) || att.dead || att.hp <= 0 || G.dist(tgt, att) > G.reachOf(tgt) || !tgt.weapon) return;
-    tgt.reaction = 0;
-    B.card(['{r}' + Nm(B, tgt) + ' answers back!{/}  {g}(the reaction){/}'], 200);
+    if (!melee || atk.spell || !sub(tgt, 'Path of the Sand', 6) || !tgt.conds.raging || tgt.conds.raging.answered || tgt.reaction <= 0 || !RU.canAct(tgt) || att.dead || att.hp <= 0 || G.dist(tgt, att) > G.reachOf(tgt) || !tgt.weapon) return;
+    tgt.reaction = 0; tgt.conds.raging.answered = true;
+    B.card(['{r}' + Nm(B, tgt) + ' answers back!{/}  {g}(the reaction; once a rage){/}'], 200);
     yield* B.attack(tgt, att, tgt.weapon, { oa: true, answer: true }); // (a blow back, not an opportunity attack: Escape the Horde is not asked)
   };
   // ------------------------------------------------------------------ the Hunter's Prey (SRD 5.1, the Hunter's choice at 3; the leveling lane §8 item 10 -- 2026-11-20, Griz:

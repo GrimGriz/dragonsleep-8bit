@@ -566,7 +566,13 @@
         for (var i = 0; i < 3; i++) { D.rules.startTurn(og); B.active = og; c.hero.hp = c.hero.maxhp; c.hero.reaction = 1; yield* fire(B.attack(og, c.hero, club)); if (c.hero.reaction === 0) break; yield 14; }
         B.active = c.hero;
       },
-      answerback: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* foeStrike(c, 4, { atk: -20, until: function (k) { return k.hero.reaction === 0; } }); },
+      // (once a rage since 11-25, his "Answer Back seems a little strong": the first miss answered, then one more miss in the same rage that is not -- the card says so)
+      answerback: function* (c) {
+        yield* fire(B.exec(c.hero, { do: 'rage' })); yield* foeStrike(c, 4, { atk: -20, until: function (k) { return k.hero.reaction === 0; } });
+        yield 40; B.card(['{g}The same rage: another miss.{/}'], 160); yield* foeStrike(c, 1, { atk: -20, until: function () { return true; } });
+        if (c.hero.reaction > 0 && c.hero.conds.raging && c.hero.conds.raging.answered) B.card(['{g}' + c.hero.name + ' has answered back once this rage: not again till the next.{/}'], 260);
+        yield 40;
+      },
       // the Threshing Floor (ours, 10-30; deep16/js/rules.js RU.hardGround, RU.startTurn): a blow from the ground with no disadvantage, the foe's at it with no advantage, up for
       // 5 ft; down at 0, up at its turn with its first blow at advantage; a prone foe threshed for one more weapon die
       hardground: function* (c) {

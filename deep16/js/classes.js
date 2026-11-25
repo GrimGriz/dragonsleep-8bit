@@ -71,6 +71,8 @@
     // Pact Boon (SRD 5.1, 3rd): the generic warlock (NPC.spec) takes the Tome -- three cantrips from other classes' lists (`tome`, the seat's
     // pick 09-30: Fire Bolt, Sacred Flame, Vicious Mockery); a spec may say pact: 'blade' (a pact weapon: a rapier, proficient, magical) or
     // its own tome. The Chain (a familiar in imp, pseudodragon, quasit or sprite form) waits on sheets for those four: not built
+    // (THE CARD'S LIST IS THE FIEND'S WARLOCK'S, 11-25: the SRD warlock's own, with the Fiend's expanded spells set in it -- Command, Burning Hands, Scorching Ray, Fireball, Fire
+    // Shield, Flame Strike. Every other patron takes the SRD warlock's own and its list, never the Fiend's -- NPC.SUBS[patron].expanded, NPC.FIEND_OWN, NPC.sheet, NPC.prepInfo)
     warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'npcwarlock_p0', pact: 'tome', tome: ['firebolt', 'sacredflame', 'viciousmockery'],
       cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4], known: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12], invocations: { 2: ['agonizing', 'devilsight'], 5: ['agonizing', 'devilsight', 'repelling'] }, // (10 to 14, SRD 5.1 -- 11-25: a warlock stood past 9 by name, as Pyro is a fighter at 12; the Fae King's 10th and 14th)
       spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'expeditiousretreat', 'command', 'burninghands', 'gnawingword'], /* (Gnawing Word, ours, last: no generic warlock reaches a fifth 1st -- 10-30) */ /* (Expeditious Retreat second: fourth, the generic warlock never knew it at 1-9 -- the rules runner's find; RULED 10-01c, Griz: "yes") */ 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch', 'counterspell', 'fly'], 4: ['blight', 'fireshield', 'dimensiondoor', 'banishment'], 5: ['flamestrike', 'holdmonster'] } },
@@ -81,7 +83,10 @@
   // the Mirror's warlocks (RULED 09-28): the pact of the Mirror's expanded list and its eye (invented.json #pact-of-the-mirror). Its 1st
   // TRIMMED to two, the SRD's patrons' count (RULED 09-28g, Griz: "Trim"): the two his words named, Glass Whisper and Command (the
   // asking); the seat's Silent Image and Hideous Laughter are off it
-  NPC.MIRROR = { 1: ['glasswhisper', 'command'], 3: ['mirrorimage', 'detectthoughts'], 5: ['hypnoticpattern', 'clairvoyance'] };
+  // (its 4th and 5th wired 11-25 -- the beefiness check's find, "its 4th and 5th-level spells aren't wired", on Griz's "9 - yes" to the warlock's lists: Greater Invisibility and
+  // Confusion at 7, Mislead and Dominate Person at 9, as invented.json has stood since 09-28. Detect Thoughts and Clairvoyance have no records on the grid (spells-srd-by-class.md:
+  // OUT, OUT) and are not known in the built ones' place: NPC.SUBS below takes this list)
+  NPC.MIRROR = { 1: ['glasswhisper', 'command'], 3: ['mirrorimage', 'detectthoughts'], 5: ['hypnoticpattern', 'clairvoyance'], 7: ['greaterinvisibility', 'confusion'], 9: ['mislead', 'dominateperson'] };
   // our own subclasses (RULED 09-28g, Griz, on the ones past the SRD: "Sufficiently distinct"; the past-the-SRD principle, invented.json
   // #past-the-srd): the domains' spells, always prepared (a spell not built yet is simply not cast: magic.js M.list); the features are
   // js/features.js. The Window: Tronupholen's menders (Kat's, "Cleric of trickster deity trapped in mirror"); the Vigil: Dvalgarda's,
@@ -107,13 +112,29 @@
     // of the pact knows the built ones first (NPC.sheet) and the pick page offers them (NPC.prepInfo). Silent Image, Suggestion, Major Image and Seeming are not built on the
     // grid (spells-srd-by-class.md: LATER, LATER, LATER, OUT) and wait; GLAMOUR's Disguise Self is OUT there too (a changed look: social), so GLAMOUR is the sheet's and the
     // features page's, with nothing on the grid. GONE FROM SIGHT (6), HE SHOWS, NEVER SPEAKS (10) and THE PASTIME (14): js/features.js, below (NPC.sheet, NPC.unit)
-    'the Pact of the Fae King': { expanded: { 1: ['silentimage', 'sleep'], 3: ['mirrorimage', 'suggestion'], 5: ['majorimage', 'hypnoticpattern'], 7: ['greaterinvisibility', 'phantasmalkiller'], 9: ['seeming', 'mislead'] } }
+    'the Pact of the Fae King': { expanded: { 1: ['silentimage', 'sleep'], 3: ['mirrorimage', 'suggestion'], 5: ['majorimage', 'hypnoticpattern'], 7: ['greaterinvisibility', 'phantasmalkiller'], 9: ['seeming', 'mislead'] } },
+    // EACH PATRON ITS OWN LIST on the SRD warlock's own (11-25, the beefiness check's find -- the card's list carried the Fiend's spells into every patron's; Griz: "9 - yes"). The
+    // Fiend's ten (SRD 5.1 The Fiend, Expanded Spell List; Hallow not built): `behind` -- the card's list is the Fiend's warlock's already, so its own go after the card's at each
+    // level and a Fiend's warlock knows what it knew; the three the card never carried (Blindness/Deafness, Stinking Cloud, Wall of Fire) are its to learn on the level's page. The
+    // Mirror's: NPC.MIRROR, above. A patron's own list known first (`behind` none) and offered first; the Fiend's never on another patron's (NPC.FIEND_OWN)
+    'The Fiend': { behind: true, expanded: { 1: ['burninghands', 'command'], 3: ['blindnessdeafness', 'scorchingray'], 5: ['fireball', 'stinkingcloud'], 7: ['fireshield', 'walloffire'], 9: ['flamestrike', 'hallow'] } },
+    'The Mirror': { expanded: NPC.MIRROR }
   };
   NPC.FAE = 'the Pact of the Fae King';
-  // the SRD Fiend's own Expanded Spell List as the generic warlock's list carries it (that warlock is the Fiend's: NPC.CLASSES.warlock): a patron of ours with its own `expanded`
-  // list does not learn these (SRD 5.1: the list is "added to the warlock spell list for you", the Fiend's warlock) -- off its sheet's default and its level's page (11-25)
-  NPC.FIEND_OWN = ['burninghands', 'command', 'scorchingray', 'fireball', 'fireshield', 'flamestrike'];
+  // the SRD Fiend's own Expanded Spell List: no other patron's warlock learns these (SRD 5.1: the list is "added to the warlock spell list for you", the Fiend's warlock) -- off
+  // its sheet's default and its level's page (11-25). Command is the Mirror's own as well (its asking, RULED 09-28): a patron's own list wins over this
+  NPC.FIEND_OWN = [].concat.apply([], Object.keys(NPC.SUBS['The Fiend'].expanded).map(function (k) { return NPC.SUBS['The Fiend'].expanded[k]; }));
   function notFiend(id) { return NPC.FIEND_OWN.indexOf(id) < 0; }
+  // a warlock's spells known or offered by its patron: the card's list at each level with the Fiend's own taken off for another patron, its own list first (or, the Fiend's,
+  // after the card's), the built ones only. Null for a sheet with no patron's list (a class not a warlock; a warlock with none named)
+  function patronSpells(cls, spells, sub, lvl) {
+    var ex = cls === 'warlock' ? expandedAt(sub, lvl) : null; if (!ex) return null;
+    var behind = !!NPC.SUBS[sub].behind, own = [].concat.apply([], Object.keys(ex).map(function (L) { return ex[L]; })), out = JSON.parse(JSON.stringify(spells || {}));
+    Object.keys(out).forEach(function (L) { if (+L > 0 && sub !== 'The Fiend') out[L] = out[L].filter(function (id) { return notFiend(id) || own.indexOf(id) >= 0; }); });
+    Object.keys(ex).forEach(function (L) { var rest = (out[L] || []).filter(function (x) { return ex[L].indexOf(x) < 0; }); out[L] = behind ? (out[L] || []).concat(ex[L].filter(function (x) { return (out[L] || []).indexOf(x) < 0; })) : ex[L].concat(rest); });
+    return out;
+  }
+  NPC.patronSpells = patronSpells;
   // a patron's expanded spells the level has reached, the built ones only, as { spell level: [ids] }
   function expandedAt(sub, lvl) {
     var ex = NPC.SUBS[sub] && NPC.SUBS[sub].expanded, out = {}; if (!ex) return null;
@@ -501,9 +522,9 @@
     if (RC.caster) {
       var cc = c;
       if (spec.spells) cc = Object.assign({}, c, { spells: spec.spells });
-      if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
-      // (a patron's expanded list of ours, the built ones, first at each spell level -- the Pact of the Fae King, 11-25: NPC.SUBS[sub].expanded)
-      var exS = expandedAt(sub, lvl); if (exS) { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(cc.spells).forEach(function (L) { if (+L > 0) cc.spells[L] = cc.spells[L].filter(notFiend); }); Object.keys(exS).forEach(function (L) { cc.spells[L] = exS[L].concat((cc.spells[L] || []).filter(function (x) { return exS[L].indexOf(x) < 0; })); }); } // (the Fiend's own off it: NPC.FIEND_OWN)
+      // (a warlock's patron, 11-25: its own list, the built ones -- the Mirror's and the Fae King's known first, the Fiend's after the card's -- and the Fiend's own off another
+      // patron's: NPC.SUBS[sub].expanded, patronSpells. Till 11-25 the Mirror's was laid first over the card's whole list, the Fiend's in it, its unbuilt two known in place of others)
+      var psS = patronSpells(cls, cc.spells, sub, lvl); if (psS) cc = Object.assign({}, cc, { spells: psS });
       if (NPC.SUBS[sub] && NPC.SUBS[sub].always) cc = Object.assign({}, cc, { always: NPC.SUBS[sub].always }); // (our own domains' lists, in the Life Domain's place)
       // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
       h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow, h.land)
@@ -599,9 +620,9 @@
     var top = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) top = i + 1; });
     var n = c.known ? c.known[h.lvl - 1] : Math.max(1, DS.mod(h.abil[c.prepares]) + (c.half ? Math.floor(h.lvl / 2) : h.lvl));
     if (c.half && h.lvl < 2) n = 0;
-    var alw = alwaysOf(c, h.subclass, h.lvl, h.land), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice(), exP = expandedAt(h.subclass, h.lvl) || {}; // (a patron's expanded list: offered first at its level -- the Pact of the Fae King, 11-25)
-    var exOn = !!(NPC.SUBS[h.subclass] && NPC.SUBS[h.subclass].expanded); // (a patron of ours with its own list: the Fiend's own are not offered -- NPC.FIEND_OWN)
-    for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], exP[L] || [], (sp[L] || []).filter(function (id) { return !exOn || notFiend(id); }));
+    // (a warlock's: its patron's list -- its own offered, the Fiend's own only to the Fiend's: patronSpells, 11-25)
+    var alw = alwaysOf(c, h.subclass, h.lvl, h.land), g = spec.grow || {}, sp = patronSpells(spec.cls, c.spells, h.subclass, h.lvl) || c.spells || {}, pool = (spec.known || []).slice();
+    for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], sp[L] || []);
     if (spec.custom && spec.register !== false) for (var Lr = 1; Lr <= top; Lr++) pool = pool.concat(NPC.registerList(spec.cls, Lr)); // (a made one: the SRD's list for its class after the class's own, 11-14)
     pool = pool.filter(uniq).filter(function (id) { var L2 = lv(id); return L2 >= 1 && L2 <= top && alw.indexOf(id) < 0; })
       .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });

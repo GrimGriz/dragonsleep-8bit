@@ -19138,6 +19138,68 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(prePy);
     return;
   }
+  // EACH PATRON ITS OWN LIST; ANSWER BACK ONCE A RAGE (mode=patrons1125; the leveling lane, 2026-11-25 -- the beefiness check, Griz: "9 - yes" to the warlock's lists, and "Answer
+  // Back seems a little strong, the other two can sit as they are"): the Fiend's warlock knows at 1-9 what the card's list gave it (a sheet with no patron's list is the card's) and
+  // its page offers its three the card never carried; the Mirror's known and offered hold its own (to Mislead and Dominate Person at 9) and none of the Fiend's but Command, never its
+  // unbuilt two; the Fae King's none of the Fiend's; Amara's and the patrol lady's own lists as they were; the maker's three lines name their lists; ANSWER BACK -- a goblin's two
+  // misses in one rage answered once, a new rage answered again
+  if (get('mode', '') === 'patrons1125') {
+    var repPt = { checks: [], errors: [] }, d0Pt = D.d, NPt = D.npc, RPt = window.DS.R;
+    function okPt(what, v) { repPt.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPt(g) { var v, k = 0, st; while (g && k++ < 8000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function plainPt(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    var FO = NPt.FIEND_OWN || [], lvls = [1, 3, 5, 7, 9];
+    function page(sub, L) { var a = NPt.levelAsks({ cls: 'warlock', lvl: L, race: 'human', custom: true, pact: 'tome', subclass: sub }, L, { classDefaults: true }), q = ((a && a.asks) || []).filter(function (x) { return x.kind === 'spells'; })[0]; return q ? q.rows.map(function (r) { return r.id; }) : []; }
+    function pool(sub, L) { var i = NPt.prepInfo({ cls: 'warlock', lvl: L, race: 'human', custom: true, pact: 'tome', subclass: sub }); return i ? i.pool : []; }
+    try {
+      D.seed = 1125;
+      okPt('the Fiend\'s own, ten from the SRD: ' + FO.join(', '), FO.length === 10 && FO.indexOf('hallow') >= 0 && FO.indexOf('walloffire') >= 0);
+      // the Fiend
+      var same = lvls.map(function (L) { var a = NPt.sheet({ cls: 'warlock', lvl: L }).known.join(','), b = NPt.sheet({ cls: 'warlock', lvl: L, subclass: null }).known.join(','); return L + (a === b ? ' same' : ' CHANGED: ' + a + ' / was ' + b); });
+      okPt('the Fiend\'s warlock knows what the card gave it: ' + same.join('; '), same.every(function (s) { return / same$/.test(s); }));
+      var f3 = pool('The Fiend', 3), f5 = pool('The Fiend', 5), f7 = pool('The Fiend', 7);
+      okPt('its three the card never carried, offered: Blindness/Deafness at 3 ' + (f3.indexOf('blindnessdeafness') >= 0) + ', Stinking Cloud at 5 ' + (f5.indexOf('stinkingcloud') >= 0) + ', Wall of Fire at 7 ' + (f7.indexOf('walloffire') >= 0) + '; Fireball at 5 ' + (f5.indexOf('fireball') >= 0),
+        f3.indexOf('blindnessdeafness') >= 0 && f5.indexOf('stinkingcloud') >= 0 && f7.indexOf('walloffire') >= 0 && f5.indexOf('fireball') >= 0);
+      // the Mirror
+      var mk = {}, mp = {}; lvls.forEach(function (L) { mk[L] = NPt.sheet({ cls: 'warlock', lvl: L, patron: 'mirror' }).known; mp[L] = pool('The Mirror', L); });
+      var MW = { 1: ['glasswhisper', 'command'], 3: ['mirrorimage'], 5: ['hypnoticpattern'], 7: ['greaterinvisibility', 'confusion'], 9: ['mislead', 'dominateperson'] };
+      lvls.forEach(function (L) {
+        var leak = mk[L].concat(mp[L]).filter(function (id) { return FO.indexOf(id) >= 0 && id !== 'command'; }), unb = mk[L].filter(function (id) { return id === 'detectthoughts' || id === 'clairvoyance'; });
+        okPt('the Mirror at ' + L + ': knows ' + mk[L].join(', ') + '; its own ' + MW[L].join(', ') + ' known and offered ' + MW[L].every(function (id) { return mk[L].indexOf(id) >= 0 && (mp[L].indexOf(id) >= 0 || id === 'command' && L > 1 || mk[L].indexOf(id) >= 0); }) + '; the Fiend\'s on it: ' + (leak.join(', ') || 'none') + '; unbuilt known: ' + (unb.join(', ') || 'none'),
+          MW[L].every(function (id) { return mk[L].indexOf(id) >= 0; }) && !leak.length && !unb.length);
+      });
+      var m7p = page('The Mirror', 7); okPt('the Mirror\'s page at 7 offers ' + m7p.join(', '), m7p.indexOf('greaterinvisibility') >= 0 && m7p.indexOf('confusion') >= 0 && !m7p.some(function (id) { return FO.indexOf(id) >= 0 && id !== 'command'; }));
+      // the Fae King
+      var fk = lvls.map(function (L) { return NPt.sheet({ cls: 'warlock', lvl: L, subclass: 'the Pact of the Fae King' }).known.concat(pool('the Pact of the Fae King', L)); }).reduce(function (a, b) { return a.concat(b); }, []).filter(function (id) { return FO.indexOf(id) >= 0; });
+      okPt('the Fae King\'s known and offered, 1-9: the Fiend\'s on it ' + (fk.filter(function (x, i, a) { return a.indexOf(x) === i; }).join(', ') || 'none'), !fk.length);
+      // the named ones
+      var am = NPt.sheet(NPt.spec('amara')), pl = NPt.sheet(NPt.spec('patrolladyw')), amW = NPt.NAMED.amara.known, plW = NPt.NAMED.patrolladyw.known;
+      okPt('Amara\'s own list as it was (' + am.known.join(', ') + ')', amW.every(function (id) { return am.known.indexOf(id) >= 0 || !D.SPELLS[id] && !(window.DS.DATA.spells || {})[id]; }) && am.subclass === 'The Mirror');
+      okPt('the patrol lady\'s own list as it was (' + pl.known.join(', ') + '); the Fiend\'s on it: ' + (pl.known.filter(function (id) { return FO.indexOf(id) >= 0 && id !== 'command'; }).join(', ') || 'none'), plW.every(function (id) { return pl.known.indexOf(id) >= 0; }) && pl.subclass === 'The Mirror');
+      // the maker's lines
+      var wl = RPt.SUBCLASSES.warlock.opts;
+      okPt('the maker\'s three lines name their lists: ' + wl.map(function (o) { return o.name + ' ' + /Fireball|Mislead|Sleep/.test(o.desc); }).join(', '), wl.length === 3 && /Fireball/.test(wl[0].desc) && /Stinking Cloud/.test(wl[0].desc) && /Mislead and Dominate Person/.test(wl[1].desc) && /Sleep/.test(wl[2].desc));
+
+      // ANSWER BACK once a rage
+      var B = D.npcFight('?npc=goblin,goblin&lvl=6&vs=barbarian:6', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var slot = B.units.filter(function (w) { return w.side === 'party'; })[0], tb = NPt.build({ id: 'sand6', cls: 'barbarian', lvl: 6, subclass: 'Path of the Sand' }, 6, 'party');
+      tb.x = slot.x; tb.y = slot.y; tb.id = slot.id; B.units[B.units.indexOf(slot)] = tb; D.grid.setup(B.map, B.units); tb.guest = true; tb.reaction = 1;
+      var gs = B.units.filter(function (w) { return w.side === 'foe'; }), g = gs[0]; gs[1].x = 1; gs[1].y = 1; g.maxhp = g.hp = 400; g.conds = {};
+      var beside = false; for (var dy = -1; dy <= 1 && !beside; dy++) for (var dx = -1; dx <= 1 && !beside; dx++) { if (!dx && !dy) continue; if (D.grid.canStand(g, tb.x + dx, tb.y + dy)) { g.x = tb.x + dx; g.y = tb.y + dy; D.grid.setup(B.map, B.units); beside = D.grid.dist(g, tb) <= 5; } }
+      D.rules.startTurn(tb); B.active = tb; D.features.rage(B, tb);
+      var blow = g.weapon || (g.attacks && g.attacks[Object.keys(g.attacks)[0]]), miss = function () { D.rules.startTurn(g); B.active = g; tb.reaction = 1; var n0 = (B.log || []).length; D.d = function (nn) { return nn === 20 ? 2 : d0Pt(nn); }; runPt(B.attack(g, tb, blow, {})); D.d = d0Pt; return /answers back/.test((B.log || []).slice(n0).map(plainPt).join(' / ')); };
+      var a1 = miss(), a2 = miss();
+      okPt('a goblin misses the raging Sand 6 twice, his reaction back each time: answered ' + a1 + ', then ' + a2 + ' (once a rage)', beside && !!tb.conds.raging && a1 && !a2);
+      delete tb.conds.raging; D.rules.startTurn(tb); B.active = tb; tb.feats.rage = Math.max(1, tb.feats.rage || 0); D.features.rage(B, tb); var a3 = miss();
+      okPt('a new rage: answered again ' + a3, a3);
+      okPt('the register\'s words and the maker\'s line say once a rage', /Once a rage/.test((D.FEATURES.answerback || {}).words || '') && /once a rage/.test(RPt.SUBCLASSES.barbarian.opts[1].desc));
+    } catch (e) { repPt.errors.push(String(e && e.stack || e)); }
+    D.d = d0Pt;
+    if (errs.length) repPt.errors = repPt.errors.concat(errs.slice(0, 5));
+    var prePt = document.createElement('pre'); prePt.id = 'out'; prePt.textContent = 'BENCH16 ' + JSON.stringify(repPt);
+    document.body.appendChild(prePt);
+    return;
+  }
   // THE PACT OF THE FAE KING (mode=pact1125; the leveling lane, 2026-11-25 -- Griz: "Build the pact"; his name, "lane 'Pact of the Fae King' that most recent draft"): a warlock's
   // patron of ours on the pick list and the Pocket DM's maker (js/rules.js R.SUBCLASSES.warlock), its word round the maker's codec; its expanded list -- the built ones known first
   // at 1/3/5/7/9 and offered on the level's page, the four not built (Silent Image, Suggestion, Major Image, Seeming) never; GLAMOUR on the sheet; GONE FROM SIGHT at 6 -- an
