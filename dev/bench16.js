@@ -19038,6 +19038,16 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         ms9.click = true; RN9.input(B9); c9 = cards9; ms9.click = false; // (a click on a rune off him: its card, as before)
       } finally { RN9.onMage = onM9; RN9.runeAt = at9; RN9.openCard = oc9; ms9.click = false; ms9.rclick = false; }
       okE4('D9 FOLLOW on, a laid rune under him: a click on him opens ' + a9 + ' (want wheel, no rune card), a right click off him ' + b9 + ' (want wheel); a click on a rune off him opens its card (' + c9 + ')', a9 === 'wheel' && b9 === 'wheel' && c9 === 1);
+      // (his "so i couldn't open the Q to place a new rune because the rune i just placed wanted clicking?": the new rune's FORMATION, then its card, held the floor and Q reached
+      // nothing -- Q there now finishes, puts the card away and opens his wheel; a click on him on the card the same)
+      var pr9 = D.input.pressed, fr9 = { at: [L9.mage.x, L9.mage.y], sq: [], foes: ['goblin'] }, q9 = [];
+      try {
+        D.input.pressed = function (k) { return k === 'ring'; };
+        L9.mode = 'form'; L9.form = { r: fr9, sel: null }; RN9.input(B9); q9.push('formation + Q: ' + L9.mode + (L9.form ? ' (the formation still open)' : '')); if (L9.wheel) RN9.closeWheel(B9);
+        L9.mode = 'card'; L9.card = fr9; RN9.input(B9); q9.push('its card + Q: ' + L9.mode); if (L9.wheel) RN9.closeWheel(B9);
+        D.input.pressed = pr9; RN9.onMage = function () { return true; }; L9.mode = 'card'; L9.card = fr9; ms9.click = true; RN9.input(B9); q9.push('its card + a click on him: ' + L9.mode); ms9.click = false; if (L9.wheel) RN9.closeWheel(B9);
+      } finally { D.input.pressed = pr9; RN9.onMage = onM9; ms9.click = false; }
+      okE4('D9 from the rune just laid (want wheel each): ' + q9.join('; '), q9.join('; ') === 'formation + Q: wheel; its card + Q: wheel; its card + a click on him: wheel');
       // D10: Drill's turn begun on his thrown dagger (the old door never staged it)
       var DRILLe = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+shortsword+off:dagger';
       var B10 = D.npcFight('?npc=bugbear&lvl=3&vs=' + DRILLe + '&underfoot', {}); D.battle = B10; B10.enter(); var d10 = oursE4(B10)[0], th10 = !!(d10 && d10.offhandThrown), g10 = (B10.ground || []).map(function (g) { return g.name + '@' + g.x + ',' + g.y; });

@@ -381,8 +381,12 @@
       if (a || m.click) { var sq = m.click ? L.hover : B.map.at(L.cur.x, L.cur.y); if (!sq) return; var ok = RN.aimAt(B, sq.x, sq.y); if (ok.why) { D.sfx('error'); L.msg = { text: ok.why, t: 200 }; return; } L.stompAt = [sq.x, sq.y]; L.stompPlan = ok; L.mode = 'stomp'; L.stompT = null; return; }
       return;
     }
-    if (L.mode === 'form') return RN.formInput(B);
+    // Q FROM THE RUNE JUST LAID (11-24, the seat eyes-1124, his "so i couldn't open the Q to place a new rune because the rune i just placed wanted clicking?"): after the stomp
+    // the new rune's FORMATION and then its card held the floor, and Q reached nothing till E and X had closed them. Now Q there finishes the formation as laid, puts the card
+    // away and opens his wheel; on the card a click on him does the same
+    if (L.mode === 'form') { if (I.pressed('ring')) { RN.formDone(B); RN.closeCard(B); return RN.openWheel(B); } return RN.formInput(B); }
     if (L.mode === 'card') {
+      if (I.pressed('ring') || (m.click && RN.onMage(B))) { RN.closeCard(B); return RN.openWheel(B); }
       if (b || m.rclick) { RN.closeCard(B); return; }
       if (m.click && L.floorHover) { var hc = RN.runeAt(B, L.floorHover.x, L.floorHover.y); if (hc && hc !== 'entry') return RN.openCard(B, hc); if (hc === 'entry') return RN.openEntry(B); }
       return;
@@ -544,7 +548,7 @@
   // ------------------------------------------------------------------ THE FORMATION after the rune (his 11-10), as ORDER round the roam's leader
   RN.openForm = function (B, r) {
     var L = B.lay; L.mode = 'form'; L.form = { r: r, sel: null };
-    B.card(['{y}THE FORMATION{/}: ' + RN.name(r.foes) + ' round the rune.', '{g}Click one of them, then a lit square in the box. Right click: they face the next way. E when done.{/}'], 100000, 'layform');
+    B.card(['{y}THE FORMATION{/}: ' + RN.name(r.foes) + ' round the rune.', '{g}Click one of them, then a lit square in the box. Right click: they face the next way. E when done; Q, done and his wheel.{/}'], 100000, 'layform');
   };
   RN.formUnits = function (B, r) { return B.units.filter(function (u) { return u.rune === r; }); };
   RN.formLegit = function (B, u, x, y) {
