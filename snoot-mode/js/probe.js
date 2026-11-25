@@ -245,20 +245,22 @@
     ok(wl && wl.every(Boolean), 'his note 10-15, the Dominion on the grid: three wagons send their three patrol ladies and 27 soldiers (thirty a grid), and a lady killed there dies on the map (' + (wl ? wl.join(' ') : 'threw') + ')');
     // ---- the Dominion's patrol whole (RULED 11-24, Griz: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger")
     var dw = tk(function () {
-      var cw = SN.newGame(71); cw.party8 = null; var W1 = SN.make(SN.DOMINION[0], true), G = function (w) { return W1.groups.filter(function (g) { return g.grid === w; })[0]; };
+      var cw = SN.newGame(71); cw.party8 = null; var W1 = SN.make(SN.DOMINION[0], true), G = function (w, q) { return W1.groups.filter(function (g) { return g.grid === w && (q == null || g.squad === q); })[0]; }, N = function (w) { return W1.groups.filter(function (g) { return g.grid === w; }).reduce(function (s, g) { return s + g.n; }, 0); };
       var shape = SN.DOMINION.every(function (f) { var u = SN.make(f, true), c = SN.compNow(u); return u.figs === 11 && c.dominion === 4 && c.dragger === 4 && c.sergeantblade === 1 && c.sergeantledger === 1 && c.mender === 1 && SN.heroesOf(u).filter(SN.isWiz).length === 1 && SN.mends(u); });
+      // his ruling 11-24, "I like the sergeant for every 4 men (2 and 2 dragger)": two squads, each its sergeant, two line soldiers and two draggers
+      var squads = [1, 2].every(function (q) { return G('dominion', q).n === 2 && G('dragger', q).n === 2 && G(q === 1 ? 'sergeantblade' : 'sergeantledger', q).n === 1; }) && !G('mender').squad;
       var cls = G('dominion').cls === 'HF' && G('dragger').cls === 'LF' && G('sergeantblade').cls === 'AF' && G('sergeantledger').cls === 'AF' && G('mender').cls === 'HF' && W1.def === 'HF';
       W1.form = 'column'; var road = SN.roadBonus(W1) === 2;
       W1.at = [7, 0]; cw.units.push(W1); var req = SN.band(cw, [W1], [7, 0]), en = req.enemies.join(','), words = SN.bandWords(req);
-      var fields = en === 'patrollady,dominion,dominion,dominion,dominion,dragger,dragger,dragger,dragger,sergeantblade,sergeantledger,mender';
-      // two draggers and the Blade fall on the grid: those men come off the map, the line untouched
-      var at = []; Object.keys(req.whose).forEach(function (i) { var w = req.whose[i][1]; if ((w === 'dragger' && at.filter(function (x) { return req.whose[x][1] === 'dragger'; }).length < 2) || w === 'sergeantblade') at.push(+i); });
+      var fields = en === 'patrollady,sergeantblade,dominion,dominion,dragger,dragger,sergeantledger,dominion,dominion,dragger,dragger,mender' && req.whose[2][2] === 1 && req.whose[7][2] === 2;
+      // the Ledger's two draggers and the Blade fall on the grid: those men come off the map -- the Ledger's draggers, not the Blade's -- the line untouched
+      var at = []; Object.keys(req.whose).forEach(function (i) { var w = req.whose[i]; if ((w[1] === 'dragger' && w[2] === 2) || w[1] === 'sergeantblade') at.push(+i); });
       SN.partyResult(cw, SN.unit(cw, 'party'), [W1], req, { result: 'escaped', share: 0.25, dead: at.length, deadAt: at }, [7, 0]); // (the four got out: the wagon does not break, so its men are as the grid left them)
-      var exact = G('dragger').n === 2 && G('sergeantblade').n === 0 && G('dominion').n === 4 && G('sergeantledger').n === 1 && G('mender').n === 1;
+      var exact = at.length === 3 && G('dragger', 2).n === 0 && G('dragger', 1).n === 2 && G('sergeantblade').n === 0 && N('dominion') === 4 && G('sergeantledger').n === 1 && G('mender').n === 1 && W1.def === 'HF';
       // the mender is the wagon's cleric while she stands; the dusk's mending raises the ranks, never a dead sergeant
       var r0 = SN.rating(W1); G('mender').n = 0; SN.sync(W1); var r1 = SN.rating(W1), short = SN.short(W1) === 2;
-      return [shape, cls, road, fields, words === 'a patrol lady, 4 line soldiers, 4 draggers, 2 sergeants and a mender', exact, r0 - r1 === 1 && !SN.mends(W1), short]; });
-    ok(dw && dw.every(Boolean), 'his ruling 11-24, a Dominion wagon: a patrol lady, a mender, two sergeants, four line soldiers and four draggers -- each type its CHAINMAIL class (HF line and mender, LF draggers, AF sergeants), the wagon\'s road bonus kept (its men ride), the grid fielding the same, who falls there coming off the map by kind, the mender the wagon\'s cleric while she stands (' + (dw ? dw.join(' ') : 'threw') + ')');
+      return [shape, squads, cls, road, fields, words === 'a patrol lady, 2 sergeants, 4 line soldiers, 4 draggers and a mender', exact, r0 - r1 === 1 && !SN.mends(W1), short]; });
+    ok(dw && dw.every(Boolean), 'his rulings 11-24, a Dominion wagon: a patrol lady, a mender, and two sergeants each leading two line soldiers and two draggers -- each type its CHAINMAIL class (HF line and mender, LF draggers, AF sergeants), the wagon\'s road bonus kept (its men ride), the grid fielding the same squad by squad, who falls there coming off the map by kind and squad, the mender the wagon\'s cleric while she stands (' + (dw ? dw.join(' ') : 'threw') + ')');
     // ---- the Gray Keeping's matriarchs (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young
     // ones. Give the superhero entangle?"; "all 8 leans are go"): OD&D Book I's clerics -- the Eldest a Patriarch ("Superhero - 1"), the band's a Lama
     var MW = FF('gkw'), MB = FF('gk2'), MY = FF('gk1'), Me = (MW.heroes || [])[0], Ml = (MB.heroes || [])[0];

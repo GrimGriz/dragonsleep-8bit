@@ -122,7 +122,12 @@
   SN.sync = function (u) {
     if (!u.groups) return;
     u.figs = u.groups.reduce(function (s, g) { return s + g.n; }, 0);
-    var big = u.groups.slice().sort(function (a, b) { return b.n - a.n || b.n0 - a.n0; })[0]; if (big) { u.cls = big.cls; u.def = big.def; }
+    var big = u.groups.slice().sort(function (a, b) { return b.n - a.n || b.n0 - a.n0; })[0];
+    if (u.groups.some(function (g) { return g.squad; })) { // (a unit in squads -- the Dominion's wagons, 11-24: its biggest TYPE, its squads' groups of a kind summed, so one man down in a squad does not turn the wagon to Light Foot)
+      var by = {}, order = []; u.groups.forEach(function (g) { var k = g.cls + '/' + g.def; if (!by[k]) { by[k] = { cls: g.cls, def: g.def, n: 0, n0: 0 }; order.push(k); } by[k].n += g.n; by[k].n0 += g.n0 || 0; });
+      big = order.map(function (k) { return by[k]; }).sort(function (a, b) { return b.n - a.n || b.n0 - a.n0; })[0];
+    }
+    if (big) { u.cls = big.cls; u.def = big.def; }
     u.volley = u.groups.some(function (g) { return g.volley && g.n > 0; }); u.mounted = u.groups.every(function (g) { return g.mounted; });
   };
   // n men off a unit, the biggest group giving first (the owner's to choose, p.14: read as keeping the unit's shape); the tally by type
@@ -130,7 +135,8 @@
   SN.take = function (st, u, n, kind, words) {
     var k = kind || (u.side === 'ours' ? 'lost' : 'killed'), got = 0, add = function (cls, m) { st.stats[k][u.side + ':' + cls] = (st.stats[k][u.side + ':' + cls] || 0) + m; };
     if (!u.groups) { got = Math.max(0, Math.min(u.figs, n)); u.figs -= got; if (got) add(u.cls, got); return got; }
-    while (got < n) { var w = words && words[got], g = (w && u.groups.filter(function (x) { return x.n > 0 && x.grid === w; })[0]) || u.groups.filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; })[0]; if (!g) break; g.n--; got++; add(g.cls, 1); }
+    while (got < n) { var w = words && words[got], ww = Array.isArray(w) ? w[0] : w, wq = Array.isArray(w) ? w[1] : null; // (a word, or [word, squad])
+      var g = (ww && u.groups.filter(function (x) { return x.n > 0 && x.grid === ww && (wq == null || x.squad === wq); })[0]) || (ww && u.groups.filter(function (x) { return x.n > 0 && x.grid === ww; })[0]) || u.groups.filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; })[0]; if (!g) break; g.n--; got++; add(g.cls, 1); }
     SN.sync(u); return got;
   };
   // (a man at a time to the first group still short, 11-24: all of them went to the first short group, which could then stand over its own starting strength while
@@ -339,7 +345,7 @@
     var gs = SN.parts(big).map(function (g) { return Object.assign({}, g, { name: g.name || big.name }); });
     SN.parts(sm).forEach(function (g) {
       if (!full && !g.n) return;
-      var n0 = full ? g.n0 : g.n, same = gs.filter(function (x) { return x.cls === g.cls && x.def === g.def && !!x.volley === !!g.volley && !!x.mounted === !!g.mounted && (x.morale || 0) === (g.morale || 0) && (x.grid || '') === (g.grid || '') && !!x.mender === !!g.mender; })[0]; // (grid, mender: a Dominion wagon's men keep their kinds, 11-24)
+      var n0 = full ? g.n0 : g.n, same = gs.filter(function (x) { return x.cls === g.cls && x.def === g.def && !!x.volley === !!g.volley && !!x.mounted === !!g.mounted && (x.morale || 0) === (g.morale || 0) && (x.grid || '') === (g.grid || '') && !!x.mender === !!g.mender && (x.squad || 0) === (g.squad || 0); })[0]; // (grid, mender, squad: a Dominion wagon's men keep their kinds and their sergeants, 11-24)
       if (same) { same.n += g.n; same.n0 += n0; } else gs.push(Object.assign({}, g, { n0: n0, name: g.name || sm.name }));
     });
     big.groups = gs; big.figs0 = gs.reduce(function (s, g) { return s + g.n0; }, 0); SN.sync(big);
@@ -956,12 +962,16 @@
     // ran the party into a dominion fight": the band sent only the soldiers) -- then its soldiers man for man; `ladies` says whose each list place is
     // -- its men by their kinds since 11-24 (RULED, Griz: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot and 4 dragger"; a wagon met on the
     // grid fields the same): the line soldiers, the draggers, the two sergeants and the mender as they stand on the map (SN.compNow, off its groups); till then every
-    // man of them went as `trooper`, the dwarven hold's. `whose`: each list place's wagon and word, so who falls there comes off the map man for man (SN.partyResult)
-    var ladies = {}, whose = {};
+    // man of them went as `trooper`, the dwarven hold's. `whose`: each list place's wagon, word and squad, so who falls there comes off the map man for man (SN.partyResult).
+    // SQUAD BY SQUAD (RULED 11-24, Griz: "I like the sergeant for every 4 men (2 and 2 dragger)"): each sergeant, then his two line soldiers and his two draggers, then the
+    // next squad, the mender last -- so a band cut short by the grid's room sends whole squads, and the grid's wagon fight stands them together (data/fights.js snootwagon)
+    var ladies = {}, whose = {}, SQ = { sergeantblade: 0, sergeantledger: 0, dominion: 1, dragger: 2 };
     foes.filter(function (u) { return u.side === 'dominion'; }).forEach(function (u) {
       if (room > 0 && SN.heroesOf(u).some(SN.isWiz)) { ladies[list.length] = u.id; list.push('patrollady'); room--; }
-      var at = list.length; send(u, u.comp ? SN.compNow(u) : { dominion: 1 });
-      for (var i = at; i < list.length; i++) whose[i] = [u.id, list[i]];
+      if (!u.groups || !u.groups.every(function (g) { return g.grid; })) { var at = list.length; send(u, { dominion: 1 }); for (var i = at; i < list.length; i++) whose[i] = [u.id, list[i], null]; return; }
+      var gs = u.groups.slice().sort(function (a, b) { return (a.squad || 9) - (b.squad || 9) || (SQ[a.grid] != null ? SQ[a.grid] : 3) - (SQ[b.grid] != null ? SQ[b.grid] : 3); }), n = 0;
+      gs.forEach(function (g) { for (var j = 0; j < g.n && room > 0; j++) { whose[list.length] = [u.id, g.grid, g.squad || null]; list.push(g.grid); room--; n++; } });
+      if (n > 0) contrib.push({ id: u.id, n: n });
     });
     return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, ladies: ladies, whose: whose, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
   };
@@ -999,7 +1009,7 @@
     var killed = function () {
       // (a Dominion band, 11-24: who fell there by list place -- its wagon and its kind, SN.band `whose` -- so a dragger killed on the grid is a dragger off the map)
       if (res && res.deadAt && req.whose && res.deadAt.length === res.dead) {
-        var by = {}; res.deadAt.forEach(function (i) { var w = req.whose[i]; if (w) (by[w[0]] = by[w[0]] || []).push(w[1]); });
+        var by = {}; res.deadAt.forEach(function (i) { var w = req.whose[i]; if (w) (by[w[0]] = by[w[0]] || []).push([w[1], w[2] == null ? null : w[2]]); }); // ([word, squad]: the squad's own man, SN.take)
         Object.keys(by).forEach(function (id) { var u = SN.unit(st, id); if (u && SN.alive(u) && u.figs > 0) SN.lose(st, u, Math.min(u.figs, by[id].length), null, by[id]); });
         return;
       }

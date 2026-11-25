@@ -4,8 +4,8 @@
    they stand, the war-band as the 8-bit's own list), and takes back 'd16:done' -- what the four spent stays spent (HP, slots, uses,
    potions), and what fell of the band says how hard the unit breaks. DEEP16 is not changed for this. A grid that will not come up
    ('d16:refuse', 'd16:crash', no 'd16:ready' in 30 s) leaves the fight to the tables (SN.standIn), and the log says so.
-   The fights: a gnoll band is the road's glory-seekers fight (`snoot`) with the band's list; the Dominion's soldiers the road north's
-   chase (`roadcatch1`: "You run them down where the road climbs"); the Harbinger met away from GreyFang is `harbinger`; the
+   The fights: a gnoll band is the road's glory-seekers fight (`snoot`) with the band's list; a Dominion wagon its own (`snootwagon`, 11-24:
+   its squads on the road south by day -- the road north's chase, `roadcatch1`, till then); the Harbinger met away from GreyFang is `harbinger`; the
    collision with the four around is `greyfang`, GreyFang's Pit as built (10-08), its trophy ending taking the head. */
 'use strict';
 (function () {
@@ -13,7 +13,7 @@
   DP.READY_MS = 30000;
   DP.fight = function (st, req, done) {
     if (/[?&]bench\b/.test(location.search) || !st.party8) { done(SN.standIn(st, req)); return; }
-    var fight = req.dominion ? 'roadcatch1' : req.fight, fr = document.createElement('iframe'), closed = false, timer = null;
+    var fight = req.dominion ? 'snootwagon' : req.fight, fr = document.createElement('iframe'), closed = false, timer = null; // (a wagon's own fight since 11-24: deep16/data/fights.js snootwagon, its squads; it was the road north's chase, roadcatch1)
     // the men of ours beside the four (RULED 10-15): DEEP16's trooper, one a man, by its key ('ally-<unit>-<n>': two troopers are two)
     var guests = (req.allies || []).map(function (a) { return Object.assign(JSON.parse(JSON.stringify(SN.TROOPER8)), { key: a.key }); });
     var snap = JSON.parse(JSON.stringify({ party: st.party8.party, guests: guests, inv: st.party8.inv || [], flags: st.party8.flags || {} }));

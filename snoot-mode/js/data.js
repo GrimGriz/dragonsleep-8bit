@@ -168,17 +168,21 @@
   // Each type its own row on the Combat Table (a mixed unit, RULED 10-15) and its own figure; its CHAINMAIL class from the book's lists (pp.14-15, rules-source.md
   // §5): the line soldiers HEAVY FOOT ("men-at-arms"; half plate and shield); the draggers LIGHT FOOT (the pike's "Swiss and landsknechte"; a studded harness);
   // each sergeant ARMORED FOOT (the book's own "sergeants"; full plate), a group of one each, the two never one row (the page: "never the same flank"); the mender
-  // HEAVY FOOT (a breastplate), a group of one, `mender`: the wagon's `cleric` (+1 morale, mending at dusk) while she stands. `grid`: what each is on DEEP16's grid
-  // (deep16/data/foes.js), so a wagon met there fields the same, man for man. `rides`: the men ride the wagon (01:29, "Our wagon carries myself; two sergeants
-  // ...; eight soldiers ...; and the lady"), so it keeps the wagon's road bonus (p.10). `comp`: the same men by grid word -- its count is SN.compNow's, read off
-  // the groups. The line soldiers' group is first: a hero fights with a unit's first type (the lady fights as her own two Armored Foot)
+  // HEAVY FOOT (a breastplate, worn as half plate), a group of one, `mender`: the wagon's `cleric` (+1 morale, mending at dusk) while she stands. `grid`: what each is
+  // on DEEP16's grid (deep16/data/foes.js), so a wagon met there fields the same, man for man. `rides`: the men ride the wagon (01:29, "Our wagon carries myself; two
+  // sergeants ...; eight soldiers ...; and the lady"), so it keeps the wagon's road bonus (p.10). `comp`: the same men by grid word -- its count is SN.compNow's, read
+  // off the groups. THE SQUADS (RULED 11-24, Griz: "I like the sergeant for every 4 men (2 and 2 dragger)"): each sergeant leads two line soldiers and two draggers,
+  // `squad` 1 the Blade's and 2 the Ledger's -- each squad's kinds their own groups, sent to the grid together (js/rules.js SN.band) and standing together there
+  // (deep16/data/fights.js snootwagon). A line soldiers' group is first: a hero fights with a unit's first type (the lady fights as her own two Armored Foot)
   var WAGON = function (id, missile) {
     return { id: id, side: 'dominion', name: 'a Dominion wagon', kind: 'the Dominion', cls: 'HF', def: 'HF', wagon: true, rides: true, move: 3, cleric: true,
       groups: [
-        { cls: 'HF', def: 'HF', n: 4, name: 'line soldiers', grid: 'dominion', sheets: ['dominion_p1'] },
-        { cls: 'LF', def: 'LF', n: 4, name: 'draggers', grid: 'dragger', sheets: ['dragger_p2'] },
-        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', sheets: ['dominion_p1'] }, // (on the line soldier's figure till the sergeant's sheet: art-wanted 99)
-        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', sheets: ['dominion_p1'] },
+        { cls: 'HF', def: 'HF', n: 2, name: 'the Blade\'s line soldiers', grid: 'dominion', squad: 1, sheets: ['dominion_p1'] },
+        { cls: 'LF', def: 'LF', n: 2, name: 'the Blade\'s draggers', grid: 'dragger', squad: 1, sheets: ['dragger_p2'] },
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the right hand', grid: 'sergeantblade', squad: 1, sheets: ['dominion_p1'] }, // (on the line soldier's figure till the sergeant's sheet: art-wanted 99)
+        { cls: 'HF', def: 'HF', n: 2, name: 'the Ledger\'s line soldiers', grid: 'dominion', squad: 2, sheets: ['dominion_p1'] },
+        { cls: 'LF', def: 'LF', n: 2, name: 'the Ledger\'s draggers', grid: 'dragger', squad: 2, sheets: ['dragger_p2'] },
+        { cls: 'AF', def: 'AF', n: 1, name: 'the sergeant of the left hand', grid: 'sergeantledger', squad: 2, sheets: ['dominion_p1'] },
         { cls: 'HF', def: 'HF', n: 1, name: 'the mender', grid: 'mender', mender: true, sheets: ['npccleric_p0'] } // (on the stock cleric's figure till hers: art-wanted 100)
       ],
       comp: { dominion: 4, dragger: 4, sergeantblade: 1, sergeantledger: 1, mender: 1 },

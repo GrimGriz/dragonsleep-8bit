@@ -122,6 +122,19 @@
       // 840 MEDIUM before, 1325 HARD after (x1.58). invented.json#early-fights-half-again
       foes: [{ id: 'gs', kind: 'gloryseeker', at: [9, 2] }, { id: 'gn1', kind: 'gnoll', at: [6, 3] }, { id: 'gn2', kind: 'gnoll', at: [13, 4] }, { id: 'gn3', kind: 'gnoll', at: [11, 3] },
              { id: 'hy1', kind: 'hyena', at: [4, 5] }, { id: 'hy2', kind: 'hyena', at: [15, 5] }, { id: 'hy3', kind: 'hyena', at: [7, 6] }], wave: null },
+    // A DOMINION WAGON MET ON THE GRID (11-24, the seat dominion-1124, on Griz's rulings of 11-24: "dominion wagon for the snoot with patrol lady, cleric, 2 sergeant, 4 foot
+    // and 4 dragger"; "I like the sergeant for every 4 men (2 and 2 dragger)"): the Snoot's band against a wagon (snoot-mode/js/deep.js; till now the road north's chase,
+    // roadcatch1, Amara and Willem's night fight, with its "They turn, and then they run again"). His patrol page, The Fare Home: "The line soldiers form two short walls
+    // ... with the draggers behind them; the sergeants each take a flank -- never the same flank". The Blade's squad on the west, the Ledger's on the east, each sergeant at
+    // his squad's outer end, his two line soldiers in front and his two draggers behind them; the lady and the mender back on the road by the wagon. The Snoot's list
+    // comes squad by squad (SN.band), so each takes its own squad's spots; a second or third wagon's men stand beside the spots of their kind. ?fight=snootwagon&lvl=3&watch
+    { id: 'snootwagon', story: true, level: 3, ladder: false, map: 'snootroad', name: 'A Dominion Wagon', sub: 'the Snoot, by day', music: 'boss',
+      intro: 'A Dominion wagon on the road: a lady on the bench, her mender beside her, and two sergeants who will not stand together, each with his four -- two shields in front, two pikes behind.',
+      from: 'the Snoot mode: snoot-mode/js/deep.js, a Dominion wagon on the grid (his patrol page, The Fare Home)', won: 'THE WAGON\'S MEN ARE DOWN.',
+      foes: [{ id: 'lady', kind: 'patrollady', at: [9, 2] },
+             { id: 'sb', kind: 'sergeantblade', at: [4, 5] }, { id: 'b1', kind: 'dominion', at: [5, 5] }, { id: 'b2', kind: 'dominion', at: [6, 5] }, { id: 'bd1', kind: 'dragger', at: [5, 4] }, { id: 'bd2', kind: 'dragger', at: [6, 4] },
+             { id: 'sl', kind: 'sergeantledger', at: [15, 5] }, { id: 'l1', kind: 'dominion', at: [13, 5] }, { id: 'l2', kind: 'dominion', at: [14, 5] }, { id: 'ld1', kind: 'dragger', at: [13, 4] }, { id: 'ld2', kind: 'dragger', at: [14, 4] },
+             { id: 'md', kind: 'mender', at: [10, 2] }], wave: null },
     { id: 'snoot-ladder', level: 3, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss', // (the ladder's own, 10-28: above, at ettercap-ladder)
       intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',
       from: 'the 8-bit game: events.js S.snoot (a glory-seeker, two gnolls, two hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',

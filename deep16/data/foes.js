@@ -310,7 +310,8 @@
   // the line soldiers `dominion` above, and these four. The page's PHB pieces are read by the SRD (RULED 10-17, SRD-clean): each name says what was swapped
   // THE DRAGGER (THE DRAGGERS, fighter 1): "gladiator harness, pike and cestus"; the page's "two with glaives" among the line soldiers are these, with pikes (his
   // ruling). AC 15 = studded leather 12 + DEX 2 + Defense 1. The SRD fighter 1's Second Wind (1d10+1), which the page leaves off. Wagon Drill (shove, grapple,
-  // drag the downed to the wagon) is NOT built: the dragger fights as a piker. CR 1/4 beside the SRD's Guard (1/8: AC 16, 11 HP, +3 1d6+1) and the pike trooper
+  // drag the downed to the wagon) is NOT built: the dragger fights as a piker (RULED 11-24, Griz: "that's good for an encounter lane (though the footmen and sergeants to
+  // focus dragged heroes), but these snoot wagons are on special assignment and aren't in 'dominion recruiting mode'" -- filed by the desk for a recruiting-mode encounter). CR 1/4 beside the SRD's Guard (1/8: AC 16, 11 HP, +3 1d6+1) and the pike trooper
   // (1/4: AC 16, 11 HP, +3 1d10+1) -- the seat's, the DMG's table not being the SRD's. His sheet dragger_p2 (ART-159, 66966123)
   dragger: {
     name: 'Dragger', type: 'humanoid', sheet: 'dragger_p2', humanoid: true, soldiering: true, cr: '1/4', ac: 15, armor: 'studded leather', hp: 12, speed: 30, size: 1, reach: 10, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
@@ -326,7 +327,10 @@
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the
   // page's (`buildAC`: the game's items have no full plate). Trained in Soldiering: the Ledger's shield joins the wall. On the line soldier's figure till their own
-  // sheets come back (art-wanted 99)
+  // sheet comes back: ONE sergeant figure with both kits as its rows (art-wanted 99; RULED 11-24, Griz: "I don't want to art request a sergeant variant - we could add
+  // combat rows to the sergeant we're already requesting"). Each leads four men, two line soldiers and two draggers (RULED 11-24: "I like the sergeant for every 4 men (2
+  // and 2 dragger)"): the wagon's squads, snoot-mode/js/data.js and data/fights.js snootwagon. Both Champions within the SRD (RULED 11-24: "3 - we can Champion within
+  // SRD for both sergeants and file the need for his feat with the leveling lane" -- the Ledger's trip, menace and riposte wait there as a feat)
   // SERGEANT OF THE RIGHT HAND, "the Blade": fighter 3, the Champion as the page has him, Great Weapon Fighting, the greatsword; the handaxe to throw
   sergeantblade: {
     name: 'Sergeant (the Blade)', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, soldiering: true, cr: '2', ac: 18, metalArmor: 'plate', hp: 28, speed: 30, size: 1, reach: 5,
@@ -350,14 +354,15 @@
   // THE MENDER (the page's GLASS-CLERIC, cleric 3, "her holy symbol is a small mirror on a cord"; Kat's book 03:21, "a mender of my office is addressed Mender";
   // dominion.md, "MENDERS OUTRANK SERGEANTS", clerics of Tronu): the page's Trickery Domain is the PHB's -- read as our own, the Window, Tronupholen's menders'
   // (Katarina's; js/classes.js NPC.SUBS -- its Doubling is the page's Invoke Duplicity, the Hand on the Neck its blessing), built by the class with the page's list.
-  // AC 15: breastplate 14 + DEX 1 (the page's 16 does not add up; the game has no breastplate: `buildAC`). On the stock cleric's figure till her own comes back (art-wanted 100)
+  // AC 16 (RULED 11-24, Griz: "4 - with you on 4", on the desk's lean): the page's 16 kept as HALF PLATE, 15 + DEX 1, the Dominion's issue as the line soldiers wear it
+  // -- her look stays the page's tailored black breastplate (the game has no half plate item: `buildAC`). On the stock cleric's figure till her own (art-wanted 100)
   mender: {
-    name: 'Mender', type: 'humanoid', sheet: 'npccleric_p0', humanoid: true, cr: '1', ac: 15, metalArmor: 'breastplate', hp: 24, speed: 30, size: 1, reach: 5,
+    name: 'Mender', type: 'humanoid', sheet: 'npccleric_p0', humanoid: true, cr: '1', ac: 16, metalArmor: 'half plate', hp: 24, speed: 30, size: 1, reach: 5,
     abil: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 }, init: 1, perception: 12,
     saves: { str: 0, dex: 1, con: 2, int: 0, wis: 4, cha: 3 },
     attacks: { mace: { name: 'Mace', atk: 2, dice: '1d6', mod: 0, type: 'bludgeoning', reach: 5 } }, // ("She would rather not")
     multi: 1, build: 'wagonmender', buildAC: true,
-    src: 'dominion-patrol-the-fare-home.pdf THE GLASS-CLERIC (cleric 3, Trickery -- read as our Window: AC 16 breastplate read as 15, HP 24 3d8+6, WIS 15, spell DC 12 +4, slots 4/2; sacred flame, guidance, thaumaturgy; bless, healing word, sanctuary, shield of faith; hold person, spiritual weapon; mace +2 1d6) -- SENSES (ours, 11-24): Stealth none, its DEX check (+1); passive Perception 12, 10 + WIS +2'
+    src: 'dominion-patrol-the-fare-home.pdf THE GLASS-CLERIC (cleric 3, Trickery -- read as our Window: AC 16 as half plate, his ruling of 11-24, HP 24 3d8+6, WIS 15, spell DC 12 +4, slots 4/2; sacred flame, guidance, thaumaturgy; bless, healing word, sanctuary, shield of faith; hold person, spiritual weapon; mace +2 1d6) -- SENSES (ours, 11-24): Stealth none, its DEX check (+1); passive Perception 12, 10 + WIS +2'
   },
   veteran: {
     name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 30, size: 1, reach: 5,
