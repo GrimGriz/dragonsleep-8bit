@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-25
 
+- 2026-11-25 · `d11b05ed`, `fd5cac41` · the world map · Barley in his chain speaks on his own mail bust (`pt_barley_mail`), and the anchor pin sits in the glory-seekers' picture slot at the true word's end; art-wanted 97 and 98 in hand (cutter-1124c) · *"that pin is for a portrait pane at the end of the true word gnoll fight"*
+- 2026-11-25 · `e4568588` · eyes on the screen · Three pikemen's rows (the Line Guard pikeman, the trooper pike, the dragger) no longer say "He fights nowhere yet" (dominion-1124)
 - 2026-11-25 · `a0634272`, `95e0a0c4`, `217e8ab1` · the story build · Dunmore's Line Guard soldiering: the pikeman's sheet `guardpike_p2`, and the Push and pike rows on `guard_p2`; art-wanted 94 all in hand (cutter-1124) · *"Outbox sent and stuff in Fresh"*
 - 2026-11-25 · `ddf294ea` · the leveling · Art-wanted 102 to the outbox: Keep Back and the Shove for the dragger and the Line Guard pikeman (cutter-1124) · *"build both and outbox the Keep Back and any other rows we need for those two"*
 - 2026-11-25 · `a9be8db3`, `2a95ea9f`, `6e8c90df` · the leveling · Soldiering set by the fight, not the block; the Line Guard pikeman's block; Dunmore's Line trains its four shields and the pikeman (grid-1125) · *"a 'soldiering' flag determined by the engine building the fight?"*, *"build both"*
