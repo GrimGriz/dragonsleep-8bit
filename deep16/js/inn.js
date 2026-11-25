@@ -94,7 +94,7 @@
   In.LEGEND = { '"': 'grassT', '.': 'earth', ',': 'road', t: 'tree', q: 'well', '|': 'fence', k: 'woodpile', w: 'manger', c: 'crate', B: 'innWall', A: 'barnWall', o: 'floorWood',
     D: 'doorway', K: 'table', b: 'bench', m: 'chair', C: 'chimney', H: 'shelf', z: 'bed', h: 'firepit', f: 'firepit', u: 'stairsUp', T: 'tub', n: 'sand', i: 'flatstone', r: 'rocks',
     l: 'lamp', e: 'reeds', W: 'shallows', Y: 'deep', p: 'boat', R: 'innRoof', X: 'wingRoof', Q: 'barnRoof', S: 'stairRun',
-    a: 'hay', x: 'trough', j: 'tools', s: 'sign' }; // (11-05, the exteriors seat: the barn's hay, the trough by the rail, the hearth's tools and kettle, the sign by the road -- js/innprops.js)
+    a: 'hay', x: 'trough', j: 'tools', s: 'sign', N: 'tent' }; // (11-05, the exteriors seat: the barn's hay, the trough by the rail, the hearth's tools and kettle, the sign by the road -- js/innprops.js) // (N: a staying band's tent in the yard, 11-25 -- In.bandFolk; only In.map writes it)
   // the names the top levels' floors had not needed, as the grid's squares (js/mines.js M.LAY; a roof by M.ROOF)
   Object.assign(M.LAY, { grassT: ['g'], earth: ['.'], woodpile: ['k'], manger: ['k'], floorWood: ['o'], doorway: ['d'], table: ['K'], bench: ['K'], chair: ['k'], shelf: ['S'], bed: ['y'],
     tub: ['w'], sand: ['.'], flatstone: ['.'], rocks: ['r'], boat: ['k'], stairRun: ['o'], hay: ['k'], trough: ['w'], tools: ['k'], sign: ['f'], // (the stair's run: walked as the floor till art-wanted section 36's stair comes back)
@@ -267,16 +267,22 @@
   // nothing till now): every band in at the inn this hour -- for HG.STAY hours from its coming, then gone on -- stood, a figure for each of its cast (In.BANDCAST): by daylight in
   // the yard by the trough, from the evening at the long table's far end (the supper's own seats are the four's and the house's). A click on one is the band's own talk, as
   // when it came in (js/survivors.js SV.talk). Two bands at most are stood. THE SEAT'S CALL, his to overrule: no ox -- no figure for one yet (the art desk's)
-  In.BANDSQ = { yard: [[[6, 14], [7, 14], [8, 14]], [[5, 17], [6, 17], [7, 17]]], table: [[[27, 15], [26, 16], [27, 16]], [[27, 14], [28, 15], [28, 16]]] };
+  // A TENT IN THE YARD, NOT THE SUPPER (11-25, odds-1125 -- Griz, 11-25: "the fleeing bands aren't likely to have inn rent, might be best to not add to dinner and have them with a
+  // tent in the inn yard for their 'staying on'"): a band staying on keeps to its tent in the yard at every hour, by day and after dark, and never sits at the supper's table.
+  // The tent is the one the game already draws, the silk-cutters' at Web Gulch's camp (js/mines.js M.tentPic -- a square whose name is `tent`, In.LEGEND's N, drawn by
+  // M.isoDress, standing in the way as the gulch's do), written into the floor's rows on its square while the band is there (In.map); its flap opens east, the band a square
+  // off it on that side (stood at the flap they hid it from the camera: seen in the seat's tab). Off the yard's ways: the west gate's walk to the inn's door runs along rows 17 to 21
+  In.BANDSQ = { tent: [[5, 15], [5, 24]], yard: [[[7, 14], [7, 15], [7, 16]], [[7, 23], [7, 24], [7, 25]]] };
   In.BANDCAST = { farm: ['commoner', 'commonerwoman', 'commonerchild'], hamlet: ['commonerwoman', 'commoner', 'commonerchild'], road: ['commoner', 'commoner'], wild: ['commoner'] };
   In.bands = []; // (the bands stood on the floor as it was last laid, by figure id: In.bandOf)
+  In.bandTents = []; // (the tents laid with them: In.map writes each on the floor's rows)
   In.bandFolk = function (inside, hour) {
-    var HG = D.hunger, out = []; In.bands = []; if (!HG || !HG.at || !HG.on || !(D.roam.house && D.roam.house()) || !D.house || !D.house.playing) return out;
+    var HG = D.hunger, out = []; In.bands = []; In.bandTents = []; if (!HG || !HG.at || !HG.on || !(D.roam.house && D.roam.house()) || !D.house || !D.house.playing) return out;
     var rs = []; try { rs = HG.at('inn') || []; } catch (e) { rs = []; }
-    var by = In.when('light', hour) ? 'yard' : inside === 'inn' ? 'table' : null; if (!by) return out; // (by daylight out in the yard, seen from in or out; after dark in at the table, under the roof)
     rs.slice(0, 2).forEach(function (r, k) {
-      var cast = In.BANDCAST[r.kind] || In.BANDCAST.farm, sq = In.BANDSQ[by][k];
-      cast.slice(0, sq.length).forEach(function (kind, j) { var id = 'band' + k + '_' + j; In.KINDS[id] = kind; In.bands.push({ id: id, r: r }); out.push({ id: id, x: sq[j][0], y: sq[j][1], look: 'worker', dir: by === 'table' ? 'left' : 'down' }); });
+      var cast = In.BANDCAST[r.kind] || In.BANDCAST.farm, sq = In.BANDSQ.yard[k];
+      In.bandTents.push(In.BANDSQ.tent[k].slice());
+      cast.slice(0, sq.length).forEach(function (kind, j) { var id = 'band' + k + '_' + j; In.KINDS[id] = kind; In.bands.push({ id: id, r: r }); out.push({ id: id, x: sq[j][0], y: sq[j][1], look: 'worker', dir: 'down' }); });
     });
     return out;
   };
@@ -338,7 +344,8 @@
       // (the yard's people -- the pair, the one at the tail, the inn lady with her lantern, the traveler -- are stood and moved by the night's script, In.wagonNight: In.YARDFOLK keeps their squares)
     }
     if (In.snootOn(In.q)) npcs.push({ id: 'snootRunner', x: In.RUNNER[0], y: In.RUNNER[1], look: 'worker', dir: 'down' });
-    if (!(flags && flags.wagonIn)) npcs = npcs.concat(In.bandFolk(inside, hour)); // (the survivors staying on at the inn this hour: In.bandFolk, 11-24)
+    if (!(flags && flags.wagonIn)) npcs = npcs.concat(In.bandFolk(inside, hour)); else In.bandTents = []; // (the survivors staying on at the inn this hour: In.bandFolk, 11-24)
+    In.bandTents.forEach(function (q) { var r = rows[q[1]]; if (r && q[0] < r.length) rows[q[1]] = r.substr(0, q[0]) + 'N' + r.substr(q[0] + 1); }); // (each band's tent on its square: In.LEGEND N, 11-25)
     if (In.barnGoblinOn(flags || {}, dd)) npcs.push({ id: 'barnGoblin', x: In.BARN[0], y: In.BARN[1], look: 'goblin', dir: 'down' }); // (the one handed over, chained in the end stall till the due: 11-05)
     var boat = In.boatOn(flags || {}, dd); if (!boat) rows = rows.map(function (r) { return r.indexOf('p') < 0 ? r : r.split('p').join('W'); }); // (no boat yet, or none: the shallows -- In.boatOn)
     var trig = [{ id: 'flatstone', rect: [44, 18, 1, 2], on: 'step', script: 'inn:pointStep' }, { id: 'thedeep', rect: [48, 17, 1, 4], on: 'use', script: 'inn:point' }, /* (11-13, his 0404Z note on eyes-lake-rock-1113b: "have the 4 pop-up squares be the 48 row that sticks out (right now 2 on 48 and 2 on 47)" -- column 48 is knee-shallow on rows 17 to 20 only, the four that stand out past the shallows north and south of them; it had been 45-48 on the stone's two rows) */ /* (11-13, his "make only the 4 squares straight out from the rock do the 'yellow box click popup' about things not coming up from the deep": the four straight out from the flat stone, x 45-48 on its two rows -- it had been the whole water off the point) */
