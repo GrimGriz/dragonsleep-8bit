@@ -1545,9 +1545,21 @@
   };
   // the front a re-form takes with no re-formed mate beside it (F.aiWall): of the four straight ways, the one with the most foes it knows of within 60 ft in front of it -- a tie,
   // F.faceOf's (toward the nearest). F.faceOf alone reads a diagonal tie as up or down, and a front with no foe in front of it would break again at the next turn
+  // (THE LINE SQUARE TO THEM, 11-25 -- Griz: "13 - seems like the form should depend on where the foe is, if by column you just mean east to west line"; the desk's build: the
+  // re-formed wall joins side by side across the front that faces where its foes are, whatever the compass says): the front is weighed for the whole re-forming group -- it and
+  // its mates still to re-form beside it, as one wall (F.inFront) -- and a tie goes to the front the group already stands across (no depth along it), then F.faceOf's. Till then
+  // the first to set weighed its own square alone: three troopers standing north to south with the party east of them set facing south, one behind another -- a file, not a line)
+  F.reformGroup = function (B, u) {
+    var out = [u], i = 0;
+    while (i < out.length) { var s = out[i++]; B.units.forEach(function (w) { if (out.indexOf(w) < 0 && w.side === u.side && !w.familiar && w.wallReform != null && F.wallReady(w) && F.bearsShield(w) && !F.wallSet(w) && sqDist(s, w) <= 1) out.push(w); }); }
+    return out;
+  };
   F.reformFace = function (B, u) {
-    var kf = knownFoes(B, u).filter(function (w) { return G.dist(u, w) <= 60; }), f0 = F.faceOf(B, u), best = f0, bn = -1;
-    [f0, [0, -1], [1, 0], [0, 1], [-1, 0]].forEach(function (f) { var n = kf.filter(function (w) { return F.inFront([u], f, w); }).length; if (n > bn) { bn = n; best = f; } });
+    var kf = knownFoes(B, u).filter(function (w) { return G.dist(u, w) <= 60; }), grp = F.reformGroup(B, u), f0 = F.faceOf(B, u), best = f0, bn = -1, bd = Infinity;
+    [f0, [0, -1], [1, 0], [0, 1], [-1, 0]].forEach(function (f) {
+      var n = kf.filter(function (w) { return F.inFront(grp, f, w); }).length, at = grp.map(function (s) { return s.x * f[0] + s.y * f[1]; }), dep = Math.max.apply(null, at) - Math.min.apply(null, at);
+      if (n > bn || (n === bn && dep < bd)) { bn = n; bd = dep; best = f; }
+    });
     return best.slice();
   };
   // THE COVER BEHIND THE WALL (G.los asks it of each creature in a line): a joined member w, and of the two the line joins the one behind w (against the wall's facing) --
@@ -1715,8 +1727,16 @@
       // standing farther off, it goes to that as ever
       if (u.wallReform != null && u.wallReform < B.round) {
         delete u.wallReform;
-        var mateR = walls.some(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; });
-        if (!walls.length || mateR) { B.card(['{y}' + u.name + '{/} re-forms the wall to face them.'], 160); F.setShields(B, u, mateR ? null : F.reformFace(B, u)); yield 10; return; }
+        // (side by side, 11-25 -- his "13", above F.reformGroup: a re-formed mate beside it ACROSS its front, it joins; beside it but before or behind it along that front, it goes to
+        // the line's end and sets there, rather than set as a file behind it; no end it can reach this turn, it tries again next turn)
+        var matesR = walls.filter(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; });
+        var across = matesR.filter(function (m) { var f = m.conds.wall.face; return (u.x - m.x) * f[0] + (u.y - m.y) * f[1] === 0; });
+        if (!walls.length || across.length) { B.card(['{y}' + u.name + '{/} re-forms the wall to face them.'], 160); F.setShields(B, u, across.length ? across[0].conds.wall.face : F.reformFace(B, u)); yield 10; return; }
+        if (matesR.length) {
+          var lineR = F.wallOf(B, matesR[0]), endR = yield* walkTo(B, u, lineSpots(B, u, lineR.length ? lineR : [matesR[0]]));
+          if (endR && F.canSet(u)) { B.card(['{y}' + u.name + '{/} takes the end of the re-formed line.'], 160); F.setShields(B, u); yield 10; return; }
+          u.wallReform = B.round; return;
+        }
       }
       if (!walls.length) { // (no wall of its side yet)
         if (B.round === 1 || foeWithin(B, u, reach) && B.units.some(function (w) { return w !== u && w.side === u.side && F.wallReady(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })) { F.setShields(B, u); yield 10; }

@@ -21590,9 +21590,22 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         // (5b: broken, each walked in and struck with its action, as any foe; at its next turn it sets where it stands -- the front with the most of ours in front of it)
         W5.B.round = 3; var l5b = W5.ts.map(function (t) { return aiTurn(W5.B, t); });
         var faced5 = W5.ts.filter(function (t) { if (!FW.wallSet(t)) return false; var wl = FW.wallOf(W5.B, t); return W5.hs.some(function (h) { return inFrontW(wl.length ? wl : [t], t.conds.wall.face, h); }); }).length;
-        okAB('5b round 3: set again, one of ours in front of its wall, ' + faced5 + ' of 3 (' + W5.ts.map(function (t) { return t.name + ' ' + (FW.wallSet(t) ? JSON.stringify(t.conds.wall.face) : 'not set') + ' at ' + t.x + ',' + t.y; }).join('; ') + '; ours at ' + W5.hs.map(function (h) { return h.x + ',' + h.y; }).join(' ') + ') -- "' + l5b.join(' / ').slice(0, 240) + '" (want 3)', faced5 === 3);
+        // (and side by side: a line across its front, no depth along it -- his "13 - seems like the form should depend on where the foe is", 11-25; till then the three stood
+        // north to south, the party east of them, and set facing south one behind another)
+        var lineOK5 = function (ts, Bx) { var set = ts.filter(function (t) { return FW.wallSet(t); }); if (set.length !== ts.length) return false; var f = set[0].conds.wall.face; return set.every(function (t) { return t.conds.wall.face[0] === f[0] && t.conds.wall.face[1] === f[1] && t.x * f[0] + t.y * f[1] === set[0].x * f[0] + set[0].y * f[1]; }) && FW.wallOf(Bx, set[0]).length === ts.length; };
+        var line5 = lineOK5(W5.ts, W5.B);
+        okAB('5b round 3: set again, one of ours in front of its wall, ' + faced5 + ' of 3, a line across its front ' + line5 + ' (' + W5.ts.map(function (t) { return t.name + ' ' + (FW.wallSet(t) ? JSON.stringify(t.conds.wall.face) : 'not set') + ' at ' + t.x + ',' + t.y; }).join('; ') + '; ours at ' + W5.hs.map(function (h) { return h.x + ',' + h.y; }).join(' ') + ') -- "' + l5b.join(' / ').slice(0, 240) + '" (want 3, true)', faced5 === 3 && line5);
         W5.B.round = 4; var l5c4 = W5.ts.map(function (t) { return aiTurn(W5.B, t); }).join(' / '), again5 = (l5c4.match(/breaks from the wall to re-form/g) || []).length;
         okAB('5b2 round 4: no one breaks again (' + again5 + ') (want 0)', again5 === 0);
+      }
+      // 5f. A FILE, THE FOES DUE SOUTH OF IT: three troopers broken to re-form, standing north to south at 3,0 3,1 3,2, the party 20 ft south -- they re-form as a line across
+      // the front facing south, the two behind the first going to its ends (the front by where the foes are, the line square to them)
+      var W5f = mkW('?npc=trooper,trooper,trooper&vs=fighter:3,cleric:3&lvl=3', [[3, 0], [3, 1], [3, 2]], [0, 1], [[3, 4], [4, 4]]);
+      if (!W5f) okAB('5f the file laid', false);
+      else {
+        W5f.ts.forEach(function (t) { FW.leaveWall(W5f.B, t, true); t.wallReform = 1; }); W5f.B.round = 2;
+        var l5f = W5f.ts.map(function (t) { return aiTurn(W5f.B, t); }), line5f = lineOK5(W5f.ts, W5f.B), south5f = W5f.ts.every(function (t) { return FW.wallSet(t) && t.conds.wall.face[0] === 0 && t.conds.wall.face[1] === 1; });
+        okAB('5f three in a file north to south, the party due south: set again facing south ' + south5f + ', a line across the front ' + line5f + ' (' + W5f.ts.map(function (t) { return t.x + ',' + t.y + ' ' + (FW.wallSet(t) ? JSON.stringify(t.conds.wall.face) : 'not set'); }).join('; ') + ') -- "' + l5f.join(' / ').slice(0, 260) + '" (want true, true)', south5f && line5f);
       }
       var W5c = mkW('?npc=trooper,trooper&vs=wizard:3&lvl=3', [[3, 0], [3, 1]], [-1, 0], [[1, 4]]);
       if (!W5c) okAB('5c the wall laid', false);
