@@ -21533,6 +21533,37 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         B3b.active = null;
       }
     } catch (eAB3) { repAB.errors.push('3: ' + String(eAB3 && eAB3.stack || eAB3).slice(0, 900)); }
+    try {
+      // 4. THE CROSSBOWMEN HOLD THEIR GROUND AND SHOOT (RULED 11-22, "Yes to the crossbowmen question"): 4a a Crossbow Trooper, a fighter 30 ft off in the open -- it looses from
+      // where it stands; 4b the fighter beside it -- the battleaxe, as before; 4c his fight 2's door watched (no runes, seeded), three rounds: each Crossbow Trooper turn that began with
+      // no one in its reach and one of ours in its sight and range ends in a bolt from where it stood (his nine rounds: none)
+      D.d = function (s) { return Math.min(s, 12); };
+      var B4 = mkAB('?npc=trooperxbow&vs=fighter:3&lvl=3'), x4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0], f4 = B4.units.filter(function (u) { return u.side === 'party'; })[0];
+      if (!layAB(B4, [[x4, 1, 2], [f4, 7, 2]])) okAB('4a the fight laid', false);
+      else {
+        var rg4 = D.grid.range(x4, f4), at4 = [x4.x, x4.y], l4 =(function () { var n = (B4.log || []).length; D.rules.startTurn(x4); B4.active = x4; drAB(D.ai.turn(B4, x4), null, 4000); B4.active = null; return (B4.log || []).slice(n).map(function (l) { return String(l).replace(/^R\d+ /, ''); }); })().join(' | ');
+        var stay4 = x4.x === at4[0] && x4.y === at4[1];
+        okAB('4a a Crossbow Trooper, a fighter ' + rg4 + ' ft off: the Heavy Crossbow (' + /Heavy Crossbow/.test(l4) + '), held its ground (' + stay4 + ') -- "' + l4.slice(0, 200) + '" (want true, true)', /Heavy Crossbow/.test(l4) && stay4);
+        x4.x = at4[0]; x4.y = at4[1]; f4.x = at4[0] + 1; f4.y = at4[1]; f4.hp = f4.maxhp; GAB.setup(GAB.map, B4.units); B4.cache = null;
+        var l4b = (function () { var n = (B4.log || []).length; D.rules.startTurn(x4); B4.active = x4; drAB(D.ai.turn(B4, x4), null, 4000); B4.active = null; return (B4.log || []).slice(n).join(' | '); })();
+        okAB('4b the fighter beside it: the Battleaxe (' + /Battleaxe/.test(l4b) + '), no bolt (' + !/Heavy Crossbow/.test(l4b) + ') -- "' + l4b.slice(0, 160) + '" (want true, true)', /Battleaxe/.test(l4b) && !/Heavy Crossbow/.test(l4b));
+      }
+      D.d = dAB;
+      D.scenes.length = 0;
+      var B4c = D.npcFight('?npc=trooper,trooper,trooper,assassin,trooperpike,trooperpike,trooperpike,trooperxbow,trooperxbow,trooperxbow,trooperxbow,fileleader&vs=' + PARTY_AB + '&lvl=3&map=burial&watch&seed=1125', {}); D.push(B4c); D.battle = B4c; B4c.enter();
+      var turn4 = D.ai.turn, held4 = 0, walked4 = [];
+      D.ai.turn = function* (Bx, u) {
+        if (Bx !== B4c || u.kind !== 'trooperxbow' || !G9ok(u)) return yield* turn4.apply(this, arguments);
+        var hs = Bx.units.filter(function (w) { return GAB.hostile(u, w) && GAB.standing(w) && !w.object; });
+        var inReach = hs.some(function (w) { return GAB.dist(u, w) <= GAB.reachOf(u); }), shot = hs.some(function (w) { return !w.conds.hidden && GAB.range(u, w) <= 400 && GAB.los(u, w).clear && D.magic.sees(Bx, u, w); });
+        var at = [u.x, u.y], n = (Bx.log || []).length, r = yield* turn4.apply(this, arguments), l = (Bx.log || []).slice(n).join(' | ');
+        if (!inReach && shot) { if (/Heavy Crossbow/.test(l) && u.x === at[0] && u.y === at[1]) held4++; else walked4.push('R' + Bx.round + ' ' + at + ' to ' + [u.x, u.y] + (/Battleaxe/.test(l) ? ' and the axe' : '') + ' [' + l.slice(0, 160) + ']'); }
+        return r;
+      };
+      function G9ok(u) { return u && !u.dead && u.hp > 0 && D.rules.canAct(u); } // (asleep, held: no turn to judge)
+      try { drAB(B4c.co, function () { return B4c.round >= 4 || (B4c.over && B4c.over()); }, 80000); } finally { D.ai.turn = turn4; }
+      okAB('4c his fight 2\'s door watched (seed 1125, no runes), rounds 1-3: Crossbow Trooper turns begun with no one in reach and a clear shot -- ' + held4 + ' held and loosed, ' + walked4.length + ' walked in (' + walked4.slice(0, 4).join('; ') + ') (want > 0, 0)', held4 > 0 && walked4.length === 0);
+    } catch (eAB4) { D.d = dAB; repAB.errors.push('4: ' + String(eAB4 && eAB4.stack || eAB4).slice(0, 900)); }
     try { /* (the next sections) */ } catch (eAB) { repAB.errors.push(String(eAB && eAB.stack || eAB).slice(0, 900)); }
     D.d = dAB;
     var preAB = document.createElement('pre'); preAB.id = 'out'; preAB.textContent = 'BENCH16 ' + JSON.stringify(repAB);

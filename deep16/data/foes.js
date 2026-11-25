@@ -722,6 +722,7 @@
       crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', ranged: true, range: [100, 400], loading: true, row: 'shoot' } // (one shot a turn: ai.js volley, no ranged Multiattack; trooperxbow_p2's `shoot` row, loosed on frame 4, 11-13 -- then its `span` row in the same turn, a look only: js/battle.js the span after the shot)
     },
     multi: 1, resist: ['poison'], poisonAdv: true,
+    standShoot: true, // (no one in its reach as its turn starts: it holds its ground and looses, the axe for one who comes to it -- RULED 11-22, Griz: "Yes to the crossbowmen question"; js/ai.js brute)
     src: 'SRD 5.1 Guard (CR 1/8) as a dwarf in the hold\'s kit (11-12): chain mail AC 16 (the shield slung), the heavy crossbow +3 1d10+1 100/400 loading, the battleaxe +3 1d8+1 (srd/04-equipment.md); CR 1/4 as the trooper; content/npcs.json drill1-4 (the Troopers)'
   },
   // THE FILE LEADER, over one to four troopers (11-12): between the Guard and the Veteran, built of SRD pieces only -- the SRD 5.1 Thug's body (srd/20-npcs.md: STR 15 DEX 11 CON 14

@@ -1550,6 +1550,11 @@
     var tgt = near[0], ranged = Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].ranged; }).map(function (k) { return u.attacks[k]; });
     // all its attacks at range (Amara, Willem): keep off, step away when pressed, and shoot
     if (ranged.length && ranged.length === Object.keys(u.attacks).length) { yield* shooter(B, u); return; }
+    // THE CROSSBOWMEN HOLD THEIR GROUND AND SHOOT (RULED 11-22, Griz: "Yes to the crossbowmen question", on the Code tab's "hold their ground and shoot when no one is in reach at the
+    // start of the turn?"): a block that says so (`standShoot`, data/foes.js: the Crossbow Trooper), no one in its reach as its turn starts, looses from where it stands -- the
+    // battleaxe is for one who comes to it. No shot from here (none in range and sight): the old way below, it closes in. In his BUGBEAR AMBUSH fight 2 (11-22) the four loosed no
+    // bolt in nine rounds: a foe with a blade beside its bow walked in and swung, and volleyed only when no one was in reach after the walk
+    if (!tgt && u.standShoot && ranged.length && !grudge && T.action && !T.attacksLeft && !(u.hang && G.hanging(u)) && (yield* volley(B, u))) return;
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       // the roof guard's own lane up the face (a fight's foe `climbAt`, [x0, x1]: the columns she goes up by -- 10-05 night, Griz: "how often Hallvor goes over and stands by the door
