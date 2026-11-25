@@ -1343,9 +1343,28 @@
     return Math.abs(dy) >= Math.abs(dx) ? [0, Math.sign(dy) || -1] : [Math.sign(dx), 0];
   };
   var FACE_WORD = { '0,-1': 'north', '0,1': 'south', '1,0': 'east', '-1,0': 'west' };
-  F.setShields = function (B, u) {
-    u.turn.bonus = 0; u.conds.wall = { x: u.x, y: u.y, face: F.faceOf(B, u) };
-    u.turn.wallMove = u.turn.move; u.turn.move = 0; D.sfx('confirm');
+  // A SET WALL FACES ITS FRONT (2026-11-25, Griz: "41 - yes", on the 11-22 tab's "can" -- his ask from the BUGBEAR AMBUSH, "When in a shield wall can we make them face the
+  // direction the wall is pointed ... i think it'd help make it more obvious players are looking at a formation"): a set shield or a set pike turns to its front when it sets,
+  // and at rest it is turned back to it (F.restFront, each frame: battle.js frame) -- after a blow, a throw, a flinch or a push has played its row, after a MARCH or a step of
+  // the push. Its watch turns with it (battle.js nearOf: the cone ahead is the front). Till now the stored front (conds.wall.face) was the rules' alone, and each figure kept
+  // the facing of its last step or blow
+  F.frontOf = function (u) {
+    var c = u && u.conds, f = c && ((c.wall && c.wall.x === u.x && c.wall.y === u.y && c.wall.face) || (c.pikes && c.pikes.x === u.x && c.pikes.y === u.y && c.pikes.face));
+    return f ? D.spr.facingFor(f[0], f[1]) : null;
+  };
+  F.faceFront = function (B, u) { var f = F.frontOf(u); if (f != null && B && B.turnTo) B.turnTo(u, f); };
+  F.restFront = function (B) {
+    if (!B || !B.units) return;
+    B.units.forEach(function (u) {
+      if (!u.conds || u.dead || u.hp <= 0 || u.conds.prone || u.tween || u.inClaws || u.riding) return;
+      var f = F.frontOf(u); if (f == null || u.facing === f) return;
+      if (u.anim && u.anim !== 'idle' && B.t - (u.animT || 0) <= (D.spr.duration(u.sheet, u.anim) || 18) + 6) return; // (a row still playing: it turns back once it is done, as js/ui.js draws idle)
+      u.facing = f; // (set directly: a figure settling back to its watch, not a turn that looks for the hidden -- Battle.turnTo -- in the middle of another's action)
+    });
+  };
+  F.setShields = function (B, u, face) { // (face: a front given -- a second wall holding the first one's front, F.ownWall; else F.faceOf)
+    u.turn.bonus = 0; u.conds.wall = { x: u.x, y: u.y, face: face ? face.slice() : F.faceOf(B, u) };
+    u.turn.wallMove = u.turn.move; u.turn.move = 0; D.sfx('confirm'); F.faceFront(B, u);
     var n = F.wallMates(B, u).length, fw = FACE_WORD[u.conds.wall.face.join(',')] || '';
     B.card(['{y}' + u.name + '{/} sets shields, facing ' + fw + (n ? ', joined to ' + n + ' beside' : ', alone') + '  {g}(the bonus action; ' + (n ? '+2 AC, cover behind, THE PUSH' : 'nothing till a trained mate sets beside it') + '; its square held till it leaves){/}'], 220);
   };
@@ -1539,9 +1558,15 @@
   //   friend beside it that is not, the friend with the most hit points
   F.wheelWant = function (B, att, friends) {
     if (att.hp > att.maxhp / 2) return null;
-    if (F.wallSet(att)) return null; // (never out of a set wall, nor with a set member: the trade would break the line -- the desk's read of his watched door, 11-20: "the AI's wheel pulls a set member out")
-    return friends.filter(function (w) { return w.hp > w.maxhp / 2 && !F.wallSet(w); }).sort(function (a, b) { return b.hp - a.hp; })[0] || null;
+    if (F.wallSet(att) || F.pikeSet(att, B)) return null; // (never out of a set wall, nor with a set member: the trade would break the line -- the desk's read of his watched door, 11-20: "the AI's wheel pulls a set member out"; a set pike the same, 11-25)
+    return friends.filter(function (w) { return w.hp > w.maxhp / 2 && !F.wallSet(w) && !F.pikeSet(w, B) && sameRank(att, w); }).sort(function (a, b) { return b.hp - a.hp; })[0] || null;
   };
+  // WHEEL KEEPS THE PIKES BEHIND THE SHIELDS (2026-11-25, the leveling seat's lean, Griz: "rest of part A leans approved"): a pike-bearer (trained, a reach weapon, no shield)
+  // wheels only with another pike-bearer, so the AI's trade never brings a pike into the front rank nor sends a shield back into the rank. Found on the watched Line
+  // (?fight=line&watch&seed=1125, the grid seat grid-1125): a hurt guard wheeled with the pikeman behind him. The player's own WHEEL, a chosen move, is left as it was
+  function pikeRank(w) { return !F.bearsShield(w) && !!F.pikeArm(w); }
+  function sameRank(a, b) { return pikeRank(a) === pikeRank(b); }
+  F.sameRank = sameRank;
   function foeWithin(B, u, ft) { return B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object && G.dist(u, w) <= ft; }); }
   F.wallReady = function (u) { return !!(u && !u.dead && u.hp > 0 && F.soldiering(u) && F.bearsShield(u)); };
   F.pikeReady = function (u) { return !!(u && !u.dead && u.hp > 0 && F.soldiering(u) && F.pikeThrough(u)); };
@@ -1581,6 +1606,39 @@
     set.forEach(function (m) { var f = m.conds.wall.face, q = [m.x - f[0], m.y - f[1]]; if ((q[0] === u.x && q[1] === u.y) || (!G.occupant(q[0], q[1]) && G.canStand(u, q[0], q[1]))) out.push(q); });
     return out;
   }
+  // TWO WALLS, WEIGHED BY THE GROUND (2026-11-25, Griz, on the Dominion seat's lean -- the snootwagon fight stands each sergeant's squad on its own flank, and the wall AI closed
+  // all five shields into one: "I say add it to the AI as an option, but have them weight the walls so separate isn't necessarily what happens every fight (since wall AC goes up
+  // if they make one wall?)"). A shield-bearer still to set, with a wall of its side standing more than two squares off and a trained mate of its own beside it (within two
+  // squares, still to set), may set a wall of its own where it stands instead of walking to the other's end; its mates then join it, as the nearest end. Rolled once a fight
+  // for each (B.wallPlan), weighed by the lanes desk's read of the ground: likelier when the foes come at it from another way than the standing wall faces (two flanks) or
+  // spread wider across that wall's front than all the side's shields could hold, a little likelier when its nearest foe is nearer it than the wall; unlikely otherwise. The
+  // AC is no reason either way: a joined member's +2 is the same in a wall of two or of five (rules.js RU.ac); THE PUSH's DC is what one long wall buys, +1 a pushing mate
+  // (F.pushDC). The seat's weights, standing for his overrule (F.TWO_WALLS)
+  F.TWO_WALLS = { base: 0.2, flanks: 0.6, wide: 0.4, own: 0.15, most: 0.9 };
+  function sqDist(a, b) { return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)); }
+  function knownFoes(B, u) { var kn = D.ai && D.ai.heroes ? D.ai.heroes(B, u) : B.units; return kn.filter(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && !w.object; }); }
+  function straightWay(u, t) { var dx = t.x - u.x, dy = t.y - u.y; return Math.abs(dy) >= Math.abs(dx) ? [0, Math.sign(dy) || -1] : [Math.sign(dx), 0]; } // (F.faceOf's own rule)
+  F.ownWall = function (B, u, walls) {
+    var near = walls.slice().sort(function (a, b) { return sqDist(u, a) - sqDist(u, b); })[0];
+    if (!near || sqDist(u, near) <= 2) return null; // (close by the wall: it joins)
+    var mates = B.units.filter(function (w) { return w !== u && w.side === u.side && !w.familiar && F.wallReady(w) && F.bearsShield(w) && !F.wallSet(w) && sqDist(u, w) <= 2; });
+    if (!mates.length) return null; // (no mate of its own to set beside it: a wall of one gives nothing)
+    var plan = B.wallPlan = B.wallPlan || {};
+    if (plan[u.id]) return plan[u.id];
+    var W = F.TWO_WALLS, foes = knownFoes(B, u), wf = near.conds.wall.face, why = [];
+    var t = foes.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    var flanks = !!t && (t.x - near.x) * wf[0] + (t.y - near.y) * wf[1] <= 0; // (its nearest foe not ahead of the standing wall's front: beside it or behind it -- a second flank)
+    var p = [-wf[1], wf[0]], across = foes.map(function (w) { return w.x * p[0] + w.y * p[1]; }), span = across.length ? Math.max.apply(null, across) - Math.min.apply(null, across) + 1 : 0;
+    var shields = B.units.filter(function (w) { return w.side === u.side && !w.familiar && F.wallReady(w) && F.bearsShield(w); }).length, wide = span > shields;
+    var wall = F.wallOf(B, near), line = wall.length ? wall : [near], own = !!t && G.dist(u, t) < Math.min.apply(null, line.map(function (w) { return G.dist(w, t); }));
+    var chance = W.base + (flanks ? W.flanks : 0) + (wide ? W.wide : 0) + (own ? W.own : 0); chance = Math.min(W.most, chance);
+    if (flanks) why.push('the foes come at it from the ' + (FACE_WORD[straightWay(u, t).join(',')] || 'side') + ', the wall faces ' + (FACE_WORD[wf.join(',')] || 'away'));
+    if (wide) why.push('their front ' + span + ' squares wide, ' + shields + ' shields to hold it');
+    if (own) why.push('its foe nearer it than the wall');
+    var roll = D.rand();
+    // (its front: its own foe's way at a second flank; else the standing wall's -- the same front held in two places, not turned to a foe off at a slant)
+    return (plan[u.id] = { own: roll < chance, chance: chance, roll: roll, face: flanks ? null : wf.slice(), why: why.length ? why.join('; ') : 'one wall stands, the ground asks no second' });
+  };
   // walk to the nearest of the spots it can reach this turn, or as near as it can come; true when it stands on one
   function* walkTo(B, u, spots) {
     if (!spots.length) return false;
@@ -1635,6 +1693,8 @@
         return;
       }
       if (B.round === 1 && chainWall(B, u)) { F.setShields(B, u); yield 10; return; } // (round one, in the row a set member's front runs along, its mates between still to set: here -- chainWall, 11-25)
+      var ow = F.ownWall(B, u, walls); // (TWO WALLS, 11-25: a wall of its own here, with its own mates, weighed by the ground -- F.ownWall)
+      if (ow && ow.own) { B.card(['{y}' + u.name + '{/} stands apart from ' + nm(B, walls.slice().sort(function (a, b) { return sqDist(u, a) - sqDist(u, b); })[0]) + '\'s wall: a second wall here  {g}(' + ow.why + '){/}'], 220); F.setShields(B, u, ow.face); yield 10; return; }
       var atEnd = yield* walkTo(B, u, lineSpots(B, u, walls));
       if (atEnd && F.canSet(u)) { F.setShields(B, u); yield 10; }
       return;
@@ -1703,7 +1763,7 @@
   F.setPikes = function (B, u) {
     var s = F.pikeBehind(B, u); if (!s) return;
     u.turn.bonus = 0; u.conds.pikes = { x: u.x, y: u.y, face: s.conds.wall.face.slice() };
-    u.turn.pikeMove = u.turn.move; u.turn.move = 0; u.turn.rankHeld = true; D.sfx('confirm');
+    u.turn.pikeMove = u.turn.move; u.turn.move = 0; u.turn.rankHeld = true; D.sfx('confirm'); F.faceFront(B, u); // (it turns to the front it takes: F.frontOf, 11-25)
     var j = F.joined(s, B), arm = F.pikeArm(u);
     B.card(['{y}' + u.name + '{/} sets ' + (arm && arm.name ? 'the ' + arm.name.toLowerCase() : 'pikes') + ' behind ' + s.name + ', facing ' + (FACE_WORD[u.conds.pikes.face.join(',')] || '') + '  {g}(the bonus action; ' + (j ? 'KEEP BACK on the square ahead of the shield, set against the charge, the brace on the push' : 'nothing till ' + s.name + ' is joined in a wall') + '; its square held till it leaves){/}'], 220);
   };

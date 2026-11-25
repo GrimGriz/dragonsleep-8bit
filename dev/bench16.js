@@ -20206,6 +20206,185 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preH);
     return;
   }
+  // THE GRID SEAT grid-1125b (mode=grid1125b; his answers of 2026-11-25 ~12:05Z, by number): TWO WALLS weighed by the ground (js/features.js F.ownWall -- "I say add it to the AI as
+  // an option, but have them weight the walls so separate isn't necessarily what happens every fight"); WHEEL keeps the pikes behind the shields (F.wheelWant -- "rest of part A
+  // leans approved"); A SET WALL FACES ITS FRONT (F.restFront -- "41 - yes"); the simple fight's OFF HAND, closing in and its pick opened at once after FIGHT (js/simple.js --
+  // "38 - yes"); "Crossbow Trooper" (data/foes.js -- "40 - yes"); the creature card's Soldiering line (js/ui.js inspect -- "42 - yes"); the garrison's Dwarven Resilience
+  // (data/foes.js poisonAdv -- "43 - yes"). &wseeds=N: the watched snootwagon's seeds counted (8)
+  if (get('mode', '') === 'grid1125b') {
+    var repGb = { checks: [], errors: [] }, FGb = D.features, RUGb = D.rules, GGb = D.grid, SGb = D.simple, d0Gb = D.d, r0Gb = D.rand, wheel0Gb = FGb.wheel;
+    function okGb(what, v) { repGb.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGb(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function byIdGb(B, id) { return B.units.filter(function (w) { return w.id === id; })[0]; }
+    function mkStoryGb(id, lvl, watch) { var B = new D.Battle({ ladder: true, fight: id, level: lvl, watch: !!watch, bench: true }); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; }
+    function faceGb(w) { var f = w.conds.wall.face; return f[0] === 0 ? (f[1] > 0 ? 'S' : 'N') : (f[0] > 0 ? 'E' : 'W'); }
+    function wallsGb(B, side) { var seen = [], out = []; B.units.forEach(function (w) { if (w.side !== side || seen.indexOf(w) >= 0 || !FGb.wallSet(w)) return; var wl = FGb.wallOf(B, w); if (!wl.length) wl = [w]; wl.forEach(function (x) { seen.push(x); }); out.push(wl.length + faceGb(w)); }); return out; }
+    function placeGb(B, at) { Object.keys(at).forEach(function (id) { var u = byIdGb(B, id); if (u) { u.x = at[id][0]; u.y = at[id][1]; } }); GGb.setup(GGb.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; }
+    function aiTurnGb(B, u) { RUGb.startTurn(u); B.active = u; runGb(FGb.aiWall(B, u)); }
+    try {
+      // 1. TWO WALLS, the ground placed: the snootwagon's squads where its def stands them (the Blade's b1 b2 at 5,5 6,5; the Ledger's l1 l2 at 13,5 14,5 and the Ledger at 15,5),
+      //    the west pair set facing south first; then the east squad's turn
+      var party1 = function (B) { return B.units.filter(function (w) { return w.side === 'party'; }); };
+      var setWest = function (B) { B.round = 1; ['b1', 'b2'].forEach(function (id) { var u = byIdGb(B, id); RUGb.startTurn(u); u.conds.wall = { x: u.x, y: u.y, face: [0, 1] }; }); };
+      // (a) one front, narrow, the four south of the west wall: one wall likely (0.2)
+      var B1a = mkStoryGb('snootwagon', 3), P1a = party1(B1a); placeGb(B1a, {}); P1a.forEach(function (w, i) { w.x = 5 + i; w.y = 9; }); GGb.setup(GGb.map, B1a.units.filter(function (w) { return !w.dead; })); B1a.cache = null; setWest(B1a);
+      var l1a = byIdGb(B1a, 'l1'), pl1a = FGb.ownWall(B1a, l1a, [byIdGb(B1a, 'b1'), byIdGb(B1a, 'b2')]);
+      var pl1a2 = FGb.ownWall(B1a, l1a, [byIdGb(B1a, 'b1'), byIdGb(B1a, 'b2')]);
+      okGb('1a one front, the four south of the west wall (5-8,9): the east squad\'s chance of its own wall ' + (pl1a && pl1a.chance) + ' (want 0.2: "' + (pl1a && pl1a.why) + '"); rolled once a fight (the same plan again: ' + (pl1a === pl1a2) + ')',
+        !!pl1a && Math.abs(pl1a.chance - 0.2) < 1e-9 && pl1a === pl1a2);
+      // (b) two flanks: two of the four come up the road from the east at 17,5 and 17,6 -- the east squad's own foe, the front 13 wide: a second wall likely (0.9)
+      var B1b = mkStoryGb('snootwagon', 3), P1b = party1(B1b); [[5, 9], [6, 9], [17, 5], [17, 4]].forEach(function (q, i) { P1b[i].x = q[0]; P1b[i].y = q[1]; }); GGb.setup(GGb.map, B1b.units.filter(function (w) { return !w.dead; })); B1b.cache = null; setWest(B1b);
+      var pl1b = FGb.ownWall(B1b, byIdGb(B1b, 'l1'), [byIdGb(B1b, 'b1'), byIdGb(B1b, 'b2')]);
+      okGb('1b two flanks, two of the four east of the squad (17,5 17,4): chance ' + (pl1b && pl1b.chance) + ' (want 0.9: "' + (pl1b && pl1b.why) + '")', !!pl1b && Math.abs(pl1b.chance - 0.9) < 1e-9 && /from the east/.test(pl1b.why) && /wide/.test(pl1b.why) && /nearer/.test(pl1b.why));
+      // (c) the AI on (b), the roll pinned at 0.5: l1 sets its own wall facing east; l2 and the Ledger join it, the west pair untouched -- two walls
+      var B1c = mkStoryGb('snootwagon', 3), P1c = party1(B1c); [[5, 9], [6, 9], [17, 5], [17, 4]].forEach(function (q, i) { P1c[i].x = q[0]; P1c[i].y = q[1]; }); GGb.setup(GGb.map, B1c.units.filter(function (w) { return !w.dead; })); B1c.cache = null; setWest(B1c);
+      D.rand = function () { return 0.5; };
+      ['l1', 'l2', 'sl'].forEach(function (id) { aiTurnGb(B1c, byIdGb(B1c, id)); });
+      D.rand = r0Gb;
+      var w1c = wallsGb(B1c, 'foe').sort(), log1c = (B1c.log || []).filter(function (s) { return /stands apart/.test(s); });
+      okGb('1c the AI on 1b, the roll 0.5: walls ' + w1c.join(' ') + ' (want 2S and 3E); "' + (log1c[0] || 'no card') + '"', w1c.join() === '2S,3E' && log1c.length === 1);
+      // (d) the AI on (a), the roll 0.5: the east squad walks to the west wall's end -- one wall; and 0.1 brings a second all the same (it is a weight, not a rule)
+      var runA = function (r) { var B = mkStoryGb('snootwagon', 3), P = party1(B); P.forEach(function (w, i) { w.x = 5 + i; w.y = 9; }); GGb.setup(GGb.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; setWest(B); D.rand = function () { return r; }; ['l1', 'l2', 'sl'].forEach(function (id) { aiTurnGb(B, byIdGb(B, id)); }); D.rand = r0Gb; return { walls: wallsGb(B, 'foe').sort(), l1: byIdGb(B, 'l1') }; };
+      var A5 = runA(0.5), A1 = runA(0.1);
+      okGb('1d one front, the roll 0.5: walls ' + A5.walls.join(' ') + ', l1 at ' + A5.l1.x + ',' + A5.l1.y + ' (want no second wall: it walks to the west wall\'s end); the roll 0.1: walls ' + A1.walls.join(' ') + ' (want a second, 3S)',
+        A5.walls.indexOf('3S') < 0 && A5.walls.indexOf('3E') < 0 && A1.walls.indexOf('3S') >= 0);
+      // (e) no choice where none is: one beside the wall joins (b2 when b1 is set); a far one with no mate of its own beside it has none to wall with
+      var B1e = mkStoryGb('snootwagon', 3); setWest(B1e); delete byIdGb(B1e, 'b2').conds.wall;
+      var nearE = FGb.ownWall(B1e, byIdGb(B1e, 'b2'), [byIdGb(B1e, 'b1')]);
+      ['l2', 'sl'].forEach(function (id) { var u = byIdGb(B1e, id); u.hp = 0; u.dead = true; });
+      var loneE = FGb.ownWall(B1e, byIdGb(B1e, 'l1'), [byIdGb(B1e, 'b1')]);
+      okGb('1e beside the wall: ' + JSON.stringify(nearE) + ' (want null); alone, its mates down: ' + JSON.stringify(loneE) + ' (want null)', nearE === null && loneE === null);
+      // (f) the watched wagon, seeds 1..N at level 3: the walls each forms by its second round, and each roll -- informational, the variety
+      var NW = +get('wseeds', '8'), own0 = FGb.ownWall, seedsF = [], dbgF = get('dbg', ''), twoF = 0, oneF = 0;
+      for (var sw = 1; sw <= NW; sw++) {
+        var rec = { seed: sw, plans: [], ends: [] }, curF = rec;
+        FGb.ownWall = function (B, u, walls) { var r = own0.apply(this, arguments); if (r && curF.plans.indexOf(r) < 0) { r.who = u.id; curF.plans.push(r); } return r; };
+        D.seed = sw; var Bf = mkStoryGb('snootwagon', 3, true), gF = 0, rdF = Bf.round || 1, vF;
+        while (Bf.co && gF++ < 200000 && !Bf.result) { var stF = Bf.co.next(vF); vF = undefined; if (stF.done) break; var yF = stF.value; if (yF && yF.prompt) vF = yF.prompt.opts[0].value; else if (yF && yF.turn) vF = { do: 'end' }; if ((Bf.round || 1) !== rdF) { rec.ends.push('R' + rdF + ' ' + (wallsGb(Bf, 'foe').sort().join(' ') || '-')); rdF = Bf.round; if (rdF > 3) break; } }
+        FGb.ownWall = own0;
+        var r2F = rec.ends.filter(function (s) { return /^R2 /.test(s); })[0] || '', nW = r2F.split(' ').filter(function (s) { return /^[2-9]/.test(s); }).length; if (nW >= 2) twoF++; else if (nW === 1) oneF++;
+        seedsF.push('s' + sw + ' ' + rec.ends.join(', ') + ' |' + rec.plans.map(function (p) { return ' ' + p.who + ' ' + p.chance.toFixed(2) + (p.own ? ' OWN' : ' join') + ' (' + p.roll.toFixed(2) + ')'; }).join(''));
+        if (dbgF === String(sw)) repGb.log = (Bf.log || []).filter(function (s) { return /shields|wall|stands apart|WHEEL|pike/i.test(s); }).slice(0, 80);
+      }
+      okGb('1f the watched wagon at 3, seeds 1-' + NW + ' (informational): two walls by the end of round 2 on ' + twoF + ', one on ' + oneF + ' -- each seed\'s walls at each round\'s end, and each far shield\'s chance, its pick, its roll: ' + seedsF.join('; '), true);
+    } catch (eGb1) { repGb.errors.push('1: ' + String(eGb1 && eGb1.stack || eGb1).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    try {
+      // 2. WHEEL keeps the pikes behind (the Line: g2 at 9,5 with the pikeman g5 behind it at 9,4, g1 and g3 beside it)
+      var B2 = mkStoryGb('line', 4), g2 = byIdGb(B2, 'g2'), g3 = byIdGb(B2, 'g3'), g5 = byIdGb(B2, 'g5'), g1 = byIdGb(B2, 'g1');
+      g2.hp = 3; [g1, g3].forEach(function (w) { w.hp = 0; w.dead = true; }); RUGb.startTurn(g5);
+      var fr2 = FGb.wheelFriends(B2, g2), w2a = FGb.wheelWant(B2, g2, fr2);
+      g3.dead = false; g3.hp = g3.maxhp; var fr2b = FGb.wheelFriends(B2, g2), w2b = FGb.wheelWant(B2, g2, fr2b);
+      var pk2 = Object.assign({}, g5, { id: 'g5b' });
+      okGb('2 a hurt guard (' + g2.hp + '/' + g2.maxhp + ') with the pikeman behind: friends ' + fr2.map(function (w) { return w.id; }).join(',') + ', wheels with ' + (w2a ? w2a.id : 'none') + ' (want none); with a guard beside too: ' + (w2b ? w2b.id : 'none') + ' (want g3); same rank -- guard and pike ' + FGb.sameRank(g2, g5) + ', guard and guard ' + FGb.sameRank(g2, g3) + ', pike and pike ' + FGb.sameRank(g5, pk2),
+        fr2.indexOf(g5) >= 0 && w2a === null && w2b === g3 && !FGb.sameRank(g2, g5) && FGb.sameRank(g2, g3) && FGb.sameRank(g5, pk2));
+      // 2b. a set pike neither wheels nor is wheeled with
+      RUGb.startTurn(g2); RUGb.startTurn(g3); g2.conds.wall = { x: g2.x, y: g2.y, face: [0, 1] }; g3.conds.wall = { x: g3.x, y: g3.y, face: [0, 1] }; RUGb.startTurn(g5); FGb.setPikes(B2, g5);
+      g5.hp = 2; var w2c = FGb.wheelWant(B2, g5, [pk2]);
+      okGb('2b the pikeman set behind g2 (' + !!FGb.pikeSet(g5, B2) + '), hurt: wheels with ' + (w2c ? w2c.id : 'none') + ' (want none)', !!FGb.pikeSet(g5, B2) && w2c === null);
+      // 2c. the hit itself (the grid seat grid-1125's lead from the watched Line, before its forming mends: a guard not in the wall, hurt, struck and wheeled with the pikeman behind
+      //     him, bringing the pike into the front rank -- on this tree the Line's guards stand set, and a set member never wheels, so its seed no longer brings it): a hurt guard,
+      //     unset, strikes the hero before him with the pikeman at his back; on the rule till 11-25 and on today's
+      var hitRun = function () {
+        var B = mkStoryGb('line', 4), a = byIdGb(B, 'g2'), p = byIdGb(B, 'g5'), h = B.units.filter(function (w) { return w.side === 'party'; })[0];
+        ['g1', 'g3'].forEach(function (id) { var w = byIdGb(B, id); w.hp = 0; w.dead = true; });
+        h.x = a.x; h.y = a.y + 1; h.hp = h.maxhp = 300; GGb.setup(GGb.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null;
+        a.hp = 3; RUGb.startTurn(a); RUGb.startTurn(p); B.active = a; D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); };
+        var p0 = p.x + ',' + p.y; runGb(B.attack(a, h, a.weapon || a.attacks[Object.keys(a.attacks)[0]])); D.d = d0Gb;
+        return { hit: h.hp < 300, pike: p0 + ' -> ' + p.x + ',' + p.y, front: p.y === h.y - 1 };
+      };
+      var want0 = FGb.wheelWant; FGb.wheelWant = function (B, att, friends) { if (att.hp > att.maxhp / 2 || FGb.wallSet(att)) return null; return friends.filter(function (w) { return w.hp > w.maxhp / 2 && !FGb.wallSet(w); }).sort(function (a, b) { return b.hp - a.hp; })[0] || null; }; // (the rule till 11-25, for the side by side)
+      var hOld; try { hOld = hitRun(); } finally { FGb.wheelWant = want0; }
+      var hNew = hitRun();
+      okGb('2c a hurt guard, out of the wall, hits the hero before him, the pikeman at his back: on the rule till 11-25 (hit ' + hOld.hit + ') the pikeman ' + hOld.pike + (hOld.front ? ', IN THE FRONT RANK' : '') + '; today (hit ' + hNew.hit + ') ' + hNew.pike + (hNew.front ? ', IN THE FRONT RANK' : ', still behind'),
+        hOld.hit && hOld.front && hNew.hit && !hNew.front);
+    } catch (eGb2) { repGb.errors.push('2: ' + String(eGb2 && eGb2.stack || eGb2).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    try {
+      // 3. A SET WALL FACES ITS FRONT: SET SHIELDS turns the figure south; a blow turns it away; at rest after its row it is turned back; the pike the same; battle.js's frame asks it
+      var B3 = mkStoryGb('line', 4), s3 = byIdGb(B3, 'g2'), m3 = byIdGb(B3, 'g3'), p3 = byIdGb(B3, 'g5'), S3 = D.spr.facingFor(0, 1), E3 = D.spr.facingFor(1, 1);
+      B3.units.filter(function (w) { return w.side === 'party'; }).forEach(function (w, i) { w.x = 8 + i; w.y = 9; }); GGb.setup(GGb.map, B3.units.filter(function (w) { return !w.dead; })); B3.cache = null;
+      s3.facing = D.spr.facingFor(-1, 0); m3.facing = D.spr.facingFor(-1, 0); p3.facing = D.spr.facingFor(1, 0);
+      RUGb.startTurn(s3); FGb.setShields(B3, s3); RUGb.startTurn(m3); FGb.setShields(B3, m3); RUGb.startTurn(p3); FGb.setPikes(B3, p3);
+      var f3a = [s3.facing, m3.facing, p3.facing].join();
+      s3.facing = E3; s3.anim = 'attack'; s3.animT = B3.t; FGb.restFront(B3); var f3b = s3.facing;
+      B3.t += 400; FGb.restFront(B3); var f3c = s3.facing;
+      var rf0 = FGb.restFront, nRf = 0; FGb.restFront = function () { nRf++; return rf0.apply(this, arguments); };
+      p3.facing = E3; p3.anim = 'idle'; var co3 = B3.co, held3 = D.spr.held; B3.co = null; B3.wait = 0; B3.req = null; D.spr.held = function () { return false; }; try { B3.frame(); } finally { B3.co = co3; FGb.restFront = rf0; D.spr.held = held3; }
+      okGb('3 the front (south ' + S3 + '): set, the two shields and the pike face ' + f3a + '; a blow turns g2 to ' + f3b + ' (want ' + E3 + ' while the row plays); after it, ' + f3c + '; the frame asks it (' + nRf + ') and turns the pike back: ' + p3.facing,
+        f3a === [S3, S3, S3].join() && f3b === E3 && f3c === S3 && nRf === 1 && p3.facing === S3);
+    } catch (eGb3) { repGb.errors.push('3: ' + String(eGb3 && eGb3.stack || eGb3).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    try {
+      // 4. THE SIMPLE FIGHT'S OFF HAND: two goblins, the first beside, the second three squares on; FIGHT fells the first, the off hand's pick opens at once with END TURN in it,
+      //    and the off hand closes in on the second (it said "no foe in reach" at 15 ft)
+      var CARD4 = '~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Drill..twf.drillyard+scimitar+off:shortsword';
+      var mk4 = function (card) {
+        var Bx = D.npcFight('?npc=goblin,goblin&lvl=3&vs=' + card, { bench: true, simple: true }); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); Bx.dark = false; if (!Bx.simple) SGb.setup(Bx);
+        var d = Bx.units.filter(function (w) { return w.side === 'party'; })[0], gs = Bx.units.filter(function (w) { return w.side === 'foe'; }), m = GGb.map, o = null;
+        for (var y = 1; y + 2 < m.h && !o; y++) for (var x = 1; x + 6 < m.w && !o; x++) { var z = m.gz(x, y), good = true; for (var i = 0; i < 6 && good; i++) { var s = m.at(x + i, y); if (!s || !s.walk || m.gz(x + i, y) !== z) good = false; } if (good) o = [x, y]; }
+        Bx.units.forEach(function (w) { if (w !== d && gs.indexOf(w) < 0) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } });
+        d.x = o[0]; d.y = o[1]; gs[0].x = o[0] + 1; gs[0].y = o[1]; gs[0].hp = 1; gs[1].x = o[0] + 4; gs[1].y = o[1]; gs[1].hp = gs[1].maxhp = 200; gs.forEach(function (g) { g.conds = {}; });
+        GGb.setup(GGb.map, Bx.units.filter(function (w) { return !w.dead; })); Bx.cache = null;
+        RUGb.startTurn(d); Bx.active = d; D.d = function (n) { return n === 20 ? 15 : Math.ceil(n / 2); };
+        return { B: Bx, d: d, g1: gs[0], g2: gs[1] };
+      };
+      var h4 = mk4(CARD4), m4 = SGb.menu(h4.B, h4.d); m4.wait = false;
+      var pre4 = SGb.autoNext(h4.B, h4.d), preMode = m4.mode;
+      SGb.fightCmd(h4.B, h4.d, h4.g1); runGb(h4.B.exec(h4.d, { do: 'attack', target: h4.g1 })); var g1dead = h4.g1.dead || h4.g1.hp <= 0;
+      var off4 = SGb.cmd(h4.B, h4.d, 'offhand'), row4 = SGb.root(h4.B, h4.d).filter(function (r) { return /HAND/.test(r.label); })[0];
+      var a4 = SGb.autoNext(h4.B, h4.d), pk4 = m4.pick;
+      var rects4 = []; try { var cv4 = document.createElement('canvas'); cv4.width = D.W; cv4.height = D.H; SGb.draw(cv4.getContext('2d'), h4.B); rects4 = (h4.B.simple.rects || []).map(function (r) { return r.kind; }); } catch (eD4) { rects4 = ['draw: ' + String(eD4).slice(0, 120)]; }
+      var far4 = GGb.dist(h4.d, h4.g2), hp4 = h4.g2.hp;
+      runGb(h4.B.exec(h4.d, pk4 ? pk4.then(h4.g2) : { do: 'offhand', target: h4.g2 }));
+      okGb('4 the simple fight: before FIGHT no pick (' + preMode + ', ' + JSON.stringify(pre4) + '); FIGHT fells the first (' + g1dead + '); the grid\'s row "' + (off4 && off4.label) + '" ok ' + !!(off4 && off4.ok) + ' ("' + (off4 && off4.why) + '"), the column\'s ' + (row4 && row4.label) + ' ok ' + !!(row4 && row4.ok) +
+        '; after FIGHT: ' + JSON.stringify(a4) + ', the menu ' + m4.mode + ' "' + (pk4 && pk4.title) + '" at ' + (pk4 ? pk4.cands.map(function (w) { return w.id; }).join(',') : '-') + ', END TURN in it ' + !!(pk4 && pk4.endTurn) + ', drawn [' + rects4.filter(function (k) { return k === 'endturn' || k === 'back' || /draw/.test(k); }).join(',') + ']' +
+        '; the off hand at ' + far4 + ' ft: swung ' + !!h4.d.turn.offhandDone + ', now ' + GGb.dist(h4.d, h4.g2) + ' ft off, its HP ' + hp4 + ' -> ' + h4.g2.hp,
+        preMode === 'cmd' && pre4 === null && g1dead && !!off4 && !off4.ok && !!row4 && row4.ok && a4 === null && m4.mode === 'pick' && !!pk4 && pk4.title === 'OFF HAND' && pk4.endTurn === true && pk4.cands.length === 1 && pk4.cands[0] === h4.g2 && rects4.indexOf('endturn') >= 0 &&
+        far4 > 5 && h4.d.turn.offhandDone === true && GGb.dist(h4.d, h4.g2) <= 5 && h4.g2.hp < hp4);
+      D.d = d0Gb;
+      // 4b. one weapon, no off hand: after FIGHT no pick, the turn ends (no bonus worth the menu)
+      var h4b = mk4('~fighter.3.human.16-14-15-9-13-11.rapier_chainmail__dagger_____.Rook..defense.drillyard'), m4b = SGb.menu(h4b.B, h4b.d); m4b.wait = false; // (a rapier and a dagger: not both light, no off hand -- otherhand1121's RAPIER)
+      SGb.fightCmd(h4b.B, h4b.d, h4b.g1); runGb(h4b.B.exec(h4b.d, { do: 'attack', target: h4b.g1 })); var off4b = SGb.cmd(h4b.B, h4b.d, 'offhand'), a4b = SGb.autoNext(h4b.B, h4b.d); D.d = d0Gb;
+      okGb('4b no off hand (rapier and dagger): the row ' + (off4b ? off4b.label : 'none') + '; after FIGHT ' + JSON.stringify(a4b) + ', the menu ' + m4b.mode + ' (want no pick)', !off4b && m4b.mode !== 'pick' && (!a4b || a4b.do === 'end'));
+    } catch (eGb4) { repGb.errors.push('4: ' + String(eGb4 && eGb4.stack || eGb4).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    try {
+      // 5. "Crossbow Trooper": the block, the units of one fight, the Pocket DM's foes line
+      var B5 = D.npcFight('?npc=trooper,trooperxbow&lvl=3&vs=fighter:3', { bench: true }); D.battle = B5; B5.enter(); var k5 = 0; while (!B5.order.length && k5++ < 400) B5.co.next();
+      var n5 = B5.units.filter(function (w) { return w.side === 'foe'; }).map(function (w) { return w.kind + ':' + w.name; }), PK5 = D.pocket && D.pocket.foesText ? D.pocket.foesText(['trooper', 'trooper', 'trooperxbow', 'trooperpike']) : '(no PK.foesText)';
+      okGb('5 the names: block "' + D.FOES.trooperxbow.name + '"; in a fight ' + n5.join(', ') + '; the Pocket DM\'s line "' + PK5 + '"', D.FOES.trooperxbow.name === 'Crossbow Trooper' && D.FOES.trooper.name === 'Trooper' && /Crossbow Trooper/.test(PK5) && n5.some(function (s) { return /^trooperxbow:Crossbow Trooper/.test(s); }));
+    } catch (eGb5) { repGb.errors.push('5: ' + String(eGb5 && eGb5.stack || eGb5).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    try {
+      // 6. THE CARD'S SOLDIERING LINE: a trooper (its block), a Line guard in the Line (the fight's flag), the same block on the class floor (plain), a goblin
+      var cardLines = function (u) { var seen = [], t0 = D.text; D.text = function (c, s) { seen.push(window.DS.stripCodes(String(s))); return t0.apply(this, arguments); }; try { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; D.ui.inspect(cv.getContext('2d'), u, { right: 6, y: 32, w: 4000 }); } finally { D.text = t0; } return seen.join(' / '); };
+      var B6 = D.npcFight('?npc=trooper,guard,goblin&lvl=3&vs=fighter:3', { bench: true }); D.battle = B6; B6.enter(); var k6 = 0; while (!B6.order.length && k6++ < 400) B6.co.next();
+      var fo6 = function (k) { return B6.units.filter(function (w) { return w.kind === k; })[0]; }, B6L = mkStoryGb('line', 4), gl6 = byIdGb(B6L, 'g1');
+      var c6t = cardLines(fo6('trooper')), c6g = cardLines(fo6('guard')), c6b = cardLines(fo6('goblin')), c6l = cardLines(gl6);
+      var WANT6 = 'Soldiering: sets shields with a trained mate (+2 AC, cover behind, the push); a pike sets behind a set shield.';
+      okGb('6 the card\'s line: the trooper ' + (c6t.indexOf(WANT6) >= 0) + ', the Line\'s guard ' + (c6l.indexOf('Soldiering:') >= 0) + ', a guard on the class floor ' + (c6g.indexOf('Soldiering') >= 0) + ', a goblin ' + (c6b.indexOf('Soldiering') >= 0) + ' (want true, true, false, false)',
+        c6t.indexOf(WANT6) >= 0 && c6l.indexOf('Soldiering:') >= 0 && c6g.indexOf('Soldiering') < 0 && c6b.indexOf('Soldiering') < 0);
+    } catch (eGb6) { repGb.errors.push('6: ' + String(eGb6 && eGb6.stack || eGb6).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    try {
+      // 7. DWARVEN RESILIENCE on the garrison: a spell's save rolls one d20, a poison save two (the duergar keeps all of his)
+      var B7 = D.npcFight('?npc=trooper,trooperxbow,trooperpike,gatewatch,fileleader,drillsergeant,roadpatrol,duergar&lvl=3&vs=fighter:3', { bench: true }); D.battle = B7; B7.enter(); var k7 = 0; while (!B7.order.length && k7++ < 400) B7.co.next();
+      D.d = function () { return 10; };
+      var res7 = B7.units.filter(function (w) { return w.side === 'foe'; }).map(function (u) {
+        B7.castLevel = 1; var sp = RUGb.save(u, 'dex', 12); B7.castLevel = null; var po = RUGb.save(u, 'con', 12, RUGb.vsPoison(u));
+        return { k: u.kind, spell: sp.rolls.length, poison: po.rolls.length };
+      });
+      D.d = d0Gb;
+      var gar7 = res7.filter(function (r) { return r.k !== 'duergar'; }), due7 = res7.filter(function (r) { return r.k === 'duergar'; })[0];
+      okGb('7 the saves (d20s rolled, a spell\'s / poison): ' + res7.map(function (r) { return r.k + ' ' + r.spell + '/' + r.poison; }).join(', ') + ' (want the seven 1/2, the duergar 2/2)',
+        gar7.length === 7 && gar7.every(function (r) { return r.spell === 1 && r.poison === 2; }) && !!due7 && due7.spell === 2 && due7.poison === 2);
+    } catch (eGb) { repGb.errors.push('7: ' + String(eGb && eGb.stack || eGb).slice(0, 500)); }
+    D.d = d0Gb; D.rand = r0Gb; FGb.wheel = wheel0Gb;
+    var preGb = document.createElement('pre'); preGb.id = 'out'; preGb.textContent = 'BENCH16 ' + JSON.stringify(repGb);
+    document.body.appendChild(preGb);
+    return;
+  }
   // THE SOLDIERING FLAG BY THE FIGHT AND THE LINE GUARD PIKEMAN (mode=soldier1125; RULED 2026-11-25, Griz: "2 - assuming the guard is used multiple places, a 'soldiering' flag
   // determined by the engine building the fight?", then "build both and outbox the Keep Back and any other rows we need for those two"): the Line trains its four guards and the
   // pikeman behind them (js/battle.js Battle.drilled, data/fights.js line `soldiering`), not the sergeant; the same block on the class floor stays plain; a block's own
@@ -21472,9 +21651,9 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         var atkOk = Object.keys(w.atk).every(function (a) { return atkS(f.attacks[a]) === w.atk[a]; }) && Object.keys(f.attacks).length === Object.keys(w.atk).length;
         var multi = Array.isArray(f.multi) ? f.multi.join(',') : f.multi, rm = Array.isArray(f.rangedMulti) ? f.rangedMulti.join(',') : undefined;
         okGA('1 ' + k + ' (' + f.name + '): CR ' + f.cr + ', AC ' + f.ac + ' (' + (f.metalArmor || f.armor) + (f.shield ? ', shield' : '') + '), HP ' + f.hp + ', speed ' + f.speed + ', darkvision ' + f.darkvision + '; ' +
-          Object.keys(f.attacks).map(function (a) { return a + ' ' + atkS(f.attacks[a]); }).join('; ') + '; multi ' + multi + (rm ? ', ranged ' + rm : '') + '; poison: resist ' + ((f.resist || []).indexOf('poison') >= 0) + ', resilient ' + !!f.resilient,
+          Object.keys(f.attacks).map(function (a) { return a + ' ' + atkS(f.attacks[a]); }).join('; ') + '; multi ' + multi + (rm ? ', ranged ' + rm : '') + '; poison: resist ' + ((f.resist || []).indexOf('poison') >= 0) + ', Dwarven Resilience (poisonAdv) ' + !!f.poisonAdv + ', the duergar\'s (resilient) ' + !!f.resilient,
           f.cr === w.cr && f.ac === w.ac && f.hp === w.hp && (f.metalArmor || f.armor) === w.armor && !!f.shield === w.shield && atkOk && String(multi) === String(w.multi) && rm === w.rangedMulti &&
-          f.speed === 25 && f.darkvision === 60 && (f.resist || []).indexOf('poison') >= 0 && !!f.resilient && f.type === 'humanoid');
+          f.speed === 25 && f.darkvision === 60 && (f.resist || []).indexOf('poison') >= 0 && !!f.poisonAdv && !f.resilient && f.type === 'humanoid'); // (Dwarven Resilience, poison only, since 11-25 -- his "43 - yes"; till then the duergar's `resilient`, every spell save at advantage)
       });
       okGA('1 the crossbows load (heavy crossbow: loading, SRD 5.1): trooperxbow ' + !!F.trooperxbow.attacks.crossbow.loading + ', drill-sergeant ' + !!F.drillsergeant.attacks.crossbow.loading + '; the road patrol keen ' + F.roadpatrol.keen + ', passive ' + F.roadpatrol.perception + ', Stealth +' + F.roadpatrol.stealth,
         !!F.trooperxbow.attacks.crossbow.loading && !!F.drillsergeant.attacks.crossbow.loading && F.roadpatrol.keen === 'hearing and sight' && F.roadpatrol.perception === 14 && F.roadpatrol.abil.str === 13 && F.roadpatrol.stealth === 6); // (passive 14 and STR 13 since 11-20: his "change recruitment standards", STR and WIS swapped)
@@ -21484,8 +21663,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var B2 = mkGA('?npc=gatewatch,trooper,trooperxbow,fileleader,drillsergeant,roadpatrol&vs=fighter:5&lvl=5');
       Object.keys(WANT).forEach(function (k) {
         var u = B2.units.filter(function (w) { return w.side === 'foe' && w.kind === k; })[0];
-        okGA('2 ' + k + ' in the fight: AC ' + (u && D.rules.ac(u)) + ', HP ' + (u && u.maxhp) + ', speed ' + (u && u.speed) + ', resilient ' + !!(u && u.resilient) + ', sheet ' + (u && u.sheet) + ' (want AC ' + WANT[k].ac + ', HP ' + WANT[k].hp + ', 25, true)',
-          !!u && D.rules.ac(u) === WANT[k].ac && u.maxhp === WANT[k].hp && u.speed === 25 && !!u.resilient && !!D.spr && !!u.sheet);
+        okGA('2 ' + k + ' in the fight: AC ' + (u && D.rules.ac(u)) + ', HP ' + (u && u.maxhp) + ', speed ' + (u && u.speed) + ', Dwarven Resilience ' + !!(u && D.rules.poisonAdv(u)) + ', the duergar\'s ' + !!(u && u.resilient) + ', sheet ' + (u && u.sheet) + ' (want AC ' + WANT[k].ac + ', HP ' + WANT[k].hp + ', 25, true, false)',
+          !!u && D.rules.ac(u) === WANT[k].ac && u.maxhp === WANT[k].hp && u.speed === 25 && D.rules.poisonAdv(u) && !u.resilient && !!D.spr && !!u.sheet);
       });
     } catch (eGA2) { repGA.errors.push('2: ' + String(eGA2 && eGA2.stack || eGA2).slice(0, 400)); }
     // one of the garrison alone against one fighter (AC 5, 500 HP), `dx` squares off, rooted (speed 0) when it should not close: its AI turns, the blows it threw

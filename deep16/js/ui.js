@@ -3240,6 +3240,8 @@
     if (u.packTactics) lines.push('{p}Pack Tactics{/}: advantage with an ally beside its target');
     if (u.martial) lines.push('{p}Martial Advantage{/}: +' + u.martial + ' once a turn with an ally beside its target');
     if (u.surprise) lines.push('{p}Surprise Attack{/}: +' + u.surprise + ' on the first round\'s hits');
+    // (Soldiering, his words for the line -- 11-25, Griz: "42 - yes", on the leveling lane's 11-22 lean; a block trained by its own `soldiering` or by the fight's flag, js/features.js F.soldiering)
+    if (D.features && D.features.soldiering && D.features.soldiering(u)) lines.push('{p}Soldiering{/}: sets shields with a trained mate (+2 AC, cover behind, the push); a pike sets behind a set shield.');
     var dt = [u.immune ? 'immune ' + u.immune.join(', ') : '', u.resist ? 'resists ' + u.resist.join(', ') : '', u.vulnerable ? 'vulnerable ' + u.vulnerable.join(', ') : ''].filter(Boolean);
     if (dt.length) lines.push('{p}' + dt.join('  ·  ') + '{/}');
     // senses (torchdark): what it sees the dark by

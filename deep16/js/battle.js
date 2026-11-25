@@ -622,6 +622,7 @@
     if (this.shakeT > 0) this.shakeT--;
     FX.update();
     this.units.forEach(function (u) { if (u.flash > 0) u.flash--; if (u.tween) { u.tween.t++; if (u.tween.t >= u.tween.dur) delete u.tween; } });
+    if (D.features && D.features.restFront) D.features.restFront(this); // (a set wall faces its front at rest: js/features.js F.restFront, 11-25 -- his "41 - yes")
     if (this.ambient) this.ambient(this); // (a beat played behind a card or the VICTORY panel, frame by frame: Web Gulch's drummer boy running to the crew boss -- js/gulch.js Gu.boyRuns, 11-20)
     this.flyCheck(); // (a flier aloft that can no longer stay up falls: flight at a height, 10-08)
     this.cards = this.cards.filter(function (c) { return this.t - c.t0 < c.life; }, this);

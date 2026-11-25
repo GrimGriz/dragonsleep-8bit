@@ -274,6 +274,9 @@
   // RUN: the first game's (js/battle.js tryRun -- d20 + DEX against 10 + the quickest foe's DEX), the grid's law on who may go (none left behind down or held)
   var ex0 = Battle.prototype.exec;
   Battle.prototype.exec = function* (u, c) {
+    // THE OFF HAND CLOSES IN as the Attack does (READY in the grid's rules lane 11-22, item 1 -- his "why didn't barley get offhand in this fight?": Barley's crit felled the first fire
+    // beetle beside him, and OFF HAND at the other, 15 ft off, said "no foe in reach"): struck from beside the one picked, as FIGHT's blows are (S.closeIn), never thrown for it
+    if (this.simple && c && c.do === 'offhand' && c.target && c.target.x != null && !S.boundTo(this, u)) S.closeIn(this, u, c.target, G.reachOf(u), false);
     if (!(this.simple && c && c.do === 'simplerun')) return yield* ex0.apply(this, arguments);
     var T = u.turn, hb = this.heldBack(u);
     if (hb) { D.sfx('miss'); this.card(['{o}' + Battle.refuseText(hb) + '{/}'], 260); yield 20; return; }
@@ -425,22 +428,34 @@
     if (sg && sg.ok && S.foes(B, u).length) return true;
     if (!(T.bonus > 0) || !S.foes(B, u).length) return false;
     var off = S.cmd(B, u, 'offhand');
-    if (off && off.ok) return true;
+    if (S.offOk(off)) return true;
     if (S.spells(B, u).some(function (e) { return e.ok && /bonus/.test(e.right); })) return true;
     if (S.items(B, u).some(function (e) { return e.ok && e.right === 'bonus'; })) return true;
     return S.skills(B, u).some(function (e) { return e.ok && e.right === 'bonus' && !(e.c.id === 'secondwind' && u.hp >= u.maxhp); });
   };
   // what follows a command by itself: FIGHT's attacks left at the one picked (the next nearest if it fell); the action spent and no bonus action worth the menu,
   // the turn ends. null: the hand is asked
+  // OFF HAND, lit as the grid lights it -- or with no foe in reach, which the simple fight closes (S.closeIn, the exec above)
+  S.offOk = function (off) { return !!off && (!!off.ok || /^no foe in reach/.test(off.why || '')); };
   S.autoNext = function (B, u) {
-    var m = S.menu(B, u), T = T_(u);
+    var m = S.menu(B, u), T = T_(u), fought = false;
     if (m.fight) {
       if (T.attacksLeft > 0 && T.attacksLeft !== m.left0) { var t = live(m.fight) ? m.fight : nearestFoe(B, u, m.fight); if (t) { m.fight = t; m.left0 = T.attacksLeft; return { do: 'attack', target: t }; } }
-      m.lastPick = m.fight; m.fight = null;
+      m.lastPick = m.fight; m.fight = null; fought = true;
     }
     if (!S.foes(B, u).length) return { do: 'end' };
     if (!S.acts(u)) { if (m.after == null) m.after = S.bonusLeft(B, u); if (!m.after) return { do: 'end' }; }
+    // THE OFF HAND RIGHT AFTER FIGHT (2026-11-25, Griz: "38 - yes", on the 11-22 tab's lean -- his "off-hand attack after attack to click like 'fight' does"): the Attack's blows
+    // done and the bonus swing open, its foe pick opens at once -- one click on a foe swings it; END TURN in the pick declines it, BACK goes to the column (MAGIC, SKILL, ITEM)
+    if (fought && !S.acts(u)) S.offPick(B, u);
     return null;
+  };
+  S.offPick = function (B, u) {
+    var off = S.cmd(B, u, 'offhand'); if (!S.offOk(off) || !S.foes(B, u).length) return false;
+    var offW = /^BONUS ATTACK/.test(off.label) ? 'MAIN HAND' : 'OFF HAND';
+    S.pickFoe(B, u, offW, null, function (t) { return { do: 'offhand', target: t }; });
+    var m = S.menu(B, u); if (m.mode === 'pick') m.pick.endTurn = true;
+    return true;
   };
   S.menu = function (B, u) {
     var m = B.simple.m;
@@ -460,7 +475,7 @@
     if (!S.acts(u)) {
       var off = S.cmd(B, u, 'offhand');
       var offW = off && /^BONUS ATTACK/.test(off.label) ? 'MAIN HAND' : 'OFF HAND'; // (the other hand's bonus attack, 11-21: the main hand's after an off-hand throw)
-      return (off ? [{ label: offW, right: 'bonus', ok: !!off.ok, why: off.why, go: function () { S.pickFoe(B, u, offW, null, function (t) { return { do: 'offhand', target: t }; }); } }] : [])
+      return (off ? [{ label: offW, right: 'bonus', ok: S.offOk(off), why: off.why, go: function () { S.pickFoe(B, u, offW, null, function (t) { return { do: 'offhand', target: t }; }); } }] : [])
         .concat([MAGIC, SKILL, ITEM, { label: 'END TURN', ok: true, go: function () { S.send(B, u, { do: 'end' }); } }]);
     }
     return [
@@ -621,8 +636,10 @@
       if (I.repeat('up') || I.repeat('left')) { m.sel = (m.sel + n - 1) % n; D.sfx('cursor'); }
       if (I.repeat('down') || I.repeat('right')) { m.sel = (m.sel + 1) % n; D.sfx('cursor'); }
       var over = S.unitAt(B, mo.x, mo.y, C), row = rects.filter(function (r) { return r.kind === 'pick' && hit(r); })[0], back = rects.filter(function (r) { return r.kind === 'back' && hit(r); })[0], party = rects.filter(function (r) { return r.kind === 'party' && hit(r) && C.indexOf(r.u) >= 0; })[0];
+      var endB = m.pick.endTurn ? rects.filter(function (r) { return r.kind === 'endturn' && hit(r); })[0] : null; // (the off hand's pick after FIGHT: END TURN declines it -- S.offPick, 11-25)
       if (mo.moved) { if (over) m.sel = C.indexOf(over); else if (row) m.sel = row.i; else if (party) m.sel = C.indexOf(party.u); }
-      if (mo.click) { if (back) return S.back(B, u); if (over) return pickDone(B, u, over); if (row) return pickDone(B, u, C[row.i]); if (party) return pickDone(B, u, party.u); }
+      if (mo.click) { if (endB) { D.sfx('confirm'); return S.send(B, u, { do: 'end' }); } if (back) return S.back(B, u); if (over) return pickDone(B, u, over); if (row) return pickDone(B, u, C[row.i]); if (party) return pickDone(B, u, party.u); }
+      if (m.pick.endTurn && I.pressed('end')) { D.sfx('confirm'); return S.send(B, u, { do: 'end' }); }
       if (mo.rclick || I.pressed('b')) return S.back(B, u);
       if (I.pressed('a')) return pickDone(B, u, C[m.sel]);
       return;
@@ -728,7 +745,7 @@
   S.banner = function (B) {
     var m = B.simple.m, act = B.simple.act, now = (B.cards || []).filter(function (c) { return B.t - c.t0 < c.life && (!m || c.t0 >= m.t0); }), c = now[now.length - 1];
     if (m && m.msg) return [m.msg];
-    if (m && !m.wait && m.mode === 'pick') return ['{y}' + m.pick.title + '{/}: click the one -- or the arrows and E; right-click or X, back'];
+    if (m && !m.wait && m.mode === 'pick') return ['{y}' + m.pick.title + '{/}: click the one -- or the arrows and E; right-click or X, back' + (m.pick.endTurn ? '; END TURN declines' : '')];
     if (c) return B.result && D.roam && D.roam.wrap ? D.roam.wrap(c.lines, D.W - 16).slice(0, 12) : c.lines.slice(0, 4); // (the fight's last card whole, wrapped: its victory, the XP and the spoils -- 10-29, js/battle.js finish's o.payNow)
     if (m && !m.wait) return [!S.acts(m.u) ? '{y}' + m.u.name + '{/}: the action is spent -- a bonus action, or END TURN' : m.u.name];
     return act ? [act.side === 'party' ? act.name : '{r}' + (B.shortName ? B.shortName(act) : act.name) + '{/}'] : [''];
@@ -772,6 +789,10 @@
       var t = C[m.sel]; if (t) D.text(ctx, fit(t.side === 'party' ? t.name : (B.shortName ? B.shortName(t) : t.name), L.w - 18), L.x + 13, L.cmds.y + 20, W8.text);
       var bk = { kind: 'back', x: L.x + 7, y: L.cmds.y + L.cmds.h - 17, w: 44, h: 12 }; rects.push(bk);
       D.text(ctx, '▶', bk.x, bk.y + 1, hit(bk) ? W8.gold : W8.mid); D.text(ctx, 'BACK', bk.x + 10, bk.y + 1, hit(bk) ? W8.gold : '#b8b8f8');
+      if (m.pick.endTurn) { // (the off hand's pick after FIGHT: END TURN beside BACK declines the bonus swing -- S.offPick, 11-25)
+        var et = { kind: 'endturn', x: bk.x + 42, y: bk.y, w: 56, h: 12 }; rects.push(et); // (inside the 112-px column: BACK's 44 shortened to the 42 before it)
+        D.text(ctx, '▶', et.x, et.y + 1, hit(et) ? W8.gold : W8.mid); D.text(ctx, 'END TURN', et.x + 10, et.y + 1, hit(et) ? W8.gold : '#b8b8f8');
+      }
     }
   };
   // the turn order along the picture's top: the round, then each one still in it, ours blue and theirs red, whose turn it is in a box
