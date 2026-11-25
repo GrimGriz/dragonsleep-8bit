@@ -20608,6 +20608,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okS(rC.indexOf('Simples 2 sp') >= 0 && bC.paid === 2 && bC.got === 1, '2d Calla still sells the simples: ' + rC.join('; ') + '; a buy: ' + bC.paid + ' sp, +' + bC.got);
       var atS = function (id) { var u = B.units.filter(function (w) { return w.npc === id; })[0]; if (u) return u.x + ',' + u.y; var t = ((RS.def && RS.def.src8 && RS.def.src8.triggers) || []).filter(function (q) { return q.id === 'shop:' + id; })[0]; return t ? 'the door ' + t.rect[0] + ',' + t.rect[1] : 'not stood'; };
       okS(true, '3 where they stand on silverton by day (informational, the eyes row\'s steps): Marko ' + atS('marko') + ', Vilar ' + atS('vilar') + ', Signy ' + atS('signy') + ', Calla ' + atS('calla'));
+      // 2e. ROPE & GRAPPLE WHEN SIGNY IS NOT ON THE STREET (his "22, 23 - other stores still need to sell rope and grapple then"): one item, `rope`, hemp and the hook; Marko's
+      //     counter sells it with the lake not done (Signy away), and the garrison stores at Solskaft and the Lamp Stores at the second lamp keep it on their shelves
+      var B0 = floorS('?roam=silverton&hour=10&lvl=3'), away = !B0.units.some(function (w) { return w.npc === 'signy'; }), c0 = counterS(B0, 'marko'), r0 = c0.opts === 'THE SHELVES,LEAVE' ? shelvesS(c0) : [], b0 = r0.length ? buyS(c0.sc, 'Rope & Grapple', 'rope') : {}; if (c0.sc) c0.sc.close();
+      var ropeAt = Object.keys(SH).filter(function (k) { return SH[k].items && SH[k].items.indexOf('rope') >= 0; });
+      okS(away && r0.indexOf('Rope & Grapple 30 sp') >= 0 && b0.paid === 30 && b0.got === 1 && ['marko', 'qm', 'lamp2', 'signy'].every(function (k) { return ropeAt.indexOf(k) >= 0; }) && !IT.grapple,
+        '2e Signy away (the lake not done: not on the street ' + away + '), Marko sells Rope & Grapple (' + (r0.filter(function (r) { return /Rope/.test(r); })[0] || 'NOT ON HIS SHELF') + ', bought ' + b0.paid + ' sp, +' + b0.got + '); its shelves: ' + ropeAt.join(', ') + ' (one item: "' + IT.rope.name + '", no grapple of its own)');
     } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); }
     D.store.get = stGS; D.store.set = stSS;
     var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
