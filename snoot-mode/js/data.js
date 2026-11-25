@@ -208,8 +208,8 @@
       heroes: [{ type: 'wizard', name: 'a patrol lady of ' + P.of + ' (warlock)', warlock: true, missile: missile, patron: patron, grid: P.grid }], sheets: [P.sheet, 'dominion_p2'] }, more || {});
   };
   // THE ERRANDS (RULED 11-25, Griz: "leans approved unless indicated below", on the seat's seven leans -- the lane's 11-25 snoot-1125 section): `errand`, js/ai.js AI.errand.
-  // Savine's ('harbinger') hunts the Harbinger's pack and, he put down or the head taken, turns back west and off the board; the Old One's ('tower') rides to the fork and off it
-  // north toward Silverton, fighting only what stands in its road; Tronu's ('garrison') goes for the plains tribes while they are in the field, then to the fork and off it up
+  // Savine's ('harbinger') hunts the Harbinger's pack and, he put down or the head taken, rejoins the garrison mission (his "24 - after side mission is over, they rejoin garrison
+  // mission"); the Old One's ('tower') rides to the fork and off it north, its end the tower in Silverton (his "25"), fighting only what stands in its road; Tronu's ('garrison') goes for the plains tribes while they are in the field, then to the fork and off it up
   // the climb to build its garrison. All three on the one day; none goes to another's aid (no lady knows the others' errands) -- they fight together only where they meet
   SN.DOMINION = [WAGON('dm1', 'fireball', 'fiend', { errand: 'harbinger' }), WAGON('dm2', 'lightning', 'mirror', { errand: 'tower' }), WAGON('dm3', 'fireball', 'faeking', { errand: 'garrison', garrison: true })];
   SN.DAY0 = 14; SN.HUNT = 18; SN.LAST = 28; // (the Pit two days after the Skylights, Day 14; the exchange ~18-21 -- the clock lane; the battle stops at Day 28 whatever stands)

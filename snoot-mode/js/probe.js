@@ -293,21 +293,22 @@
         return [gar, toG, toInn, div, back, leaves];
       } finally { SN.useMap(SN.FIXTURE); } });
     ok(tr && tr.every(Boolean), 'his rulings 11-25, Tronu\'s wagon: its garrison\'s hex the near map\'s (63,23), 681 ft, off the board -- it makes for the fork (18,0), the board\'s hex on the road to it; a unit of the plains in the field and it turns off to go for them (the log says so); the Snoot gone home, back toward the garrison; there, the plains gone, off the board up the climb (st.garrison) (' + (tr ? tr.join(' ') : 'threw') + ')');
-    // ---- THE ERRANDS (RULED 11-25, his "leans approved unless indicated below"): Savine's hunts the Harbinger's pack, and, he put down, turns back west and off the board;
-    // the Old One's rides to the fork and off it toward Silverton
+    // ---- THE ERRANDS (RULED 11-25, his "leans approved unless indicated below"): Savine's hunts the Harbinger's pack, and, he put down, rejoins the garrison mission (his
+    // "24 - after side mission is over, they rejoin garrison mission"); the Old One's rides to the fork and off it, its end the tower in Silverton (his "25")
     var er = tk(function () {
       SN.useMap(SN.WORLDMAP); try {
         var s = SN.newGame(74); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); SN.DOMINION.forEach(function (f) { var u = SN.make(f, true); u.at = SN.WEST.slice(); s.units.push(u); });
         var sv = SN.unit(s, 'dm1'), ol = SN.unit(s, 'dm2'), H = SN.unit(s, 'harb'); H.on = true; s.log = [];
         SN.AI.dominion(s, sv); var hunts = sv.order.type === 'move' && eq(sv.order.to, H.at) && s.log.some(function (l) { return /toward the Harbinger's pack/.test(l.text); });
-        sv.at = [5, 2]; H.beaten = s.day + 2; SN.AI.dominion(s, sv); var west = !!sv.done && sv.order.type === 'move' && eq(sv.order.to, SN.WEST);
-        H.beaten = 0; sv.at = [5, 2]; SN.AI.dominion(s, sv); var stays = sv.order.type === 'move' && eq(sv.order.to, SN.WEST); // (once turned for home, his coming again does not turn it back)
-        sv.at = SN.WEST.slice(); SN.AI.dominion(s, sv); var gone = sv.state === 'left' && !SN.alive(sv);
+        var G = SN.GARRISON;
+        sv.at = [5, 2]; H.beaten = s.day + 2; SN.AI.dominion(s, sv); var west = !!sv.done && sv.errand === 'garrison' && sv.order.type === 'move' && eq(sv.order.to, G.at) && s.log.some(function (l) { return /to join the garrison/.test(l.text); }); // (24: the garrison mission, not the west road)
+        H.beaten = 0; sv.at = [5, 2]; SN.AI.dominion(s, sv); var stays = sv.order.type === 'move' && eq(sv.order.to, G.at); // (once turned for the climb, his coming again does not turn it back)
+        sv.at = G.at.slice(); SN.AI.dominion(s, sv); var gone = sv.state === 'left' && !SN.alive(sv) && s.log.some(function (l) { return /up the climb, to join its toll garrison/.test(l.text); }) && s.garrison.wagons.indexOf('dm1') >= 0;
         SN.AI.dominion(s, ol); var toFork = ol.order.type === 'move' && eq(ol.order.to, SN.FORK) && eq(SN.FORK, [18, 0]);
-        ol.at = SN.FORK.slice(); SN.AI.dominion(s, ol); var north = ol.state === 'left' && !!s.tower && s.log.some(function (l) { return /toward Silverton, and is gone/.test(l.text); });
+        ol.at = SN.FORK.slice(); SN.AI.dominion(s, ol); var north = ol.state === 'left' && !!s.tower && s.tower.end === 'the tower in Silverton' && s.log.some(function (l) { return /its errand ends at the tower in Silverton/.test(l.text); }); // (25)
         return [hunts, west, stays, gone, toFork, north];
       } finally { SN.useMap(SN.FIXTURE); } });
-    ok(er && er.every(Boolean), 'his rulings 11-25, the errands: Savine\'s wagon goes for the Harbinger\'s pack (the log says so), he put down it turns back west and stays turned, and at the west road\'s end is off the board; the Old One\'s makes for the fork (18,0) and goes off it toward Silverton (' + (er ? er.join(' ') : 'threw') + ')');
+    ok(er && er.every(Boolean), 'his rulings 11-25, the errands: Savine\'s wagon goes for the Harbinger\'s pack (the log says so), he put down it rejoins the garrison mission and stays turned, and at the fork goes up the climb to join the garrison (24); the Old One\'s makes for the fork (18,0) and goes off it, its end the tower in Silverton (25) (' + (er ? er.join(' ') : 'threw') + ')');
     // ---- the Gray Keeping's matriarchs (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young
     // ones. Give the superhero entangle?"; "all 8 leans are go"): OD&D Book I's clerics -- the Eldest a Patriarch ("Superhero - 1"), the band's a Lama
     var MW = FF('gkw'), MB = FF('gk2'), MY = FF('gk1'), Me = (MW.heroes || [])[0], Ml = (MB.heroes || [])[0];
@@ -395,8 +396,8 @@
       var lf = s.stats.left || [];
       ['dm1', 'dm2', 'dm3'].forEach(function (id) { var w = SN.unit(s, id); if (!w) return; errs[id][lf.indexOf(id) >= 0 ? 'left' : SN.alive(w) ? 'on' : 'down']++; });
       if (/toward the Harbinger's pack/.test(txt)) errs.hunt++;
-      if (lf.indexOf('dm1') >= 0 && !/goes back along the west road and is gone/.test(txt)) inv.push(seed + ': Savine\'s wagon left, not by the west road');
-      if (lf.indexOf('dm2') >= 0 && !/toward Silverton, and is gone/.test(txt)) inv.push(seed + ': the Old One\'s wagon left, not toward Silverton');
+      if (lf.indexOf('dm1') >= 0 && !/to join its toll garrison/.test(txt)) inv.push(seed + ': Savine\'s wagon left, not up the climb to join the garrison'); // (24, 11-25)
+      if (lf.indexOf('dm2') >= 0 && !/its errand ends at the tower in Silverton/.test(txt)) inv.push(seed + ': the Old One\'s wagon left, not for the tower in Silverton'); // (25)
       if (lf.indexOf('dm3') >= 0 && !/to build its toll garrison/.test(txt)) inv.push(seed + ': Tronu\'s wagon left, not up the climb');
       if (seed === 1 && /[?&]dump\b/.test(location.search)) s.log.forEach(function (l) { out.push('LOG d' + l.day + ' [' + l.kind + '] ' + l.text); });
       if (/undefined|NaN|\[object/.test(txt)) inv.push(seed + ': the log says ' + (/undefined|NaN|\[object[^\]]*\]/.exec(txt) || [''])[0]);

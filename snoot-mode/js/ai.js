@@ -146,7 +146,7 @@
     if (!SN.same(u.at, G.at)) { go(st, u, G.at.slice()); return true; }
     // (there, the plains tribes gone from the field or the Snoot over: off the board up the climb to build (RULED 11-25, the errands' lean 4) -- the garrison's mark for the
     // second game's road is st.garrison, read by nothing yet)
-    if (G.off) { st.garrison = { day: st.day, near: G.near || null }; SN.leave(st, u, 'A Dominion wagon takes the road north from ' + SN.placeName(u.at) + ', up the climb, to build its toll garrison.'); return true; }
+    if (G.off) { st.garrison = st.garrison || { day: st.day, near: G.near || null }; (st.garrison.wagons = st.garrison.wagons || []).push(u.id); SN.leave(st, u, 'A Dominion wagon takes the road north from ' + SN.placeName(u.at) + ', up the climb, to ' + (u.joined ? 'join' : 'build') + ' its toll garrison.'); return true; } // (`joined`: Savine's, its side mission over -- AI.savine, 11-25)
     u.order = { type: 'hold' }; return true;
   };
   // THE ERRANDS (RULED 11-25, Griz: "leans approved unless indicated below", the seat's seven -- the lane's 11-25 snoot-1125 section; js/data.js SN.DOMINION `errand`)
@@ -157,7 +157,9 @@
     return false;
   };
   // SAVINE'S (11-15, his "She thinks the wagons are hunting Mr Ripples, but they're mistakenly chasing the harbinger - her wagon will go for him"): after the Harbinger's pack
-  // wherever it is, through whoever stands in the way; once he is put down (beaten back to the mirror) or the head is taken, her errand is done -- back west and off the board
+  // wherever it is, through whoever stands in the way; once he is put down (beaten back to the mirror) or the head is taken, her side mission is over and the wagon REJOINS THE
+  // GARRISON MISSION (RULED 11-25, Griz: "24 - after side mission is over, they rejoin garrison mission"; it went back west and off the board till then): Tronu's errand from
+  // there on (AI.tronu) -- the plains tribes while they are in the field, then the fork and up the climb to join the garrison. His coming again does not turn it back
   AI.savine = function (st, u) {
     var H = SN.unit(st, 'harb');
     if (!u.done && H && SN.alive(H) && H.on && !H.beaten && !st.head) {
@@ -165,18 +167,18 @@
       if (!SN.same(H.at, u.at)) go(st, u, H.at.slice()); else u.order = { type: 'hold' };
       return true;
     }
-    if (!u.done) { u.done = st.day; SN.say(st, 'A Dominion wagon\'s hunt is over: it turns back west.', 'dominion', u.at); }
-    var W = SN.WEST.slice();
-    if (!SN.same(u.at, W)) { go(st, u, W); return true; }
-    SN.leave(st, u, 'A Dominion wagon goes back along the west road and is gone.'); return true;
+    if (!u.done) { u.done = st.day; u.errand = 'garrison'; u.joined = true; SN.say(st, 'A Dominion wagon\'s hunt is over: it turns for the climb, to join the garrison.', 'dominion', u.at); }
+    return AI.tronu(st, u);
   };
   // THE OLD ONE'S (11-15, his "on the way to seize control of the wizard school/tower riding under the others pretenses - hostile to anything that comes between them and that
   // goal, they'll be a problem in silverton after"): the west road to the fork and off the board north toward Silverton -- it seeks no fight, and fights what stands in its road
   AI.oldOne = function (st, u) {
     var F = SN.FORK; if (!F) return false;
     if (!SN.same(u.at, F)) { go(st, u, F.slice()); return true; }
-    st.tower = { day: st.day }; // (the wagon gone toward Silverton, for the road after: read by nothing yet)
-    SN.leave(st, u, 'A Dominion wagon takes the road north from ' + SN.placeName(u.at) + ' toward Silverton, and is gone.'); return true;
+    // ITS END, AS FAR AS THE SNOOT IS CONCERNED (RULED 11-25, Griz: "25 - the other wagon ends at the tower in silverton as far as the snoot is concerned"): the tower in
+    // Silverton, in the log and in st.tower -- nothing on the world's map
+    st.tower = { day: st.day, wagon: u.id, end: 'the tower in Silverton' };
+    SN.leave(st, u, 'A Dominion wagon takes the road north from ' + SN.placeName(u.at) + ' to Silverton; its errand ends at the tower in Silverton.'); return true;
   };
 
   // ---------------------------------------------------------------- the bench's hand for our side (the probe's whole battle; ?watch)
