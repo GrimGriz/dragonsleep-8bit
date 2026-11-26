@@ -21704,6 +21704,39 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // forward 2 before setting"; "we're fixing the AC bonus to only apply to the front of the wall?", "2 - half-plane"; a pivot's and a march's opportunity attacks, "2 - it
   // should", "3 - yes"; a set shield against the push, "1 - yes"): a mate is one ACROSS the front; the +2 is the front's; PIVOT; a wall that moves leaves reaches; the set
   // shield's +1 a mate against the push; the caller's forward spot; the missile break by the whole wall's reach
+  // TWO BANDS OF THE BESTIARY AGAINST EACH OTHER (mode=sides1126; 2026-11-26, Griz: "bench a fight of dominion from fair home module vs dwarves from fare home module"): `a`
+  // and `b`, each a list of data/foes.js kinds. `b` stands on the foes' side as the class floor seats a band; `a` takes the party's squares, each one a foe's block lent to
+  // the party's side (as a fight's `allies` are: battle.js makeFoe side 'party', ally) and run by the AI. n fights on seeds seed..seed+n-1, each side's turns driven in
+  // initiative order to the last one standing or round 40. Out: wins, rounds, who was left, and how often the wall's lines showed. swap=1 trades the two sides' ground
+  if (get('mode', '') === 'sides1126') {
+    var repS = { a: null, b: null, n: 0, aWon: 0, bWon: 0, neither: 0, rounds: [], aLeft: [], bLeft: [], beats: {}, errors: [], log: null };
+    var aS = get('a', 'sergeantledger,dominion,dominion,dragger,dragger').split(',').filter(Boolean), bS = get('b', 'trooper,trooper,trooper,trooperpike,trooperpike,trooperxbow,trooperxbow,fileleader').split(',').filter(Boolean);
+    if (get('swap', '')) { var tS = aS; aS = bS; bS = tS; }
+    var nS = +get('n', '20'), seedS = +get('seed', '1'), mapS = get('map', ''), wantS = get('log', '');
+    var BEATS_S = { 'sets shields': /sets shields, facing/, 'calls the line': /calls the line \d+ ft/, 'the push': /calls the push/, 'the line steps': /THE LINE STEPS FORWARD/, 'PIVOT': /calls PIVOT/, 'ABOUT FACE': /calls ABOUT FACE/, 'breaks from the wall': /breaks from the wall/, 'a net lands': /HIT: RESTRAINED/, 'a haul': /hauls /, 'MARCH': /calls MARCH/, 'pikes set': /sets (the [a-z ]+|pikes) behind/ };
+    Object.keys(BEATS_S).forEach(function (k) { repS.beats[k] = 0; });
+    repS.a = aS.join(','); repS.b = bS.join(','); repS.n = nS;
+    var up = function (u) { return u && !u.dead && u.hp > 0 && !u.fled && !u.left; };
+    for (var iS = 0; iS < nS; iS++) {
+      try {
+        D.seed = seedS + iS; D.scenes.length = 0;
+        var BS = D.npcFight('?npc=' + bS.join(',') + '&vs=' + aS.map(function () { return 'fighter:3'; }).join(',') + '&lvl=3' + (mapS ? '&map=' + mapS : ''), { bench: true }); D.push(BS); D.battle = BS; BS.enter();
+        var kS = 0; while (!BS.order.length && kS++ < 400) BS.co.next(); BS.dark = false;
+        var psS = BS.units.filter(function (u) { return u.side === 'party'; }), fsS = BS.units.filter(function (u) { return u.side === 'foe'; });
+        var alS = psS.slice(0, aS.length).map(function (p, i) { var u = BS.makeFoe({ id: 'a' + i + '-' + aS[i], kind: aS[i], side: 'party', at: [p.x, p.y] }); u.x = p.x; u.y = p.y; u.guest = true; u.ally = false; u.reaction = 1; u.initRoll = D.d(20) + (u.init || 0); return u; });
+        BS.units = alS.concat(fsS); BS.order = BS.units.slice().sort(function (p, q) { return q.initRoll - p.initRoll; }); D.grid.setup(D.grid.map, BS.units); BS.cache = null;
+        var resS = drive(BS), rS = BS.round; repS.results = repS.results || {}; repS.results[resS] = (repS.results[resS] || 0) + 1; // (the fight's own loop: its rounds, its reactions, its ends)
+        var lgS = (BS.log || []).map(function (l) { return String(l).replace(/\{\/?[a-z]*\}/g, ''); });
+        if (!alS.some(up) && fsS.some(up)) repS.bWon++; else if (alS.some(up) && !fsS.some(up)) repS.aWon++; else repS.neither++;
+        repS.rounds.push(rS); repS.aLeft.push(alS.filter(up).length); repS.bLeft.push(fsS.filter(up).length);
+        Object.keys(BEATS_S).forEach(function (k) { if (lgS.some(function (l) { return BEATS_S[k].test(l); })) repS.beats[k]++; });
+        if (wantS && String(seedS + iS) === wantS) repS.log = lgS;
+      } catch (eS) { repS.errors.push('seed ' + (seedS + iS) + ': ' + String(eS && eS.stack || eS).slice(0, 500)); }
+    }
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   if (get('mode', '') === 'wall1126') {
     var rep6 = { checks: [], errors: [] }, d06 = D.d, F6 = D.features, RU6 = D.rules, G6 = D.grid;
     function ok6(what, v) { rep6.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

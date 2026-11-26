@@ -1695,7 +1695,7 @@
         if (pikes.length && !seatAll(pikes, rank, rmP, Math.min(pikes.length, grp.length))) continue;
         var n1 = grp.length - 1, anch = (shut([line[0][0] - p[0], line[0][1] - p[1]]) ? 1 : 0) + (shut([line[n1][0] + p[0], line[n1][1] + p[1]]) ? 1 : 0);
         var sc = fwd * 100 - (e.cost || 0) / 5 - Math.abs((e.x - u.x) * p[0] + (e.y - u.y) * p[1]);
-        all.push({ sc: sc, anch: anch, here: e.x === u.x && e.y === u.y, x: e.x, y: e.y, fwd: fwd, face: face.slice(), line: line, rank: line.map(function (q) { return [q[0] - face[0], q[1] - face[1]]; }), caller: u });
+        all.push({ sc: sc, anch: anch, here: e.x === u.x && e.y === u.y, x: e.x, y: e.y, fwd: fwd, face: face.slice(), line: line, rank: line.map(function (q) { return [q[0] - face[0], q[1] - face[1]]; }), caller: u, group: grp });
       }
     });
     var a0 = Math.max.apply(null, [0].concat(all.filter(function (s) { return s.here; }).map(function (s) { return s.anch; })));
@@ -1898,7 +1898,7 @@
           if (fp.x !== u.x || fp.y !== u.y) yield* B.exec(u, { do: 'move', x: fp.x, y: fp.y });
           if (u.dead || u.hp <= 0 || !F.canSet(u)) return;
           if (u.x === fp.x && u.y === fp.y) {
-            fp.round = B.round; fp.group = F.formGroup(B, u); (B.wallForm = B.wallForm || {})[u.side] = fp;
+            fp.round = B.round; /* (fp.group: the shields the plan was made for, read BEFORE the walk -- F.formPlan; read after it, as it was till the same day, the caller stood alone and its mates set "a second wall here" where it had left them) */ (B.wallForm = B.wallForm || {})[u.side] = fp;
             if (x0F !== u.x || y0F !== u.y) { B.card(['{y}' + u.name + '{/} calls the line ' + Math.max(Math.abs(u.x - x0F), Math.abs(u.y - y0F)) * 5 + ' ft forward  {g}(as far as its shields can still form beside it this round, and its pikes behind){/}'], 200); yield 6; }
             F.setShields(B, u, fp.face); yield 10; return;
           }
