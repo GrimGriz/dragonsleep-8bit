@@ -1301,17 +1301,21 @@
     }
     var scl = R.SUBCLASSES && R.SUBCLASSES[sp.cls]; if (scl && L < scl.at) delete sp.subclass;
     sp.lvl = L;
-    if (sp.known) { // (the guess, for what no box accounts for)
-      var c = NPC.CLASSES[sp.cls], info = null; try { info = NPC.prepInfo(Object.assign({}, sp, { known: null })); } catch (e2) { info = null; }
-      var cpool = ((c.spells && c.spells[0]) || []).concat(NPC.registerList ? NPC.registerList(sp.cls, 0) : []), nc = c.cantrips ? c.cantrips[L - 1] || 0 : 0, can = [], lev = []; // (the SRD's cantrips too: a made one may have picked one, 11-14)
-      sp.known.forEach(function (id) { if (cpool.indexOf(id) >= 0) can.push(id); else lev.push(id); });
-      if (info) { lev = lev.filter(function (id) { var d = D.magic.data(id); return !d || (d.level || 0) <= info.top; }); lev = lev.slice(0, Math.max(0, info.n)); }
-      sp.known = can.slice(0, nc).concat(lev);
-    }
+    if (sp.known) sp.known = PK.trimKnown(sp); // (the guess, for what no box accounts for)
     if (r.got && !Object.keys(r.got).length) delete r.got;
     r.lvl = L; r.code = NPC.code(sp); r.xp = R.XP_LEVEL[L] || 0;
     if (r.due) { r.due = r.due.filter(function (k) { return k <= L; }); if (!r.due.length) delete r.due; }
     return r;
+  };
+  // THE GUESS (11-12), for a list longer than its level allows once the boxes have taken their own: what is past the level's reach goes, then the last learned, to the
+  // level's counts (the cantrips to theirs). sp at the lower level; returns the list. PK.unlevelMade's, and the maker's level given back (Pocket.levelBack, 11-26)
+  PK.trimKnown = function (sp) {
+    if (!sp || !sp.known) return sp ? sp.known : null;
+    var c = NPC.CLASSES[sp.cls], info = null; if (!c) return sp.known; try { info = NPC.prepInfo(Object.assign({}, sp, { known: null })); } catch (e2) { info = null; }
+    var cpool = ((c.spells && c.spells[0]) || []).concat(NPC.registerList ? NPC.registerList(sp.cls, 0) : []), nc = c.cantrips ? c.cantrips[sp.lvl - 1] || 0 : 0, can = [], lev = []; // (the SRD's cantrips too: a made one may have picked one, 11-14)
+    sp.known.forEach(function (id) { if (cpool.indexOf(id) >= 0) can.push(id); else lev.push(id); });
+    if (info) { lev = lev.filter(function (id) { var d = D.magic.data(id); return !d || (d.level || 0) <= info.top; }); lev = lev.slice(0, Math.max(0, info.n)); }
+    return can.slice(0, nc).concat(lev);
   };
   // where a card's owed levels are kept: a stock card's on its seat, a made one's on its roster record (it is owed them wherever it sits, or if it sits nowhere)
   PK.dueBox = function (st, slot) { return slot && slot.custom != null ? st.roster[slot.custom] || null : slot; };
@@ -1487,7 +1491,7 @@
     this.mk = { step: 1, slot: slotIndex, editing: at != null ? at : custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.cap(this.st), sp.lvl) : 1,
       equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
       style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null, picks: sp && sp.picks ? JSON.parse(JSON.stringify(sp.picks)) : null, opt: null,
-      walked: 0, got: null }; // (walked: the levels NEXT has walked -- one of your own already made stands walked to its level, 10-17)
+      walked: 0, got: custom && custom.got ? JSON.parse(JSON.stringify(custom.got)) : null }; // (walked: the levels NEXT has walked -- one of your own already made stands walked to its level, 10-17; got: its box, so a level given back here takes its own -- 11-26)
     if (sp) this.mk.walked = this.mk.lvl;
     var mk0 = this.mk; if (sp) (NPC.OPTIONS[sp.cls] || []).forEach(function (o) { if (sp[o.key] != null && !(o.key === 'pact' && sp.pact === NPC.CLASSES[sp.cls].pact)) { mk0.opt = mk0.opt || {}; mk0.opt[o.key] = o.count ? sp[o.key].slice() : sp[o.key]; } }); // (its class options, 10-14)
     if (!this.mk.equip) this.kitUp();
@@ -1551,15 +1555,19 @@
     };
     step();
   };
-  // a level given back on THE LEVEL takes what the walk gave it: its spells, its increase; the walk starts again from there
+  // a level given back on THE LEVEL takes what the walk gave it: its spells, its increase; the walk starts again from there. One of your own EDITed (11-26, his note on
+  // eyes-pocketmade-1112h: "chose fog cloud and still had it after level down and to-the-fight"): its box came in with it (makeNew), so the level takes its own spells
+  // here as the party's arrows do (PK.unlevelMade) -- till now the maker had no box for a card it had not walked itself, and the list kept them all -- and what no
+  // box accounts for (a spell picked by hand on THE SPELLS, a card made before 11-12) is the arrows' guess, to the level's counts (PK.trimKnown)
   Pocket.prototype.levelBack = function () {
-    var m = this.mk;
+    var m = this.mk, back = (m.walked || 0) > m.lvl;
     for (var L = m.walked || 0; L > m.lvl; L--) {
       var g = (m.got || {})[L] || [];
       if (m.known) m.known = m.known.filter(function (id) { return g.indexOf(id) < 0; });
       if (m.got) delete m.got[L]; if (m.picks) delete m.picks[L];
     }
-    if ((m.walked || 0) > m.lvl) m.walked = m.lvl;
+    if (back) m.walked = m.lvl;
+    if (back && m.known) m.known = PK.trimKnown(this.mkSpec()) || m.known;
   };
   // the mundane racks, by what the class may use (his: "generic kits per class"; the plus-ones are winnings)
   Pocket.prototype.rack = function (kind) {
