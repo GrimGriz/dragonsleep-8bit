@@ -1082,6 +1082,7 @@
         this.carryCheck(); // (a carrier fallen, or the carried up again: set down -- 10-13)
         if (u.carriedBy) { this.active = null; continue; } // (carried: no turn of its own)
         if (u.engulfing && D.engulf) yield* D.engulf.turnStart(this, u); // (the ones it has engulfed, at the start of its turn: the mound's crush, the cube's acid -- js/engulf.js, 11-25)
+        if (D.constructs) { yield* D.constructs.turnStart(this, u); if (u.dead) { this.active = null; this.sweep(); var oC = this.over(); if (oC) { yield* this.finish(oC); return; } continue; } } // (at the start of its turn: the rug's Smother on the one it holds, its air -- js/constructs.js, 11-26)
         if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
         else { var fromR = null; if (this.rec && D.rec && D.rec.aiTurn) { try { D.rec.aiTurn(this, u); fromR = D.rec.foeFrom ? D.rec.foeFrom(this, u) : null; } catch (eR) { /* (the record must never stop a turn) */ } } if (G.aloft(u) && !u.floats && !(D.flightAI && D.flightAI.on(this.fight) && u.flies)) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); if (fromR) { try { D.rec.foeWalked(this, u, fromR); } catch (eR2) { /* (as above) */ } } } // (a watched fight's turns of ours are steps in its play record: js/record.js REC.aiTurn, 11-03 night; a foe's walk a line of the record's own, REC.foeWalked, 11-18) // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
@@ -2788,6 +2789,7 @@
     // looped for as long as the blow held it, so one swing drew twice or three times; Griz at the show doors: "looks like he's taking two swings, is that two attacks or one
     // attack animation issue?" -- Talmok's greataxe, the scout's and the crossbowman's shoot, the trooper's throw, the werewolf's claws)
     if (!posing) att.blowRow = att.anim;
+    if (atk.smother) att.smotherAt = tgt.id; // (the rug lunges at the one it smothers as its row plays: js/constructs.js C.look, 11-26)
     // (a blow from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in; and since 10-08 a melee row's too,
     // the Harbinger's pounce landing on its frame 6. A melee row with no release still strikes 10 ticks in)
     var rel = !atk.spell && D.spr.anim(att.sheet, D.spr.inHand(att, att.anim)), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
@@ -2962,7 +2964,7 @@
       if (D.features && D.features.answerBack) yield* D.features.answerBack(this, att, tgt, atk, melee); // (the Path of the Sand, 6)
       return;
     }
-    if (atk.noDamage) { if (foundTxt) this.card([foundTxt], 200); if (o.onHit) o.onHit(tgt, crit); if (atk.intoxicate) yield* this.intoxicate(att, tgt); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
+    if (atk.noDamage) { if (foundTxt) this.card([foundTxt], 200); if (o.onHit) o.onHit(tgt, crit); if (atk.intoxicate) yield* this.intoxicate(att, tgt); if (atk.smother && D.constructs) yield* D.constructs.take(this, att, tgt, atk); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (atk.smother: the rug's grip, no damage on the hit -- js/constructs.js, 11-26) // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
     // Rock Catching (the stone giant, SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch the missile and take
     // no bludgeoning damage from it" -- a trait, not a reaction: every rock, as often as they come; data/foes.js `rockCatch`, the DC): a hurled rock (a giant's Rock, `hurled`) that hits one
     // who has it is caught on the save -- no damage, and nothing the blow carries (a caught rock knocks no one down: the seat's reading, 10-08); she turns to the thrower and her CATCH row

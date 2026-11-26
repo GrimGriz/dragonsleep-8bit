@@ -87,6 +87,10 @@
       var cl = !down && !!u.riding && u.perch === 'over' && !!D.spr.anim(u.sheet, 'clamp'); // (on a head: js/ui.js plays its Clamp row there, the darkmantle's -- 10-08)
       if (cl && !s.clamp) see(B, u, 'clamp');
       s.clamp = cl;
+      var smw = !down && !!D.constructs && D.constructs.smothering(u) && !!D.spr.anim(u.sheet, 'smotherhold'); // (wrapped round one: js/ui.js plays its Hold, and its Release as it lets go -- the rug's, js/constructs.js, 11-26)
+      if (smw && !s.smw) see(B, u, 'smotherhold');
+      if (!smw && s.smw && !down && D.spr.anim(u.sheet, 'smotherrelease')) see(B, u, 'smotherrelease');
+      s.smw = smw;
       var up = !down && !!u.upright && u.anim === 'idle' && !!D.spr.anim(u.sheet, 'uprightidle'); // (risen, js/ui.js draws his idle as his upright idle: the Harbinger's -- 10-15)
       if (up && !s.up) see(B, u, 'uprightidle');
       s.up = up;
@@ -225,7 +229,14 @@
     // (and a `run` row of its own: four squares and more at a run, through the engine's own move -- js/battle.js moveAlong's `gait`. A charger's run plays off its charge (js/ui.js),
     // Amara's and Willem's only in the road's chase (js/chase.js), so their shows saw none: 11-25, the seat module-1125, RULED -- the desk's "fix them", Griz's "good on the leans")
     var gaits = [['walk', 1, 2], ['slither', 3, 6], ['run', 4, 6]].filter(function (g) { return (!seen[g[0]] || (landFly && g[0] === 'walk')) && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
-    if (gaits.length && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone) { // (holding someone too: a roper's tendrils reach 50 ft)
+    // THE RUG OF SMOTHERING (11-26, js/constructs.js): one wrapped round a watcher since its last turn -- the held one's turn has seen the 2d6 + 3 -- lets go: the held one breaks
+    // free (the show's, never a rule), to see its Release; a rug that never walked walks after
+    var smH = D.constructs && D.constructs.heldBy(u);
+    if (smH && smH.conds.restrained && smH.conds.restrained.smother && smH.conds.restrained.smother.turns >= 1 && ((u.showSeen || {}).smotherrelease || 0) < 2) {
+      B.card(['{c}THE SHOW{/}: ' + smH.name + ' breaks free of the ' + u.name + ', to see it let go.'], 200);
+      B.release(u, smH); if (smH.conds.blinded && smH.conds.blinded.by === u.id) delete smH.conds.blinded; yield 30;
+    }
+    if (gaits.length && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone && !(D.constructs && D.constructs.smothering(u))) { // (holding someone too: a roper's tendrils reach 50 ft) (not a rug wrapped round one: it would let go)
       var g = gaits[0], them = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
       if (landFly && g[0] === 'walk') u.fz = null;
       var rm = D.grid.reach(u, Math.min(g[2] * 5 + 10, u.speed)), best = null, bd = Infinity;

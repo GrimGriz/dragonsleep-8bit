@@ -1499,6 +1499,8 @@
     (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > gripReach(u)) B.release(u, w); });
     // the water elemental's held drown at the start of its turn, and it stays where it is, around them (Whelm, 10-14)
     if (u.whelm && (u.holding || []).length) { yield* drown(B, u); if ((u.holding || []).some(function (w) { return G.standing(w); })) T.move = 0; } // (gripReach: a grip it has keeps its own reach, whatever it has left to throw -- 10-02)
+    // the rug of smothering wrapped round one (SRD 5.1 Smother: "the rug can't smother another target" -- and it has no other action): it stays, holding (js/constructs.js, 11-26)
+    if (D.constructs && D.constructs.smothering(u)) { T.move = 0; return; }
     // riding the one it holds (the darkmantle attached, battle.js mount; SRD 5.1: "can attack no other creature except the target", its speed 0, it moves with
     // the target): no step of its own -- it squeezes the one it rides
     if (u.riding && u.attached) {

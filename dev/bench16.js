@@ -26176,6 +26176,117 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preIS);
     return;
   }
+  // THE POCKET DM'S CONSTRUCTS, 11-26 (mode=constructs1126; the cutter seat cutter-1126-constructs, on Griz's "there are 3 in Fresh, two for the Pocket DM stores"): the
+  // rug of smothering by the SRD (data/foes.js rugofsmothering, js/constructs.js, tools/rugofsmothering-sheet.py) -- its block and sheet, Smother's grip with no damage on
+  // the hit, the 2d6 + 3 at the start of the HELD one's turn, Damage Transfer odd and even and not through its immunity, one at a time and Medium or smaller, the AI holding
+  // still, the escape, its fall letting go, the air, the wrap drawn over the held one; on the ABERRATIONS, OOZES, ETC. shelf at CR 2, bought, bound, filled onto the DM's
+  // ladder, and that table fought to its end
+  if (get('mode', '') === 'constructs1126') {
+    var repK = { checks: [], errors: [], notes: [] }, d0K = D.d;
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var drainK = function (g) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } while (!r.done && n++ < 5000); return r.value; };
+    var pinK = function (d20, d6) { D.d = function (n) { return n === 20 && d20 != null ? d20 : n === 6 && d6 != null ? d6 : d0K.apply(this, arguments); }; };
+    var saidK = function (B) { var s = []; var c0 = B.card; B.card = function (l) { s.push((l || []).join(' ').replace(/\{\w\}|\{\/\}/g, '')); return c0.apply(this, arguments); }; return { s: s, off: function () { B.card = c0; } }; };
+    var openK = function (B) { var m = D.grid.map; for (var y = 1; y + 7 < m.h; y++) for (var x = 1; x + 9 < m.w; x++) { var z = m.gz(x, y), ok = true; for (var j = 0; j < 7 && ok; j++) for (var i = 0; i < 9 && ok; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) ok = false; } if (ok) return [x, y]; } return null; };
+    try {
+      var CK = D.constructs, RG = D.FOES.rugofsmothering, SR = RG && D.SHEETS[RG.sheet], aR = SR && SR.anims, sm = RG && RG.attacks.smother;
+      okK('0 js/constructs.js loaded (D.constructs)', !!CK);
+      okK('R1 the SRD 5.1 Rug of Smothering (' + (RG ? 'AC ' + RG.ac + ', ' + RG.hp + ' HP, ' + RG.type + ', size ' + RG.size + ', speed ' + RG.speed + ', CR ' + RG.cr + ', blindsight ' + RG.blindsight + '; Smother +' + sm.atk + ', DC ' + sm.grapple.dc + ', ' + sm.dice + '+' + sm.mod + ' ' + sm.type + '; immune ' + RG.immune.join(', ') : 'NONE') + ')',
+        !!RG && RG.ac === 12 && RG.hp === 33 && RG.type === 'construct' && RG.size === 2 && RG.speed === 10 && RG.cr === '2' && RG.blindsight === 60 && RG.blind && sm.atk === 5 && sm.dice === '2d6' && sm.mod === 3 &&
+        sm.noDamage && sm.smother && sm.grapple.dc === 13 && sm.grapple.max === 1 && sm.grapple.size === 'M' && RG.transfer && RG.immune.join() === 'poison,psychic' && RG.condImmune.length === 7 && RG.condImmune.indexOf('blinded') >= 0);
+      var wantR = { still: 1, idle: 4, walk: 8, smother: 6, smotherhold: 4, smotherrelease: 4, flinch: 4, hurt: 6, prone: 1 };
+      var offR = Object.keys(wantR).filter(function (k) { return !aR || !aR[k] || aR[k].frames !== wantR[k]; });
+      okK('R2 its sheet (' + (RG && RG.sheet) + '): ' + Object.keys(wantR).length + ' rows at their counts, the Smother taking hold on frame 4, a wrap point for each of the 8 facings' + (offR.length ? ' -- off: ' + offR.join(', ') : ''),
+        !!SR && !offR.length && aR.smother.release === 3 && Array.isArray(SR.wrap) && SR.wrap.length === 8 && SR.wrap.every(function (w) { return w && w.length === 2; }));
+      var BR = D.npcFight('?npc=rugofsmothering&vs=fighter:3,cleric:3,wizard:3,rogue:3&lvl=3', {}); D.battle = BR; BR.enter(); var kR = 0; while (!BR.order.length && kR++ < 400) BR.co.next(); BR.dark = false;
+      var RU0 = BR.units.filter(function (u) { return u.kind === 'rugofsmothering'; })[0], pR = BR.units.filter(function (u) { return u.side === 'party'; });
+      var FI = pR.filter(function (u) { return /fighter/i.test(u.cls || ''); })[0], CL = pR.filter(function (u) { return /cleric/i.test(u.cls || ''); })[0], WZ = pR.filter(function (u) { return /wizard/i.test(u.cls || ''); })[0], RO = pR.filter(function (u) { return /rogue/i.test(u.cls || ''); })[0];
+      var atR = openK(BR); RU0.x = atR[0] + 3; RU0.y = atR[1] + 2; FI.x = RU0.x + 2; FI.y = RU0.y; CL.x = RU0.x - 1; CL.y = RU0.y + 1; WZ.x = atR[0] + 8; WZ.y = atR[1] + 6; RO.x = atR[0]; RO.y = atR[1] + 6; D.grid.setup(D.grid.map, BR.units);
+      [FI, CL, WZ, RO].forEach(function (w) { w.hp = w.maxhp = 200; }); RU0.hp = RU0.maxhp = 200;
+      okK('R3 False Appearance: a rug lying still before its first turn -- js/ui.js draws its still row (' + (D.ui.unitObj(BR, RU0) && D.spr.anim(RU0.sheet, 'still') ? 'still' : '-') + '), not woken ' + !RU0.woken + ', not acted ' + !RU0.acted, !!D.spr.anim(RU0.sheet, 'still') && !RU0.woken && !RU0.acted);
+      // the hit: no damage, the grip
+      var hp0 = FI.hp; pinK(18, 4); BR.active = RU0; D.rules.startTurn(RU0); var sK = saidK(BR);
+      drainK(BR.attack(RU0, FI, RU0.attacks.smother)); sK.off();
+      var rr = FI.conds.restrained;
+      okK('R4 Smother hits the fighter: no damage on the hit (' + hp0 + ' to ' + FI.hp + '), grappled and restrained (escape DC ' + (rr && rr.dc) + ', by the rug ' + !!(rr && rr.by === RU0.id) + ', a smother ' + !!(rr && rr.smother) + '), blinded ' + !!FI.conds.blinded + ', the rug holds ' + (RU0.holding || []).length + ' -- "' + (sK.s.filter(function (l) { return /wraps/.test(l); })[0] || '').slice(0, 110) + '"',
+        FI.hp === hp0 && !!(rr && rr.grapple && rr.dc === 13 && rr.by === RU0.id && rr.smother) && !!(FI.conds.blinded && FI.conds.blinded.held) && (RU0.holding || []).length === 1 && CK.heldBy(RU0) === FI);
+      var hpC = CL.hp; drainK(BR.attack(RU0, CL, RU0.attacks.smother));
+      okK('R5 one at a time: a second Smother at the cleric takes no hold (' + (CL.conds.restrained ? 'HELD' : 'free') + ', ' + hpC + ' to ' + CL.hp + ' HP) -- "' + (CK.cannotTake(RU0, CL, RU0.attacks.smother) || '') + '"', !CL.conds.restrained && CL.hp === hpC && /holds one already/.test(CK.cannotTake(RU0, CL, RU0.attacks.smother) || ''));
+      // the start of the held one's turn: 2d6 + 3 (pinned 4s: 11); the rug's own turn start: nothing
+      var hA = FI.hp; pinK(10, 4); drainK(CK.turnStart(BR, RU0)); var hB = FI.hp; drainK(CK.turnStart(BR, FI)); var hC = FI.hp; D.d = d0K;
+      okK('R6 the 2d6 + 3 at the start of the HELD one\'s turn (pinned 4s: 11): the rug\'s turn start ' + hA + ' to ' + hB + ', the fighter\'s ' + hB + ' to ' + hC + '; its air counted (' + FI.conds.restrained.smother.turns + ' of ' + FI.conds.restrained.smother.breath + ' rounds of breath)',
+        hA === hB && hB - hC === 11 && FI.conds.restrained.smother.turns === 1);
+      // Damage Transfer: half kept rounded down, the rest on the held one; not through its immunity
+      var tr = function (n, type) { var a = RU0.hp, b = FI.hp; BR.hurt(RU0, n, type, {}); return [a - RU0.hp, b - FI.hp]; };
+      var t9 = tr(9, 'slashing'), t10 = tr(10, 'slashing'), tp = tr(9, 'poison'), tps = tr(9, 'psychic');
+      okK('R7 Damage Transfer: 9 slashing -- the rug ' + t9[0] + ', the fighter ' + t9[1] + ' (4 and 5); 10 -- ' + t10[0] + ' and ' + t10[1] + '; 9 poison ' + tp.join('/') + ' and 9 psychic ' + tps.join('/') + ' (immune: nothing to share)',
+        t9[0] === 4 && t9[1] === 5 && t10[0] === 5 && t10[1] === 5 && tp[0] === 0 && tp[1] === 0 && tps[0] === 0 && tps[1] === 0);
+      // the AI holding: it stays and strikes no one
+      var rx = RU0.x, ry = RU0.y, nL = (BR.log || []).length; BR.active = RU0; drainK(D.ai.turn(BR, RU0)); var lgR = (BR.log || []).slice(nL).join(' | ');
+      okK('R8 its turn while it holds one: it stays (' + rx + ',' + ry + ' to ' + RU0.x + ',' + RU0.y + '), no Smother at another (' + (/Smother(?!ing)/.test(lgR) ? 'SMOTHERED' : 'none') + '), still holding ' + (CK.heldBy(RU0) === FI), RU0.x === rx && RU0.y === ry && !/Smother(?!ing)/.test(lgR) && CK.heldBy(RU0) === FI);
+      // the look: the wrap set over onto the held one, drawn after them; the Hold row
+      var pR0 = D.ui.unitPos(BR, RU0), pF = D.ui.unitPos(BR, FI); RU0.anim = 'idle'; RU0.animT = BR.t; delete RU0._cLook; BR.t += 1;
+      var wp = CK.wrapPos(BR, RU0, pR0), wr = SR.wrap[RU0.facing || 0], rowW = CK.row(BR, RU0, 'idle', false), obR = D.ui.unitObj(BR, RU0), obF = D.ui.unitObj(BR, FI);
+      okK('R9 drawn over the held one: its facing\'s column foot (' + wr + ') on the fighter\'s foot -- ' + (wp ? Math.round(wp.x + wr[0] - pF.x) + ',' + Math.round(wp.y + wr[1] - pF.y) + ' px off' : 'NOT SET') + ', drawn after them ' + !!(obR && obF && obR.depth > obF.depth) + '; its row ' + (rowW && rowW.anim),
+        !!wp && Math.abs(wp.x + wr[0] - pF.x) <= 1 && Math.abs(wp.y + wr[1] - pF.y) <= 1 && !!(obR && obF && obR.depth > obF.depth) && !!rowW && rowW.anim === 'smotherhold');
+      if (get('shots', '')) { // (&shots=1: the real draw of the hold, the seat's own eyes -- the engulf bench's way)
+        var shotK = function (tag) { try { var cv = document.createElement('canvas'); cv.width = 480; cv.height = 270; BR.units.forEach(function (u) { delete u.tween; }); delete RU0._cLook; BR.focus(FI); D.ui.drawBattle(cv.getContext('2d'), BR); (repK.shots = repK.shots || {})[tag] = cv.toDataURL('image/png'); } catch (eS) { repK.notes.push('shot ' + tag + ': ' + eS); } };
+        shotK('hold-f' + (RU0.facing || 0));
+        var keepXY = [FI.x, FI.y, RU0.facing]; FI.x = RU0.x; FI.y = RU0.y + 2; RU0.facing = 0; D.grid.setup(D.grid.map, BR.units); BR.t += 3; shotK('hold-S');
+        FI.x = RU0.x + 2; FI.y = RU0.y + 1; RU0.facing = 7; D.grid.setup(D.grid.map, BR.units); BR.t += 3; shotK('hold-SE');
+        FI.x = keepXY[0]; FI.y = keepXY[1]; RU0.facing = keepXY[2]; D.grid.setup(D.grid.map, BR.units);
+      }
+      // the escape: free and seeing, the rug lets go (its Release once)
+      BR.active = FI; D.rules.startTurn(FI); pinK(20, 4); drainK(D.magic.breakFree(BR, FI)); D.d = d0K; delete RU0._cLook; BR.t += 1; CK.look(BR, RU0); BR.t += 1;
+      var rowRel = CK.row(BR, RU0, 'idle', false);
+      okK('R10 out by the escape (DC 13): restrained ' + !!FI.conds.restrained + ', blinded ' + !!FI.conds.blinded + ', the rug holds ' + (RU0.holding || []).length + '; its Release plays (' + (rowRel && rowRel.anim) + ')', !FI.conds.restrained && !FI.conds.blinded && !(RU0.holding || []).length && !!rowRel && rowRel.anim === 'smotherrelease');
+      // a Large one: no hold
+      CL.conds.enlarged = { by: CL.id }; pinK(18, 4); BR.active = RU0; D.rules.startTurn(RU0); var hpE = CL.hp; drainK(BR.attack(RU0, CL, RU0.attacks.smother)); D.d = d0K;
+      var aiUse = RU0.attacks.smother; okK('R11 an Enlarged (Large) cleric: Smother takes no hold (' + (CL.conds.restrained ? 'HELD' : 'free') + ', ' + hpE + ' to ' + CL.hp + ' HP) -- "' + (CK.cannotTake(RU0, CL, aiUse) || '') + '"', !CL.conds.restrained && CL.hp === hpE && /too big/.test(CK.cannotTake(RU0, CL, aiUse) || ''));
+      delete CL.conds.enlarged;
+      // its fall lets go
+      pinK(18, 4); BR.active = RU0; D.rules.startTurn(RU0); drainK(BR.attack(RU0, CL, RU0.attacks.smother)); D.d = d0K; var heldC = CK.heldBy(RU0) === CL;
+      RU0.transfer = false; BR.hurt(RU0, RU0.hp + 5, 'force', {}); RU0.transfer = true;
+      okK('R12 its fall lets go: held the cleric ' + heldC + ', then down -- restrained ' + !!CL.conds.restrained + ', blinded ' + !!CL.conds.blinded, heldC && !CL.conds.restrained && !CL.conds.blinded);
+      // the air (SRD 5.1 Suffocating): out of breath, then choking, then 0 and dying
+      var BA2 = D.npcFight('?npc=rugofsmothering&vs=fighter:3&lvl=3', {}); D.battle = BA2; BA2.enter(); kR = 0; while (!BA2.order.length && kR++ < 400) BA2.co.next(); BA2.dark = false;
+      var RG2 = BA2.units.filter(function (u) { return u.kind === 'rugofsmothering'; })[0], F2 = BA2.units.filter(function (u) { return u.side === 'party'; })[0], at2 = openK(BA2);
+      RG2.x = at2[0] + 3; RG2.y = at2[1] + 2; F2.x = RG2.x + 2; F2.y = RG2.y; D.grid.setup(D.grid.map, BA2.units); F2.hp = F2.maxhp = 500; F2.abil.con = 14; RG2.hp = RG2.maxhp = 200;
+      pinK(18, 1); BA2.active = RG2; D.rules.startTurn(RG2); drainK(BA2.attack(RG2, F2, RG2.attacks.smother));
+      var smA = F2.conds.restrained && F2.conds.restrained.smother, sA = saidK(BA2), turnsA = 0;
+      while (F2.hp > 0 && turnsA < 60) { turnsA++; drainK(CK.turnStart(BA2, F2)); }
+      sA.off(); D.d = d0K;
+      var outAt = sA.s.map(function (l, i) { return /out of breath/.test(l) ? i : -1; }).filter(function (i) { return i >= 0; });
+      okK('R13 the air (CON 14: 3 minutes held, 30 rounds, then 2 choking): breath ' + (smA && smA.breath) + ' rounds, choke ' + (smA && smA.choke) + ' -- out of breath said ' + outAt.length + ' time, 0 HP after ' + turnsA + ' of its turns (want 33: 32 turns of 2d6+3 at 1s -- 5 each -- off 500, then 0)',
+        !!smA && smA.breath === 30 && smA.choke === 2 && outAt.length === 1 && turnsA === 33 && F2.hp <= 0 && sA.s.some(function (l) { return /suffocates/.test(l); }));
+      // the AI never smothers one too big: the Enlarged fighter alone beside it
+      var BA3 = D.npcFight('?npc=rugofsmothering&vs=fighter:3&lvl=3', {}); D.battle = BA3; BA3.enter(); kR = 0; while (!BA3.order.length && kR++ < 400) BA3.co.next(); BA3.dark = false;
+      var RG3 = BA3.units.filter(function (u) { return u.kind === 'rugofsmothering'; })[0], F3 = BA3.units.filter(function (u) { return u.side === 'party'; })[0], at3 = openK(BA3);
+      RG3.x = at3[0] + 3; RG3.y = at3[1] + 2; F3.x = RG3.x + 2; F3.y = RG3.y; D.grid.setup(D.grid.map, BA3.units); F3.conds.enlarged = { by: F3.id }; RG3.woken = true;
+      var n3 = (BA3.log || []).length; BA3.active = RG3; drainK(D.ai.turn(BA3, RG3)); var lg3 = (BA3.log || []).slice(n3).join(' | ');
+      okK('R14 the AI with only a Large one in reach: no Smother tried (' + (/Smother(?!ing)/.test(lg3) ? 'TRIED' : 'none') + '), no hold', !/Smother(?!ing)/.test(lg3) && !F3.conds.restrained);
+      // the Pocket DM: on the shelf at CR 2, bought, bound, onto a ladder table, and that table fought
+      var PDk = D.pocketdm, shopK = PDk.SHOPS.filter(function (s) { return s.id === 'etc'; })[0], shelfK = PDk.shelf(shopK), others = PDk.SHOPS.filter(function (s) { return s.id !== 'etc' && PDk.shelf(s).indexOf('rugofsmothering') >= 0; });
+      okK('P1 on the ' + shopK.name + ' shelf (' + (shelfK.indexOf('rugofsmothering') >= 0) + '), on no other (' + others.map(function (s) { return s.id; }).join(',') + '), at CR 2: ' + PDk.fmt(PDk.price('rugofsmothering')) + '; in the DM\'s pot ' + (D.pocket.pot([], 'hexfloor', true).indexOf('rugofsmothering') >= 0),
+        shelfK.indexOf('rugofsmothering') >= 0 && !others.length && PDk.price('rugofsmothering') === 2000 && D.pocket.pot([], 'hexfloor', true).indexOf('rugofsmothering') >= 0);
+      var pkR = new D.Pocket(); pkR.enter(); pkR.ask = function () { return true; }; pkR.say = function () { }; pkR.st.dm = true; var cpR = PDk.camp(pkR.st); cpR.bought = []; cpR.units = []; cpR.purse = PDk.START;
+      var buyR = PDk.buy(pkR.st, 'rugofsmothering'), unR = buyR.ok ? PDk.bind(pkR.st, [buyR.receipt.id]) : null, fillR = PDk.fill(pkR, 'hexfloor', 16);
+      okK('P2 bought (' + (buyR.ok ? PDk.fmt(buyR.receipt.paid) : buyR.why) + ', the purse ' + PDk.fmt(cpR.purse) + '), bound as a unit (' + (unR ? PDk.unitName(unR) : '-') + '), and a CR 2 table on the hex floor takes it first: ' + fillR.foes.join(', ') + ' (theirs ' + fillR.mine + ')',
+        buyR.ok && cpR.purse === PDk.START - 2000 && !!unR && fillR.mine === 1 && fillR.foes[0] === 'rugofsmothering');
+      // that table, fought by the class AI on both sides (&watch: the bench-balance pipeline's way) at six seeds: each ends, the rug fielded, and its grip lands in some
+      var tabK = [], wrapsK = 0, fieldK = true, endK = true;
+      for (var sK6 = 0; sK6 < 6; sK6++) {
+        D.seed = 1126 * 7919 + sK6 * 101; var BL = D.npcFight('?npc=' + fillR.foes.join(',') + '&vs=fighter:3,cleric:3,rogue:3,wizard:3&lvl=3&map=hexfloor&watch', {}); D.battle = BL; BL.enter();
+        var resL = drive(BL), rugL = BL.units.filter(function (u) { return u.kind === 'rugofsmothering'; })[0], lgL = (BL.log || []).join(' | '), wL = (lgL.match(/wraps /g) || []).length;
+        tabK.push(resL + ' R' + BL.round + (wL ? ' ' + wL + ' wrap' + (wL > 1 ? 's' : '') : '')); wrapsK += wL; if (!rugL) fieldK = false; if (resL !== 'won' && resL !== 'lost') endK = false;
+      }
+      okK('P3 that table fought at the DM\'s level 3 (four, the class AI on both sides), six seeds: ' + tabK.join(', ') + ' -- the rug fielded in each ' + fieldK + ', every one ended ' + endK + ', its Smother took hold ' + wrapsK + ' times', fieldK && endK && wrapsK > 0);
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    D.d = d0K;
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
+    return;
+  }
   // THE ANIMATED ARMOR, 11-15 (mode=armor1115; tools/animatedarmor-sheet.py, data/foes.js animatedarmor -- the NPC cutter seat, art-wanted 64's construct,
   // the art desk's 68): the SRD 5.1 block; its sheet's rows, both Slams landing on frame 4; its rows in a fight are the show's (check.py's show line-up)
   if (get('mode', '') === 'armor1115') {

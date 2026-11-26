@@ -2031,6 +2031,7 @@
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
     if (u.inClaws && !u.dead && !u.left) { p = clawPos(B, u); var hCl = p.claw && B.units.filter(function (w) { return w.id === u.inClaws.by; })[0]; if (hCl) u.facing = ((hCl.facing || 0) + 4) % 8; } // (in a chuul's claws: drawn at the claw, facing it -- battle.js clawIn, 11-06)
     if (u.conds && u.conds.engulfed && !u.dead && !u.left) { var ipE = insidePos(B, u); if (ipE) p = ipE; } // (engulfed: drawn inside its holder -- insidePos, js/engulf.js, 11-25)
+    if (D.constructs && !u.left) { var wpC = D.constructs.wrapPos(B, u, p); if (wpC) p = wpC; } // (the rug of smothering set over onto the one it wraps, drawn after them -- js/constructs.js, 11-26)
     if (u.kind === 'keeper' && u.dead && B.t - (u.deadT || B.t) > 50) return null; // (a destroyed Keeper is gone from the water: only calm waves stay, js/keeper.js)
     if (u.left) return null; // out of the fight, the way they came in
     if (u.kind === 'keeper' && D.keeper && !u.dead && (!u.anim || u.anim === 'idle')) D.keeper.face(B, u); // (it faces the party, idle: js/keeper.js)
@@ -2063,6 +2064,8 @@
         // aloft (10-28, RULED, Griz: "1 yes" to a sheet's fly row played while its unit is in the air): one off the ground (u.fz, G.aloft) plays its `fly` row in
         // place of its idle and its walk, a loop -- the manticore's and the gargoyle's; the cloaker's flight in is its egg's `swoop` row, never this
         if (!down) anim = UI.aloftRow(u, anim);
+        // (the rug of smothering: its Hold while it holds one, its Release as it lets go, its Smother backed out on a miss -- js/constructs.js, 11-26)
+        var crC = D.constructs && D.constructs.row(B, u, anim, down); if (crC) { anim = crC.anim; if (crC.frame != null) { o.frame = crC.frame; o.once = false; } }
         // climbing (10-04, Griz: "climbing poses - might use them as stand in for the edifice fight"): up a face, along a rope, or hanging on one part way,
         // a sheet with a climb row plays it (battle.js moveAlong's tween modes); one hanging still holds its first frame
         var climbing = !down && has('climb') && ((u.tween && (u.tween.mode === 'climb' || u.tween.mode === 'ropedown')) || (u.hang && G.hanging(u)));

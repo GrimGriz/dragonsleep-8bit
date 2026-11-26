@@ -1148,6 +1148,18 @@
     multi: ['slam', 'slam'], immune: ['poison', 'psychic'], condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'paralyzed', 'petrified', 'poisoned'],
     src: 'SRD 5.1 Animated Armor (CR 1, Medium construct; AC 18 natural armor, 33 HP, speed 25; blindsight 60, blind beyond): Multiattack, two Slams +4 1d6+2 bludgeoning; immune to poison and psychic damage, and blinded, charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned; False Appearance as a suit standing empty till its first turn (its still row). Antimagic Susceptibility not given (no antimagic field on the grid; Dispel Magic does not drop it yet)'
   },
+  // THE RUG OF SMOTHERING (2026-11-26, the cutter seat cutter-1126-constructs, on Griz's word to the lanes desk: "there are 3 in Fresh, two for the Pocket DM stores"):
+  // the SRD 5.1 Animated Objects' rug (srd/monsters/a.md), its sheet tools/rugofsmothering-sheet.py (the art desk's ART-171). A Pocket DM addition, unmet in the story till
+  // it needs one (the 11-15 precedent): IN NO FIGHT, ON NO TABLE -- on the ABERRATIONS, OOZES, ETC. shelf (js/pocketdm.js, every type the four shelves do not name) at
+  // CR 2. Its Smother, its air and its wrap: js/constructs.js; Damage Transfer the cloaker's `transfer` (battle.js hurt); False Appearance its `still` row till its first turn
+  rugofsmothering: {
+    name: 'Rug of Smothering', type: 'construct', sheet: 'rugofsmothering_p1', cr: '2', ac: 12, hp: 33, speed: 10, size: 2, reach: 5, blindsight: 60, blind: true,
+    abil: { str: 17, dex: 14, con: 10, int: 1, wis: 3, cha: 1 }, init: 2, perception: 6,
+    saves: { str: 3, dex: 2, con: 0, int: -5, wis: -4, cha: -5 },
+    attacks: { smother: { name: 'Smother', atk: 5, dice: '2d6', mod: 3, type: 'bludgeoning', reach: 5, noDamage: true, smother: true, holdOnly: true, grapple: { dc: 13, max: 1, size: 'M' } } },
+    multi: 1, transfer: true, immune: ['poison', 'psychic'], condImmune: ['blinded', 'charmed', 'deafened', 'frightened', 'paralyzed', 'petrified', 'poisoned'],
+    src: 'SRD 5.1 Rug of Smothering (Animated Objects; CR 2, 450 XP, Large construct; AC 12, 33 HP (6d10), speed 10; STR 17 DEX 14 CON 10 INT 1 WIS 3 CHA 1; blindsight 60, blind beyond, passive Perception 6): Smother +5, reach 5, one Medium or smaller -- no damage on the hit; grappled (escape DC 13), restrained, blinded and at risk of suffocating till the grip ends, one at a time, and 2d6+3 bludgeoning at the start of each of the held one\'s turns (js/constructs.js; the air by SRD 5.1 Suffocating, ten rounds a minute); Damage Transfer while it holds one (it keeps half rounded down, the held one takes the rest -- the cloaker\'s reading, 11-03); False Appearance as a rug lying still till its first turn (its still row); immune to poison and psychic damage, and blinded, charmed, deafened, frightened, paralyzed, petrified, poisoned. Antimagic Susceptibility not given (no antimagic field on the grid; Dispel Magic does not drop it yet), as the animated armor\'s'
+  },
   // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
   // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet
   // tools/harpy-sheet.py (the art desk's ART-14 SE and NE, ART-56 S, E and N). Its club plays `attack`, its claws `claw`.
