@@ -101,11 +101,14 @@
   // each of the first three, the chest between. The seat's calls, his to overrule: the waves (the module's), one tier at the four's level (&lvl=N, 3 unless said: the bench), the run won
   // on the turkey's wave (no tier after it), its own saves and high scores
   WV.SPECIALS = {
-    feast: { name: 'THE FEAST', lvl: 3, waves: [ // (lvl 3: the bench of 11-26, mode=gsfeast1126 on &auto -- level 2 wiped twice, 3 won twice once by a hair (three down to the Gobbler), 4 and 5 won with none down)
+    // THE FINALE, A POTATO AND A LONG REST (11-26, Griz: "yeah, potato and a long rest - especially with novice players i figure they'll burn everything before the boss fight"):
+    // the turkey's wave brings a Jacket Bruiser out of the ovens too, and the rest before it is the long one (`rests`: the rest after each wave but the last -- the night at the
+    // cots: whole again, hit dice back, the lamp mended; no level comes of it, the XP being half the tier's by then)
+    feast: { name: 'THE FEAST', lvl: 3, rests: ['short', 'short', 'long'], longLine: 'the night at the cots, and the lamp trimmed and filled again.', waves: [ // (lvl 3: the bench of 11-26, mode=gsfeast1126 on &auto -- level 2 wiped twice, 3 won twice once by a hair (three down to the Gobbler), 4 and 5 won with none down; before the finale's potato and long rest)
       { west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'The pantry door bangs open: four cans of cranberry sauce waddle out!' },
       { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan'], card: 'The ovens open. Something baked climbs out -- and the pantry sends more sauce.' },
       { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'Second helpings. Nobody asked for second helpings.' },
-      { stage: ['gallowsgobbler'], west: ['cranberrycan', 'cranberrycan'], boss: 'gallowsgobbler', card: 'THE GALLOWS GOBBLER. The gallows creak: this year\'s bird was never pardoned.' }
+      { stage: ['gallowsgobbler'], east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan'], boss: 'gallowsgobbler', card: 'THE GALLOWS GOBBLER. The gallows creak: this year\'s bird was never pardoned -- and the ovens open one last time.' }
     ] }
   };
   WV.special = function () { return GS.special && WV.SPECIALS[GS.special.key] || null; };
@@ -326,7 +329,8 @@
       lines.push('{y}SHORT REST{/} at the cots.');
       party.forEach(function (u) { lines.push(u.name + ': ' + shortRest(B, u, S)); });
     } else {
-      lines.push('{y}LONG REST{/}: the night at the cots, and the dwarves\' wardens mend the lamp.');
+      var SPL = WV.special(); // (a special's long rest: its own line, its lamp mended to its own tier -- THE FEAST's, 11-26)
+      lines.push('{y}LONG REST{/}: ' + (SPL && SPL.longLine ? SPL.longLine : 'the night at the cots, and the dwarves\' wardens mend the lamp.'));
       var ups = [], made = party.map(function (u) {
         var L0 = u.lvl || 1, L = Math.max(L0, levelFor(S.xp[u.mpmon] || 0));
         var n = rebuild(B, u, L); S.hd[n.mpmon] = L;
@@ -337,7 +341,7 @@
       var P = st.party, swap = function (u) { var k = party.indexOf(u); return k >= 0 ? made[k] : u; };
       if (P) { P.token = swap(P.token); P.rest = P.rest.map(swap); }
       S.party = made; party = made;
-      S.lampHP = S.lampMax = WV.CFG.lampHP(S.tier + 1);
+      S.lampHP = S.lampMax = WV.CFG.lampHP(SPL ? S.tier : S.tier + 1);
       if (ups.length) { lines.push('{y}LEVEL UP!{/}  ' + ups.join(' · ')); D.sfx('levelup'); party.forEach(function (u) { if (B.units.indexOf(u) >= 0) FX.sparkle(u, 'gold', 20); }); }
     }
     G.setup(G.map, B.units);
@@ -473,7 +477,7 @@
         if (SP && last) { S.won = true; S.held = S.held || 0; yield* GS.specialWon(B, { waves: S.held, tier: S.tier }); return; }
         // the lamp off the field for the rest, back after it (its hit points kept, or made whole by the long rest)
         B.units = B.units.filter(function (u) { return u !== S.lamp; });
-        yield* afterWave(B, S, last ? 'long' : 'short');
+        yield* afterWave(B, S, SP && SP.rests && SP.rests[S.wi] ? SP.rests[S.wi] : last ? 'long' : 'short'); // (a special names its rests: THE FEAST's long one before the turkey, 11-26)
         // (all four back on the field and still before anyone rolls: the token's walk-out is the show's, js/gameshow.js)
         for (var g = 0; g < 600 && (four(B).length < 4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g++) yield 1;
         lampUp(B, S);

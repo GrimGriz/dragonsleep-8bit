@@ -26654,7 +26654,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var MF = (D.MODULES || []).filter(function (m) { return m.id === 'feast'; })[0];
       var restsF = MF ? MF.slots.slice(0, 3).map(function (s) { var r = s.rest || {}; return r.long ? 'L' : r.short !== false ? 'S' : '-'; }).join(' ') : '';
       okF('M1 THE FEAST comes with the Pocket DM: ' + (MF ? MF.slots.length + ' fights for ' + MF.party.n + ' at ' + MF.party.lvl + ', every one on the Bowl (' + MF.slots.every(function (s) { return s.map === 'harvestbowl'; }) + '), every foe in the bestiary, rests ' + restsF + ', the last the Gobbler' : 'NONE'),
-        !!MF && MF.slots.length === 4 && MF.party.lvl === 5 && MF.slots.every(function (s) { return s.map === 'harvestbowl' && s.foes.every(function (k) { return !!D.FOES[k]; }) && String(s.name).length <= 40; }) && restsF === '- - S' && MF.slots[3].foes[0] === 'gallowsgobbler');
+        !!MF && MF.slots.length === 4 && MF.party.lvl === 5 && MF.slots.every(function (s) { return s.map === 'harvestbowl' && s.foes.every(function (k) { return !!D.FOES[k]; }) && String(s.name).length <= 40; }) && restsF === '- - L' && MF.slots[3].foes[0] === 'gallowsgobbler');
       var tabM = [], endM = true;
       if (MF) MF.slots.forEach(function (s, i) {
         D.seed = 2620 + i; var BM = fightF('?npc=' + s.foes.join(',') + '&vs=denny:5,beholda:5,rascal:5,goose:5&lvl=5&map=harvestbowl&watch');
