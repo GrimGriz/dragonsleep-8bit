@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-26
 
+- 2026-11-26 · shipped · the house · `main:live` at `7c18b8abc5f8182914b427cdb893268476f08a9a` by exact hash (`5a3a9b99..7c18b8ab`, a fast-forward, 4 commits; the full gate GREEN on `3970b55a`, the runway's quick gate GREEN): ABOUT FACE · *"really feels like soldier training is a feat worthy feat, try and get that on live"*
 - 2026-11-26 · `7de46311` · the grid's rules · ABOUT FACE, PIVOT's third way: the wall turns right round and its rows trade, each shield by WHEEL with the set pike behind it (the pike's reaction) or a step, the pikes still set behind; no room behind, it turns in place and the pikes come out; the AI takes it for foes straight behind · *"what if the about face flips the pike row? they all have 'wheel' technically?"*
 - 2026-11-26 · `3970b55a` · the house · `fare1125`'s wall break-or-turn and the mound's Engulf print as rates and gate nothing: 6 of 12 and 4 of 12 plays (4 and 3 of 12 before the day's work), which three runs miss one gate in three; the full gate GREEN on `3970b55a` · *"try and get that on live"*
 - 2026-11-26 · shipped · the house · `main:live` at `5a3a9b9913e832eb999c4e1ad346afcd233054d2` by exact hash (`e0c542e4..5a3a9b99`, a fast-forward, 10 commits; the full gate GREEN on `e3df2f35`, the runway's quick gate GREEN): the window's batch of 11-26 -- the shield wall, the net and the tab, the party's and the foes' AI · *"try to build and get on live"*
