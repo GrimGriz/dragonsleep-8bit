@@ -1372,7 +1372,9 @@
     while (i < out.length) F.wallMates(B, out[i++]).forEach(function (w) { if (out.indexOf(w) < 0) out.push(w); });
     return out.length > 1 ? out : [];
   };
-  F.canSet = function (u) { return !!(u && F.soldiering(u) && F.bearsShield(u) && !F.wallSet(u) && !u.conds.prone && RU.canAct(u) && u.turn && u.turn.bonus > 0); };
+  // (nor restrained, as F.wallSet has it -- 11-26, the seat module-1125, on the team-fable seat's find: a Trooper in a Web passed this, F.setShields laid its wall, F.wallSet took it
+  // straight off again, and the turn threw reading its front -- 8 of 10 garrison fights against a Web)
+  F.canSet = function (u) { return !!(u && F.soldiering(u) && F.bearsShield(u) && !F.wallSet(u) && !u.conds.prone && !u.conds.restrained && RU.canAct(u) && u.turn && u.turn.bonus > 0); };
   // the front: a set mate's beside it (it joins that wall), else the straight way toward the nearest foe (the longer of the two distances; up/down on a tie)
   F.faceOf = function (B, u) {
     var m = B.units.filter(function (w) { return w !== u && w.side === u.side && F.wallSet(w) && Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)) === 1; })[0] || chainWall(B, u); // (chainWall: a set one down the row, its mates between still to set -- 11-25)
@@ -1408,7 +1410,8 @@
   F.setShields = function (B, u, face) { // (face: a front given -- a second wall holding the first one's front, F.ownWall; else F.faceOf)
     u.turn.bonus = 0; u.conds.wall = { x: u.x, y: u.y, face: face ? face.slice() : F.faceOf(B, u) };
     u.turn.wallMove = u.turn.move; u.turn.move = 0; D.sfx('confirm'); F.faceFront(B, u);
-    var n = F.wallMates(B, u).length, fw = FACE_WORD[u.conds.wall.face.join(',')] || '';
+    var n = F.wallMates(B, u).length; if (!u.conds.wall) return false; // (F.wallSet takes off a wall that cannot stand -- prone, restrained, out of the fight: nothing set, nothing said)
+    var fw = FACE_WORD[u.conds.wall.face.join(',')] || '';
     B.card(['{y}' + u.name + '{/} sets shields, facing ' + fw + (n ? ', joined to ' + n + ' beside' : ', alone') + '  {g}(the bonus action; ' + (n ? '+2 AC, cover behind, THE PUSH' : 'nothing till a trained mate sets beside it') + '; its square held till it leaves){/}'], 220);
   };
   F.leaveWall = function (B, u, free) {

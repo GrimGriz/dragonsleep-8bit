@@ -17,6 +17,7 @@ import bench16
 
 SPELLS_BY_DESIGN = {'calllightning', 'plantgrowth', 'conjurewoodlandbeings'}  # no sky, no plants, nothing to answer
 QUICK_FIGHTS = [
+    {'foes': 'trooper,trooper,trooper,trooperpike,trooperpike,trooperxbow,trooperxbow,fileleader', 'vs': 'fighter:3,cleric:3,warlock:3,~wizard.3.gnome.8-14-14-17-12-10.quarterstaff_robes_______.Za.firebolt-rayoffrost-light-magicmissile-shield-mageArmor-sleep-web-holdperson', 'lvl': '3', 'n': '6', 'seed': '1'},   # (the garrison's wall against a Web, 11-26: a restrained shield-bearer set its wall and the turn threw reading its front -- F.canSet, the team-fable seat's find)
     {'foes': 'x', 'fight': 'brood', 'lvl': '5', 'n': '2', 'seed': '1'},
     {'foes': 'cleric:9,wizard:9', 'lvl': '9', 'n': '4', 'seed': '1'},
     {'foes': 'goblin,goblin,goblin', 'vs': 'wizard,wizard,wizard', 'lvl': '5', 'n': '4', 'seed': '1'},
