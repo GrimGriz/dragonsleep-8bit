@@ -96,13 +96,6 @@
 "dark": false,
 "npcs": [
 {
-"id": "jorypens",
-"x": 10,
-"y": 20,
-"look": "worker",
-"dir": "down"
-},
-{
 "id": "crew1",
 "x": 30,
 "y": 15,

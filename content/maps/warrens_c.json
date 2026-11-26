@@ -85,16 +85,7 @@
 "bg": "cave",
 "save": false,
 "dark": true,
-"npcs": [
-{
-"id": "hobC",
-"x": 17,
-"y": 10,
-"look": "oldhand",
-"dir": "down",
-"cond": "flag:hobMet & !flag:fiveDone & flag:skarnOk"
-}
-],
+"npcs": [],
 "warps": [
 {
 "x": 2,
