@@ -218,10 +218,10 @@
     // the party panel when it asks WHO (EQUIP WHOM?, WHO CASTS?): the mouse over a card points at it, a click is E, the wheel walks the party (10-17, Griz: "mouse
     // stops working on 'menu' after you click equip (have to keyboard - need mousewheel through party")
     if (k.mouse && !this.toast && this.root.mode === 'pick' && this.root.pick) {
-      var rt = this.root, pm = k.mouse, prow = rt.rows(rt.pick.guests), pr = Math.floor((pm.y - 10) / 40), p0 = rt.pi;
+      var rt = this.root, pm = k.mouse, prow = rt.rows(rt.pick.guests), ly = rt.lay(prow), pr = Math.floor((pm.y - 10) / ly.h), p0 = rt.pi;
       if (pm.wheel) rt.pi = clamp(rt.pi + (pm.wheel > 0 ? 1 : -1), 0, prow.length - 1);
-      else if (pm.x >= 2 && pm.x < 182 && pm.y >= 10 && pr >= 0 && pr < 4 && prow[rt.ps + pr]) { if (pm.moved || pm.click) rt.pi = rt.ps + pr; if (pm.click) k = MN.keyAlso(k, 'a'); }
-      if (rt.pi !== p0) { sfx('cursor'); if (rt.pi < rt.ps) rt.ps = rt.pi; if (rt.pi >= rt.ps + 4) rt.ps = rt.pi - 3; }
+      else if (pm.x >= 2 && pm.x < 182 && pm.y >= 10 && pr >= 0 && pr < ly.per && prow[rt.ps + pr]) { if (pm.moved || pm.click) rt.pi = rt.ps + pr; if (pm.click) k = MN.keyAlso(k, 'a'); }
+      if (rt.pi !== p0) { sfx('cursor'); if (rt.pi < rt.ps) rt.ps = rt.pi; if (rt.pi >= rt.ps + ly.per) rt.ps = rt.pi - ly.per + 1; }
     }
     if (this.root.mode === 'pick') { this.root.update(k); return; } // (the cursor kicked into the panel, over whatever page asked)
     // the description box's keys (descBox, 11-05): in it, up/down scroll, left, X or E come back, a fresh right goes on to the page; out of it, a right on words
@@ -277,12 +277,15 @@
     }));
   };
   Root.prototype.rows = function (guests) { var host = this.m.host, rows = host.party().slice(); return guests && host.guests ? rows.concat(host.guests()) : rows; };
+  // the panel's rows: four at 40 px, as the story's party of four with its guests below (▼); a party of five or six -- the Pocket DM's seats -- has them all in the
+  // panel at once, closer (11-26, Griz on the Pocket DM's camp: "Can't see 5th party member in camp party menu"); past six, six and the arrows. { per, h }
+  Root.prototype.lay = function (rows) { var np = this.m.host.party().length, per = np > 4 ? Math.min(6, Math.max(np, rows ? rows.length : np)) : 4; return { per: per, h: per > 4 ? Math.floor(164 / per) : 40 }; };
   // kick the cursor into the panel: o { title, sub, guests, ok(h) -> true | why, then(h), back() }. One hero, no asking
   Root.prototype.choose = function (o) {
     var rows = this.rows(o.guests), oks = rows.filter(function (h) { return o.ok(h) === true; });
     if (!oks.length) { var why = rows.length && o.ok(rows[0]); sfx('error'); this.m.say(typeof why === 'string' ? why : 'No one can.'); return; }
     if (rows.length === 1) { o.then(rows[0]); return; }
-    this.pick = o; this.mode = 'pick'; this.pi = rows.indexOf(oks[0]); this.ps = clamp(this.pi - 3, 0, Math.max(0, rows.length - 4));
+    var per = this.lay(rows).per; this.pick = o; this.mode = 'pick'; this.pi = rows.indexOf(oks[0]); this.ps = clamp(this.pi - per + 1, 0, Math.max(0, rows.length - per));
   };
   Root.prototype.update = function (k) {
     var m = this.m;
@@ -290,7 +293,8 @@
       var rows = this.rows(this.pick.guests), n = rows.length, old = this.pi;
       if (k.repeat('down')) this.pi = (this.pi + 1) % n;
       if (k.repeat('up')) this.pi = (this.pi - 1 + n) % n;
-      if (old !== this.pi) { sfx('cursor'); if (this.pi < this.ps) this.ps = this.pi; if (this.pi >= this.ps + 4) this.ps = this.pi - 3; }
+      var perP = this.lay(rows).per;
+      if (old !== this.pi) { sfx('cursor'); if (this.pi < this.ps) this.ps = this.pi; if (this.pi >= this.ps + perP) this.ps = this.pi - perP + 1; }
       if (k.pressed('a')) {
         var h = rows[this.pi], ok = this.pick.ok(h);
         if (ok !== true) { sfx('error'); if (typeof ok === 'string') m.say(ok); return; }
@@ -333,27 +337,30 @@
   };
   Root.prototype.drawPanel = function (ctx) {
     var m = this.m, host = m.host, picking = this.mode === 'pick', rows = this.rows(picking ? this.pick.guests : false), ps = picking ? this.ps : 0, np = host.party().length, R0 = R();
+    var ly = this.lay(rows), tight = ly.h < 40; // (five or six: every row in the panel, its three lines closer and the figure cut at the row's foot -- Root.lay, 11-26)
     win(ctx, 2, 4, 180, 170);
-    for (var r = 0; r < 4; r++) {
+    for (var r = 0; r < ly.per; r++) {
       var k = ps + r, h = rows[k]; if (!h) break;
-      var y = 10 + r * 40, ok = !picking || this.pick.ok(h) === true, guest = k >= np;
+      var y = 10 + r * ly.h, ok = !picking || this.pick.ok(h) === true, guest = k >= np, y1 = y + (tight ? 1 : 2), y2 = y + (tight ? 10 : 13), y3 = y + (tight ? 19 : 22);
       var spr = null; try { spr = host.walker && host.walker(h); } catch (e) { spr = null; }
-      if (spr) drawFace(ctx, spr, 10, y + 4, spr.width, spr.height, lookOf(host, h, m.t), m.t); // (the grid's tint for what is on the hero, 11-24: drawFace below)
-      text(ctx, h.name, 32, y + 2, ok ? C.gold : C.dim);
-      text(ctx, clsName(h) + ' ' + h.lvl, 96, y + 2, ok ? C.pale : C.dim);
+      if (spr && tight) { ctx.save(); ctx.beginPath(); ctx.rect(4, y, 26, ly.h - 1); ctx.clip(); }
+      if (spr) drawFace(ctx, spr, 10, y + (tight ? 1 : 4), spr.width, spr.height, lookOf(host, h, m.t), m.t); // (the grid's tint for what is on the hero, 11-24: drawFace below)
+      if (spr && tight) ctx.restore();
+      text(ctx, h.name, 32, y1, ok ? C.gold : C.dim);
+      text(ctx, clsName(h) + ' ' + h.lvl, 96, y1, ok ? C.pale : C.dim);
       var col = h.ko ? C.grey : h.hp < h.maxhp / 4 ? C.red : C.white;
-      text(ctx, (h.ko ? 'KO  ' : 'HP ') + Math.max(0, h.hp) + '/' + h.maxhp, 32, y + 13, ok ? col : C.dim);
-      bar(ctx, 32, y + 22, 80, h.hp / h.maxhp, h.ko ? C.grey : C.hp);
+      text(ctx, (h.ko ? 'KO  ' : 'HP ') + Math.max(0, h.hp) + '/' + h.maxhp, 32, y2, ok ? col : C.dim);
+      bar(ctx, 32, y3, 80, h.hp / h.maxhp, h.ko ? C.grey : C.hp);
       if (h.slotsMax && h.slotsMax.length) { // (three levels of n/m ran past the panel: then the slots left alone)
         var sl = 'Slots ' + (h.slots || []).map(function (n, q) { return n + '/' + h.slotsMax[q]; }).join(' ');
         if (DS.textWidth(sl) > 80) sl = 'Slots ' + (h.slots || []).join(' ');
-        text(ctx, fit(sl, 82), 96, y + 13, ok ? C.magic : C.dim);
+        text(ctx, fit(sl, 82), 96, y2, ok ? C.magic : C.dim);
       }
-      if (guest) text(ctx, 'GUEST', 120, y + 22, C.cyan);
-      else { var nx = R0.nextXP(h); text(ctx, nx ? 'Next ' + (nx - h.xp) : 'MAX LEVEL', 120, y + 22, C.dim); }
-      if (picking && k === this.pi) text(ctx, '▶', 4, y + 8, ((m.t >> 3) & 1) ? C.white : C.gold);
+      if (guest) text(ctx, 'GUEST', 120, y3, C.cyan);
+      else { var nx = R0.nextXP(h); text(ctx, nx ? 'Next ' + (nx - h.xp) : 'MAX LEVEL', 120, y3, C.dim); }
+      if (picking && k === this.pi) text(ctx, '▶', 4, y + (tight ? 6 : 8), ((m.t >> 3) & 1) ? C.white : C.gold);
     }
-    var more = picking ? rows.length > ps + 4 : !!(host.guests && host.guests().length);
+    var more = picking ? rows.length > ps + ly.per : !!(host.guests && host.guests().length);
     if (more) text(ctx, picking ? '▼' : '▼ GUESTS', picking ? 170 : 128, 164, C.cyan);
     if (picking && ps > 0) text(ctx, '▲', 170, 6, C.cyan);
   };
