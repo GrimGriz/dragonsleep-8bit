@@ -29,8 +29,16 @@
   PK.kingOpen = function (st) { return !!(st && (st.pyro || st.dm)); };
 
   // ------------------------------------------------------------------ the store
+  // THE TRY DOORS (11-26, Griz on eyes-pocketparty-1112g: "'swap brann for aurdin' - door isn't loading applicable test party, brann isn't in it"): an eyes row's door
+  // `deep16/?pocket&try=<name>` lays a table of its own (PK.TRIES: the party, the roster, LEVEL-UPS) in a store of its own, fresh once each time the page opens, and
+  // opens on the screen it is for. His own table, roster and party slots (deep16.pocket, deep16.pocket.party.N) are neither read nor written by it
+  PK.TRY = (function () { var m = /[?&]try=([a-z0-9]+)/i.exec((typeof location !== 'undefined' && location.search) || ''); return m ? m[1].toLowerCase() : null; })();
+  PK.tryOn = function () { return !!(PK.TRY && PK.TRIES && PK.TRIES[PK.TRY]); };
+  PK.storeKey = function () { return PK.tryOn() ? KEY + '.try' : KEY; };
   PK.load = function () {
-    var st = D.store.get(KEY) || {};
+    var k = PK.storeKey(), st = null;
+    if (k !== KEY && !PK.tryLaid) { var t = PK.TRIES[PK.TRY](); PK.tryLaid = { open: t.open || 'title', said: false }; st = t.st; D.store.set(k, st); }
+    st = st || D.store.get(k) || {};
     st.roster = st.roster || [];          // the player's own characters: { code, name, cls, lvl }
     st.fights = st.fights || [];          // what was fought: summaries, with notes
     st.party = st.party || null;          // the slots: { w, lvl, loot } or { custom: i }
@@ -40,7 +48,7 @@
     st.pack = st.pack || [];              // the party's pack: { id, n } -- the market's, into every fight and back (PK.packBack)
     return st;
   };
-  PK.save = function (st) { return D.store.set(KEY, st); }; // (true when it was written: false with the browser's storage full or shut -- the scene says so, Pocket.prototype.keep)
+  PK.save = function (st) { return D.store.set(PK.storeKey(), st); }; // (true when it was written: false with the browser's storage full or shut -- the scene says so, Pocket.prototype.keep)
 
   // ------------------------------------------------------------------ the roster: the 8-bit game's own, the named, the king, the player's
   // (lo: the lowest level the word builds -- a guest stands at its register's or higher, js/classes.js NPC.heroSheet)
@@ -64,6 +72,25 @@
     return out;
   };
   PK.defaultParty = function () { return [{ w: 'barley', lvl: 3, loot: [] }, { w: 'aurdin', lvl: 3, loot: [] }, { w: 'vivian', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; };
+  // the try doors' tables (PK.TRY, 11-26): { open: the screen it opens on, st: the store laid }; a made one of the player's own as the maker's SAVE writes it (the
+  // array by the class's order, human, the class's kit and its own spells at the level)
+  var seatsAt = function (ws, L) { return ws.map(function (w) { return { w: w, lvl: L, loot: [] }; }); };
+  PK.tryMade = function (cls, lvl, name) {
+    var c = NPC.CLASSES[cls], rc = NPC.RACES.human, abil = {};
+    c.prio.forEach(function (k, i) { abil[k] = [15, 14, 13, 12, 10, 8][i] + (rc.abil[k] || 0); });
+    var sp = { cls: cls, lvl: lvl, race: 'human', abil: abil, asis: true, maxhp: true, named: true, custom: true, equip: { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, alt: c.kit.alt || null, name: name };
+    if (c.pact) sp.pact = c.pact;
+    var k = PK.madeBase(sp); if (k.length) sp.known = k;
+    return { code: NPC.code(sp), name: name, cls: cls, lvl: lvl, made: Date.now() };
+  };
+  PK.TRIES = {
+    // eyes-pocketswap-1126: Brann in seat 2 and Aurdin on THE ROSTER -- SWAP on Brann's card takes Aurdin in; LEVEL-UPS: EDIT, so a level raised is asked at NEXT
+    swap: function () { return { open: 'party', st: { party: seatsAt(['barley', 'brann', 'vivian', 'lymen'], 5), editLevels: true } }; },
+    // eyes-pocketmade-1126: the four at 3 and Fennick, a wizard of the player's own at 1, in a fifth seat; LEVEL-UPS: EDIT
+    made: function () { return { open: 'party', st: { party: seatsAt(['barley', 'aurdin', 'vivian', 'lymen'], 3).concat([{ custom: 0 }]), roster: [PK.tryMade('wizard', 1, 'Fennick')], editLevels: true } }; },
+    // eyes-pocketcampsix-1126: six seats at THE CAMP -- the menu's party panel
+    six: function () { return { open: 'hub', st: { party: seatsAt(['barley', 'aurdin', 'vivian', 'lymen', 'brann', 'hedda'], 5) } }; }
+  };
   // the word a slot makes (js/classes.js NPC.spec reads it): 'barley:3+dagger1', 'talmok:5:grown', '~fighter.5....'
   PK.wordOf = function (st, slot) {
     if (!slot) return null;
@@ -500,6 +527,8 @@
     this.metalOff(); // (a druid's metal armour to the pack, once: PK.druidMetal, 10-21)
     this.mapSel = this.st.mapId || null; this.crI = this.st.crI == null ? -1 : this.st.crI; this.foes = this.st.foes || null; this.watch = !!this.st.watch;
     this.cache = {};
+    var tl = PK.tryOn() && PK.tryLaid; // (a try door's table: its own screen first, and a line that says whose table this is -- once a page, 11-26)
+    if (tl && !tl.said) { tl.said = true; if (!this.st.run) this.screen = tl.open; this.msg = { text: 'A TEST TABLE (try=' + PK.TRY + '), laid fresh: your own is untouched at deep16/?pocket', t: 600 }; }
     if (this.st.run && !this.foes) this.foes = this.st.run.foes;
     // a ladder saved on a floor the table no longer deals (the Gate Floor, 10-03) draws a fresh one; the rung's foes stand
     if (this.st.run && this.mapIds().indexOf(this.st.run.map) < 0) { this.st.run.map = this.randomMap(); this.keep(); }
@@ -2704,7 +2733,7 @@
      IMPORT A FILE takes any party file in, a file of 10-17 on as well, into the slot picked; a file with no name of its own comes in as "party N" by that slot. The
      slots live in this browser only: a cache cleared with the site's data takes them, and a file does not go (the page says so) */
   PK.PARTY_SLOTS = 5; PK.PARTY_NAME = 24; // (24: the field's own length, as the maker's names)
-  PK.partyKey = function (n) { return 'deep16.pocket.party.' + n; };
+  PK.partyKey = function (n) { return PK.storeKey() + '.party.' + n; }; // (deep16.pocket.party.N; a try door's its own, deep16.pocket.try.party.N -- 11-26)
   PK.partyOf = function (f) { return f && f.game === 'DRAGONSLEEP' && f.kind === PK.PARTY_KIND && Array.isArray(f.party) && f.party.length ? f : null; };
   PK.partyRead = function (n) { return PK.partyOf(D.store.get(PK.partyKey(n))); };
   PK.partyName = function (f, n) { var s = f && typeof f.name === 'string' ? f.name.trim() : ''; return s ? s.slice(0, PK.PARTY_NAME) : 'party ' + n; };
