@@ -151,7 +151,7 @@
     if (!flags['trig:snared']) trig.push({ id: 'snared', rect: [Gu.SNARE[0], Gu.SNARE[1], 1, 1], on: 'use', script: 'gulchSnared', once: true });
     if (!flags['trig:snared']) trig.push({ id: 'snaredstep', rect: Gu.LAD.rect.slice(), on: 'step', script: 'gulchSnared' }); // (the try of 11-20: a step into his hollow is reaching him)
     if (Gu.alive(flags)) trig.push({ id: 'ettercap', rect: Gu.LAIR.rect.slice(), on: 'step', script: 'gulchEttercap' }); // (its lair's neck)
-    return { id: 'gulch', name: 'Web Gulch', rows: rows, legend: Gu.LEGEND, music: 'dungeon', exits: { north: 1, south: 1, east: 1, west: 1 }, dark: ph === 'night',
+    return { id: 'gulch', name: 'Web Gulch', rows: rows, legend: Gu.LEGEND, music: 'gulch', /* (its own roam song since 11-26: js/audio.js gulch, his "Gulch's Roam non-combat song") */ exits: { north: 1, south: 1, east: 1, west: 1 }, dark: ph === 'night',
       lights: [{ id: 'gulchfire', kind: 'map', x: Gu.FIRE[0], y: Gu.FIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }],
       npcs: npcs, triggers: trig, zones: [{ zone: ph === 'day' ? 'gulch' : 'gulch_' + ph, rect: Gu.ZONE.slice() }], chests: Gu.CHESTS.map(function (c) { return Object.assign({}, c); }) };
   };

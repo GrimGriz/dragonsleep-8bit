@@ -20807,6 +20807,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var snOther = shareOf(MN6.weighFor('glowseep_day', { pin: 'cull' }, EZ.glowseep_day.groups), isSnake, {}, 'glowseep_day');
       okT(robDark === robBase && robLit > robBase * 2 && Math.abs(snD1 - snD0 - 15) <= 1 && Math.abs(snN1 - snN0 - 15) <= 1 && snOther === snD0,
         'F3 the abandoned workings (through Mouths One and Six): the night crew ' + robBase + '% of fights in the dark, ' + robLit + '% with a light lit (' + robDark + '% unlit); the Glowseep\'s snakes with Ned\'s Page pinned, by day ' + snD0 + '% -> ' + snD1 + '%, by night ' + snN0 + '% -> ' + snN1 + '% (another pinned: ' + snOther + '%)');
+      // G. THE GULCH'S ROAM SONG (the house lane's 11-22 ~19:00Z section, his "Gulch's Roam non-combat song"): js/audio.js gulch, whole (eight bars a loop, every voice the
+      //    same length), Web Gulch's floor playing it in place of `dungeon`; a fight in place still takes its fight's tune (it is not one of R.FIGHT_TUNES)
+      var AU6 = window.DS.audio, SG6 = AU6 && AU6.SONGS && AU6.SONGS.gulch, lnG = SG6 ? SG6.tracks.map(function (t) { return t.notes.reduce(function (a, n) { return a + n[1]; }, 0); }) : [];
+      var BG = floorT('?roam=webgulch&hour=10&lvl=3'), muG = RT6.def && RT6.def.music;
+      okT(!!SG6 && SG6.loop && lnG.length >= 3 && lnG.every(function (x) { return x === lnG[0] && x === 128; }) && muG === 'gulch' && !RT6.FIGHT_TUNES.gulch,
+        'G the gulch\'s roam song: ' + (SG6 ? 'a loop of ' + lnG.join('/') + ' sixteenths (eight bars)' : 'MISSING') + '; Web Gulch\'s floor plays ' + muG + '; not a fight\'s tune (' + !RT6.FIGHT_TUNES.gulch + ')');
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.store.get = stGT; D.store.set = stST;
     var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);

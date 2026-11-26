@@ -283,6 +283,11 @@
     // maybe four varieties?"; his list of the story battles 11-25: "33 - Keeper in the Wet, landlord, cloaker, glory seekers with anchor pin", beside the cocoon rescue and the
     // ettercap named 11-22). A song a place, the seat's lean for which share (his to move: data/fights.js `music`): Web Gulch's two, the Wet's two, the deep gallery, the Pit
     // road. Random encounters keep `battle`, the rest of the set pieces `boss`. The tunes the seat's own, invented.json story-battle-songs-1125
+    gulch: { // Web Gulch walked, out of a fight (11-26, the seat town-1126; his "Gulch's Roam non-combat song", the lanes desk's 11-22 ~19:00Z section): the silk-cutters' ravine -- E Phrygian, a slow pluck like a strand drawn and let go, the drip of the walls under it; in place of `dungeon` (the seat's tune, invented.json gulch-roam-song-1126)
+      bpm: 92, bass: 'halves', pad: 'arp8', drums: 'drip', duty: 0.125, melVol: 0.12, padVol: 0.04,
+      chords: 'Em F Em Dm Em F G F',
+      melody: 'B5.4 r.2 E6.2 F6.4 E6.4 | B5.8 r.4 G5.4 | A5.4 B5.2 C6.2 B5.4 G5.4 | E5.12 r.4 | D5.4 F5.4 A5.4 D6.4 | C6.4 B5.4 A5.8 | G5.2 A5.2 B5.4 D6.4 B5.4 | F5.12 r.4'
+    },
     silk: { // Web Gulch: the snared lad in the cocoon, the braiding ettercap -- B minor, the arp skittering under it
       bpm: 146, bass: 'pump', pad: 'arp16', drums: 'battle', duty: 0.125, padVol: 0.05, melVol: 0.15,
       chords: 'Bm Bm G F# Bm Bm Em F# Em Em Bm Bm G A F# F#',
