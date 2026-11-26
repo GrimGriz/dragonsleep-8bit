@@ -192,6 +192,10 @@
     var f = c.feats = c.feats || {}, back = [];
     delete f.dues; // (Fortune's Due: all gone at a rest -- js/features.js, 10-30)
     if (c.cls === 'fighter') { if (!(f.secondWind > 0) || !(f.actionSurge > 0)) back.push('Second Wind, Action Surge'); f.secondWind = 1; f.actionSurge = 1; }
+    // THE DRILLYARD'S OPENINGS at a short rest (11-26, the seat module-1125, on the team-fable seat's find: a module's Drillyard fighter had two plays a LONG rest): "Two openings a
+    // short rest" (three at 7), as the story's rest gives them (js/rules.js R.refresh). Only the Drillyard carries feats.openings; a card's own count where it carries one
+    // (c.openingsMax: a named block's, the Ledger's four), else the class's
+    if (c.cls === 'fighter' && f.openings != null) { var opMx = c.openingsMax || (c.lvl >= 7 ? 3 : 2); if (f.openings < opMx) back.push('the openings'); f.openings = Math.max(f.openings, opMx); }
     if (c.cls === 'paladin' && c.lvl >= 3) { if (!(f.channel > 0)) back.push('Channel Divinity'); f.channel = 1; }
     if (c.cls === 'paladin' && c.untempled) { var layMx = 5 * c.lvl; if ((f.lay || 0) < layMx) back.push('Lay on Hands, by half (Untempled)'); f.lay = Math.min(layMx, (f.lay || 0) + Math.floor(layMx / 2)); } // (the feat Untempled, ours: 10-30)
     if (c.cls === 'cleric' && c.lvl >= 2) { var ch = c.lvl >= 18 ? 3 : c.lvl >= 6 ? 2 : 1; if (!(f.channel >= ch)) back.push('Channel Divinity'); f.channel = ch; }

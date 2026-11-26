@@ -32494,6 +32494,42 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preCr);
     return;
   }
+  // THE DRILLYARD'S OPENINGS AT THE POCKET DM'S SHORT REST (mode=rest1126; 11-26, the seat module-1125, on the team-fable seat's find, relayed by the lanes desk -- his house rule,
+  // a fix-sized breakage found in passing is fixed that turn): PK.shortRest gave a fighter Second Wind and Action Surge and nothing else, so a module's Drillyard fighter had his
+  // "Two openings a short rest" a LONG rest. The rest at 3rd and 7th, a card's own count (the Ledger's four), a Champion untouched, the rest card's words; then a module's camp
+  // rest: the seat's carry back to two, and the next fight's unit with them
+  if (get('mode', '') === 'rest1126') {
+    var repR = { checks: [], errors: [] }, okR = function (c, s) { repR.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memR = {}, stGR = D.store.get, stSR = D.store.set, push0R = D.push;
+    D.store.get = function (k) { return memR[k] ? JSON.parse(memR[k]) : null; }; D.store.set = function (k, v) { memR[k] = JSON.stringify(v); return true; };
+    try {
+      var PKr = D.pocket, rnd = function () { return 0.5; };
+      var c3 = { cls: 'fighter', lvl: 3, hp: 12, maxhp: 28, con: 2, feats: { openings: 0, secondWind: 0, actionSurge: 0 } }, r3 = PKr.shortRest(c3, 3, false, rnd);
+      okR(c3.feats.openings === 2 && /openings/.test(r3.text || ''), 'a Drillyard fighter at 3rd, both openings spent: back to two at the short rest (' + c3.feats.openings + '), the rest card says so ("' + String(r3.text || '').slice(0, 90) + '")');
+      var c7 = { cls: 'fighter', lvl: 7, hp: 40, maxhp: 60, con: 2, feats: { openings: 1 } }; PKr.shortRest(c7, 7, false, rnd);
+      var cL = { cls: 'fighter', lvl: 3, hp: 20, maxhp: 28, con: 2, openingsMax: 4, feats: { openings: 1 } }; PKr.shortRest(cL, 3, false, rnd);
+      var cC = { cls: 'fighter', lvl: 3, hp: 20, maxhp: 28, con: 2, feats: { secondWind: 0 } }; PKr.shortRest(cC, 3, false, rnd);
+      okR(c7.feats.openings === 3 && cL.feats.openings === 4 && !('openings' in cC.feats), 'at 7th three (' + c7.feats.openings + '); a card\'s own count kept, the Ledger\'s four (' + cL.feats.openings + '); a Champion grows none (' + JSON.stringify(cC.feats) + ')');
+      // a module's camp: the seat's carry rested, and the next fight's unit with it
+      memR['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null });
+      var Pr = new D.Pocket(); Pr.enter(); Pr.ask = function () { return true; }; Pr.xpAlways = true;
+      var fhR = PKr.modules(Pr.st).filter(function (m) { return m.key === 'game:farehome'; })[0] || PKr.modules(Pr.st)[0];
+      Pr.startModule(fhR); Pr.mInfo = null; Pr.takeMorning();
+      var lv0 = Pr.levels()[0] || 3, run = Pr.st.run; run.carry = Pr.st.party.map(function () { return null; });
+      run.carry[0] = { hp: 5, maxhp: 30, slots: [], slotsMax: [], feats: { openings: 0, secondWind: 0, actionSurge: 0 }, cls: 'fighter', lvl: lv0, con: 2 };
+      Pr.restCard(); var cr = Pr.st.run.carry[0], line = (Pr.rest && Pr.rest.lines || [])[0];
+      var Br = null; D.push = function (b) { Br = b; }; try { Pr.launch(); } finally { D.push = push0R; }
+      var u0 = null; if (Br) { D.battle = Br; Br.enter(); for (var gR = 0; gR < 300 && !(Br.order && Br.order.length); gR++) Br.co.next(); u0 = Br.units.filter(function (u) { return u.side === 'party'; })[0]; }
+      okR(!!cr && cr.feats.openings === (lv0 >= 7 ? 3 : 2) && !!line && /openings/.test(line.text || '') && !!u0 && u0.feats && u0.feats.openings === cr.feats.openings,
+        'a module\'s short rest at the camp: the seat\'s openings back (' + (cr && cr.feats.openings) + '), its line says so, and the next fight\'s unit has them (' + (u0 && u0.feats && u0.feats.openings) + ')');
+      Pr.st.run = null;
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    if (errs.length) repR.errors = repR.errors.concat(errs);
+    D.store.get = stGR; D.store.set = stSR; D.push = push0R;
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // THE FARE HOME (mode=fare1125; 11-25, the seat module-1125 -- RULED, Griz: "how bout a Pocket DM module based on all the new stuff added this week?", then "good on the
   // leans, build module"): the game's second module (data/modules.js farehome) whole -- nine fights, four at 3rd, its floors dealt and its foes in the bestiary, each fight's
   // runes kept by PK.moduleOf, its rests as flagged; THE MODULES, THE PARTY TO LEVEL 3, LOAD THIS MODULE, PLAY, fight 1 laid on its runes; then played through `runs` times
