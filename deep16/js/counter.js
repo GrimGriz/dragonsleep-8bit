@@ -87,7 +87,7 @@
     // the Hex's two hatches onto the concourse (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor" -- js/hex.js HX.PEOPLE): Higertha
     // at Mama's, her shelves (Higertha is the register's reserved: no words of hers, the scene's line only); the cold-food concession's hired youth, its own shelf (C.SHOP16)
     // (her own shelf since 10-28 later, C.SHOP16.higertha: his "Lucia is mama and is saying Higertha's line" -- the first game's "Mama mixes, I sell" is the hatch's, not Mama's)
-    higertha: { name: 'Higertha', shop: 'higertha', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch', sheet: 'pt_genman' } // (the concession's hand the generic man in his own clothes since 11-26, on his own face and figure: C.GENERIC below -- RULED 11-22, his "concession hand as generic NPC and generic NPC portrait")
+    higertha: { name: 'Higertha', shop: 'higertha', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch', sheet: 'pt_genman', wait: '' } // (the concession's hand the generic man in his own clothes since 11-26, on his own face and figure: C.GENERIC below -- RULED 11-22, his "concession hand as generic NPC and generic NPC portrait")
   };
   // the unnamed in costume (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"):
   // two people, the generic man and woman (pt_genman, pt_genwoman -- tools/portrait-sheet.py; the townsfolk's man and woman, folkman_p1 and folkwoman_p1), each unnamed id
