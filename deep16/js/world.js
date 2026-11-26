@@ -18,7 +18,10 @@
   W.FIGHT_HOURS = 0.25; // (a road fight and its breath on the clock: fifteen minutes since 10-28 later, his "fights should burn 15 minutes instead of an hour of worldtime" -- an hour before)
   W.ZOOMS = [3.2, 4.4, 6, 8.5, 12]; // (px a mile: a 5-mile hex 16 to 60 px across)
   // the places with a door (his "when they reach the location it goes to the roam map"): only what is built; the rest say so
-  W.DOORS = { silverton: { roam: 'silverton', gates: { west: [-1, 0], south: [0, 1], east: [0.5, 0.866] } }, // (the east gate's way south-south-east since 10-28, his "aim more sse as the road out": out by it onto the hex south-east; js/town.js THE EAST SIDE)
+  W.DOORS = { silverton: { roam: 'silverton', gates: { west: [-0.866, 0.5], south: [0, 1], east: [0.5, 0.866] } }, // (the east gate's way south-south-east since 10-28, his "aim more sse as the road out": out by it onto the hex south-east; js/town.js THE EAST SIDE)
+    // (the west gate's way west-south-west since 11-26, his "a world-map road jiggle to make the west gate": the mile comes in from the west under the range (tools/hexmap.js
+    // seedWestGate) through the farm hex south-west of the town's, so a party walking it in from the fork -- the hex it came from, or the road's own point -- is at the west
+    // gate, and out by it is a step onto that hex and the road; due west was the range's hex, and the road's hex read as the south gate's)
     mouth: { roam: 'galleries', gates: { east: [1, 0], south: [0, 1], west: [-1, 0] } }, // (the Guano Galleries' mouth, its top floor on the town's tiles: js/mines.js, 10-21 night)
     warrens: { roam: 'warrens', gates: { feed: [1, 0] } }, // (the Crawler Warrens' mouth camp: no site of its own -- Silverton's feed track opens it, js/mines.js; here so the house's save loads there)
     glowseep: { roam: 'glowseep', gates: { east: [1, 0], north: [0, -1], south: [0, 1], west: [-1, 0] } } }; // (the Glowseep: the light-crews' ground by the mile, its camp and its fights -- js/mines.js, 10-21 night; west since 10-28, his "Any edge walk")

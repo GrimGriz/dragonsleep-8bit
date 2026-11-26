@@ -1601,7 +1601,7 @@
   C.OWN_QUESTS.push({ id: 'nedwand', name: 'Ned\'s Wand', show: 'flag:nedWand', done: 'flag:nedWandGot',
     text: 'Ned Halloway, behind Percy\'s counter, will make a wand that throws web out of the ettercap\'s braid -- the cord it braids at Web Gulch\'s strung end. One night\'s work.',
     doneText: 'The Wand of Web, out of the ettercap\'s braid. It wants a spellcaster to hold it.',
-    steps: [{ 'if': '!has:cord & !flag:nedBraid', site: 'webgulch', where: 'The ettercap\'s braid, out of its web at Web Gulch\'s strung end: out of Silverton by the east gate, then down the road on THE WORLD past the fork.' },
+    steps: [{ 'if': '!has:cord & !flag:nedBraid', site: 'webgulch', where: 'The ettercap\'s braid, out of its web at Web Gulch\'s strung end: out of Silverton by the west gate, to the fork on THE WORLD, then south down the Pit road.' },
       { 'if': 'has:cord & !flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the braid for the wand.' },
       { 'if': 'flag:nedBraid', door: 'percy', npc: 'ned', where: 'Ned has the braid. The wand will be ready in the morning, at Percy\'s Particulars.' }] });
   // TO THE INN BY THE LAKE'S NIGHT (11-24, world-1124 -- his NOTES day 15 12:15, bog hex 60,28: "discuss - adding steps to 'when you're ready' that get you to the inn on sacrifice

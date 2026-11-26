@@ -401,7 +401,7 @@
   T.ROOFS = { b: { h: 20, roof: 'red' }, n: { h: 16, roof: 'blue' }, u: { h: 24, roof: 'red' }, h: { h: 12, roof: 'stone' }, j: { h: 10, roof: 'stone' }, B: { h: 35, roof: 'stone' }, q: { h: 10, roof: 'silver', wall: 'silver' } };
   T.HOUSES = 'bnu'; T.SHACKS = 'hj';
   T.roofsAt = function (F) { if (F === T.FT) return T.ROOFS; var o = {}; Object.keys(T.ROOFS).forEach(function (k) { o[k] = Object.assign({}, T.ROOFS[k], { h: T.ROOFS[k].h * T.FT / F }); }); return o; }; // (the heights shrink with the squares: the town as if the party stood F / 5 times taller)
-  T.ROADS = ['the south gate track', 'THE road west: a mile to the fork', 'the road out south-east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)
+  T.ROADS = ['the south gate track', 'THE road west: to the fork, south-west', 'the road out south-east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)
   // THE EAST SIDE (10-28, the maps window; his "i think the entire east side of town should lead to the warrens map", then "from the 8-bit I remember a worldmap road
   // to the galleries, and thinking in hex-map sizes and story canon it's pretty much silverton's hex itself in proximity. Given the world being made of hexes, the
   // 'east' road could split a thinner track that runs to the galleries map and aim more sse as the road out", "warrens mouth, not the guano mine, sorry" and "8 yes,
@@ -519,7 +519,7 @@
     return T.LINE[id] ? [T.LINE[id]] : []; // (no word of their own: none -- not "Their scene is the 8-bit's; on the grid it is to come." (11-16, Griz: "the is to come lines is either removed or built, not reworded" -- removed, the words-and-boxes seat))
   };
   T.LINE = { // the floor's own words where the 8-bit's would be wrong here (invented.json silverton16-gate-hand)
-    guard1: 'West gate. The road runs a mile to the fork: the Tower north of it, the Pit south down the long road. East gate\'s the farms and the coast. Nobody bothers the dwarves.'
+    guard1: 'West gate. The road runs south-west to the fork, most of a day on foot, with the Tower north of it just outside. At the fork the Pit\'s south down the long road, through the gulch; Castegut\'s west. East gate\'s the farms and the coast. Nobody bothers the dwarves.'
   };
   // ---------------------------------------------------------------- the rooms behind the doors (10-20, Griz, to the lanes desk: "We're going to need slightly varied 16 bit
   // shop interiors for the vendors"): one shop's shape -- walls of built stone, the door in the front wall (the grid's +y, the side the eye sees through: the near walls cut

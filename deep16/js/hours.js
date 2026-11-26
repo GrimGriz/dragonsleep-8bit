@@ -59,7 +59,7 @@
     { id: 'ettercap', name: 'The Braiding Ettercap', show: 'flag:heardEttercap', done: 'flag:ettercapDone',
       text: 'Forty gold on Hessle\'s board, and ten more since it snared a lad: an ettercap strung across Web Gulch, on the road south out of Silverton. Bring its fangs to the Weigh-House.',
       steps: [{ 'if': 'has:ettercapfangs', key: 'fangs', door: 'hessle', where: 'Take the fangs to Hessle at the Weigh-House, on Fountain Street.' },
-        { site: 'webgulch', where: 'Web Gulch, on the road south: out of Silverton by the east gate, then down the road on THE WORLD past the fork. The ettercap braids at the strung end, up a side gully off the west bank.' }] },
+        { site: 'webgulch', where: 'Web Gulch, on the road south: out of Silverton by the west gate, to the fork on THE WORLD, then south down the Pit road. The ettercap braids at the strung end, up a side gully off the west bank.' }] },
     // CORWEN DACE (10-28, the deep gallery seat: his escort, js/mines.js THE DEEP GALLERY) -- open while he walks with the party, done when he is home with his thanks given
     { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
       text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
@@ -189,9 +189,9 @@
     if (tr) { var r = tr.rect, my = r[1] + Math.floor(((r[3] || 1) - 1) / 2); return def.from8 ? def.from8(r[0], my) : [r[0], my]; } // (the Wet's stair by its middle, turned onto the grid)
     var toW = /^warrens/.test(s.map || '') || s.npc === 'edric' || s.npc === 'skarn' || !!s.trig && /^pen/.test(s.trig);
     if (def.key === 'silverton' && !def.room && toW && D.mines && D.mines.FEED && !def.cut) return D.mines.FEED.slice();
-    // (a step out on THE WORLD -- the Cull's dens, the ettercap's gulch, the Glowseep's bog -- on Silverton's street: the gate it lies beyond; 11-05, Tuesday 31, his "either having
-    // the cull pinned isn't giving me an arrow to leave silverton or i'm missing it")
-    var gk = s.site && H16.GATE_TO[s.site]; if (def.key === 'silverton' && !def.room && !toW && gk && def.marks && def.marks.gates && def.marks.gates[gk]) return def.marks.gates[gk].slice();
+    // (a step out on THE WORLD -- the Cull's dens, the ettercap's gulch, the Glowseep's bog -- on Silverton's street: the nearest way off the town onto THE WORLD, H16.edgeOut;
+    // 11-05, Tuesday 31, his "either having the cull pinned isn't giving me an arrow to leave silverton or i'm missing it")
+    if (def.key === 'silverton' && !def.room && !toW && H16.worldOf(s)) { var eo = H16.edgeOut(B); if (eo) return eo; }
     // (a step in town, or out on THE WORLD -- the camp has no gate onto it: the feed track back to town first)
     // (11-15, his playthrough NOTES at the mouth camp, Fight Night pinned: "i'm seeing the mission marker on the pellam girl" -- the marker sat on the `feed` gate, the square
     // in the middle of the camp where THE WORLD sets the party down, Linnet a step below it; since 11-13 the feed track to town runs off the camp's west edge, js/mines.js M.campWest)
@@ -248,10 +248,39 @@
   // its person or its door is in -- the Warrens' floors and Edric, Skarn and the pens the mouth camp's; the guano mine's its mouth; anyone behind a town door Silverton. Drawn
   // over that place on the hex view by js/world.js (the gold marker the floors draw: C.paintPin), held at the screen's edge, pointing, when it is off it
   H16.SITE_OF = { edric: 'warrens', skarn: 'warrens', hob: 'warrens', sabeth: 'mouth', wynn: 'mouth', ottilie: 'mouth' };
-  // the gate of Silverton a place on THE WORLD lies beyond, for the street's arrow (H16.pinSq; the missions' own words: "out of Silverton by the west gate" for the guano mine, "by
-  // the east gate, then down the road on THE WORLD past the fork" for Web Gulch -- the east gate's road leaves south-south-east, js/world.js W.DOORS; the Glowseep's bog beside that
-  // fork). dev/bench16.js mode=journal1105 holds each gate to facing its place on the world map (within 60 degrees)
-  H16.GATE_TO = { mouth: 'west', webgulch: 'east', glowseep: 'east' };
+  // THE WAY OUT OF TOWN (RULED 11-22, Griz, on Ned's Page's arrow at the east gate: "the problem is that it points to a place in silverton and should point to the nearest 'leave
+  // silverton edge' so players following it find the one pointed at the glowseep on the world map"): on Silverton's street the arrow for a step out on THE WORLD -- its site, or
+  // the place its person or floor is in -- stands on the nearest square of the town's rim that leaves Silverton onto THE WORLD, the nearest by the walk; THE WORLD's own arrow
+  // points at the place from there (js/world.js). Never the feed track's (the east rim north of the road's split: the Warrens' mouth camp, not THE WORLD -- js/mines.js T.wayOut),
+  // never a gate's mark (a mark has no trigger: his "it points to the road here in the middle of the fork and leads no further/has no popup"). It took the place of H16.GATE_TO,
+  // a gate by the place's bearing (11-05); the road on THE WORLD leaves by the west gate since 11-26 (tools/hexmap.js seedWestGate, his "a world-map road jiggle to make the west gate")
+  H16.worldOf = function (s) {
+    var m = s.map || '', p = s.site || (s.npc && H16.SITE_OF[s.npc]) || (/^galleries/.test(m) ? 'mouth' : /^(glowseep|webgulch)$/.test(m) ? m : null);
+    return p && p !== 'silverton' && p !== 'warrens' ? p : null;
+  };
+  H16.EDGE_WALK = '.,=dr~'; // (the town's walk: js/town.js T.lay's reach)
+  H16.edgeOut = function (B) {
+    var def = D.roam.def, t = B && B.roam && B.roam.token; if (!def || !t || !def.rows) return null;
+    var c = H16.edgeOut.c; if (c && c.def === def && c.x === t.x && c.y === t.y) return c.sq ? c.sq.slice() : null;
+    var w = def.w, h = def.h, rows = def.rows, wn = def.wayName || {}, goal = {}, any = false;
+    (def.doors || []).forEach(function (p) { var k = p[0] + ',' + p[1]; if (!/feed track/.test(wn[k] || '')) { goal[p[1] * w + p[0]] = 1; any = true; } });
+    var sq = null;
+    if (any) {
+      var ok = function (x, y) { return x >= 0 && y >= 0 && x < w && y < h && H16.EDGE_WALK.indexOf(rows[y].charAt(x)) >= 0; };
+      var seen = new Uint8Array(w * h), q = new Int32Array(w * h), qh = 0, qt = 0, s0 = t.y * w + t.x; seen[s0] = 1; q[qt++] = s0;
+      while (qh < qt) {
+        var i = q[qh++]; if (goal[i]) { sq = [i % w, Math.floor(i / w)]; break; }
+        var x = i % w, y = Math.floor(i / w);
+        for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+          var nx = x + dx, ny = y + dy, j = ny * w + nx; if ((!dx && !dy) || !ok(nx, ny) || seen[j]) continue;
+          if (dx && dy && (!ok(x + dx, y) || !ok(x, y + dy))) continue;
+          seen[j] = 1; q[qt++] = j;
+        }
+      }
+    }
+    H16.edgeOut.c = { def: def, x: t.x, y: t.y, sq: sq };
+    return sq ? sq.slice() : null;
+  };
   H16.pinSite = function (st) {
     var q = st && st.flags.pin && C.quests(st).filter(function (x) { return x.id === st.flags.pin && !x.done; })[0], s = q && q.step; if (!s) return null;
     if (s.site) return s.site;

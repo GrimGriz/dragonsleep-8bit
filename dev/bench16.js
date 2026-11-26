@@ -5684,8 +5684,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var qD = questQw(), fD = HQw.cur.flags, upD = H6Qw.papers(fD).some(function (p) { return p.id === 'snoot'; });
       okQw('the board read with the notice up: "' + oD.slice(0, 300) + '" -- heardTrueWord ' + fD.heardTrueWord + ', pinned ' + fD.pin + '/' + fD.pinWant + ', the paper still up ' + upD + '; the quest before ' + !!q0 + ', after "' + (qD && qD.text || '').slice(-80) + '"',
         /FIFTY GOLD for true word on the Snoot/.test(oD) && /goes in your JOURNAL all the same/.test(oD) && fD.heardTrueWord === 1 && upD && !q0 && !!qD && !qD.done && /Brought back so far: nothing yet\./.test(qD.text) && /road south past the Halfway Inn/.test(qD.text) && /^THE SNOOT'S YOUNG BLOOD: gnoll glory-seekers range south of the Halfway Inn\. The challenge by day\. The Pit road south of the inn/.test(qD.where || ''));
-      var pin0D = fD.pin; fD.pin = 'trueword'; var siteD = H6Qw.pinSite(stD), gateD = H6Qw.GATE_TO.inn; fD.pin = pin0D;
-      okQw('pinned, its step on THE WORLD at the site ' + siteD + ' (Silverton\'s street arrow to the ' + gateD + ' gate)', siteD === 'inn' && gateD === 'east');
+      var pin0D = fD.pin; fD.pin = 'trueword'; var siteD = H6Qw.pinSite(stD), stepD = questQw(), outD = stepD && stepD.step && H6Qw.worldOf(stepD.step); fD.pin = pin0D;
+      okQw('pinned, its step on THE WORLD at the site ' + siteD + ' (Silverton\'s street arrow to its nearest way out of town: ' + outD + ', js/hours.js H16.edgeOut since 11-26)', siteD === 'inn' && outD === 'inn');
       var gD2 = H6Qw.boardPlay(null); gD2.next(); var bdD2 = D.top(), oD2 = bdD2 instanceof CQw.Counter ? answerQw(bdD2, ['LEAVE']) : ''; driveQw(gD2, null, 200);
       okQw('read again: no second journal line (' + !/JOURNAL all the same/.test(oD2) + ')', !/JOURNAL all the same/.test(oD2) && /stays up/.test(oD2));
       var stepsD = [['meal', function (f) { f.heardDominion = 'wrong'; }, false], ['meal', function (f) { f.heardTribes = 'true'; }, true], ['mirror', function (f) { f.sawMirror = 1; }, true], ['vision', function (f) { f.katVision = 1; }, true], ['book', function (f) { f.katBookAndroit = 1; }, true]];
@@ -10625,7 +10625,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (!(RK.def && RK.def.key === 'silverton' && !RK.def.room)) return 'not on the street';
         var wn = RK.def.wayName || {}, ks = Object.keys(wn).filter(function (k) { var p = k.split(',').map(Number); return !/feed track/.test(wn[k]) && (side === 'west' ? p[0] <= 1 : side === 'east' ? p[0] >= RK.def.w - 2 : side === 'north' ? p[1] <= 1 : p[1] >= RK.def.h - 2); }).map(function (k) { return k.split(',').map(Number); });
         if (!ks.length) return 'no ' + side + ' way on the street';
-        var gm = RK.def.marks && RK.def.marks.gates && RK.def.marks.gates[side]; // (the gate's own mark, js/hours.js H16.GATE_TO: the way square nearest it -- the middle of the rim's ways ran the walk over the feed track)
+        var gm = RK.def.marks && RK.def.marks.gates && RK.def.marks.gates[side]; // (the gate's own mark (js/town.js marks.gates): the way square nearest it -- the middle of the rim's ways ran the walk over the feed track)
         ks.sort(function (a, b) { return gm ? (Math.abs(a[0] - gm[0]) + Math.abs(a[1] - gm[1])) - (Math.abs(b[0] - gm[0]) + Math.abs(b[1] - gm[1])) : side === 'west' || side === 'east' ? a[1] - b[1] : a[0] - b[0]; }); var sq = gm ? ks[0] : ks[Math.floor(ks.length / 2)];
         var g = goK(topK(), sq, { ans: [0], dflt: /./, until: function () { return D.top() === WK.scene || !(RK.def && RK.def.key === 'silverton'); } });
         if (D.top() !== WK.scene && RK.def && RK.def.key !== 'silverton') { logQ('out by the ' + side + ' gate: the way to ' + sq + ' went off the street onto ' + whereQ()); var tb = toTownQ(); if (tb === 'in town') g = goK(topK(), sq, { ans: [0], dflt: /./, until: function () { return D.top() === WK.scene || !(RK.def && RK.def.key === 'silverton'); } }); }
@@ -10924,14 +10924,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         }
         return flagQ('councilSeen') ? 'sat' : 'not sat';
       }
-      // WEB GULCH (js/gulch.js): out by the east gate, THE WORLD to its door, the strung end (12,87): FIGHT -- the braiding ettercap fought; out by its north mouth; the fangs at Hessle's scales
+      // WEB GULCH (js/gulch.js): out by the west gate (the east till 11-26), THE WORLD to its door, the strung end (12,87): FIGHT -- the braiding ettercap fought; out by its north mouth; the fangs at Hessle's scales
       function gulchQ() {
         if (flagQ('ettercapDone')) return 'done';
         if (!hasQ('ettercapfangs')) {
           var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
           if (hurtQ() || !(HK.longWhy && HK.longWhy(8, ''))) restQ(hurtQ() ? 'hurt before Web Gulch' : 'a night\'s sleep before Web Gulch'); // (a known fight ahead: a long rest first where one is open, as a player does)
           byDayQ('before Web Gulch: the ettercap braids by day'); // (the board's own words: "Near the south mouth, by day")
-          var go = gateOutQ('east'); if (D.top() !== WK.scene) return go;
+          var go = gateOutQ('west'); if (D.top() !== WK.scene) return go; // (by the west gate since 11-26: THE WORLD's road leaves by it to the fork -- his "a world-map road jiggle to make the west gate")
           var w = worldK('webgulch', {}); floorQ(); logQ('BY THE WORLD TO WEB GULCH: ' + w.slice(0, 240));
           if (!(RK.def && RK.def.key === 'webgulch')) return 'not at the gulch (' + whereQ() + ')';
           var et = goK(topK(), [12, 87], { dflt: /^FIGHT$|^RETURN$/, until: function () { return hasQ('ettercapfangs') > 0 || !!flagQ('ettercapDone'); } }); playK({ quiet: 120 });
@@ -10974,7 +10974,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
           if (hurtQ()) restQ('hurt before the road south');
           byDayQ('before the road south');
-          var go = gateOutQ('east'); if (D.top() !== WK.scene) return go;
+          var go = gateOutQ('west'); if (D.top() !== WK.scene) return go; // (the west gate since 11-26, as Web Gulch's)
         }
         var w = worldToQ('inn', 'the road south'); floorQ(); logQ('DOWN THE ROAD TO THE HALFWAY INN: ' + w.slice(0, 300) + (why ? ' [' + why + ']' : '')); // (camped when the day's march is walked, pushed on only when the door is five hexes off or less: worldK's rule, as a player who will not force the march)
         return RK.def && RK.def.key === InK.KEY && D.top() !== WK.scene ? 'at the inn' : 'not at the inn (' + whereQ() + ')';
@@ -11148,7 +11148,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           var tt = toTownQ(); if (tt !== 'in town') return 'to town: ' + tt;
           if (hurtQ()) restQ('hurt before the Glowseep');
           byDayQ('before the Glowseep');
-          var go = gateOutQ('east'); if (D.top() !== WK.scene) return go;
+          var go = gateOutQ('west'); if (D.top() !== WK.scene) return go; // (the west gate since 11-26, as Web Gulch's)
           var w = worldK('glowseep', {}); floorQ(); logQ('BY THE WORLD TO THE GLOWSEEP: ' + w.slice(0, 200));
           if (!(RK.def && RK.def.key === 'glowseep')) return 'not at the Glowseep (' + whereQ() + ')';
           var BOG = D.mines.SEEP_BOG || [0, 0, 26, 28], f0 = fightNQ;
@@ -15885,7 +15885,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       HQ.worldDoor('?world&fresh&noenc&close'); var scC = D.top(), ZC = scC.zooms(), SC0 = WQ.state();
       okQ('a new game stands at Silverton\'s town (' + SC0.pos.map(function (v) { return v.toFixed(2); }) + '), not on the Edifice; &close opens at ' + ZC[scC.zi] + ' px a mile', Math.hypot(SC0.pos[0] - svQ.town[0], SC0.pos[1] - svQ.town[1]) < 0.01 && scC.zi === ZC.length - 1);
       HQ.worldDoor('?world&fresh&noenc');
-      [['west', [-1, 0]], ['south', [0, 1]]].forEach(function (gq) {
+      [['west', [-0.866, 0.5]], ['south', [0, 1]]].forEach(function (gq) { // (the west gate's way west-south-west since 11-26: onto the road's farm hex -- js/world.js W.DOORS.silverton, mode=town1126 A1)
         HQ.toTown('silverton', gq[0]); var BT = D.top(); if (BT.baking) { BT.baking = false; BT.enter(); } WQ.leaveTown(gq[0]);
         var scq = WQ.scene, SQ = WQ.state(), ZS = scq.zooms(), want = [svQ.town[0] + gq[1][0] * 0.75, svQ.town[1] + gq[1][1] * 0.75];
         okQ('out of Silverton by the ' + gq[0] + ' gate: on the area (' + WQ.M().key + ') at ' + ZS[scq.zi] + ' px a mile (its closest ' + ZS[ZS.length - 1] + '), at ' + SQ.pos.map(function (v) { return v.toFixed(2); }) + ' -- 0.75 mi out from the town, not from the Edifice',
@@ -18554,17 +18554,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var keyOf = function (id, fl, inv) { var q = CJ.quests({ flags: fl, inv: inv || [], party: [] }).filter(function (x) { return x.id === id; })[0]; return q && q.step ? q.step.key || null : 'none'; };
       okJ('the other key steps: the cloaker\'s tail (' + keyOf('tail', { heardCloaker: 1 }, [{ id: 'cloakertail', n: 1 }]) + '), the ettercap\'s fangs (' + keyOf('ettercap', { heardEttercap: 1 }, [{ id: 'ettercapfangs', n: 1 }]) + '), Dace after the kill (' + keyOf('dace', { daceWith: 1, cloakerKilled: 1 }) + '); none before (' + keyOf('tail', { heardCloaker: 1 }) + ', ' + keyOf('dace', { daceWith: 1 }) + ')',
         keyOf('tail', { heardCloaker: 1 }, [{ id: 'cloakertail', n: 1 }]) === 'tail' && keyOf('ettercap', { heardEttercap: 1 }, [{ id: 'ettercapfangs', n: 1 }]) === 'fangs' && keyOf('dace', { daceWith: 1, cloakerKilled: 1 }) === 'killed' && keyOf('tail', { heardCloaker: 1 }) === null && keyOf('dace', { daceWith: 1 }) === null);
-      // 11. THE STREET'S ARROW TO A STEP OUT ON THE WORLD (Tuesday 31): the Cull pinned -> the west gate; the ettercap -> the east gate; Ned's tongue -> the gate H16.GATE_TO names;
-      // and the table holds to THE WORLD's own gates (js/world.js W.gateFor, the gate facing the place)
+      // 11. THE STREET'S ARROW TO A STEP OUT ON THE WORLD (Tuesday 31; RULED 11-22, his "should point to the nearest 'leave silverton edge'", in place of the gate by the place's
+      // bearing): the Cull pinned, the ettercap, Ned's tongue -- each on a square of the town's rim that leaves onto THE WORLD (a way off the floor, not the feed track's), the same
+      // square for all three from where the party stands, and never a gate's mark (js/hours.js H16.edgeOut; mode=town1126 walks it from the town's corners)
       var markK = function (pin, fl) { Object.assign(fK, fl); fK.pin = pin; H6J.marked = null; CJ.paintPin(cxJ, BK); return H6J.marked; };
       var gts = D.roam.def.marks.gates, mC = markK('cull', { cullHired: 1, heardGalleries: 1 }), mE = markK('ettercap', { heardEttercap: 1 }), mN = markK('nedpage', { nedQuest: 1 });
-      var same = function (a, b) { return !!a && !!b && a[0] === b[0] && a[1] === b[1]; };
-      var Mw = WJ.Mworld ? WJ.Mworld() : null, svJ = Mw && Mw.sites.filter(function (s) { return s.id === 'silverton'; })[0], geo = {};
-      // (each table gate's way out within 60 degrees of the place: js/world.js W.DOORS.silverton's gates against the line from the town to the site)
-      Object.keys(H6J.GATE_TO).forEach(function (id) { var s = Mw && Mw.sites.filter(function (x) { return x.id === id; })[0], b = svJ && (svJ.town || [svJ.x, svJ.y]), a = s && (s.town || [s.x, s.y]), n = WJ.DOORS.silverton.gates[H6J.GATE_TO[id]];
-        if (!a || !b || !n) { geo[id] = null; return; } var v = [a[0] - b[0], a[1] - b[1]], lv = Math.hypot(v[0], v[1]) || 1, ln = Math.hypot(n[0], n[1]) || 1; geo[id] = Math.round(Math.acos(Math.max(-1, Math.min(1, (v[0] * n[0] + v[1] * n[1]) / lv / ln))) * 180 / Math.PI); });
-      okJ('THE STREET\'S ARROW: the Cull pinned on ' + mC + ' (the west gate ' + gts.west + '), the ettercap on ' + mE + ' (the east ' + gts.east + '), Ned\'s tongue on ' + mN + ' (' + H6J.GATE_TO.glowseep + '); each gate\'s way out off the line to its place, degrees: ' + JSON.stringify(geo) + ' (' + JSON.stringify(H6J.GATE_TO) + ')',
-        same(mC, gts.west) && same(mE, gts.east) && same(mN, gts[H6J.GATE_TO.glowseep]) && Object.keys(geo).every(function (id) { return geo[id] != null && geo[id] <= 60; }));
+      var same = function (a, b) { return !!a && !!b && a[0] === b[0] && a[1] === b[1]; }, dfK = D.roam.def, wnK = dfK.wayName || {};
+      var outK = function (q) { return !!q && (dfK.doors || []).some(function (p) { return same(p, q); }) && !/feed track/.test(wnK[q[0] + ',' + q[1]] || ''); }, gateK = function (q) { return Object.keys(gts).some(function (k) { return same(q, gts[k]); }); };
+      okJ('THE STREET\'S ARROW: the Cull pinned on ' + mC + ', the ettercap on ' + mE + ', Ned\'s tongue on ' + mN + ' ("' + (wnK[String(mC)] || '') + '"): a way off the town onto THE WORLD (' + outK(mC) + '), one square for all three, no gate\'s mark (' + !gateK(mC) + ')',
+        outK(mC) && same(mC, mE) && same(mE, mN) && !gateK(mC));
       HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
       // 12. FIGHT NIGHT'S STEP: the next bout and its stake, bout by bout
       var hexW = function (fl) { var q = CJ.quests({ flags: Object.assign({ heardHex: 1 }, fl), inv: [], party: [] }).filter(function (x) { return x.id === 'hex'; })[0]; return q ? (q.done ? 'done' : q.where) : 'none'; };
@@ -18576,14 +18574,14 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okJ('WHEN YOU\'RE READY in the list: ' + (qR && qR.name) + ' -- "' + (qR && qR.text || '').slice(-50) + '", NEXT "' + (qR && qR.where || '').slice(0, 50) + '"; no level 4 in it (' + !/level 4/.test((qR && qR.text || '') + (qR && qR.where || '')) + ')',
         !!qR && /level 3/.test(qR.text) && /level 3/.test(qR.where) && !/level 4/.test(qR.text + qR.where) && CJ.QUESTS.indexOf('ring') >= 0);
       // 14. THE EYES ROWS' DOORS (deep16/?hoursshow&beat=fivekey, &beat=pins1105): staged as they say -- at the camp with the tokens, the Five on Edric's key step already seen and
-      // Skarn's not; on the street with the Cull pinned, the arrow at the west gate
+      // Skarn's not; on the street with the Cull pinned, the arrow on the nearest way out of town onto THE WORLD (not the west gate's mark since 11-26: js/hours.js H16.edgeOut)
       var beatJ = function (id) { return H6J.SHOW_BEATS.filter(function (b) { return b.id === id; })[0]; }, stageJ = function (id) { D.scenes.length = 0; CJ.servicePlay(beatJ(id)); var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } D.battle = B; if (B && B.roam) { B.roam.mode = 'walk'; } return B; };
       var Bfk = stageJ('fivekey'), stfk = CJ.state(Bfk), qfk = CJ.quests(stfk).filter(function (x) { return x.id === 'warrens'; })[0], kfk = H6J.keyDue(Bfk);
       stfk.inv.splice(0, stfk.inv.length); stfk.flags.fiveDone = 1; var kfk2 = H6J.keyDue(Bfk);
       HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
       var Bpn = stageJ('pins1105'), mpn = (function () { H6J.marked = null; CJ.paintPin(cxJ, Bpn); return H6J.marked; })(), gpn = D.roam.def.marks && D.roam.def.marks.gates.west;
-      okJ('the eyes doors: fivekey at ' + (Bfk && Bfk.roam && D.roam.def.key) + ', the Five on ' + (qfk && qfk.step && qfk.step.npc) + ' (no card yet: ' + !kfk + '), the book closed -> Skarn\'s card due (' + kfk2 + '); pins1105 on ' + (Bpn && D.roam.def.key) + ', the arrow on ' + mpn + ' (the west gate ' + gpn + ')',
-        !!qfk && qfk.step.npc === 'edric' && !kfk && kfk2 && !!mpn && !!gpn && mpn[0] === gpn[0] && mpn[1] === gpn[1]);
+      okJ('the eyes doors: fivekey at ' + (Bfk && Bfk.roam && D.roam.def.key) + ', the Five on ' + (qfk && qfk.step && qfk.step.npc) + ' (no card yet: ' + !kfk + '), the book closed -> Skarn\'s card due (' + kfk2 + '); pins1105 on ' + (Bpn && D.roam.def.key) + ', the arrow on ' + mpn + ' "' + ((D.roam.def.wayName || {})[String(mpn)] || 'NOT A WAY OUT') + '" (the west gate\'s mark ' + gpn + ')',
+        !!qfk && qfk.step.npc === 'edric' && !kfk && kfk2 && !!mpn && !!gpn && !(mpn[0] === gpn[0] && mpn[1] === gpn[1]) && (D.roam.def.doors || []).some(function (p) { return p[0] === mpn[0] && p[1] === mpn[1]; }) && !/feed track/.test((D.roam.def.wayName || {})[String(mpn)] || ''));
       HJ.playing = false; HJ.cur = null; D.scenes.length = 0;
       // 15. THE SLOTS IN WORDS (the desk's item of 11-05, Griz's second playthrough at Web Gulch: "lymen's bottom left was showing 1:0 slots but spells weren't an option... / he
       // shows 0/3 here, is the 1:0 a cantrip indicator and he doesn't have those?"): the grid's bar under the hero and the SPELLS list's title say "L1 0/3", left of most, as the
@@ -20686,6 +20684,50 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     D.d = d0H;
     var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
     document.body.appendChild(preH);
+    return;
+  }
+  // THE TOWN SEAT OF 11-26 (mode=town1126; the seat town-1126, his RULED 11-22 answers on Silverton's words and claims -- the Silverton, house, Warrens and world map lanes'
+  // 11-22 sections): A. the way out of town (his "should point to the nearest 'leave silverton edge'"; "a world-map road jiggle to make the west gate")
+  if (get('mode', '') === 'town1126') {
+    var repT = { checks: [], errors: [] }, CT6 = D.counter, RT6 = D.roam, HT6 = D.hours, WT6 = D.world;
+    var okT = function (c, s) { repT.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var stGT = D.store.get, stST = D.store.set, memT = {}; D.store.get = function (k) { return memT[k]; }; D.store.set = function (k, v) { memT[k] = v; };
+    var driveT = function (g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); };
+    var topT = function () { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveT(s.co, null, 2); return s; };
+    var floorT = function (q) { var B = RT6.make(q + '&watch'); D.scenes.length = 0; D.push(B); D.battle = B; return topT(); };
+    var sameT = function (a, b) { return !!a && !!b && a[0] === b[0] && a[1] === b[1]; };
+    try {
+      // A1. THE ROAD IN BY THE WEST GATE (tools/hexmap.js seedWestGate; js/world.js W.DOORS.silverton): the mile's last hexes into the town from the farms south-west of it, not
+      //     the one south of it; a party walking it in from the fork -- by the hex it came from, or by the road's own point -- is at the west gate; out by the west gate, on a hex
+      //     the road passes
+      if (!D.WORLD_NEAR) { var xT = new XMLHttpRequest(); xT.open('GET', '../deep16/data/world-near.js', false); xT.send(); (0, eval)(xT.responseText); } // (the Silverton area: the benches walk THE WORLD alone unless a mode loads it -- near1022's way)
+      WT6.index(); WT6.use('near'); var MN = WT6.M(), svN = MN.sites.filter(function (s) { return s.id === 'silverton'; })[0], mileN = MN.pathById.mile, hxN = (mileN && mileN.hexes || []).map(String);
+      var tail = hxN.slice(-4).join(' '), ptsN = (mileN && mileN.pts || []).filter(Array.isArray), lastPt = ptsN[ptsN.length - 2];
+      var gHex = WT6.gateFor(svN, [67, 22]), gPt = lastPt ? WT6.gateFor(svN, null, lastPt) : null, tw = svN.town || [svN.x, svN.y], gv = WT6.DOORS.silverton.gates.west, outPt = [tw[0] + gv[0] * 0.75, tw[1] + gv[1] * 0.75], outHex = String(WT6.hexOf(outPt[0], outPt[1]));
+      okT(tail === '65,23 66,22 67,22 68,21' && hxN.indexOf('66,23') < 0 && gHex === 'west' && gPt === 'west' && hxN.indexOf(outHex) >= 0,
+        'A1 THE WORLD\'s mile into Silverton: its last hexes ' + tail + ' (66,23 off it ' + (hxN.indexOf('66,23') < 0) + '), its last bend ' + JSON.stringify(lastPt) + ', ' + (mileN && mileN.mi) + ' mi; walked in from the fork the party is at the ' + gHex + ' gate by its hex, the ' + gPt + ' gate by the road\'s point; out by the west gate onto ' + outHex + ' (on the road ' + (hxN.indexOf(outHex) >= 0) + ')');
+      // A2. THE WORDS THAT SEND A PLAYER OUT: Web Gulch's step, Ned's braid, the Snoot's young blood -- the west gate, the fork on THE WORLD, south; the gate hand's road to the fork
+      var stT = { flags: { heardEttercap: 1, nedWand: 1, heardTrueWord: 1 }, inv: [], party: [] }, qsT = CT6.quests(stT), whT = function (id) { var q = qsT.filter(function (x) { return x.id === id; })[0]; return q && q.where || ''; };
+      var wE = whT('ettercap'), wN = whT('nedwand'), wS = whT('trueword'), gh = D.town.LINE.guard1;
+      okT([wE, wN, wS].every(function (w) { return /out of Silverton by the west gate, to the fork on THE WORLD/i.test(w) && !/east gate/.test(w); }) && !/a mile/.test(gh) && /West gate\. The road runs south-west to the fork/.test(gh) && /Castegut/.test(gh),
+        'A2 the words out: Web Gulch "' + wE.slice(0, 110) + '" / Ned\'s braid "' + wN.slice(-90) + '" / the Snoot\'s "' + wS.slice(-110) + '" / the gate hand "' + gh + '"');
+      // A3. THE STREET'S ARROW TO THE NEAREST WAY OUT (js/hours.js H16.edgeOut): Ned's tongue pinned; from beside each gate the arrow is on that gate's rim of the town, a way off the
+      //     floor that is not the feed track's and not the gate's mark; from his square of 11-22 (34,50: "feels like nearest silverton exit being south") a way off too; a step
+      //     out by the feed track never
+      var B = floorT('?roam=silverton&hour=10&lvl=3&flags=nedQuest&pin=nedpage'), def = RT6.def, tok = B.roam.token, wn = def.wayName || {}, g = def.marks.gates;
+      var stepN = CT6.quests(CT6.state(B)).filter(function (q) { return q.id === 'nedpage'; })[0], sN = stepN && stepN.step;
+      var outT = function (q) { return !!q && (def.doors || []).some(function (p) { return sameT(p, q); }) && !/feed track/.test(wn[q[0] + ',' + q[1]] || ''); };
+      var fromT = function (sq) { tok.x = sq[0]; tok.y = sq[1]; return HT6.pinSq(B, sN); };
+      var aW = fromT(g.west), aS = fromT(g.south), aE = fromT(g.east), aH = def.rows[50] && '.,=dr'.indexOf(def.rows[50].charAt(34)) >= 0 ? fromT([34, 50]) : 'not walkable';
+      var gm = function (q) { return Object.keys(g).some(function (k) { return sameT(q, g[k]); }); };
+      okT(!!sN && sN.site === 'glowseep' && outT(aW) && aW[0] === 0 && outT(aS) && aS[1] === def.h - 1 && outT(aE) && aE[0] === def.w - 1 && ![aW, aS, aE].some(gm) && (aH === 'not walkable' || outT(aH)),
+        'A3 Ned\'s tongue pinned (' + (sN && sN.site) + '): from the west gate (' + g.west + ') the arrow on ' + aW + ' "' + wn[String(aW)] + '"; from the south gate (' + g.south + ') on ' + aS + ' "' + wn[String(aS)] + '"; from the east gate (' + g.east + ') on ' + aE + ' "' + wn[String(aE)] + '"; from his 34,50 on ' + aH + ' "' + wn[String(aH)] + '" (the floor ' + def.w + ' x ' + def.h + ')');
+      var fN = D.mines.FEED, aF = fN ? fromT(fN) : null; // (where the party comes back into town off the feed track: js/mines.js M.FEED, on the east rim north of the road's split)
+      okT(!!fN && /feed track/.test(wn[String(fN)] || '') && outT(aF) && !sameT(aF, fN), 'A3b back off the feed track (' + fN + ', "' + wn[String(fN)] + '") the arrow is not on it: ' + aF + ' "' + wn[String(aF)] + '"');
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    D.store.get = stGT; D.store.set = stST;
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
     return;
   }
   // THE SHOP REVIEW'S THREE MOVES (mode=shops1125; the seat nets-1125, the house lane's 11-25 odds-1125 section, item 2 RE-CUT -- his "11 - keep", then to the lanes desk "I
