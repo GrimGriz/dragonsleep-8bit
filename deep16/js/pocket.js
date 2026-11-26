@@ -105,6 +105,18 @@
   // a sheet for the card (the 8-bit's shape: hp, equip, abil...), and its figure
   PK.sheetOf = function (sp) { if (!sp) return null; try { return sp.hero ? NPC.heroSheet(sp) : NPC.sheet(sp); } catch (e) { return null; } };
   PK.lookOf = function (sp) { return sp ? NPC.lookOf(sp) : null; }; // (a hero's by what he wears, as NPC.lookOf reads it: Aurdin's two mantles, 10-20)
+  // THE DAY'S CARDS (11-26, the lane's 11-03 lead: "Ingrith's prepared list changed between two BUILDING runs with no rest" -- his record of 11-02 ~03:46Z to ~03:59Z:
+  // between the module's fights 1 and 2 wut took a halberd up (+halberd+noshield on his word), and the run's morning, kept against the party's words, matched them no
+  // longer: every caster's day went back to its class's own -- Ingrith's Warding Bond out and Hold Person in -- with no rest taken). A card as the morning knows it is
+  // its word less what it wears: the gear and winnings after it (+id, +off:id, +noshield; its level picks, +^L, kept) and a made card's own gear field. The morning
+  // still stands down when a card is another's or at another level
+  PK.dayKey = function (w) {
+    if (w == null) return null; if (typeof w === 'object') w = w.word;
+    var s = String(w).split('+').filter(function (p, k) { return k === 0 || /^\^/.test(p); }).join('+');
+    if (s.charAt(0) === '~') { var a = s.split('+')[0].split('.'); if (a.length > 4) a[4] = ''; s = a.join('.') + s.slice(s.split('+')[0].length); }
+    return s;
+  };
+  PK.sameDay = function (mm, words) { return !!(mm && mm.cards && mm.words && JSON.stringify(mm.words.map(PK.dayKey)) === JSON.stringify((words || []).map(PK.dayKey))); };
   PK.baseKey = function (word) { return String(word || '').split('+')[0].split(':')[0].split('.')[0].replace(/^~/, ''); };
 
   // ------------------------------------------------------------------ the DMG's table (5E 2014: XP thresholds a character, the multiplier for a crowd)
@@ -784,7 +796,7 @@
   Pocket.prototype.fightWords = function () {
     // (the ladder carries what the last rung left: js/classes.js NPC.build reads { word, hpLeft, slotsLeft, featsLeft, maxhpLeft, condsLeft })
     // (and the morning of THE LONG REST, 10-17: the day's spells, what was cast ahead -- the run's till its next long rest, else the single fight's)
-    var self = this, run = this.st.run, words = this.words(), mm = run ? run.morning : this.st.dayMorning, mo = mm && mm.cards && JSON.stringify(mm.words) === JSON.stringify(words) ? mm.cards : null; // (a morning is its party's: a card changed since, and it is not worn)
+    var self = this, run = this.st.run, words = this.words(), mm = run ? run.morning : this.st.dayMorning, mo = PK.sameDay(mm, words) ? mm.cards : null; // (a morning is its party's: a card changed since, and it is not worn -- its gear aside, PK.sameDay)
     if ((!run || !run.carry) && !mo && !(run && run.drafts)) return words;
     return words.map(function (w, i) {
       var c = run && run.carry ? run.carry[i] : null, m = mo ? mo[i] : null, dr = run && run.drafts ? run.drafts[i] : null; // (dr: SECOND DRAFT's day, Pocket.draftSwap -- 10-31)
@@ -954,7 +966,7 @@
   // prepared: the day it has now -- its draft's, else the run's morning, else the class's own --, spent }
   Pocket.prototype.drafters = function () {
     var run = this.st.run; if (!run) return [];
-    var words = this.words(), mm = run.morning, mo = mm && mm.cards && JSON.stringify(mm.words) === JSON.stringify(words) ? mm.cards : null, now = PK.morningInfo(this.st, PK.MORNING0(), false);
+    var words = this.words(), mm = run.morning, mo = PK.sameDay(mm, words) ? mm.cards : null, now = PK.morningInfo(this.st, PK.MORNING0(), false);
     return now.cards.filter(function (c) { return c && c.pi && R.hasFeat(c.h, 'seconddraft'); }).map(function (c) {
       var dr = run.drafts && run.drafts[c.i], day = dr ? dr.prepared : mo && mo[c.i] && mo[c.i].prepared ? mo[c.i].prepared : c.prepared;
       return { i: c.i, h: c.h, pool: c.pi.pool, prepared: (day || []).slice(), spent: !!dr };
