@@ -40,15 +40,17 @@
   // ------------------------------------------------------------------ the scores and the group's name (this browser's: D.store)
   // (10-07, Griz: "please also clear the high score 0s from eye tests" -- "links from situations.html": a run that held no wave is no high score. The 0s already
   // on a board are swept out of it the next time it is read, in whatever browser holds them, and a 0 is never written again)
+  // (a special's board its own -- THE FEAST's, 11-26: SK())
+  function SK() { return GS.special ? SCORES + '.' + GS.special.key : SCORES; }
   GS.scores = function () {
-    var s = D.store.get(SCORES); if (!Array.isArray(s)) return [];
-    var k = s.filter(function (r) { return r && r.waves > 0; }); if (k.length !== s.length) D.store.set(SCORES, k);
+    var s = D.store.get(SK()); if (!Array.isArray(s)) return [];
+    var k = s.filter(function (r) { return r && r.waves > 0; }); if (k.length !== s.length) D.store.set(SK(), k);
     return k;
   };
   GS.record = function (row) {
     if (!(row && row.waves > 0)) return -1;
     var s = GS.scores().concat([row]).sort(function (a, b) { return (b.waves - a.waves) || (b.tier - a.tier) || (a.t - b.t); }).slice(0, 10);
-    D.store.set(SCORES, s); return s.indexOf(row);
+    D.store.set(SK(), s); return s.indexOf(row);
   };
   GS.group = function () { var g = D.store.get(NAME); return typeof g === 'string' && g ? g : 'THE LOBSTAMONKEES'; };
   // THE TUTORIAL (10-07, Griz: "a spell gallery version of the heroes abilities with a front page toggle for 'tutorial'"; "build for denny as test"): a
@@ -84,8 +86,15 @@
     B.paint = function (ctx) { paint0.apply(this, arguments); GS.paintOver(ctx, this); };
     return B;
   }
+  // THE SPECIALS (11-26, the Thanksgiving seat; Griz: "an intro from the lighthouse would be good, and if waves gameshow style with the chest were possible, that'd be ideal"):
+  // deep16/?gameshow&feast is THE FEAST -- the title over the lighthouse as ever, THANKSGIVING SPECIAL under it; the jump in lands the four in the Harvest Bowl (GS.bowl), not at
+  // Third Lamp; the waves are js/waves.js WV.SPECIALS.feast, through the Bowl's gates, the chest and the cots between them as at Third Lamp, and the run won on the Gallows
+  // Gobbler (GS.specialWon). &at=bowl straight to the Bowl; &lvl=N the four's level (5 unless said). Its saves and high scores its own
+  GS.SPECIALS = { feast: { key: 'feast', map: 'harvestbowl', title: 'THANKSGIVING SPECIAL', door: '?gameshow&feast' } };
   GS.make = function (q) {
     q = q || ''; FAST = /[?&]fast\b/.test(q); GS.q = q;   // (the address the show was made from: the waves read &tier, &wave, &auto from it -- js/waves.js)
+    GS.special = /[?&]feast\b/.test(q) ? GS.SPECIALS.feast : null;
+    if (GS.special && /[?&]at=bowl\b/.test(q)) return GS.bowl(null);
     if (/[?&]at=lamp\b/.test(q)) return GS.lamp(null);
     return asShow(stage('lighthouse'), lighthouse);
   };
@@ -149,7 +158,7 @@
     for (var i = 0; i < four.length; i++) { jumpIn(B, four[i], W(i * 21)); }
     yield W(four.length * 21 + 60);
     yield* fade(B, 1, W(36));
-    swap(B, GS.lamp(sign));
+    swap(B, GS.special ? GS.bowl(sign) : GS.lamp(sign));   // (a special's floor: THE FEAST's Harvest Bowl, 11-26)
   }
   function NAMES(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
   // the camera locked on a square at a zoom, its centre the screen's (Griz, 10-07: "center the circle in the middle middle and don't follow the
@@ -341,6 +350,52 @@
     }
   }
 
+  // ------------------------------------------------------------------ THE FEAST's floor: the Harvest Bowl, before the first wave (11-26, the Thanksgiving seat)
+  // The lighthouse's jump lands here: the circle at the Bowl's south end spins them out onto its corners, the show's words (the seat's drafts), the chest by the lamp
+  // thumped as at Third Lamp, and the waves (js/waves.js, THE FEAST's). No king and no cleric: Pyro is at Sólskaft. A return (CONTINUE) is the pop-out and the back-at line
+  GS.bowl = function (sign) {
+    var sp = GS.special || GS.SPECIALS.feast, lv = +((/[?&]lvl=(\d+)/.exec(GS.q || '') || [])[1]) || 5;
+    var B = stage(sp.map, [], lv);
+    B.gs = { clicks: [], fade: 1, sign: sign || 'sagittarius' };
+    return asShow(B, bowlScene);
+  };
+  function* bowlScene(B) {
+    var st = B.gs, def = G.map.def, ctr = def.circle.at, sh = D.SHEETS[def.circle.sheet];
+    st.mode = 'arrive';
+    D.music('highway');
+    var four = ['denny', 'rascal', 'goose', 'beholda'].map(function (k) { return mascot(B, k); }).filter(Boolean);
+    four.forEach(function (u) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); });    // (still on the far side of the circle)
+    G.setup(G.map, B.units);
+    C.run(B).a = 30 * Math.max(0, sh.rest.indexOf(st.sign));
+    hold(B, [ctr[0], ctr[1] - 3], 1.1); st.lock = null;
+    yield* fade(B, 0, W(40));
+    if (!GS.resume) { B.card(['{y}THE HARVEST BOWL.{/}  The Monster Party Game Show\'s Thanksgiving special.'], 300); yield W(90); }
+    yield* B.camTo({ gx: ctr[0], gy: ctr[1] - 1, gz: 0 }, 1.1, W(40));
+    var cc = D.iso.center(ctr[0], ctr[1] - 1, 0); st.lock = { x: cc.x, y: cc.y - 20, zoom: 1.1 };
+    B.lights.push({ id: 'circle', kind: 'map', x: ctr[0], y: ctr[1], bright: 15, dim: 20, color: 'violet', flame: false });
+    yield* wake(B, st.sign, { dir: -1, turns: 2, T: 2.8 });                          // (out counter-clockwise, as at Third Lamp)
+    var cs = corners(ctr, sh.squares), order = [cs[0], cs[1], cs[2], cs[3]], fo = [5, 5, 4, 4];   // (onto the corners, facing up the Bowl at the feast)
+    for (var i = 0; i < four.length; i++) popOut(B, four[i], order[i], fo[i], W(i * 21));
+    yield W(four.length * 21 + 60);
+    G.setup(G.map, B.units);
+    if (GS.resume) { B.card(['{y}' + GS.resume.group + '{/} are back in the Harvest Bowl: wave ' + ((GS.resume.wi || 0) + 1) + ' of the feast.'], W(300)); yield W(120); }
+    else {
+      D.sfx('popup');
+      B.card(['{y}THE FEAST{/} has been cooked -- and it does not want to be eaten.'], W(360)); yield W(170);
+      var chest = B.map.chest;
+      if (chest) {                                                                   // the chest by the lamp: the camera to it, its thump (js/circles.js)
+        st.lock = null; yield* B.camTo({ gx: chest.sq.x, gy: chest.sq.y - 1, gz: 0 }, 1.4, W(40));
+        B.card(['{y}THE CHEST{/} by the lamp: whatever the folk up top send down lands in it. Check it between waves.'], W(420));
+        yield W(30); C.chest(B, 'thump'); yield W(150);
+      }
+      B.card(['Keep the lamp lit, Lobstamonkees.'], W(300)); yield W(120);
+    }
+    yield* sink(B);                                                                   // dormant again
+    B.lights = B.lights.filter(function (l) { return l.id !== 'circle'; });
+    st.mode = 'fight'; st.lock = null;
+    if (GS.waves) yield* GS.waves(B, GS);
+  }
+
   // ------------------------------------------------------------------ between waves (seat 2 calls it): the token
   // (Griz: "in between waves (end of rest - main walks from bed to portal) all 4 lobstamonkees walk into the same square and beholda becomes 'party
   // token'"; and after watching tier 1, 10-07: "when combat ends, don't auto-popup the rest - do the token combine - walk around to the chest, check in with
@@ -438,7 +493,25 @@
     st.mine = GS.record(row); st.mode = 'scores';
     while (true) {
       var ck = st.clicks.shift();
-      if (ck && titleHit(B, ck) === 'again') { location.search = '?gameshow'; return; }
+      if (ck && titleHit(B, ck) === 'again') { location.search = GS.special ? GS.special.door : '?gameshow'; return; }
+      yield 1;
+    }
+  };
+  // a special won (THE FEAST: the Gallows Gobbler's wave held -- js/waves.js): the cheer, the dark coming down part way, HAPPY THANKSGIVING and the group, its scores
+  GS.specialWon = function* (B, stats) {
+    var st = B.gs || (B.gs = { clicks: [], fade: 0 });
+    B.cine = true; st.mode = 'end'; D.music(null); D.sfx('levelup');
+    var four = ['denny', 'rascal', 'goose', 'beholda'].map(function (k) { return mascot(B, k); }).filter(function (u) { return u && G.standing(u); });
+    four.forEach(function (u) { FX.sparkle(u, 'gold', 24); });
+    B.card(['{y}THE FEAST IS SERVED.{/}  The Gallows Gobbler is down, and the lamp still burns.'], W(360)); yield W(160);
+    yield* fade(B, 0.65, W(50));
+    st.over = { group: GS.group(), waves: (stats && stats.waves) || 0, tier: (stats && stats.tier) || 1, won: true };
+    st.mode = 'gameover'; yield W(240);
+    var row = { group: st.over.group, waves: st.over.waves, tier: st.over.tier, t: Date.now() };
+    st.mine = GS.record(row); st.mode = 'scores';
+    while (true) {
+      var ck = st.clicks.shift();
+      if (ck && titleHit(B, ck) === 'again') { location.search = GS.special ? GS.special.door : '?gameshow'; return; }
       yield 1;
     }
   };
@@ -484,6 +557,7 @@
       ctx.fillStyle = 'rgba(10,8,16,0.55)'; ctx.fillRect(0, 0, Wd, 64);
       big(ctx, 'MONSTER PARTY', Wd / 2, 6, P('red', 4), 3);
       big(ctx, 'GAME SHOW', Wd / 2, 40, P('gold', 4), 2);
+      if (GS.special) { ctx.fillStyle = 'rgba(10,8,16,0.55)'; ctx.fillRect(0, 64, Wd, 28); big(ctx, GS.special.title, Wd / 2, 67, P('fire', 1), 2); } // (THE FEAST's banner, 11-26)
       ctx.fillStyle = 'rgba(10,8,16,0.6)'; ctx.fillRect(0, Hd - 40, Wd, 40);
       button(ctx, 'name', 'GROUP: ' + (st.name || '') + (st.editing && (B.t >> 4) & 1 ? '_' : ''), 12, Hd - 34, 220, 18, st.editing);
       button(ctx, 'tutorial', 'TUTORIAL ' + (st.tutorial ? 'ON' : 'OFF'), 240, Hd - 34, 120, 18, !!st.tutorial);
@@ -497,13 +571,14 @@
       if (!svs.length) st.pick = false;
       if ((B.t >> 5) & 1) D.text(ctx, sv ? 'CONTINUE, or the centre of the circle to start over' : 'click the centre of the circle to begin', Wd / 2, Hd - 12, P('bone', 1), 'center');
       var cp = st.caption;
-      if (cp && B.t - cp.t0 < cp.life) { var tw = Math.min(Wd - 20, D.textWidth(cp.s) + 16); D.win8(ctx, Wd / 2 - tw / 2, 70, tw, 18); D.text(ctx, cp.s, Wd / 2, 75, P('bone', 1), 'center'); }
+      var cpy = GS.special ? 98 : 70; // (under THE FEAST's banner)
+      if (cp && B.t - cp.t0 < cp.life) { var tw = Math.min(Wd - 20, D.textWidth(cp.s) + 16); D.win8(ctx, Wd / 2 - tw / 2, cpy, tw, 18); D.text(ctx, cp.s, Wd / 2, cpy + 5, P('bone', 1), 'center'); }
     }
     if (st.mode === 'scores') scoresPanel(ctx, B, st.mine);
     if (st.mode === 'gameover' && st.over) {
-      big(ctx, 'GAME OVER', Wd / 2, Hd / 2 - 40, P('red', 4), 3);
+      big(ctx, st.over.won ? 'HAPPY THANKSGIVING' : 'GAME OVER', Wd / 2, Hd / 2 - 40, st.over.won ? P('fire', 1) : P('red', 4), st.over.won ? 2 : 3); // (a special won: THE FEAST, 11-26)
       big(ctx, st.over.group, Wd / 2, Hd / 2 + 4, P('gold', 4), 2);
-      D.text(ctx, 'waves held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
+      D.text(ctx, GS.special ? 'the feast: ' + st.over.waves + ' of 4 waves held, at level ' + st.over.tier : 'waves held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
     }
     if (st.mode === 'scores' && st.over) { button(ctx, 'again', 'BACK TO THE LIGHTHOUSE', Wd / 2 - 90, Hd - 30, 180, 18); }
   };

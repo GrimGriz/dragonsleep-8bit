@@ -94,7 +94,24 @@
       return out;
     });
   };
-  WV.xpOf = function (wave) { var n = 0; (wave.west || []).concat(wave.east || []).forEach(function (k) { var f = D.FOES[k]; n += f ? (R.CR_XP[String(f.cr)] || 0) : 0; }); return n; };
+  // THE SPECIALS (11-26, the Thanksgiving seat; Griz: "an intro from the lighthouse would be good, and if waves gameshow style with the chest were possible, that'd be ideal"):
+  // a show on another floor -- deep16/?gameshow&feast, js/gameshow.js GS.special -- runs its own short list of waves in place of the tiers, and ends when the last is held.
+  // Each wave's sides are the floor's own ways in (its map's `waysIn`: the Harvest Bowl's west gate by the pantry, its east gate by the ovens, the gallows stage). THE FEAST is
+  // the Pocket DM module's four (data/modules.js feast) as the show plays them: the cans, the ovens, second helpings, and the Gallows Gobbler; a short rest at the cots after
+  // each of the first three, the chest between. The seat's calls, his to overrule: the waves (the module's), one tier at the four's level (&lvl=N, 5 unless said), the run won
+  // on the turkey's wave (no tier after it), its own saves and high scores
+  WV.SPECIALS = {
+    feast: { name: 'THE FEAST', lvl: 5, waves: [
+      { west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'The pantry door bangs open: four cans of cranberry sauce waddle out!' },
+      { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan'], card: 'The ovens open. Something baked climbs out -- and the pantry sends more sauce.' },
+      { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'Second helpings. Nobody asked for second helpings.' },
+      { stage: ['gallowsgobbler'], west: ['cranberrycan', 'cranberrycan'], boss: 'gallowsgobbler', card: 'THE GALLOWS GOBBLER. The gallows creak: this year\'s bird was never pardoned.' }
+    ] }
+  };
+  WV.special = function () { return GS.special && WV.SPECIALS[GS.special.key] || null; };
+  var tierWaves0 = WV.tierWaves;
+  WV.tierWaves = function (t) { var sp = WV.special(); return sp ? sp.waves : tierWaves0(t); };
+  WV.xpOf = function (wave) { var n = 0; (wave.west || []).concat(wave.east || [], wave.stage || []).forEach(function (k) { var f = D.FOES[k]; n += f ? (R.CR_XP[String(f.cr)] || 0) : 0; }); return n; };
 
   // ------------------------------------------------------------------ the four: their XP, their level, what a rest gives back
   var KEYS = ['denny', 'beholda', 'rascal', 'goose'];
@@ -124,7 +141,7 @@
   // loaded from stays to go back to. WV.saves(g) lists them newest first; WV.loadSave(g) is the newest
   var SAVE = 'deep16.gameshow.save.';
   WV.SLOTS = 3;
-  WV.saveKey = function (g, n) { return SAVE + String(g || '').toUpperCase() + (n > 1 ? '.' + n : ''); };
+  WV.saveKey = function (g, n) { return (GS.special ? 'deep16.gameshow.' + GS.special.key + 'save.' : SAVE) + String(g || '').toUpperCase() + (n > 1 ? '.' + n : ''); }; // (a special's saves its own: THE FEAST's never CONTINUE a Third Lamp run, 11-26)
   WV.saves = function (g) {
     var out = [];
     for (var n = 1; n <= WV.SLOTS; n++) { var r = D.store.get(WV.saveKey(g, n)); if (r && r.v && r.tier) { r.slot = n; out.push(r); } }
@@ -197,8 +214,8 @@
     return out;
   }
   function* comeIn(B, S, wave) {
-    var file = [], made = [], k = 0;
-    [['west', WEST], ['east', EAST]].forEach(function (e) {
+    var file = [], made = [], k = 0, WI = G.map.def.waysIn; // (a floor's own ways in -- the Harvest Bowl's gates and its stage, data/maps.js -- else Third Lamp's two roads)
+    (WI ? Object.keys(WI).map(function (s) { return [s, WI[s]]; }) : [['west', WEST], ['east', EAST]]).forEach(function (e) {
       var kinds = wave[e[0]] || []; if (!kinds.length) return;
       // (a foe bound to its pool -- the otyugh's sheet, `bound: '~'` -- walks the road here: "out of the water", the wave's card says; Third Lamp has no pool on the road, and
       // seated there it churned in place five rounds -- 10-13, Griz: "otyugh churns in the pool in the hallway...?")
@@ -206,13 +223,13 @@
       seat(B, us, e[1]).forEach(function (u, i) {
         var from = e[1].from[i % e[1].from.length];
         u.from0 = from.slice();
-        file.push({ u: u, from: from, froms: e[1].from, to: [u.x, u.y], face: D.spr.facingFor(e[0] === 'west' ? 1 : -1, 0) }); // (froms: its own end's ways in, never the other end's -- 10-08)
+        file.push({ u: u, from: from, froms: e[1].from, to: [u.x, u.y], face: e[1].face != null ? e[1].face : D.spr.facingFor(e[0] === 'west' ? 1 : -1, 0) }); // (froms: its own end's ways in, never the other end's -- 10-08; a floor's way in names its own facing)
         made.push(u);
       });
     });
     S.foes = made;
     var first = file[0];
-    if (first) { B.focus({ x: first.from[0] + (first.from[0] ? -4 : 4), y: first.from[1], size: 1 }); D.sfx('encounter'); }
+    if (first) { B.focus({ x: first.from[0] + (WI ? 0 : first.from[0] ? -4 : 4), y: first.from[1], size: 1 }); D.sfx('encounter'); }
     B.card(['{r}' + (wave.boss ? 'BOSS: ' : '') + '{/}' + wave.card], W(420));
     if (file.length) { yield* B.walkIn(file, function (g) { if (g) B.keepInView(g.u); }); yield W(20); }
     // both ends at once: the second side's walk is the first's (walkIn takes a file in step; the camera follows the file's head)
@@ -394,7 +411,8 @@
   GS.waves = function* (B, GSx) {
     var q = GS.q || location.search;
     var num = function (k) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : null; };
-    var S = GS.run = { tier: Math.max(1, Math.min(99, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
+    var SP = WV.special();   // (a special -- THE FEAST: one tier of its own waves at the four's level, &lvl=N, its own default otherwise -- 11-26)
+    var S = GS.run = { tier: Math.max(1, Math.min(99, (SP ? num('lvl') || SP.lvl : num('tier')) || 1)), special: SP ? GS.special.key : null, wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
       ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), oldwalk: /[?&]oldwalk\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
     var RS = GS.resume; GS.resume = null;   // (CONTINUE on the title: the save it chose, js/gameshow.js)
     // the run's own group, held from its start (10-07, found loading GANGOF4's save: the save went under whatever name was stored at that wave -- the title's
@@ -407,7 +425,7 @@
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
     // the play record (10-07, Griz: "is saving the stream fights a less than 5 minute fix?"): the whole run one fight in deep16.plays, kept at each round's top
     // (js/record.js, battle.js) and as the tab goes; R on the tester ladder saves it with the rest. Never a bench's
-    if (D.rec && D.rec.start && !B.rec && !B.bench && !(B.o && B.o.bench)) D.rec.start(B, { fight: 'gameshow', name: 'The Game Show from tier ' + S.tier, level: Math.min(9, S.tier) });
+    if (D.rec && D.rec.start && !B.rec && !B.bench && !(B.o && B.o.bench)) D.rec.start(B, { fight: 'gameshow', name: SP ? 'The Game Show: ' + SP.name + ' at level ' + S.tier : 'The Game Show from tier ' + S.tier, level: Math.min(9, S.tier) });
     // the cots off the map (its `y` squares) and the bed, the floor beside the first of them
     WV.cots = []; (G.map.def.rows || []).forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (r.charAt(x) === 'y') WV.cots.push([x, y]); });
     var c0 = WV.cots[0] || G.map.def.circle.at;
@@ -422,7 +440,7 @@
     });
     if (RS) restore(B, S, RS);
     lampUp(B, S);
-    if (WV.CFG.roadLight > 0) {
+    if (WV.CFG.roadLight > 0 && !G.map.def.waysIn) { // (Third Lamp's road lamps, on its road only: a floor with its own ways in -- the Harvest Bowl -- is lit already)
       WV.CFG.roadLamps.forEach(function (p, i) { B.lights.push({ id: 'road' + i, kind: 'map', x: p[0], y: p[1], bright: 5, dim: WV.CFG.roadLight, color: 'gold', flame: false }); }); // (bright on its own square, so the lantern reads lit; dim round it)
       if (!G.map.props.some(function (pp) { return pp.kind === 'roadlamp'; })) { WV.CFG.roadLamps.forEach(function (p) { G.map.props.push(lanternProp(G.map, p)); }); G.map.sorted = null; }
       B.lightMap = null;
@@ -431,7 +449,8 @@
     while (true) {
       var waves = WV.tierWaves(S.tier);
       if (S.tier === 10 && S.wi === 0) { B.card(['{y}PAST THE NINTH.{/}  The deep keeps coming: every tier from here, more of them.'], W(360)); yield W(90); }
-      B.card(['{y}TIER ' + S.tier + '{/}  ' + waves.length + ' waves' + (S.tier >= 7 ? ', the last a boss' : '') + '.  Keep the lamp lit.'], W(360)); yield W(90);
+      if (SP) { B.card(['{y}' + SP.name + '{/}  ' + waves.length + ' waves, the last the Gallows Gobbler.  Keep the lamp lit.'], W(360)); yield W(90); }
+      else { B.card(['{y}TIER ' + S.tier + '{/}  ' + waves.length + ' waves' + (S.tier >= 7 ? ', the last a boss' : '') + '.  Keep the lamp lit.'], W(360)); yield W(90); }
       for (; S.wi < waves.length; S.wi++) {
         WV.save(B, S);   // (where the run stands as this wave begins: CONTINUE on the title starts it here)
         var wave = waves[S.wi]; S.count++;
@@ -450,6 +469,8 @@
         var xl = award(B, S, waves, S.wi);
         B.card(['{y}WAVE ' + (S.wi + 1) + ' OF ' + waves.length + ' HELD.{/}  XP: ' + xl.join(' · ')], W(420)); yield W(120);
         var last = S.wi === waves.length - 1;
+        // a special's last wave held: the run is won (js/gameshow.js GS.specialWon -- the scores, and back to the lighthouse)
+        if (SP && last) { S.won = true; S.held = S.held || 0; yield* GS.specialWon(B, { waves: S.held, tier: S.tier }); return; }
         // the lamp off the field for the rest, back after it (its hit points kept, or made whole by the long rest)
         B.units = B.units.filter(function (u) { return u !== S.lamp; });
         yield* afterWave(B, S, last ? 'long' : 'short');
@@ -482,7 +503,7 @@
     if (st.mode === 'lamp' && S.chat) lampPanel(ctx, B, S);
     var Wd = D.W, waves = WV.tierWaves(S.tier) || [], bx = WV.box(), x = bx.x, y = bx.y;
     D.win8(ctx, x, y, bx.w, bx.h);
-    D.text(ctx, 'TIER ' + S.tier + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4));
+    D.text(ctx, (S.special ? 'FEAST' : 'TIER ' + S.tier) + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4)); // (a special names itself, not a tier: THE FEAST, 11-26)
     var L = S.lamp, hp = L && B.units.indexOf(L) >= 0 ? L.hp : S.lampHP, mx = S.lampMax || 1, k = Math.max(0, Math.min(1, hp / mx));
     D.text(ctx, 'LAMP', x + 6, y + 17, P('bone', 1));
     ctx.fillStyle = P('outline', 0); ctx.fillRect(x + 36, y + 18, 60, 6);

@@ -1969,7 +1969,7 @@
     var c = D.engulf && D.engulf.cfg(h), cube = !!(c && c.kind === 'cube'), hp = unitPos(B, h), s = h.size || 1, sl = e.slot || [0, 0], ws = u.size || 1;
     var ox = sl[0] + (ws - 1) / 2 - (s - 1) / 2, oy = sl[1] + (ws - 1) / 2 - (s - 1) / 2, kq = cube ? 0.45 : 0.2; // (its square from the holder's middle, drawn closer in)
     var c0 = D.iso.center(0, 0, 0), c1 = D.iso.center(ox * kq, oy * kq, 0), p0 = D.iso.toScreen(c0.x, c0.y), p1 = D.iso.toScreen(c1.x, c1.y);
-    var bob = cube ? Math.round(2 * Math.sin(B.t / 14 + (u.id || '').length)) : 0, lift = cube ? 10 : -14; // (up off the cube's floor, drifting; down into the heap)
+    var bob = cube ? Math.round(2 * Math.sin(B.t / 14 + (u.id || '').length)) : 0, lift = cube ? 10 : c && c.kind === 'jacket' ? -18 : -14; // (up off the cube's floor, drifting; down into the heap; deeper into the Jacket Bruiser's jacket -- js/feast.js, 11-26)
     var p = { x: hp.x + p1.x - p0.x, y: hp.y + p1.y - p0.y - lift - bob, depth: hp.depth + 0.02, gz: hp.gz, inside: cube ? 'cube' : 'mound', base: hp.y + 2 };
     var tw = u.tween; if (tw && tw.dur && tw.t < tw.dur) { var q = unitPos(B, u), kk = Math.max(0, Math.min(1, tw.t / tw.dur)); p.x = q.x + (p.x - q.x) * kk; p.y = q.y + (p.y - q.y) * kk; }
     return p;
@@ -2035,7 +2035,6 @@
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
     if (u.inClaws && !u.dead && !u.left) { p = clawPos(B, u); var hCl = p.claw && B.units.filter(function (w) { return w.id === u.inClaws.by; })[0]; if (hCl) u.facing = ((hCl.facing || 0) + 4) % 8; } // (in a chuul's claws: drawn at the claw, facing it -- battle.js clawIn, 11-06)
     if (u.conds && u.conds.engulfed && !u.dead && !u.left) { var ipE = insidePos(B, u); if (ipE) p = ipE; } // (engulfed: drawn inside its holder -- insidePos, js/engulf.js, 11-25)
-    if (u.conds && u.conds.engulfed && u.conds.engulfed.kind === 'jacket' && !u.dead && !u.left) return null; // (folded inside the Jacket Bruiser: not seen -- the art desk's "Hide the captive after closure"; js/feast.js, 11-26)
     if (D.constructs && !u.left) { var wpC = D.constructs.wrapPos(B, u, p); if (wpC) p = wpC; } // (the rug of smothering set over onto the one it wraps, drawn after them -- js/constructs.js, 11-26)
     if (u.kind === 'keeper' && u.dead && B.t - (u.deadT || B.t) > 50) return null; // (a destroyed Keeper is gone from the water: only calm waves stay, js/keeper.js)
     if (u.left) return null; // out of the fight, the way they came in
@@ -2187,7 +2186,8 @@
           if (wet.sink) for (var bi = 0; bi < 3; bi++) { var bp = ((B.t + bi * 17) % 40) / 40; ctx.fillStyle = 'rgba(200,225,245,' + (0.7 * (1 - bp)).toFixed(2) + ')'; ctx.fillRect(Math.round(p.x - 4 + bi * 4 + Math.sin((B.t + bi * 9) / 5) * 1.5), Math.round(wl - bp * 14), 1 + (bi % 2), 1 + (bi % 2)); } // (the breath going up)
         } else if (p.inside === 'mound') { // (inside the shambling mound: sunk into the heap to the chest -- nothing drawn under its foot line -- and its vines over it: js/engulf.js, 11-25)
           ctx.save(); ctx.beginPath(); ctx.rect(p.x - 80, p.y - 240, 160, p.base - (p.y - 240)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, p.y, body); ctx.restore();
-          if (D.engulf) D.engulf.drawVines(ctx, B, u, p, 1);
+          var eK = u.conds.engulfed && u.conds.engulfed.kind; // (the Jacket Bruiser's: its jacket's flaps over the one inside, not vines -- Griz, 11-26: "if the visuals on the potato engulf were more like the gelatinous cube/shambling mound we just did - where you can see the fella inside"; js/feast.js)
+          if (eK === 'jacket' && D.feast && D.feast.drawJacket) D.feast.drawJacket(ctx, B, u, p, 1); else if (D.engulf) D.engulf.drawVines(ctx, B, u, p, 1);
         } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x + (lift && u.liftX ? u.liftX : 0), p.y - lift, body); // (u.liftX: one carried rides to the side, at the shoulder -- the inn's kept child, js/inn.js BY.shoulder, 11-18)
         // ?footprint: the Keeper's mechanical squares (what the grid, the ice and the area spells ask), their centre, and its water line, over the drawing (Griz 10-03: check the 2x2 against the ring)
         if (D.footprintDebug && u.kind === 'keeper' && !u.dead) {

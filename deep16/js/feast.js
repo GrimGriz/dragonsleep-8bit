@@ -9,8 +9,8 @@
    * FOLD IN: "The bruiser can replace the second punch with Fold In if it has a creature grappled" -- the second punch of its turn is the Fold In when it holds one
      grappled (the attack wrapper below): the held one goes inside its split jacket, js/engulf.js's ENGULFED with the block's `engulf` (kind 'jacket'): blinded,
      restrained, total cover from everything outside it, 2d6 fire at the start of each of the bruiser's turns, out by its action (STR (Athletics) or DEX (Acrobatics)
-     against DC 14, the grapple's escape), one at a time. Its `hold` row is its idle while one is inside; the one inside is not drawn ("Hide the captive after
-     closure", the art desk) -- js/ui.js unitObj.
+     against DC 14, the grapple's escape), one at a time. Its `hold` row is its idle while one is inside; the one inside is SEEN, sunk into it as the mound's,
+     the jacket's flaps drawn over it (F.drawJacket; Griz, 11-26: "where you can see the fella inside" -- over the art desk's "Hide the captive after closure").
    * SPLIT JACKET: "The first time the baked form reaches 0 HP, its skin bursts" -- the blow's excess lost, the captive set down beside it (engulf.js E.free), and in its
      square the mash at full hit points, its block's `split` (AC 11, 52 HP, speed 20, two Steaming Chunks at range); its initiative, its conditions and what it has
      spent this turn kept. It plays its `split` row, then wears jacketbruiser_p2. The XP is the block's once, when the mash falls (the baked never dies: TR.refuse).
@@ -217,6 +217,31 @@
       } });
     };
   }
+
+  // ================================================================== the one inside the jacket, seen (Griz, 11-26: "if the visuals on the potato engulf were more like the gelatinous
+  // cube/shambling mound we just did - where you can see the fella inside" -- over the art desk's "Hide the captive after closure"): js/ui.js draws the one inside sunk into
+  // the bruiser as the mound's (insidePos, a little deeper), and this draws its jacket's two russet flaps closed round it from the sides, breathing, and a wisp of steam
+  F.drawJacket = function (ctx, B, u, p, k) {
+    var top = D.spr.unitTop(u) * (k || 1), x = p.x, y = p.y, h = top * 0.56, br = Math.sin(B.t / 12 + (u.id || '').length) * 1.5;
+    var R = function (r, i) { return D.PAL.ramps[r][i]; };
+    ctx.save(); ctx.lineJoin = 'round';
+    [-1, 1].forEach(function (sd) {
+      var ox = sd * (18 + br), ix = sd * (3 - br * 0.4);
+      ctx.beginPath(); ctx.moveTo(x + ox, y + 3);
+      ctx.quadraticCurveTo(x + sd * (22 + br), y - h * 0.62, x + ix, y - h);       // the flap's outer curve up to its lip
+      ctx.lineTo(x + ix - sd * 2, y - h * 0.52);
+      ctx.quadraticCurveTo(x + sd * 9, y - h * 0.12, x + sd * 12, y + 3);          // its inner edge back down
+      ctx.closePath();
+      ctx.fillStyle = R('leather', 2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = R('outline', 0); ctx.stroke();
+      ctx.fillStyle = R('leather', 3); ctx.fillRect(Math.round(x + sd * 13) - 1, Math.round(y - h * 0.55), 2, 2); ctx.fillRect(Math.round(x + sd * 15) - 1, Math.round(y - h * 0.25), 2, 2); // (the peel's eyes)
+      ctx.strokeStyle = R('stone', 7); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + ix - sd * 1, y - h + 2); ctx.lineTo(x + ix - sd * 2, y - h * 0.56); ctx.stroke(); // (the mash showing at the lip)
+    });
+    for (var i = 0; i < 2; i++) { // a wisp of steam off the top
+      var ph = ((B.t + i * 23) % 46) / 46, sx = x - 4 + i * 8 + Math.sin((B.t + i * 11) / 7) * 2, sy = y - h - 6 - ph * 16;
+      ctx.globalAlpha = 0.55 * (1 - ph); ctx.fillStyle = R('silver', 5); ctx.fillRect(Math.round(sx), Math.round(sy), 2, 3);
+    }
+    ctx.restore();
+  };
 
   // ================================================================== the sauce's floor (js/looks.js draws a ground whose record is `sauce` with this tile when it has come)
   F.SAUCE = 'art/cranberrysauce_tile.png';

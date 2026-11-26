@@ -26595,8 +26595,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       drainF(BJ.attack(JB, CJ, JB.attacks.punch)); sJ.off(); var eJ = FJ.conds.engulfed;
       okF('J1 the first punch grapples the fighter (grappled only ' + !!(g1 && g1.only) + ', DC ' + (g1 && g1.dc) + '); the second is the FOLD IN on the held one, not a punch at the cleric (' + (eJ ? 'ENGULFED ' + eJ.kind : 'not inside') + ', blinded ' + !!FJ.conds.blinded + ', the cleric ' + CJ.hp + '/200) -- "' + (sJ.s.filter(function (l) { return /closes its jacket/.test(l); })[0] || '').slice(0, 90) + '"',
         !!(g1 && g1.only && g1.dc === 14) && !!(eJ && eJ.kind === 'jacket') && !!FJ.conds.blinded && CJ.hp === 200 && JB.engulfing);
-      okF('J2 inside: not drawn (' + (D.ui && D.ui.unitObj ? (D.ui.unitObj(BJ, FJ) === null ? 'hidden' : 'DRAWN') : '-') + '), no line from the cleric to it (' + (D.engulf.sealedFrom(CJ, FJ) ? 'sealed' : 'OPEN') + ')',
-        (!D.ui || !D.ui.unitObj || D.ui.unitObj(BJ, FJ) === null) && D.engulf.sealedFrom(CJ, FJ));
+      // (seen inside, his "where you can see the fella inside", 11-26: drawn sunk into the bruiser as the mound's one is, at its middle, after it -- js/ui.js insidePos; the flaps js/feast.js)
+      var ipJ = D.ui && D.ui.insidePos ? D.ui.insidePos(BJ, FJ) : null, pJB = D.ui && D.ui.unitPos ? D.ui.unitPos(BJ, JB) : null, obJ = D.ui && D.ui.unitObj ? D.ui.unitObj(BJ, FJ) : null;
+      okF('J2 inside: drawn, sunk into the bruiser (' + (ipJ ? ipJ.inside + ', ' + Math.round(ipJ.y - pJB.y) + ' px under its foot line, drawn after it ' + (ipJ.depth > pJB.depth) : 'NOT PLACED') + ', a figure ' + !!obJ + ', the flaps ' + !!(D.feast && D.feast.drawJacket) + '), no line from the cleric to it (' + (D.engulf.sealedFrom(CJ, FJ) ? 'sealed' : 'OPEN') + ')',
+        !!ipJ && ipJ.inside === 'mound' && ipJ.y > pJB.y && ipJ.depth > pJB.depth && !!obJ && !!(D.feast && D.feast.drawJacket) && D.engulf.sealedFrom(CJ, FJ));
+      if (get('shots', '')) { // (&shots=1: the real draw of the one inside the jacket, the seat's own eyes -- the constructs bench's way)
+        try { var cvJ = document.createElement('canvas'); cvJ.width = 480; cvJ.height = 270; BJ.units.forEach(function (u) { delete u.tween; }); JB.anim = 'idle'; JB.animT = BJ.t; BJ.focus(JB); D.iso.zoom = 2; BJ.t += 20; D.ui.drawBattle(cvJ.getContext('2d'), BJ); (repF.shots = repF.shots || {}).jacket = cvJ.toDataURL('image/png'); } catch (eS) { repF.notes.push('shot: ' + eS); }
+      }
       var hJ = FJ.hp; pinF(10, 4); drainF(D.engulf.turnStart(BJ, JB)); D.d = d0F;
       okF('J3 the bake at its turn\'s start: 2d6 fire (pinned 4s: 8) -- ' + hJ + ' to ' + FJ.hp, hJ - FJ.hp === 8);
       BJ.active = FJ; D.rules.startTurn(FJ); pinF(20, 4); var sJ2 = saidF(BJ); drainF(D.magic.breakFree(BJ, FJ)); sJ2.off(); D.d = d0F;
@@ -35801,6 +35806,63 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // AI, the rests taken by themselves, no supplies (those are his clicks) -- till the lamp goes out or `cap` frames; &seed=N. Per wave: the tier and wave, its rounds,
   // the four's hit points and downs as it ended, the lamp's; the run's end (lamp or wipe); what each Mascot did (the log's specials, blows, casts, dashes); what the
   // foes did besides strike (Dash, Disengage, Hide); the attack rolls taken through cover; the play record's size at the end. &grep=<re> returns the lines behind a count
+  // THE FEAST AS A SHOW, 11-26 (mode=gsfeast1126 &lvl=N &seed=S; the Thanksgiving seat, on Griz's "an intro from the lighthouse would be good, and if waves gameshow style with the
+  // chest were possible, that'd be ideal" and "2 - do a small bench run"): the special run whole on &auto from the Bowl's arrival -- js/waves.js WV.SPECIALS.feast through the
+  // Harvest Bowl's gates, the lamp, the chest and the cots between, the four at level N on their class AI -- each wave's end (the rounds, the four's hit points, who is down,
+  // the lamp) and the run's: won on the Gobbler, or the lamp out or the wipe. Not in the gate (a minute a run); its checks are the run's shape
+  if (get('mode', '') === 'gsfeast1126') {
+    var repFS = { seed: +get('seed', 1126), lvl: +get('lvl', 5), waves: [], end: null, frames: 0, errors: [], checks: [] };
+    if (!D.ctx) { var cvFS = document.createElement('canvas'); cvFS.width = D.W; cvFS.height = D.H; D.ctx = cvFS.getContext('2d'); D.R = D.R || 1; }
+    var clockFS = 1000, memFS = {}, stGFS = D.store.get, stSFS = D.store.set;
+    D.store.get = function (k) { return memFS[k] ? JSON.parse(memFS[k]) : null; }; D.store.set = function (k, v) { memFS[k] = JSON.stringify(v); return true; };
+    var GSF = D.gameshow, capFS = +get('cap', 200000);
+    try {
+      D.seed = repFS.seed;
+      var qFS = '?gameshow&feast&at=bowl&fast&auto&lvl=' + repFS.lvl;
+      GSF.make(qFS); GSF.q = qFS; GSF.run = null;
+      repFS.checks.push((GSF.special && GSF.special.key === 'feast' ? 'ok   ' : 'FAIL ') + 'the special set by &feast (' + (GSF.special && GSF.special.key) + ')');
+      var BFS = D.npcFight('?npc=goblin&vs=denny:' + repFS.lvl + ',beholda:' + repFS.lvl + ',rascal:' + repFS.lvl + ',goose:' + repFS.lvl + '&map=harvestbowl&lvl=' + repFS.lvl, {});
+      var enFS = BFS.enter;
+      BFS.enter = function () {
+        enFS.apply(this, arguments);
+        var cs = [[19, 23], [23, 23], [19, 27], [23, 27]];
+        this.units = this.units.filter(function (u) { return u.side === 'party'; });
+        this.units.forEach(function (u, i) { u.x = cs[i][0]; u.y = cs[i][1]; });
+        D.grid.setup(D.grid.map, this.units); this.order = []; this.active = null; this.req = null;
+        this.gs = { clicks: [], fade: 0, mode: 'fight' }; this.cine = false;
+        this.co = GSF.waves(this, GSF);
+      };
+      D.scenes.length = 0; D.lastError = null; D.push(BFS);
+      var fourFS = function () { return BFS.units.filter(function (u) { return u.mpmon; }); };
+      var atFS = null, foughtFS = false, fF, sidesFS = {};
+      var snapFS = function (S) {
+        var fu = (S.party && S.party.length ? S.party : fourFS()), hp = 0, mx = 0, dn = 0;
+        fu.forEach(function (u) { hp += Math.max(0, u.hp); mx += u.maxhp; if (u.hp <= 0 || u.ko || u.dead) dn++; });
+        var L = S.lamp;
+        return { wave: S.wi + 1, rounds: BFS.round, hp: hp + '/' + mx, down: dn, lamp: (L ? Math.max(0, L.hp) : S.lampHP) + '/' + S.lampMax, lvl: fu.length ? fu[0].lvl : null };
+      };
+      for (fF = 0; fF < capFS; fF++) {
+        clockFS += 17; D.loopStep(clockFS);
+        var SF = GSF.run, mdF = BFS.gs && BFS.gs.mode;
+        if (D.lastError) { if (repFS.errors.length < 5) repFS.errors.push(String(D.lastError.stack || D.lastError).slice(0, 400)); D.lastError = null; }
+        if (!SF) continue;
+        (SF.foes || []).forEach(function (u) { if (BFS.units.indexOf(u) >= 0) sidesFS[u.gsSide + ':' + u.kind] = 1; });
+        var upF = (SF.foes || []).filter(function (u) { return BFS.units.indexOf(u) >= 0 && u.hp > 0; }).length;
+        if (upF && BFS.order.length) { foughtFS = true; atFS = snapFS(SF); }
+        if (foughtFS && (!upF || mdF === 'end' || mdF === 'gameover' || mdF === 'scores')) { repFS.waves.push(atFS); foughtFS = false; }
+        if (mdF === 'end' || mdF === 'gameover' || mdF === 'scores') { repFS.end = { how: SF.won ? 'won' : SF.lamp && SF.lamp.hp <= 0 ? 'lamp' : 'wipe', wave: SF.wi + 1, held: SF.held, frames: fF }; break; }
+      }
+      repFS.frames = fF;
+      var SE = GSF.run;
+      repFS.checks.push((SE && SE.special === 'feast' && SE.tier === repFS.lvl ? 'ok   ' : 'FAIL ') + 'the run is THE FEAST at level ' + (SE && SE.tier) + ' (want ' + repFS.lvl + ')');
+      repFS.checks.push((Object.keys(sidesFS).sort().join() === 'east:jacketbruiser,stage:gallowsgobbler,west:cranberrycan' || !repFS.end || repFS.end.how !== 'won' ? 'ok   ' : 'FAIL ') + 'the foes came in by the Bowl\'s ways: ' + Object.keys(sidesFS).sort().join(', '));
+      repFS.checks.push((repFS.end ? 'ok   ' : 'FAIL ') + 'the run ended (' + (repFS.end ? repFS.end.how + ' at wave ' + repFS.end.wave + ', ' + repFS.end.held + ' held' : 'NOT in ' + fF + ' frames') + ')');
+    } catch (eFS) { repFS.errors.push(String(eFS && eFS.stack || eFS).slice(0, 900)); }
+    D.store.get = stGFS; D.store.set = stSFS;
+    var preFS = document.createElement('pre'); preFS.id = 'out'; preFS.textContent = 'BENCH16 ' + JSON.stringify(repFS);
+    document.body.appendChild(preFS);
+    return;
+  }
   if (get('mode', '') === 'gsrun1007') {
     var repR = { seed: +get('seed', 1007), waves: [], end: null, frames: 0, did: {}, foes: {}, cover: { half: 0, three: 0, rolls: 0 }, recBytes: 0, recSteps: 0, errors: [] };
     if (!D.ctx) { var cvR0 = document.createElement('canvas'); cvR0.width = D.W; cvR0.height = D.H; D.ctx = cvR0.getContext('2d'); D.R = D.R || 1; }

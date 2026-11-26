@@ -1690,6 +1690,16 @@ window.D16.MAPS.harvestbowl = {
   step: 10, ground: 'sand', noBurrow: '=',
   roofs: { O: { h: 7.5, wall: 'red', roof: 'stone' } }, // the ovens
   circle: { at: [21, 25], sheet: 'zodiacwheel_p1', sign: 'sagittarius' },
+  // THE FEAST's furniture (11-26, the game show's Thanksgiving special -- js/gameshow.js GS.bowl, js/waves.js WV.SPECIALS.feast; Griz: "if waves gameshow style with the chest
+  // were possible, that'd be ideal"): the lamp tower behind the circle at the Bowl's south end (the foes' target, as Third Lamp's), the supply chest beside it, three cots by the
+  // south-west wall for the rests (his cot sheet); the ways in -- the west gate by the pantry, the east gate by the ovens (a Large one steps in just inside it: the gate is one
+  // square wide), the gallows stage, where the Gobbler is found standing. The seat's calls, his to overrule: every square of it
+  tower: [21, 30], chest: [22, 30], cots: { sheet: 'gsbed_p1' },
+  waysIn: {
+    west: { from: [[1, 15], [1, 16]], at: [7, 18], face: 7 },
+    east: { from: [[39, 15], [39, 16]], at: [35, 18], face: 1 },
+    stage: { from: [[20, 4]], at: [20, 4], face: 1 }
+  },
   heights: [
     '0000000000000000000000000000000000000000000',
     '0000000000000000000000000000000000000000000',
@@ -1755,7 +1765,7 @@ window.D16.MAPS.harvestbowl = {
     '###b.............=========.............b###',
     '###bb.......T.....=======.....T.......bb###',
     '####bbb...........=======...........bbb####',
-    '######bb............===............bb######',
+    '######bb....y.y.y...===............bb######',
     '########bbbb...................bbbb########',
     '###########bbbbbbbbbbbbbbbbbbbbb###########',
     '###########################################'
