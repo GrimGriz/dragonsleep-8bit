@@ -222,15 +222,17 @@
   // cube/shambling mound we just did - where you can see the fella inside" -- over the art desk's "Hide the captive after closure"): js/ui.js draws the one inside sunk into
   // the bruiser as the mound's (insidePos, a little deeper), and this draws its jacket's two russet flaps closed round it from the sides, breathing, and a wisp of steam
   F.drawJacket = function (ctx, B, u, p, k) {
-    var top = D.spr.unitTop(u) * (k || 1), x = p.x, y = p.y, h = top * 0.56, br = Math.sin(B.t / 12 + (u.id || '').length) * 1.5;
+    // (from the bruiser's own foot line, p.base -- the one inside is drawn sunk below it and clipped there -- up over the lower two thirds of what shows of it)
+    var top = D.spr.unitTop(u) * (k || 1), x = p.x, yb = (p.base != null ? p.base - 2 : p.y), seen = Math.max(14, top - (p.y - yb)), y = yb - 3, h = seen * 0.5, br = Math.sin(B.t / 12 + (u.id || '').length) * 1.5;
     var R = function (r, i) { return D.PAL.ramps[r][i]; };
     ctx.save(); ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.rect(x - 60, yb - 200, 120, 200); ctx.clip();
     [-1, 1].forEach(function (sd) {
-      var ox = sd * (18 + br), ix = sd * (3 - br * 0.4);
+      var ox = sd * (19 + br), ix = sd * (10 - br * 0.4); // (the lips held apart: the one inside shows between them -- his "where you can see the fella inside")
       ctx.beginPath(); ctx.moveTo(x + ox, y + 3);
       ctx.quadraticCurveTo(x + sd * (22 + br), y - h * 0.62, x + ix, y - h);       // the flap's outer curve up to its lip
       ctx.lineTo(x + ix - sd * 2, y - h * 0.52);
-      ctx.quadraticCurveTo(x + sd * 9, y - h * 0.12, x + sd * 12, y + 3);          // its inner edge back down
+      ctx.quadraticCurveTo(x + sd * 13, y - h * 0.12, x + sd * 15, y + 3);         // its inner edge back down
       ctx.closePath();
       ctx.fillStyle = R('leather', 2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = R('outline', 0); ctx.stroke();
       ctx.fillStyle = R('leather', 3); ctx.fillRect(Math.round(x + sd * 13) - 1, Math.round(y - h * 0.55), 2, 2); ctx.fillRect(Math.round(x + sd * 15) - 1, Math.round(y - h * 0.25), 2, 2); // (the peel's eyes)
