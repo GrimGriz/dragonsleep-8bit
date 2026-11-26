@@ -26281,6 +26281,75 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         tabK.push(resL + ' R' + BL.round + (wL ? ' ' + wL + ' wrap' + (wL > 1 ? 's' : '') : '')); wrapsK += wL; if (!rugL) fieldK = false; if (resL !== 'won' && resL !== 'lost') endK = false;
       }
       okK('P3 that table fought at the DM\'s level 3 (four, the class AI on both sides), six seeds: ' + tabK.join(', ') + ' -- the rug fielded in each ' + fieldK + ', every one ended ' + endK + ', its Smother took hold ' + wrapsK + ' times', fieldK && endK && wrapsK > 0);
+      // --- THE SHIELD GUARDIAN (data/foes.js shieldguardian, js/constructs.js, tools/shieldguardian-sheet.py)
+      var SG = D.FOES.shieldguardian, SS = SG && D.SHEETS[SG.sheet], aG = SS && SS.anims, fG = SG && SG.attacks.fist;
+      okK('G1 the SRD 5.1 Shield Guardian (' + (SG ? 'AC ' + SG.ac + ', ' + SG.hp + ' HP, ' + SG.type + ', size ' + SG.size + ', speed ' + SG.speed + ', CR ' + SG.cr + '; two Fists +' + fG.atk + ' ' + fG.dice + '+' + fG.mod + '; immune ' + SG.immune.join(', ') + '; ' + JSON.stringify(SG.guardian) : 'NONE') + ')',
+        !!SG && SG.ac === 17 && SG.hp === 142 && SG.type === 'construct' && SG.size === 2 && SG.speed === 30 && SG.cr === '7' && SG.blindsight === 10 && SG.darkvision === 60 && fG.atk === 7 && fG.dice === '2d6' && fG.mod === 4 &&
+        SG.multi.join() === 'fist,fist' && SG.immune.join() === 'poison' && SG.condImmune.length === 5 && SG.guardian.regen === 10 && SG.guardian.bound === 60 && SG.guardian.shield === 2 && SG.guardian.store === 4);
+      var wantG = { idle: 6, walk: 8, fist: 6, fist2: 6, shield: 6, bound: 4, regenerate: 6, storedcast: 6, flinch: 4, hurt: 6, prone: 1 };
+      var offG = Object.keys(wantG).filter(function (k) { return !aG || !aG[k] || aG[k].frames !== wantG[k]; });
+      okK('G2 its sheet (' + (SG && SG.sheet) + '): ' + Object.keys(wantG).length + ' rows at their counts, both Fists, the Shield and the Stored Cast on frame 4' + (offG.length ? ' -- off: ' + offG.join(', ') : ''),
+        !!SS && !offG.length && aG.fist.release === 3 && aG.fist2.release === 3 && aG.shield.release === 3 && aG.storedcast.release === 3);
+      var BG = D.npcFight('?npc=shieldguardian,cleric:5&vs=fighter:5,rogue:5,wizard:5&lvl=5', {}); D.battle = BG; BG.enter(); kR = 0; while (!BG.order.length && kR++ < 400) BG.co.next(); BG.dark = false;
+      var GU = BG.units.filter(function (u) { return u.kind === 'shieldguardian'; })[0], CLf = BG.units.filter(function (u) { return u.side === 'foe' && u !== GU; })[0], pG = BG.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
+      var FG = pG.filter(function (u) { return /fighter/i.test(u.cls || ''); })[0], atG = openK(BG);
+      GU.x = atG[0] + 3; GU.y = atG[1] + 2; CLf.x = GU.x + 2; CLf.y = GU.y; FG.x = CLf.x + 1; FG.y = CLf.y + 1; pG.filter(function (u) { return u !== FG; }).forEach(function (u, i) { u.x = atG[0] + i; u.y = atG[1] + 6; });
+      D.grid.setup(D.grid.map, BG.units); [GU, CLf, FG].forEach(function (w) { w.hp = w.maxhp = Math.max(w.maxhp, 200); });
+      var wr0 = CK.wearer(BG, GU), st0 = GU.stored;
+      okK('G3 its amulet on the strongest other of its side, a caster first: ' + (wr0 ? wr0.name : 'NO ONE') + ' (a caster ' + CK.caster(CLf) + '); stored ' + (st0 ? st0.name + ' at L' + st0.slot + ', +' + st0.mod : 'nothing') + ' (the cleric\'s own healing, its best slot to 4th)',
+        wr0 === CLf && !!st0 && st0.id === 'curewounds' && st0.slot === 3);
+      // the Shield: +2 as the attack is made, the reaction spent; a second attack that round meets none; out of 5 ft, none
+      var acC = D.rules.ac(CLf), atkF = { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 };
+      GU.reaction = 1; BG.active = FG; D.rules.startTurn(FG); var natS = acC - atkF.atk; pinK(natS, 3); var sS = saidK(BG), hpS = CLf.hp;
+      drainK(BG.attack(FG, CLf, atkF)); var lS = sS.s.filter(function (l) { return /> /.test(l) && /d20/.test(l); }).pop() || ''; var hpS1 = CLf.hp;
+      drainK(BG.attack(FG, CLf, atkF)); sS.off(); D.d = d0K; var hpS2 = CLf.hp;
+      okK('G4 SHIELD: d20 ' + natS + ' +' + atkF.atk + ' = AC ' + acC + ' exactly -- with the guardian beside the cleric "' + lS.replace(/^.*vs/, 'vs').slice(0, 70) + '" (' + hpS + ' to ' + hpS1 + '), its reaction ' + GU.reaction + '; the same again that round lands (' + hpS1 + ' to ' + hpS2 + ')',
+        /guardian's shield/.test(lS) && /MISS/.test(lS) && hpS1 === hpS && GU.reaction === 0 && hpS2 < hpS1);
+      GU.reaction = 1; GU.x = CLf.x - 3; D.grid.setup(D.grid.map, BG.units); pinK(natS, 3); var hpT = CLf.hp; drainK(BG.attack(FG, CLf, atkF)); D.d = d0K;
+      okK('G5 the guardian off beyond 5 ft (' + D.grid.dist(GU, CLf) + ' ft): no Shield, the same roll lands (' + hpT + ' to ' + CLf.hp + '), its reaction kept ' + GU.reaction, CLf.hp < hpT && GU.reaction === 1);
+      // Bound: half the wearer's damage, rounded up, to the guardian within 60 ft
+      var bd = function (n, type) { var a = CLf.hp, b = GU.hp; BG.hurt(CLf, n, type, {}); return [a - CLf.hp, b - GU.hp]; };
+      var b9 = bd(9, 'slashing'), b10 = bd(10, 'slashing'), bp = bd(9, 'poison');
+      GU.x = CLf.x - 14; D.grid.setup(D.grid.map, BG.units); var bfar = bd(9, 'slashing'); GU.x = CLf.x - 1; D.grid.setup(D.grid.map, BG.units);
+      okK('G6 BOUND within 60 ft: 9 slashing -- the cleric ' + b9[0] + ', the guardian ' + b9[1] + ' (4 and 5); 10 -- ' + b10.join(' and ') + '; 9 poison -- the cleric ' + bp[0] + ', the guardian ' + bp[1] + ' (immune: its half lost); 70 ft off -- ' + bfar.join(' and ') + ' (9 and 0)',
+        b9[0] === 4 && b9[1] === 5 && b10[0] === 5 && b10[1] === 5 && bp[1] === 0 && bp[0] <= 4 && bfar[0] === 9 && bfar[1] === 0);
+      // Regeneration: 10 at its turn's start from 1 HP, none at 0, never past its maximum
+      GU.hp = 100; drainK(CK.turnStart(BG, GU)); var r1 = GU.hp; GU.hp = GU.maxhp - 3; drainK(CK.turnStart(BG, GU)); var r2 = GU.hp; GU.hp = 0; drainK(CK.turnStart(BG, GU)); var r3 = GU.hp; GU.hp = GU.maxhp;
+      okK('G7 REGENERATION at its turn\'s start: 100 to ' + r1 + '; 3 short of ' + GU.maxhp + ' to ' + r2 + '; at 0 ' + r3, r1 === 110 && r2 === GU.maxhp && r3 === 0);
+      // Spell Storing: the cleric at half, the guardian beside it casts the stored Cure Wounds (3d8 + mod, pinned 4s), once
+      CLf.hp = Math.floor(CLf.maxhp / 2); var hpW0 = CLf.hp; pinK(10, 4); D.d = (function (d1) { return function (n) { return n === 8 ? 4 : d1.apply(this, arguments); }; })(D.d);
+      drainK(CK.afterTurn(BG)); var hpW1 = CLf.hp; drainK(CK.afterTurn(BG)); var hpW2 = CLf.hp; D.d = d0K;
+      okK('G8 SPELL STORING: the cleric at half (' + hpW0 + ' of ' + CLf.maxhp + ') -- the stored Cure Wounds L3, 3d8 at 4s +' + (st0 && st0.mod) + ': ' + hpW0 + ' to ' + hpW1 + '; cast once (' + hpW2 + ', stored now ' + (GU.stored ? GU.stored.id : 'nothing') + ')',
+        !!st0 && hpW1 - hpW0 === 12 + st0.mod && hpW2 === hpW1 && !GU.stored);
+      // its turn: to its wearer's side, then its two Fists at what is in reach
+      GU.x = CLf.x - 5; GU.y = CLf.y + 3; FG.x = CLf.x; FG.y = CLf.y - 2; D.grid.setup(D.grid.map, BG.units); GU.woken = true;
+      var nG = (BG.log || []).length; BG.active = GU; drainK(D.ai.turn(BG, GU)); var lgG = (BG.log || []).slice(nG).join(' | ');
+      okK('G9 its turn 25 ft from the cleric: it ends ' + D.grid.dist(GU, CLf) + ' ft from it (want 5)' + (/Fist/.test(lgG) ? ', its Fists at ' + ((lgG.match(/Fist/g) || []).length) + ' blows' : ''), D.grid.dist(GU, CLf) <= 5);
+      // alone it wears nothing: no Shield, no Bound
+      var BG2 = D.npcFight('?npc=shieldguardian&vs=fighter:5&lvl=5', {}); D.battle = BG2; BG2.enter(); kR = 0; while (!BG2.order.length && kR++ < 400) BG2.co.next();
+      var GU2 = BG2.units.filter(function (u) { return u.kind === 'shieldguardian'; })[0];
+      okK('G10 alone, no one wears its amulet: wearer ' + CK.wearer(BG2, GU2) + ', nothing stored ' + !GU2.stored, CK.wearer(BG2, GU2) === null && !GU2.stored);
+      // the stores: on the shelf at CR 7, bought, bound, onto a CR 7 table and fought at the DM's level 3
+      var shelfG = PDk.shelf(shopK);
+      var pkG = new D.Pocket(); pkG.enter(); pkG.ask = function () { return true; }; pkG.say = function () { }; pkG.st.dm = true; var cpG = PDk.camp(pkG.st); cpG.bought = []; cpG.units = []; cpG.purse = PDk.START;
+      var buyG = PDk.buy(pkG.st, 'shieldguardian'), unG = buyG.ok ? PDk.bind(pkG.st, [buyG.receipt.id]) : null, fillG = PDk.fill(pkG, 'hexfloor', 56);
+      okK('P4 on the ' + shopK.name + ' shelf (' + (shelfG.indexOf('shieldguardian') >= 0) + ') at CR 7: ' + PDk.fmt(PDk.price('shieldguardian')) + '; bought (the purse ' + PDk.fmt(cpG.purse) + '), bound, and a CR 7 table takes it first: ' + fillG.foes.join(', '),
+        shelfG.indexOf('shieldguardian') >= 0 && PDk.price('shieldguardian') === 7000 && buyG.ok && cpG.purse === PDk.START - 7000 && !!unG && fillG.mine === 1 && fillG.foes[0] === 'shieldguardian');
+      var tabG = [], fieldG = true, endG = true;
+      for (var sG6 = 0; sG6 < 4; sG6++) {
+        D.seed = 1126 * 7919 + 7 + sG6 * 101; var BLG = D.npcFight('?npc=' + fillG.foes.join(',') + '&vs=fighter:3,cleric:3,rogue:3,wizard:3&lvl=3&map=hexfloor&watch', {}); D.battle = BLG; BLG.enter();
+        var resG = drive(BLG), gL = BLG.units.filter(function (u) { return u.kind === 'shieldguardian'; })[0];
+        tabG.push(resG + ' R' + BLG.round + (gL ? ' (' + Math.max(0, gL.hp) + ' HP left)' : '')); if (!gL) fieldG = false; if (resG !== 'won' && resG !== 'lost') endG = false;
+      }
+      okK('P5 that CR 7 table at the DM\'s level 3 (four, the class AI on both sides), four seeds: ' + tabG.join(', ') + ' -- fielded ' + fieldG + ', every one ended ' + endG, fieldG && endG);
+      // its watched fight with a cleric wearing the amulet (the eyes row's door): the seeds where its Shield and Bound come, for the door
+      var seedsG = [];
+      for (var sW = 1; sW <= 12 && seedsG.length < 3; sW++) {
+        D.seed = sW * 1000 + 126; var BW = D.npcFight('?npc=shieldguardian,cleric:5&vs=fighter:3,cleric:3,rogue:3,wizard:3&lvl=3&watch', {}); D.battle = BW; BW.enter();
+        var resW = drive(BW), lgW = (BW.log || []).join(' | '), shW = (lgW.match(/guardian's shield/g) || []).length, bdW = (lgW.match(/\(Bound: half/g) || []).length, scW = /STORED CURE WOUNDS/.test(lgW);
+        if (shW && bdW) seedsG.push(sW * 1000 + 126 + ': ' + resW + ' R' + BW.round + ', Shield ' + shW + ', Bound ' + bdW + (scW ? ', the stored Cure Wounds' : ''));
+      }
+      okK('G11 its watched fight beside a cleric at the DM\'s level 3, the seeds where its Shield and Bound both come: ' + (seedsG.join('; ') || 'NONE'), seedsG.length > 0);
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.d = d0K;
     var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);

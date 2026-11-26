@@ -1,0 +1,115 @@
+{
+ "image": "art/shieldguardian_p1.png",
+ "fw": 76,
+ "fh": 81,
+ "ax": 38,
+ "ay": 75,
+ "top": 68,
+ "name": "Shield Guardian",
+ "source": "drawn by the art desk (ART-172 SHIELD-GUARDIAN-CUTTER-HANDOFF, 11-25: five views of eleven actions; its identity, SE Idle, SE Fist L, Fist R and Shield approved by Griz), cut by tools/shieldguardian-sheet.py (11-26, cutter-1126-constructs): each view's Idle to 70 px, each strip by its frame 1, standing frames on their feet; SW W NW mirrored",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 76,
+   "fh": 81,
+   "ax": 38,
+   "ay": 75,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 648,
+   "fw": 76,
+   "fh": 81,
+   "ax": 38,
+   "ay": 75,
+   "frames": 8,
+   "fps": 8
+  },
+  "fist": {
+   "y": 1296,
+   "fw": 84,
+   "fh": 81,
+   "ax": 42,
+   "ay": 75,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "fist2": {
+   "y": 1944,
+   "fw": 88,
+   "fh": 81,
+   "ax": 44,
+   "ay": 75,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "shield": {
+   "y": 2592,
+   "fw": 92,
+   "fh": 81,
+   "ax": 46,
+   "ay": 75,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "bound": {
+   "y": 3240,
+   "fw": 90,
+   "fh": 81,
+   "ax": 45,
+   "ay": 75,
+   "frames": 4,
+   "fps": 10
+  },
+  "regenerate": {
+   "y": 3888,
+   "fw": 84,
+   "fh": 81,
+   "ax": 42,
+   "ay": 75,
+   "frames": 6,
+   "fps": 8
+  },
+  "storedcast": {
+   "y": 4536,
+   "fw": 92,
+   "fh": 81,
+   "ax": 46,
+   "ay": 75,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 5184,
+   "fw": 88,
+   "fh": 81,
+   "ax": 44,
+   "ay": 75,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 5832,
+   "fw": 112,
+   "fh": 81,
+   "ax": 56,
+   "ay": 75,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 6480,
+   "fw": 112,
+   "fh": 81,
+   "ax": 56,
+   "ay": 75,
+   "frames": 1,
+   "fps": 4
+  }
+ }
+}
