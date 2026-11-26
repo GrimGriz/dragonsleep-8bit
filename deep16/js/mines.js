@@ -1480,6 +1480,47 @@
   if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam', sheet: 'pt_edric' }; // (his face at his own counter: ART-123-EDRIC, 10-29)
   // EDRIC'S SHELF (RULED 11-22, the Warrens lane's townsfolk-claims item 1, his "Is Edric supposed to sell something, never saw a shelf.."): after his book -- the first
   // booking, the five, the book closed, as ever first -- the Tally-House's greeting and THE SHELVES / LEAVE: the House's draught at a silver (content/shops.json tally)
+  // THE MINE-HEAD KITCHEN FEEDS CREW (RULED 11-22, the Warrens lane's townsfolk-claims item 3, his "Warrens Kitchen - 'you ain't crew' and then 'workers meal?' - +1 hp and
+  // probably that edric draught i just asked you about", then "Warrens kitchen - 'ever did a shift' flag, not shift recently dependent"): its door on the mouth camp (keeper:kitchen)
+  // a counter of its own -- "you ain't crew" till a shift at the pens has ever been worked (f.shifts, never reset); after, at morning and dusk A WORKERS' MEAL, once a
+  // sitting (+1 hit point to each one standing), and THE DRAUGHT any time, the Tally-House's shelf. The words the seat's drafts (invented.json warrens-kitchen-1126)
+  M.KITCHEN = { notCrew: '"You ain\'t crew." The cook doesn\'t look up from the pot. "Crew eats. Work a shift at the pens, and then you\'re crew."', crew: '"Crew. Sit down." The mine-head kitchen feeds the dose-paid crews, morning and dusk; no coin touches that food. The House\'s draught is a silver at the board.', off: '"Pot\'s on at morning and dusk." He nods at the board on the wall. "The House\'s draught\'s a silver, if you want one."', fed: '"You\'ve eaten." He doesn\'t look up. "Next pot\'s the next bell."', meal: 'A bowl each, thick with barley and whatever came over the bridge this week. Every one of you is the better for it: +1 hit point.' };
+  M.kitchenSitting = function (B) { var H = D.hours; if (!H || !H.phaseOf || !H.hourNow) return null; var ph = H.phaseOf(H.hourNow(D.roam.q, B)); return ph === 'early' || ph === 'dusk' ? H.day() + ':' + ph : null; };
+  if (D.counter && D.counter.VENDORS && D.counter.SCRIPTS) {
+    D.counter.VENDORS.kitchen = { name: 'The mine-head kitchen', script: 'kitchen' };
+    D.counter.SCRIPTS.kitchen = function* (sc, B) {
+      var st = sc.st, f = st.flags; if (!f.shifts) { yield sc.say([M.KITCHEN.notCrew], 'skeptical'); return; }
+      for (;;) {
+        var sit = M.kitchenSitting(B), open = !!sit && f.kitchenMeal !== sit, opts = (open ? ['A WORKERS\' MEAL'] : []).concat(['THE DRAUGHT', 'LEAVE']);
+        var a = yield sc.ask([sit ? (open ? M.KITCHEN.crew : M.KITCHEN.fed) : M.KITCHEN.off], opts, 'welcoming'), pick = opts[a];
+        if (pick === 'THE DRAUGHT') { yield sc.shelves('tally'); continue; }
+        if (pick !== 'A WORKERS\' MEAL') return;
+        f.kitchenMeal = sit; var R0 = B && B.roam, eat = R0 && R0.members ? R0.members.filter(function (u) { return u.src && !u.dead && u.hp > 0; }) : [];
+        eat.forEach(function (u) { u.hp = Math.min(u.maxhp, u.hp + 1); u.src.hp = u.hp; }); D.sfx('heal'); if (D.hours && D.hours.took) D.hours.took(sc, 'meal');
+        yield sc.say([M.KITCHEN.meal], 'welcoming');
+      }
+    };
+  }
+  // THE MOUTHS' BANDITS COME FOR A LAMP (RULED 11-22, the Warrens lane's townsfolk-claims item 4, his "r-mouths (increase bandit random encounter in 1 & 6 when party is carrying
+  // lamp - including ones that use a pop-up and say that 'crew in the dark' occasional we already have"): the rumour "Keep your lamp out of Mouths One and Six after dark" made
+  // true -- on the abandoned workings, the floor through Mouths One and Six (content/maps/warrens_a.json's warps at 3,3 and 33,3; content/encounters.json warrens_c), the night
+  // crew's group (the robbers and their boss, the one that may slip away: w.nightcrewGone) weighs M.MOUTH_LAMP times as much while any of the party carries a light that is lit.
+  // MORE SNAKES ON NED'S PAGE (RULED 11-22, the Warrens lane's playthrough item 3, his "let's up the snake % on random encounters when you have the ned's page journal pinned (by
+  // 15% or so)"): the Glowseep's tables by day and by night, Ned's Page pinned -- the snakes' share up by M.SNAKE_PIN (fifteen points: about 15% to 30% by day, 10% to 25% by night)
+  M.MOUTH_LAMP = 3; M.SNAKE_PIN = 0.15;
+  M.partyLit = function () { var B = D.battle, R0 = B && B.roam; return !!(R0 && R0.members && R0.members.some(function (u) { return !u.dead && u.hp > 0 && u.torch && u.torch.lit !== false; })); };
+  M.weighFor = function (zone, flags, groups) {
+    if (zone === 'warrens_c' && M.partyLit()) return groups.map(function (g) { return g.e.some(function (e) { return e[0] === 'robber'; }) ? Object.assign({}, g, { w: (g.w || 1) * M.MOUTH_LAMP }) : g; });
+    if (/^glowseep/.test(zone) && flags && flags.pin === 'nedpage') {
+      var sn = function (g) { return g.e.some(function (e) { return e[0] === 'snake'; }); }, ok = groups.filter(function (g) { return D.roam.cond(g.cond, flags) && (!g.night || zone !== 'glowseep_day'); });
+      var tot = 0, ws = 0; ok.forEach(function (g) { tot += g.w || 1; if (sn(g)) ws += g.w || 1; }); if (!ws || ws >= tot) return groups;
+      var s1 = Math.min(0.95, ws / tot + M.SNAKE_PIN), k = s1 * (tot - ws) / (1 - s1) / ws;
+      return groups.map(function (g) { return sn(g) ? Object.assign({}, g, { w: (g.w || 1) * k }) : g; });
+    }
+    return groups;
+  };
+  var pick0 = D.roam.pick;
+  D.roam.pick = function (zone, flags) { var E = window.DS.DATA.encounters, Z = E && E[zone]; if (!Z) return pick0.apply(this, arguments); var gs = M.weighFor(zone, flags, Z.groups); if (gs === Z.groups) return pick0.apply(this, arguments); E[zone] = Object.assign({}, Z, { groups: gs }); try { return pick0.apply(this, arguments); } finally { E[zone] = Z; } };
   var edricScene0 = M.SCENES.edric;
   M.SCENES.edric = function* (sc, B) { yield* edricScene0(sc, B); var sh = DS.DATA.shops && DS.DATA.shops.tally; if (!sh || typeof sc.shelves !== 'function') return; while ((yield sc.ask([sh.greeting], ['THE SHELVES', 'LEAVE'], 'welcoming')) === 0) yield sc.shelves('tally'); };
 })();

@@ -115,14 +115,6 @@
 "y": 11,
 "look": "worker",
 "dir": "up"
-},
-{
-"id": "hobB",
-"x": 3,
-"y": 16,
-"look": "oldhand",
-"dir": "right",
-"cond": "flag:hobMet & !flag:fiveDone"
 }
 ],
 "warps": [
