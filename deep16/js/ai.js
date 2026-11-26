@@ -1501,8 +1501,6 @@
     if (u.whelm && (u.holding || []).length) { yield* drown(B, u); if ((u.holding || []).some(function (w) { return G.standing(w); })) T.move = 0; } // (gripReach: a grip it has keeps its own reach, whatever it has left to throw -- 10-02)
     // the rug of smothering wrapped round one (SRD 5.1 Smother: "the rug can't smother another target" -- and it has no other action): it stays, holding (js/constructs.js, 11-26)
     if (D.constructs && D.constructs.smothering(u)) { T.move = 0; return; }
-    // the shield guardian with an amulet's wearer up (js/constructs.js C.guard, 11-26): to the wearer's side first, and from there it strikes what is in its reach
-    if (D.constructs && D.constructs.gcfg(u) && T.action) { yield* D.constructs.guard(B, u); if (u.dead || u.hp <= 0) return; }
     // riding the one it holds (the darkmantle attached, battle.js mount; SRD 5.1: "can attack no other creature except the target", its speed 0, it moves with
     // the target): no step of its own -- it squeezes the one it rides
     if (u.riding && u.attached) {

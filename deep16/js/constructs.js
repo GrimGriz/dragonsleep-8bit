@@ -2,9 +2,9 @@
    two for the Pocket DM stores"): what the grid did not carry of the rug of smothering (srd/monsters/a.md, Animated Objects) and the shield guardian (srd/monsters/s.md).
    Both are Pocket DM additions, unmet in the story till it needs them (the 11-15 precedent); data/foes.js rugofsmothering, shieldguardian.
 
-   THE SHIELD GUARDIAN (its section below): Regeneration at its turn's start; Bound, half its amulet's wearer's damage rounded up to it within 60 ft (battle.js hurt);
-   Shield, its reaction, +2 to the wearer's AC as an attack is made at it, within 5 ft (battle.js attack); Spell Storing, one spell to 4th level cast on the wearer's
-   trigger at a turn's end (battle.js's turn loop); the amulet's wearer, the stored spell and its keeping beside the wearer are the seat's leans, his to rule.
+   THE SHIELD GUARDIAN, A BRUTE (RULED 2026-11-26, Griz to the lanes desk: "cutter can leave it a brute, the rest is grid seat stuff if all the animations are wired"):
+   its Regeneration here, at its turn's start; its two Fists the engine's Multiattack. Its amulet's parts -- Bound, the Shield reaction, Spell Storing -- wait for a grid
+   seat; its sheet carries their rows already (`shield`, `bound`, `storedcast`), cut and named, for that seat to hook.
 
    THE RUG OF SMOTHERING. Smother (SRD 5.1: "Melee Weapon Attack: +5 to hit, reach 5 ft., one Medium or smaller creature. Hit: The creature is grappled (escape DC 13).
    Until this grapple ends, the target is restrained, blinded, and at risk of suffocating, and the rug can't smother another target. In addition, at the start of each of
@@ -96,99 +96,10 @@
     }
   };
 
-  // ------------------------------------------------------------------ THE SHIELD GUARDIAN (srd/monsters/s.md; data/foes.js shieldguardian `guardian`)
+  // ------------------------------------------------------------------ THE SHIELD GUARDIAN, A BRUTE (srd/monsters/s.md; data/foes.js shieldguardian `guardian`)
   C.gcfg = function (u) { var d = u && !u.object && u.kind && D.FOES && D.FOES[u.kind]; return (d && d.guardian) || null; };
-  C.caster = function (w) { return !!(w && ((w.known && w.known.length) || (w.slots && w.slots.some(function (n) { return n > 0; })))); };
-  var cr8Of = function (w) {
-    var d = w.kind && D.FOES && D.FOES[w.kind], PK = D.pocket;
-    if (d && d.cr != null && PK) return PK.cr8(d.cr);
-    if (w.lvl && PK && PK.levelCR) return PK.cr8(PK.levelCR(w.lvl));
-    return 0;
-  };
-  // THE AMULET'S WEARER (a lean, his to rule -- the seat's report, question 1): the guardian's own side's strongest other creature when the fight asks first, a spellcaster
-  // before any other (only a caster can store a spell in it), then by CR (a class NPC by its level's, js/pocket.js PK.levelCR); never another guardian, a familiar, a summons
-  // or an object. Alone, no one wears it: no Shield, no Bound, nothing stored -- a brute that regenerates. Kept on the guardian (g.amuletOn, the wearer's id, or false); a
-  // fallen wearer's amulet is worn by no one after (SRD 5.1 says nothing of a new wearer in a fight)
-  C.pickWearer = function (B, g) {
-    var cs = (B.units || []).filter(function (w) { return w !== g && w.side === g.side && !w.object && !w.familiar && !w.summon && !w.look && !w.bystander && !C.gcfg(w) && !w.dead; });
-    cs.sort(function (a, b) { return (C.caster(b) - C.caster(a)) || (cr8Of(b) - cr8Of(a)) || (B.units.indexOf(a) - B.units.indexOf(b)); });
-    return cs.length ? cs[0].id : false;
-  };
-  C.wearer = function (B, g) {
-    if (!B || !C.gcfg(g)) return null;
-    if (g.amuletOn === undefined) { g.amuletOn = C.pickWearer(B, g); C.store(B, g); }
-    var w = g.amuletOn ? unitOf(B, g.amuletOn) : null;
-    return w && !w.dead && !w.left ? w : null;
-  };
-  // SHIELD (its reaction): +2 to the wearer's AC against an attack made at it, the guardian within 5 ft and able to act -- spent as the attack is made (battle.js attack)
-  C.shieldFor = function (B, att, tgt) {
-    if (!B || !att || !tgt || att === tgt || !B.units) return 0;
-    for (var i = 0; i < B.units.length; i++) {
-      var g = B.units[i], gc = C.gcfg(g);
-      if (!gc || !gc.shield || g === att || !G.standing(g) || !(g.reaction > 0) || !RU.canAct(g) || C.wearer(B, g) !== tgt || G.dist(g, tgt) > 5) continue;
-      g.reaction = 0;
-      if (D.spr.anim(g.sheet, 'shield')) { g.anim = 'shield'; g.animT = B.t; g.facing = B.faceTo ? B.faceTo(g, att) : g.facing; }
-      FX().ring(tgt, 'silver', 26); D.sfx('bump');
-      return gc.shield;
-    }
-    return 0;
-  };
-  // BOUND: half the wearer's damage, rounded up, to the guardian within 60 ft (battle.js hurt, once the wearer's own resistances have had it) -- the wearer keeps the rest
-  C.bound = function (B, u, n, type, src) {
-    if (!B || !(n > 0) || !B.units || (src && src.boundFrom)) return n;
-    for (var i = 0; i < B.units.length; i++) {
-      var g = B.units[i], gc = C.gcfg(g);
-      if (!gc || !gc.bound || g === u || g.dead || !(g.hp > 0) || C.wearer(B, g) !== u || G.dist(g, u) > gc.bound) continue;
-      var pass = Math.ceil(n / 2);
-      if (D.spr.anim(g.sheet, 'bound') && RU.canAct(g)) { g.anim = 'bound'; g.animT = B.t; }
-      FX().float('bound', g, D.PAL.ramps.gold[4]);
-      if (src && src.blow) src.blow.bound = (src.blow.bound || 0) + pass;
-      B.card(['{g}' + Battle.nm(g, true) + ' takes ' + pass + ' of the ' + n + ' for ' + Battle.nm(u) + ' (Bound: half, rounded up).{/}'], 200);
-      B.hurt(g, pass, type, { boundFrom: u.id, magic: !!(src && src.magic) });
-      return n - pass;
-    }
-    return n;
-  };
-  // SPELL STORING (a lean, his to rule -- the seat's report, question 2): a caster wearing the amulet came with one spell stored in it, cast on the guardian before the
-  // fight at its best slot up to 4th -- its own Cure Wounds, else its Healing Word, the healing on its list the grid's caster knows; none on its list, nothing stored. The
-  // situation it named: the wearer at half its hit points or under (and above 0), at the end of a turn -- the guardian casts it on the wearer, no components, no action of
-  // its own, with the original caster's numbers (the dice by the slot it was stored at, the wearer's casting modifier: js/magic.js M.mod); Cure Wounds a touch, so the
-  // guardian beside it, Healing Word within 60 ft. Cast, it is gone (SRD 5.1: "When the spell is cast or a new spell is stored, any previously stored spell is lost")
-  C.STORE = [['curewounds', 'Cure Wounds', 'd8', 5], ['healingword', 'Healing Word', 'd4', 60]];
-  C.store = function (B, g) {
-    var w = g.amuletOn ? unitOf(B, g.amuletOn) : null, gc = C.gcfg(g); g.stored = null;
-    if (!w || !gc || !gc.store || !C.caster(w)) return null;
-    var top = 0; (w.slots || []).forEach(function (n, i) { if (n > 0 || (w.slotsMax && w.slotsMax[i] > 0)) top = i + 1; }); top = Math.min(gc.store, Math.max(1, top || 1));
-    for (var i = 0; i < C.STORE.length; i++) { var s = C.STORE[i]; if ((w.known || []).indexOf(s[0]) >= 0) { g.stored = { id: s[0], name: s[1], die: s[2], reach: s[3], slot: top, by: w.id, mod: D.magic && D.magic.mod ? D.magic.mod(w) : 0 }; break; } }
-    return g.stored;
-  };
-  C.afterTurn = function* (B) {
-    var gs = (B.units || []).filter(function (g) { return C.gcfg(g) && g.stored && G.standing(g) && RU.canAct(g); });
-    for (var i = 0; i < gs.length; i++) {
-      var g = gs[i], st = g.stored, w = C.wearer(B, g);
-      if (!w || !(w.hp > 0) || w.hp > w.maxhp / 2 || G.dist(g, w) > st.reach) continue;
-      g.stored = null; // (cast: gone)
-      if (D.spr.anim(g.sheet, 'storedcast')) { g.anim = 'storedcast'; g.animT = B.t; g.facing = B.faceTo ? B.faceTo(g, w) : g.facing; }
-      yield Math.max(10, Math.round((D.spr.duration(g.sheet, 'storedcast') || 18) * 0.55));
-      var dice = st.slot + st.die, r = RU.damage(dice, st.mod, {}), hp0 = w.hp; B.heal(w, r.total);
-      FX().sparkle(w, 'gold', 16); D.sfx('buff');
-      B.card(['{y}' + Battle.nm(g, true) + '{/}: the STORED ' + st.name.toUpperCase() + ' (L' + st.slot + '), on ' + Battle.nm(w) + ' at half its hit points:  ' + dice + RU.sign(st.mod) + ' ' + RU.fmtRolls(r.rolls) + RU.sign(st.mod) + ' = {n}+' + (w.hp - hp0) + '{/}  {g}(Spell Storing: the trigger ' + Battle.nm(w) + ' set; gone once cast){/}'], 360);
-      yield 30; if (g.anim === 'storedcast') g.anim = 'idle';
-    }
-  };
-  // its turn (ai.js brute): its wearer up and more than 5 ft off, it goes to the wearer's side first, by the nearest free square beside it (the telepathic call --
-  // SRD 5.1: "the guardian knows the distance and direction to the amulet"); beside it, it walks no farther and strikes what is in its reach (a lean, his to rule -- question 3)
-  C.guard = function* (B, g) {
-    var w = C.wearer(B, g), T = g.turn; if (!w || !T) return false;
-    if (G.dist(g, w) > 5 && T.move > 0 && !g.conds.restrained && !g.conds.grappled) {
-      var rm = G.reach(g, T.move), best = null, bl = Infinity;
-      Object.keys(rm).forEach(function (k) { var c = rm[k]; if (!c.stand || G.dist(g, w, c.x, c.y) > 5) return; var len = c.prev ? G.path(rm, c.x, c.y).length : 0; if (len < bl) { bl = len; best = c; } });
-      if (!best) { var far = null, fd = Infinity; Object.keys(rm).forEach(function (k) { var c = rm[k]; if (!c.stand) return; var d = G.dist(g, w, c.x, c.y); if (d < fd) { fd = d; far = c; } }); best = far; }
-      if (best && best.prev) { yield* B.moveAlong(g, G.path(rm, best.x, best.y), { spend: true }); g.anim = 'idle'; }
-    }
-    if (G.dist(g, w) <= 5) T.move = 0;
-    return true;
-  };
+  // (its Regeneration: C.turnStart above. Bound, the Shield reaction and Spell Storing wait for a grid seat -- his ruling of 11-26, the head of this file; the rows
+  // `shield`, `bound` and `storedcast` are on its sheet, cut and named, for that seat)
 
   // ------------------------------------------------------------------ THE RUG: the look
   var FPS = function (sheet, row) { var a = D.spr.anim(sheet, row); return a ? a.fps || 8 : 8; };

@@ -1162,16 +1162,17 @@
   },
   // THE SHIELD GUARDIAN (2026-11-26, the cutter seat cutter-1126-constructs, on the same word): the SRD 5.1 Shield Guardian (srd/monsters/s.md), its sheet
   // tools/shieldguardian-sheet.py (the art desk's ART-172). A Pocket DM addition, unmet in the story, IN NO FIGHT, ON NO TABLE -- on the ABERRATIONS, OOZES, ETC. shelf at CR 7.
-  // Its Multiattack the two Fists (`fist`, then the numbered `fist2`, js/battle.js); `guardian`: Regeneration's 10 a turn, Bound's 60 ft, Shield's +2 within 5 ft, Spell
-  // Storing to 4th level -- js/constructs.js, its amulet's wearer and the stored spell the seat's leans (his to rule)
+  // Its Multiattack the two Fists (`fist`, then the numbered `fist2`, js/battle.js); `guardian`: Regeneration's 10 a turn (js/constructs.js). A BRUTE (RULED 11-26, Griz to
+  // the lanes desk: "cutter can leave it a brute, the rest is grid seat stuff if all the animations are wired"): Bound, the Shield reaction and Spell Storing wait for a
+  // grid seat, their rows already on its sheet (`bound`, `shield`, `storedcast`)
   shieldguardian: {
     name: 'Shield Guardian', type: 'construct', sheet: 'shieldguardian_p1', cr: '7', ac: 17, armor: 'natural armor', hp: 142, speed: 30, size: 2, reach: 5, blindsight: 10, darkvision: 60,
     abil: { str: 18, dex: 8, con: 18, int: 7, wis: 10, cha: 3 }, init: -1, perception: 10,
     saves: { str: 4, dex: -1, con: 4, int: -2, wis: 0, cha: -4 },
     attacks: { fist: { name: 'Fist', atk: 7, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 5 } },
     multi: ['fist', 'fist'], immune: ['poison'], condImmune: ['charmed', 'exhaustion', 'frightened', 'paralyzed', 'poisoned'],
-    guardian: { regen: 10, bound: 60, shield: 2, store: 4 },
-    src: 'SRD 5.1 Shield Guardian (CR 7, 2,900 XP, Large construct; AC 17 natural armor, 142 HP (15d10+60), speed 30; STR 18 DEX 8 CON 18 INT 7 WIS 10 CHA 3; blindsight 10, darkvision 60, passive Perception 10): Multiattack, two Fists +7 2d6+4 bludgeoning; immune to poison, and charmed, exhaustion, frightened, paralyzed, poisoned. Regeneration (10 at the start of its turn from 1 HP up); Bound (half the amulet\'s wearer\'s damage, rounded up, to it within 60 ft); Shield (its reaction: +2 to the wearer\'s AC against an attack, within 5 ft); Spell Storing (one spell to 4th level, cast by it on the wearer\'s trigger) -- js/constructs.js. The amulet\'s wearer the strongest other on its side, a caster first; the stored spell the wearer\'s own healing at its best slot to 4th, cast at half its hit points; it keeps beside the wearer (the seat\'s leans, his to rule). Its language (understands commands, cannot speak) and the telepathic call beyond the fight not given'
+    guardian: { regen: 10 },
+    src: 'SRD 5.1 Shield Guardian (CR 7, 2,900 XP, Large construct; AC 17 natural armor, 142 HP (15d10+60), speed 30; STR 18 DEX 8 CON 18 INT 7 WIS 10 CHA 3; blindsight 10, darkvision 60, passive Perception 10): Multiattack, two Fists +7 2d6+4 bludgeoning; immune to poison, and charmed, exhaustion, frightened, paralyzed, poisoned; Regeneration (10 at the start of its turn from 1 HP up, js/constructs.js). A brute on his word (11-26): its amulet -- Bound, the Shield reaction, Spell Storing -- not given yet, a grid seat\'s; nor its language (understands commands, cannot speak)'
   },
   // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
   // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet

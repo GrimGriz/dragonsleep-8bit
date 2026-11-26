@@ -125,8 +125,8 @@
   // (nor Willem's `traces`, the wagon night's harness alone, played while u.traces holds there -- js/ai.js traces, js/ui.js; nor Torvald's `sitdown`, which no fight plays
   // yet -- a yielder sits on its `sit` row, js/battle.js Battle.sitYielded, and the sit-down waits for a hook of its own, the story build lane's 11-21: the gallery,
   // ?rows=willemglass_p2 and ?rows=torvald_p2, plays both -- 11-25, the seat module-1125, on the desk's "fix them")
-  // (nor the shield guardian's `shield`, `bound` and `storedcast`, which play only for an amulet's wearer -- a show's creature fights alone, its kind on no side but its own:
-  // js/constructs.js, 11-26, the cutter seat cutter-1126-constructs; its eyes row's watched fight with its cleric plays them, and the gallery, ?rows=shieldguardian)
+  // (nor the shield guardian's `shield`, `bound` and `storedcast`, which nothing plays yet -- its amulet waits for a grid seat, RULED 11-26, Griz: "cutter can leave it a
+  // brute, the rest is grid seat stuff if all the animations are wired"; the cutter seat cutter-1126-constructs. The gallery, ?rows=shieldguardian, plays all three)
   var WEARERS = { shield: 1, bound: 1, storedcast: 1 };
   SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift, gd = kind && D.FOES[kind] && D.FOES[kind].guardian; return SH.rowsOf(sheet).filter(function (r) { return !(gd && WEARERS[r]) && !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && r !== 'pikerank' && r !== 'push' && r !== 'traces' && r !== 'sitdown' && !(r === 'shift' && !shf) && !(r === 'sit' && !(kind && D.FOES[kind] && D.FOES[kind].yields)) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?

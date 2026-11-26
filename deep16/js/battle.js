@@ -1091,7 +1091,6 @@
         this.noteSeen(); // (what each one sees of its enemies at this turn's end: where an AI that sees no one goes to look, lastSeenOf)
         if (D.traits && D.traits.legendary && !this.over()) yield* D.traits.legendary(this, u); // (at the end of another creature's turn: a legendary action -- js/traits.js, 10-08)
         if (D.traits && D.traits.afterTurn && !this.over()) yield* D.traits.afterTurn(this, u); // (the mirror hyenas' laugh at a fall, the fear scale's turn-end save, the Harbinger's double -- js/traits.js, 10-08)
-        if (D.constructs && !this.over()) yield* D.constructs.afterTurn(this, u); // (the shield guardian's stored spell, its wearer at half: js/constructs.js, 11-26)
         if (this.readyArmed()) yield* this.readyAfter({ turnOf: u }); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
@@ -2820,9 +2819,6 @@
     if (att.conds.covered && !atk.save) { e.dis.push('covered'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; delete att.conds.covered; }
     var madAC = tgt.hunterDef === 'multiattack' && tgt.madHit && tgt.madHit[att.id] === this.round + ':' + (this.active ? this.active.id : '-') ? 4 : 0;
     ac += madAC;
-    // THE SHIELD GUARDIAN'S SHIELD (SRD 5.1, its reaction: "When a creature makes an attack against the wearer of the guardian's amulet, the guardian grants a +2 bonus to the
-    // wearer's AC if the guardian is within 5 feet of the wearer"): taken as the attack is made, before the roll, while it has its reaction -- js/constructs.js, 11-26
-    var gdAC = D.constructs ? D.constructs.shieldFor(this, att, tgt) : 0; ac += gdAC;
     // Fighting Style: Protection (SRD 5.1: "When a creature you can see attacks a target other than you that is within 5 feet of you, you can use
     // your reaction to impose disadvantage on the attack roll. You must be wielding a shield." -- 10-06, the Pocket DM's maker picks it)
     if (!atk.save && e.net >= 0) {
@@ -2899,7 +2895,7 @@
       || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical (the SRD's Assassin, a foe; the Cutthroat's Opening Cut that did the same gave way to Stab Debut, 10-29)
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
     var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (atk.twin === true /* (a TWIN STRIKE blow; a foe's `twin: 'spear'` names its other attack -- data/foes.js the gnoll, 11-12, his record: "Thrown Spear (twin strike: a swing and the bonus)") */ ? ' {c}(twin strike: ' + (atk.twinPay === 'swings' ? 'two swings' : 'a swing and the bonus') + '){/}' : '') + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + (gdAC ? ' {c}+' + gdAC + ' the guardian\'s shield{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '') + ((r2 || r).lucky ? '  {y}lucky: a 1 rolled again{/}' : ''); // (the halfling's Lucky, rules.js RU.d20 -- 11-14)
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
     // the +5 turns the blow; one run by the AI never asks)
@@ -3817,9 +3813,6 @@
       var bondBy = this.units.filter(function (w) { return w.id === ward.wardingBond.by && !w.dead && w.hp > 0; })[0];
       if (bondBy && bondBy !== u && n > 0) { FX.float('bond', bondBy, D.PAL.ramps.gold[4]); this.hurt(bondBy, n, 'bond'); if (bondBy.hp <= 0) delete ward.wardingBond; }
     }
-    // THE SHIELD GUARDIAN'S BOUND (SRD 5.1: "If the guardian is within 60 feet of the amulet's wearer, half of any damage the wearer takes (rounded up) is transferred to the
-    // guardian"): the wearer keeps the half rounded down -- js/constructs.js, 11-26
-    if (n > 0 && D.constructs) n = D.constructs.bound(this, u, n, type, src);
     // concentration reads the damage taken, temporary hit points and a beast's shape included (SRD 5.1: "Whenever you take damage while you
     // are concentrating"; the DC "half the damage you take") -- one save a blow: the rest a reverted druid carries into their own shape
     // comes back `carried` and rolls none (10-03, the review: a temp-HP soak and Wild Shape both returned before the save)
