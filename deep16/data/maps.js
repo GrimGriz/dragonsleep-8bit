@@ -1661,3 +1661,106 @@ window.D16.MAPS.lighthouse = {
   foes: [],
   wave: null
 };
+
+// The Harvest Bowl, the Lobstamonkees' Thanksgiving special (11-26, Griz: "Special Thanksgiving LobstaMonkee Fight (as they exist in the gameshow)",
+// then "We'll need you to design a large arenic map for the battle"). The foes are the art desk's three (his table, 11-26): JACKET-BRUISER, a baked
+// potato that grapples and folds its jacket round a captive and bursts into the mash at 0 (CR 4); GALLOWS-GOBBLER, a Huge mutant turkey, 3 x 3
+// squares, a gobble that frightens within 30 ft and a rake for each foot (CR 5); CRANBERRY-CAN, tipping to pour a 10 ft square of sauce as grease
+// and snapping its lid to fire one whole cranberry (CR 1/2). A bowl of raked sand (`ground: 'sand'`, the Hex's), 39 squares across and 29 deep
+// inside a ring wall of built stone, squarer than an oval -- 1010 open squares (Third Lamp Station 606, the Wet 554), room for the Huge to strut
+// and for the cans to shoot across. A station for each foe across the north half, the party's way in at the south:
+//   the gallows stage, north (x 18-24, y 3-7): a timber platform 5 ft up (`o` at height 2), a step two squares deep round three sides (height 1,
+//     walked without a climb; two deep, as a Huge body straddles one step of height and no more -- js/grid.js) -- the Gobbler's perch, its three-wide gate in the ring wall behind it (20-22, 1) (no gallows rail: a rail, a block, draws at the
+//     floor's foot and would sink under the stage -- iso.js buildProps);
+//   the ovens, east (35-36, 6-7 and 10-11): two brick ovens 7.5 ft tall (`O`, a town's `roofs` block: red brick under a stone top, the band a
+//     house's windows take reading as the oven's mouth -- iso.js roofCanvas; solid to the rules, as a wall), the potato sacks by the wall
+//     (38, 8-9) -- the Jacket-Bruiser's; the east gate (41, 15-16);
+//   the pantry, west (6-10, 5): a rack of shelves, crates by the wall (4, 8-9) -- the cans' larder; the west gate (1, 15-16);
+//   the feast tables across the middle (y 15): four lengths of counter (half cover, in the way), two-square gaps between each pair for one body,
+//     the nine-square lane in the centre where the Huge goes through, three squares free at each end;
+//   hay bales for cover in the field; the harvest wagon south-east; two trees flanking the circle;
+//   the circle, south (21, 25): his zodiac wheel five across, flush in a disc of dressed stone, at Sagittarius (the sign of late November) -- the
+//     Lobstamonkees pop out of it as they do at Third Lamp (js/gameshow.js), onto the four corners of its square.
+// Lit (no `dark`): a show under the sky. The sand digs (a burrower goes under it); the dressed disc does not (`noBurrow: '='`). Invented, the seat's:
+// the name, the stations, every square. A first draft for his eye: the size, the stations and the tables are each one number in the generator
+// (the seat's scratchpad arena_gen.py, carried in the lane's 2026-11-26 section).
+window.D16.MAPS.harvestbowl = {
+  name: 'The Harvest Bowl',
+  sub: 'the Lobstamonkees\' Thanksgiving special',
+  step: 10, ground: 'sand', noBurrow: '=',
+  roofs: { O: { h: 7.5, wall: 'red', roof: 'stone' } }, // the ovens
+  circle: { at: [21, 25], sheet: 'zodiacwheel_p1', sign: 'sagittarius' },
+  heights: [
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000112222222110000000000000000',
+    '0000000000000000112222222110000000000000000',
+    '0000000000000000112222222110000000000000000',
+    '0000000000000000112222222110000000000000000',
+    '0000000000000000112222222110000000000000000',
+    '0000000000000000111111111110000000000000000',
+    '0000000000000000111111111110000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000'
+  ],
+  rows: [
+    '###########################################',
+    '###########bbbbbbbbbdddbbbbbbbbb###########',
+    '########bbbb...................bbbb########',
+    '######bb........ooooooooooo........bb######',
+    '####bbb.........ooooooooooo.........bbb####',
+    '###bb.SSSSS.....ooooooooooo...........bb###',
+    '###b............ooooooooooo........OO..b###',
+    '##bb............ooooooooooo........OO..bb##',
+    '##b.k...........ooooooooooo...........k.b##',
+    '#bb.k...........ooooooooooo...........k.bb#',
+    '#b............k.............k......OO....b#',
+    '#b.................................OO....b#',
+    '#b.......................................b#',
+    '#b.......................................b#',
+    '#b.......................................b#',
+    '#d...KKKKK..KKKKK.........KKKKK..KKKKK...d#',
+    '#d.......................................d#',
+    '#b.......................................b#',
+    '#b.......................................b#',
+    '#b...........kk.............kk...........b#',
+    '#b.......................................b#',
+    '#b..................===..................b#',
+    '#b.......kk.......=======......VWWW......b#',
+    '#bb......k........=======......VWWW.....bb#',
+    '##b..............=========..............b##',
+    '##bb.............=========.............bb##',
+    '###b.............=========.............b###',
+    '###bb.......T.....=======.....T.......bb###',
+    '####bbb...........=======...........bbb####',
+    '######bb............===............bb######',
+    '########bbbb...................bbbb########',
+    '###########bbbbbbbbbbbbbbbbbbbbb###########',
+    '###########################################'
+  ],
+  entry: [[19, 23], [23, 23], [19, 27], [23, 27], [21, 28]], // round the circle: the four corners of its square, and its south edge
+  foes: [],
+  wave: null
+};
