@@ -49,7 +49,7 @@
         rest: { short: true } },
       { name: 'Savine\'s wagon', map: 'dominionroad', foes: ['patrolladyfiend'],
         intro: 'The patrol\'s wagon, its cell empty, and Savine\'s lady: her patron is the Fiend.',
-        // (the lady alone, standing for his overrule: with her mender, a party worn by the two squads lost this fight twenty times running on the bench -- her Fireball and a
+        // (the lady alone, RULED 11-26, Griz: "1 - leans": with her mender, a party worn by the two squads lost this fight twenty times running on the bench -- her Fireball and a
         // 3rd-level Hellish Rebuke in round one; the mender rides with the other two ladies, fights 6 and 7)
         runes: [{ foes: ['patrolladyfiend'], at: [9, 2], post: 'defend', to: [9, 2], r: 20, fw: [0, 1] }],
         rest: { long: true, market: true } },
@@ -61,7 +61,7 @@
         rest: { short: true } },
       { name: 'The bugbear ambush', map: 'breach', foes: ['bugbearchief', 'bugbear'],
         intro: 'The breach in the dark, and two in it you will not see unless you look.',
-        // (his own BUGBEAR AMBUSH's fight 1, the chief and three; for four at 3rd the chief and one -- the seat's "one fewer if the bench says so": with two, 7 of 12 tries lost)
+        // (his own BUGBEAR AMBUSH's fight 1, the chief and three; for four at 3rd the chief and one -- the seat's "one fewer if the bench says so": with two, 7 of 12 tries lost; RULED 11-26, "1 - leans")
         runes: [{ foes: ['bugbearchief', 'bugbear'], at: [6, 9], post: 'ambush' }],
         rest: { long: true, market: true } },
       { name: 'The Old One\'s wagon', map: 'northroad', foes: ['patrolladymirror', 'mender'],
