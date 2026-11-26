@@ -906,7 +906,7 @@
     ['HIDEOUS LAUGHTER', '?npc=hyena,hyena,hyena&vs=bard&lvl=3', 'a bard against three hyenas: cast it yourself'],
     ['SEVEN FAMILIARS', '?npc=clacker,goblin,goblin&vs=wizard,wizard,wizard,wizard,wizard,wizard,wizard&fam=owl,snowyowl,bat,rat,spider,frog,snake&lvl=5&dark', 'seven wizards, one of each familiar, in the dark'],
     ['THE CLACKERS', '?npc=clacker,clacker&lvl=4', 'two clackers against our four at 4th'],
-    ['THE COCOON GALLERY', './', 'two drow captains and a phase spider'],
+    ['THE COCOON GALLERY', '?fight=gallery', 'two drow captains and a phase spider'], // (by its id since 11-26: ./ is the second game's title, STORY REALM GAME above)
     ['THE GATE', '?gate', 'the stop-and-look gate'],
     ['THE CAVERN', '?view', 'the cavern with a cursor, and no fight'],
     ['THE BROKEN CARD', '?broke', 'the card a door shows when it breaks, with a sample'],
