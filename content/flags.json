@@ -1,6 +1,7 @@
 {
   "_note": "The flags registry (10-06, the 8-bit battle lane \u00a72.8): every flag the game sets or reads, one line each. tools/compile.py refuses a flag not named here (tools/flags.py). A new flag: add its line. A family (a name with a colon) is checked by its prefix.",
   "families": {
+    "wardaRecap:": "Warda has told the party her recap of a council sitting it stood at (wardaRecap:<the sitting's flag>, councilSeen or councilWord; deep16/js/hours.js H16.wardaRecap, 11-26)",
     "chest:": "a chest opened (chest:<map>:<x>,<y>; js/events.js)",
     "cocoon:": "a cocoon in the nest cut down (cocoon:<x>,<y>; js/deep.js S.cocoon)",
     "paper:": "a paper taken down off Hessle's board (paper:<id>, ettercap or cloaker; deep16/js/hours.js H16.BOARD, 10-29)",

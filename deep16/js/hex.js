@@ -586,7 +586,8 @@
 
   // ---------------------------------------------------------------- the first game's scripted people (js/events.js): Warda, Vair's chair, Korvin's slate
   HX.SCENES = {
-    warda: function* (B, trig) { var R = D.roam, u = B.units.filter(function (x) { return x.npc === 'warda'; })[0], t = B.roam.token; if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); B.card(R.wrap(['{y}Warda{/}', R.def.hexIn === 3 ? HX.LINES.warda3 : D.counter.L('hex.warda')]), 360); D.sfx('popup'); yield 20; }, // (on the third floor, the stairs open: her line of its rooms)
+    warda: function* (B, trig) { var R = D.roam, Hw = D.hours, Cw = D.counter, fw = B.roam && B.roam.flags; if (R.def.hexIn === 3 && Hw && Hw.wardaRecap && Hw.wardaRecap(fw)) { var scw = new Cw.Counter(B, { id: 'warda', name: 'Warda', place: R.def.name, what: 'the third floor', script: function (s) { return Cw.SCRIPTS.wardaRecap(s, B); } }); D.push(scw); while (!scw.done) yield 1; return; } // (after a sitting the party stood at, her recap on her face: js/hours.js H16.wardaRecap, 11-26)
+      var u = B.units.filter(function (x) { return x.npc === 'warda'; })[0], t = B.roam.token; if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); B.card(R.wrap(['{y}Warda{/}', R.def.hexIn === 3 ? HX.LINES.warda3 : D.counter.L('hex.warda')]), 360); D.sfx('popup'); yield 20; }, // (on the third floor, the stairs open: her line of its rooms)
     vairseat: function* (B) { B.card(D.roam.wrap(['{y}An empty chair{/}', D.counter.L('hex.vairseat')]), 360); D.sfx('popup'); yield 20; },
     korvinSlate: function* (B) { var u = B.units.filter(function (x) { return x.npc === 'korvinSlate'; })[0], t = B.roam.token; if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); yield* HX.card(B); } // (drawn all round since 10-28, ART-121: he turns to the one at his slate)
   };

@@ -13631,7 +13631,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okX('E at the west spiral, up: the gambling floor (' + d2.key + '), on ' + B2.roam.token.x + ',' + B2.roam.token.y + '; its people (' + f2.map(function (u) { return u.npc + ' ' + u.x + ',' + u.y; }).join(', ') + '); the opening over the sand shut (' + chX(12, 13) + '), the ring and the bow boards (' + chX(1, 13) + chX(12, 8) + ')',
         d2.hexIn === 2 && f2.some(function (u) { return u.npc === 'gambler1'; }) && f2.some(function (u) { return u.npc === 'gambler2'; }) && chX(12, 13) === '#' && chX(1, 13) === 'o' && chX(12, 8) === 'o' && !d2.doors.some(function (q) { return q[1] === 25; }));
       var g1 = sqX('gambler1'); besideX(B2, g1); var wG = useX(B2, g1);
-      okX('a gambler\'s words ("' + wG.seen.slice(0, 60) + '")', /high-roller room/.test(wG.seen));
+      okX('a gambler\'s words ("' + wG.seen.slice(0, 60) + '")', /south end of this floor/.test(wG.seen)); // (since 11-26 the owners' benches at the second floor's south end, not the high-roller room: his "the first line should reference the south end of the second floor where the slave owners watch them fight")
       besideX(B2, HXX.CHAIR); var wV = useX(B2, HXX.CHAIR);
       okX('Vair\'s empty chair: the first game\'s line ("' + wV.seen.slice(0, 60) + '")', wV.seen.indexOf(LX('hex.vairseat')) >= 0);
       var railSq = null; d2.src8.triggers.forEach(function (t) { if (!railSq && t.id === 'sign:rail' && besideX(B2, t.rect.slice(0, 2))) railSq = t.rect.slice(0, 2); });
@@ -13705,7 +13705,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var dT = defT.marks.doors, artT = ['keeper:casper', 'keeper:androit', 'keeper:hessle', 'keeper:aldric', 'warp:winters'];
       okT('the shops\' doors marked on the street (' + Object.keys(dT).length + ' of ' + D.town.DOORS.length + '), the five of the new buy/sell screens among them (' + artT.filter(function (k) { return dT[k]; }).length + ' of 5)', Object.keys(dT).length === D.town.DOORS.length && artT.every(function (k) { return dT[k] && defT.rows[dT[k][1]][dT[k][0]] === 'd'; }));
       var folkT = BT.units.filter(function (u) { return u.npc; });
-      okT('the people stood (' + folkT.length + '): ' + folkT.map(function (u) { return u.name; }).join(', '), folkT.length >= 18 && ['marta', 'guard1', 'papa', 'gull'].every(function (id) { return folkT.some(function (u) { return u.npc === id; }); }) && !folkT.some(function (u) { return defT.rows[u.y][u.x] === 'd'; }));
+      okT('the people stood (' + folkT.length + '): ' + folkT.map(function (u) { return u.name; }).join(', '), folkT.length >= 17 && ['marta', 'guard1', 'papa', 'gull'].every(function (id) { return folkT.some(function (u) { return u.npc === id; }); }) && !folkT.some(function (u) { return defT.rows[u.y][u.x] === 'd'; }));
       var partyT = RT.members.map(function (u) { return String(u.name).toLowerCase(); }), hiresT = defT.people.filter(function (p) { return p.hire && partyT.indexOf(p.hire) >= 0; });
       okT('a hero with the party is not also standing in town (' + (hiresT.map(function (p) { return p.hire; }).join(', ') || 'none of the party hires here') + ')', hiresT.every(function (p) { return !folkT.some(function (u) { return u.npc === p.id; }) && !defT.src8.triggers.some(function (t) { return t.npc === p.id; }); }));
       // a word with the gate hand, from beside him: his line, no north gate (RULED 10-17)
@@ -13788,7 +13788,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okT('a click walks ' + D.roam.clickFt() + ' ft in town (twice the Wet\'s ' + D.roam.CLICK_FT + ': his "double for now")', D.roam.clickFt() === 2 * D.roam.CLICK_FT);
       var pk = D.iso.pick(D.W / 2, D.H / 2, 0), cc30 = D.iso.center(t30.x, t30.y, B30.map.gz(t30.x, t30.y));
       okT('north up: the token\'s square at ' + Math.round(cc30.x) + ',' + Math.round(cc30.y) + ' (a square ' + D.topview.TS + ' px), up the screen the grid\'s north (' + D.spr.FACINGS[D.spr.facingFor(0, -1)] + '), a pick finds a square (' + (pk ? pk.x + ',' + pk.y : 'none') + ')', D.spr.FACINGS[D.spr.facingFor(0, -1)] === 'N' && D.spr.FACINGS[D.spr.facingFor(1, 0)] === 'E' && Math.round(cc30.x) === (t30.x + 0.5) * D.topview.TS);
-      okT('in at its west gate (' + d30.marks.gates.west + '), the three gates on it, ' + Object.keys(d30.marks.doors).length + ' doors of ' + D.town.DOORS.length + ', ' + f30.length + ' people', t30.x === d30.marks.gates.west[0] && t30.y === d30.marks.gates.west[1] && ['west', 'south', 'east'].every(function (k) { return !!d30.marks.gates[k]; }) && Object.keys(d30.marks.doors).length === D.town.DOORS.length && f30.length >= 18);
+      okT('in at its west gate (' + d30.marks.gates.west + '), the three gates on it, ' + Object.keys(d30.marks.doors).length + ' doors of ' + D.town.DOORS.length + ', ' + f30.length + ' people', t30.x === d30.marks.gates.west[0] && t30.y === d30.marks.gates.west[1] && ['west', 'south', 'east'].every(function (k) { return !!d30.marks.gates[k]; }) && Object.keys(d30.marks.doors).length === D.town.DOORS.length && f30.length >= 17); // (17 since 11-26: no Warrens Pete on the street, the Hex's alone)
       var unr30 = Object.keys(d30.marks.doors).filter(function (k) { return !D.roam.walkRoute(t30, d30.marks.doors[k]); });
       okT('every door reached on foot from the west gate (none in a yard closed in by houses' + (unr30.length ? ' -- NOT: ' + unr30.join(', ') : '') + ')', !unr30.length);
       var hf30 = d30.marks.hexFront[0], pr30 = D.roam.walkRoute(t30, hf30) || [], dg30 = 0, tu30 = 0, pd30 = null, first30 = null;
@@ -20776,6 +20776,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       while (D.top() !== BE && D.scenes.length > 1) D.pop();
       okT(!!trE && /Doses out, weights in/.test(pE.said) && rE.indexOf('Draught 1 sp') >= 0 && s0E - stE.silver() === 1 && gotE === 1,
         'D5 Edric at the tally-house after his book: "' + pE.said.slice(-170) + '" -- THE SHELVES: ' + rE.join('; ') + '; a draught bought (' + (s0E - stE.silver()) + ' sp, in the pack ' + gotE + ')');
+      // E. THE WORDS (Silverton's lane, the townsfolk's claims of 11-22 and its later answers, RULED): the Gambler's first line; Calla's antitoxin in the realm's words; Vera's
+      //    "pays"; Brennock by who is asking; Warda's recap after a sitting the party stood at (11-25, his "Warda recaps should be pretty straight forward")
+      var BW = floorT('?roam=silverton&hour=10&lvl=3'), wG = CT6.words(BW, 'gambler1').join(' '), wV = CT6.words(BW, 'vera').join(' '), wC = (HT6.ABOUT.calla || []).join(' ');
+      okT(/south end of this floor/.test(wG) && /council sits here/.test(wG) && !/high-roller/.test(wG) && /takes those in/.test(wV) && !/pays for those/.test(wV) && /drink the vial/.test(wC) && /hour after/.test(wC) && !/cradles/.test(wC),
+        'E1 the Gambler: "' + wG + '" / Vera: "' + wV.slice(-170) + '" / Calla\'s TELL ME ABOUT IT: "' + wC + '"');
+      var wB = CT6.words(BW, 'brennock').join(' '), cWith = CT6.cond('with:vivian', { party: [{ id: 'barley' }, { id: 'vivian' }], flags: {}, inv: [] }), cNot = CT6.cond('with:vivian', { party: [{ id: 'barley' }], flags: {}, inv: [] }), strangerB = ((CT6.TALK16.brennock || [])[1] || {}).say || [];
+      okT(/Candle-girl/.test(wB) && cWith && !cNot && strangerB.length && !/price, not a conversation/.test(strangerB.join(' ')) && !((CT6.TALK16.brennock || [])[1] || {}).rumor,
+        'E2 Brennock, Vivian in the party (with:vivian ' + cWith + ', without ' + cNot + '): "' + wB + '" / to strangers: "' + strangerB.join(' ') + '" (no rumour of the maps)');
+      var BR = floorT('?roam=hex&floor=3&lvl=3&flags=councilSeen'), trWa = trigT('talk:warda'), fR = BR.roam.flags, gR = trWa ? playC(BR, TT6.fire(BR, trWa), []) : { said: 'NO WARDA' }, shR = gR.sc && gR.sc.sheet; while (D.top() !== BR && D.scenes.length > 1) D.pop();
+      var gR2 = trWa ? playC(BR, TT6.fire(BR, trWa), []) : { said: '' }; while (D.top() !== BR && D.scenes.length > 1) D.pop(); fR.councilWord = 1; var gR3 = trWa ? playC(BR, TT6.fire(BR, trWa), []) : { said: '' }; while (D.top() !== BR && D.scenes.length > 1) D.pop();
+      okT(!!trWa && shR === 'pt_warda' && /The ettercap\'s yours/.test(gR.said) && !gR2.sc && /True word of the gnolls/.test(gR3.said) && !!fR['wardaRecap:councilSeen'] && !!fR['wardaRecap:councilWord'],
+        'E3 Warda on the third floor after the council\'s ask: her face ' + shR + ', "' + gR.said.slice(0, 200) + '"; again: ' + (gR2.sc ? 'HER RECAP AGAIN' : 'her line, no recap') + '; after the true word\'s sitting: "' + gR3.said.slice(0, 120) + '"');
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.store.get = stGT; D.store.set = stST;
     var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);

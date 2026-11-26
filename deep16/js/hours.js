@@ -693,6 +693,15 @@
       ['papa', 'That\'s what this was. Go on.']] },
     place: 'The Hex, the third floor', what: 'the council'
   };
+  // WARDA'S RECAP (RULED 11-25, Griz: "34 - current standing is fine, Warda recaps should be pretty straight forward" -- his 11-22 "give her portrait dialog for the council
+  // meetings the party attends (recap of meeting or something) if they talk to her after the meetings"): after a sitting the party stood at -- the council's ask (C2,
+  // councilSeen) and the true word's (councilWord, js/trueword.js) -- a word with Warda on the third floor is her recap of the latest one on her own face, once; else her line
+  // as ever (js/hex.js HX.SCENES.warda). The words the seat's drafts (invented.json warda-recaps-1126)
+  H16.WARDA_RECAP = [
+    { flag: 'councilWord', lines: ['"You heard them. True word of the gnolls, fifty gold, sworn before Androit: what lit the Snoot, and who stood by when it caught."', '"South past the Halfway Inn, where Harrow\'s farms run out. Bring Hessle something he can weigh, and tell him the rest anyway. He writes it all down."'] },
+    { flag: 'councilSeen', lines: ['"You heard them. The ettercap\'s yours: strung across the far end of Web Gulch, and every wagon south goes under it."', '"Bring its fangs to Hessle\'s scales: forty gold, and ten for the lad it snared. Merrick\'s \'we\'ll send for you again\' is the gnolls, after."'] }];
+  H16.wardaRecap = function (f) { var r = f && H16.WARDA_RECAP.filter(function (x) { return f[x.flag]; })[0]; return r && !f['wardaRecap:' + r.flag] ? r : null; }; // (the latest sitting; an older one unsaid is not said after it)
+  C.SCRIPTS.wardaRecap = function* (sc) { var f = sc.st.flags, r = H16.wardaRecap(f); if (!r) return; H16.WARDA_RECAP.forEach(function (x) { if (f[x.flag]) f['wardaRecap:' + x.flag] = 1; }); yield sc.say(r.lines, 'attentive'); };
   H16.HESSLE = { before: 'The board. Read it. The scales pay what\'s posted, sworn before notary.', five: 'Five names off the book\'s dead side. The town noticed.' }; // (his word at the Weigh-House before the notice; after the five with no herd thinned)
   H16.NOTICE_AT = D.world.tAt(2, 17); // (the council's night: Day 2, from dusk -- THE WORLD's S.t in hours)
   H16.NOTICE_END = D.world.tAt(3, 5); // (and its end: Day 3's dawn -- the lamp burns past the fourth bell, the council at the table all that night)
@@ -1559,7 +1568,11 @@
     oldhob: [{ say: ['Hob Rennick. I milk the crawlers at the cradles, across the water. Years of it. The venom\'s in me now: that\'s what dosed means.', 'Work a shift at the cradles beside me and I\'ll talk.'], rumor: 'r-doserate' }],
     kael: [{ say: ['Ladders and poles, for the shafts. Half my props walk off by night.', 'Crews I know by sight. I don\'t name them.'] }],
     // (Vera since 10-29 night, Griz: "vera doesn't actually sell and claims to": she has no counter in the second game, so she says so -- nothing for strangers either way)
-    vera: [{ say: ['Nothing on my table is for strangers, and I don\'t buy from them. Kessler, the pawnbroker on Fountain Street, buys: sell to him, not me.', 'Books don\'t come to me. Androit the notary pays for those: a real one, written by one hand from the first page to the last. Nobody in Silverton has brought him one.'] }],
+    // (Brennock by who is asking, RULED 11-22, his "Brennock - wouldn't say that to randos and would say something else if vivian was in the party": no maps line to strangers,
+    // and Vivian -- his candle-girl courier, TarlynsPit/wiki/vivian.md -- in the party, a courier's nod and no word of maps in front of them. `with:`, the party now: js/counter.js C.cond)
+    brennock: [{ 'if': 'with:vivian', say: ['Dead stock in, tallow and glue out.', 'He nods at Vivian the way you nod at a courier. "Candle-girl." Neither of them says a word about maps in front of you.'] },
+      { say: ['Dead stock in, tallow and glue out. The smell marks the district\'s edge.', 'He looks you over once, and goes back to his vats.'] }],
+    vera: [{ say: ['Nothing on my table is for strangers, and I don\'t buy from them. Kessler, the pawnbroker on Fountain Street, buys: sell to him, not me.', 'Books don\'t come to me. Androit the notary takes those in, and thinks the better of whoever brings him one: a real one, written by one hand from the first page to the last. Nobody in Silverton has brought him one.'] }],
     merrick: [{ say: ['I send word by the lantern network. A dusk sending is cheaper; a noon sending tells everyone it\'s urgent.', 'Thirty silver at the window frees a slave. No questions asked, either way.'], rumor: 'r-lantern' }],
     venhale: [{ say: ['The fighters\' stables. Part gymnasium, part debtors\' prison.', 'You want to fight? Korvin\'s slate, inside the Hex. That\'s where you put your name down.'], rumor: 'r-hexcard' }]
   });
@@ -1616,7 +1629,7 @@
   H16.ABOUT = {
     marko: ['Wagons carry everything in and out of Silverton. There\'s no harbour this side of the mountains, so it all goes south: four days by wagon to Tarlyn\'s Pit, the only road out.', 'The harvest houses send guards with theirs now, with gnolls about on the road. My father took a wagon up the Coldridge road to the Doors once. It never came back.'],
     kasten: ['Candles and lamp-oil. Down a mine, or out on the road after dark, light is the difference between walking and falling. The crews buy before every shift.'],
-    calla: ['Antitoxin is for poison -- the crawlers\' venom at the Warrens\' cradles, mostly. A healer\'s kit gets a fallen friend breathing again without any magic.'],
+    calla: ['Antitoxin: drink the vial, and for the hour after, poison has a harder time taking hold of you -- a snake\'s bite, a spider\'s, a crawler\'s sting. It won\'t draw out what\'s already in you. A healer\'s kit gets a fallen friend breathing again without any magic.'], // (11-26, his "Calla should rephrase what it actually does in realm speak": the SRD's antitoxin, advantage on saves against poison for an hour -- not the cradles' venom, which takes only the House's draught)
     kessler: ['Bring me what you don\'t need and I\'ll buy it: a third of what it\'s worth, no questions that matter. Whatever you carry back off the road, I\'ll look at.'],
     lisbet: ['Warding chalk: the night crews buy it by the stick to mark the old shafts. Charms are for luck. I make no promises about either.'],
     vilar: ['Weapons and armour. Better armour makes you harder to hit, and a better blade hits harder. The Hex\'s fighters buy here: show-steel that bites as well as it shines.'],

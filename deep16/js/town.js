@@ -459,7 +459,7 @@
   // the 8-bit's conditions on the floor's flags: flag:x, !flag:x, & and | (js/roam.js R.cond's reading); has:, hired:, lead: read off the party (T.holds)
   T.cond = function (c, flags, holds) {
     if (!c) return true;
-    return String(c).split('|').some(function (any) { return any.split('&').every(function (t) { t = t.trim(); var neg = t.charAt(0) === '!'; if (neg) t = t.slice(1); var m = /^(flag|has|hired|lead|renown):(.+)$/.exec(t), v = !m ? true : m[1] === 'flag' ? !!flags[m[2]] : !!(holds && holds(m[1], m[2])); return neg ? !v : v; }); });
+    return String(c).split('|').some(function (any) { return any.split('&').every(function (t) { t = t.trim(); var neg = t.charAt(0) === '!'; if (neg) t = t.slice(1); var m = /^(flag|has|hired|lead|renown|with):(.+)$/.exec(t), v = !m ? true : m[1] === 'flag' ? !!flags[m[2]] : !!(holds && holds(m[1], m[2])); return neg ? !v : v; }); });
   };
 
   // ---------------------------------------------------------------- on the floor: the people stood, a door stepped on, a word with someone

@@ -214,7 +214,7 @@
   // as the first game's do (G.hired, ever hired; G.lead, the one who leads -- js/house.js H.fresh)
   C.cond = function (c, st) {
     var names = st.party.map(function (h) { return h.key || h.id; }), rec = D.house && D.house.playing && D.house.cur, hired = rec && rec.hired || names, lead = rec && rec.lead || names[0];
-    return D.town.cond(c, st.flags, function (k, v) { return k === 'has' ? count(st, v) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === v; }); }) : k === 'hired' ? hired.indexOf(v) >= 0 : k === 'lead' ? lead === v : k === 'renown' ? C.renownOf() >= +v : false; });
+    return D.town.cond(c, st.flags, function (k, v) { return k === 'has' ? count(st, v) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === v; }); }) : k === 'hired' ? hired.indexOf(v) >= 0 : k === 'lead' ? lead === v : k === 'renown' ? C.renownOf() >= +v : k === 'with' ? names.indexOf(v) >= 0 : false; }); // (with:<hero> -- in the party now, 11-26: Brennock's word with Vivian there)
   };
   // (renown:N -- the party's renown at N or more, a talk branch's condition like flag: and has: (11-24, his NOTES day 8 15:00 at the Hex: "NPC dialog one-liners changing with renown
   // level"; the lean RULED on his "leans otherwise approved"): C.renownOf, the save's; js/town.js T.cond reads the word)
@@ -1182,7 +1182,7 @@
   C.VENN = { each: 2, ask: '"Down, are they? I can stitch that. Two silver a body, and they get up -- not much more than up." {names}: {n} silver.', done: 'Venn works quick and quiet out of his kit. Up, all of them, barely: one hit point each.' };
   C.SCRIPTS.barber = function* (sc, B) {
     var st = sc.st, R0 = B && B.roam, bodies = R0 && R0.members ? R0.members.filter(function (u) { return u.src; }) : st.party.filter(function (h) { return !h.dead; }), down = bodies.filter(function (u) { return !u.dead && (u.hp <= 0 || u.ko); });
-    var said = C.words(B, 'barber'); if (said.length) yield sc.say(said, 'welcoming');
+    var said = (D.hours && D.hours.outWords && D.hours.outWords('barber')) || C.words(B, 'barber'); if (said.length) yield sc.say(said, 'welcoming'); // (at dusk, out at his evening spot, the evening's word: js/hours.js H16.outWords)
     if (!down.length) return;
     var cost = C.VENN.each * down.length;
     if ((yield sc.ask([C.VENN.ask.replace('{names}', down.map(function (u) { return u.name; }).join(', ')).replace('{n}', cost)], ['STITCH', 'LEAVE'], 'concerned')) !== 0) return;
