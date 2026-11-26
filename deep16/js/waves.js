@@ -405,8 +405,7 @@
       S.chat = null; st.mode = 'fight'; D.sfx('confirm');
       if (D.circles && D.circles.chest) D.circles.chest(B, 'close');
     }
-    yield* GS.tokenWalk(B, WV.bed); S.trail.push('bed');
-    yield* bedRest(B, S, kind);
+    if (kind) { yield* GS.tokenWalk(B, WV.bed); S.trail.push('bed'); yield* bedRest(B, S, kind); } // (no kind: the stop before a resumed run's wave -- no bed, js/waves.js GS.waves, 11-26)
     yield* GS.scatter(B); S.trail.push('scatter');
     S.party = null;
   }
@@ -450,6 +449,19 @@
       B.lightMap = null;
     }
     var pw0 = B.paint; B.paint = function (ctx) { pw0.apply(this, arguments); WV.hud(ctx, this); };
+    // A CHEST BEFORE THE WAVE COMES AGAIN (11-26, Griz: "the chest allows for those powerful sponsored items which aren't included in the bench, so close fights with them losing
+    // might be okay - do we allow retry on loss, restoring with time to get sponsor items after a fail?", then "try insert a chest opportunity before the retry wave begins"): a
+    // resumed run -- RETRY THE WAVE after a loss (js/gameshow.js), or CONTINUE from the title -- opens with the stop between waves but the bed (they rested before the save): the
+    // four into the token, THE LAMP's turn (chat, the supply buttons -- js/supplies.js), THE CHEST (what came in handed out), out onto the circle's corners; then the wave it was
+    // saved at. The seat's call: CONTINUE stops there too (a group back the next day has chat to hear from as well)
+    if (RS) {
+      B.card(['{y}' + (GS.retried ? 'ANOTHER TRY' : 'BACK IN') + '{/}: before wave ' + (S.wi + 1) + ' comes, the lamp and the chest.'], W(300)); yield W(90);
+      B.units = B.units.filter(function (u) { return u !== S.lamp; });
+      S.prewave = true; yield* afterWave(B, S, null); S.prewave = false;
+      for (var g0 = 0; g0 < 600 && (four(B).length < 4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g0++) yield 1;
+      lampUp(B, S);
+    }
+    GS.retried = false;
     while (true) {
       var waves = WV.tierWaves(S.tier);
       if (S.tier === 10 && S.wi === 0) { B.card(['{y}PAST THE NINTH.{/}  The deep keeps coming: every tier from here, more of them.'], W(360)); yield W(90); }
@@ -524,7 +536,7 @@
     var by = y + 33;
     D.win8(ctx, x + 10, by, 104, 18, P('red', 1)); D.text(ctx, 'TO THE CHEST', x + 62, by + 5, P('gold', 4), 'center');
     BTN.tochest = { x: x + 10, y: by, w: 104, h: 18 };
-    D.win8(ctx, x + w - 114, by, 104, 18, P('red', 1)); D.text(ctx, 'TO THE BED', x + w - 62, by + 5, P('gold', 4), 'center');
+    D.win8(ctx, x + w - 114, by, 104, 18, P('red', 1)); D.text(ctx, S.prewave ? 'TO THE WAVE' : 'TO THE BED', x + w - 62, by + 5, P('gold', 4), 'center');
     BTN.tobed = { x: x + w - 114, y: by, w: 104, h: 18 };
   }
   // the chest's moment: the box over the top, and the button on to the bed (a click on the chest or the bed does the same)
@@ -534,7 +546,7 @@
     D.text(ctx, 'THE CHEST', Wd / 2, y + 5, P('gold', 4), 'center');
     D.text(ctx, 'check in with chat', Wd / 2, y + 18, P('bone', 1), 'center');
     var bx = Math.round(Wd / 2 - 60), by = y + 33;
-    D.win8(ctx, bx, by, 120, 18, P('red', 1)); D.text(ctx, 'ON TO THE BED', bx + 60, by + 5, P('gold', 4), 'center');
+    D.win8(ctx, bx, by, 120, 18, P('red', 1)); D.text(ctx, S.prewave ? 'ON TO THE WAVE' : 'ON TO THE BED', bx + 60, by + 5, P('gold', 4), 'center');
     BTN.onward = { x: bx, y: by, w: 120, h: 18 };
   }
   // a road lamp: a dwarf lantern set on the floor at the hall's edge -- an iron cage, gold glass, the flame flickering, a little glow on the stone (world pixels, as the tower's

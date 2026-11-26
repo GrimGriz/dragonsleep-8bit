@@ -35863,6 +35863,54 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preFS);
     return;
   }
+  // RETRY THE WAVE, 11-26 (mode=gsretry1126; the Thanksgiving seat, on Griz's "try insert a chest opportunity before the retry wave begins"): a save made at wave 3's start for
+  // the group BENCH, THE FEAST's own slot; &retry takes it to the Bowl past the title (GS.resume, GS.retried); the run resumed opens with the stop between waves but the bed --
+  // gather, the lamp's turn, the chest, scatter -- then wave 3; the waves held carried. On &auto the stops pass themselves; the arrival's flights (the wall clock) are skipped
+  // the gsrun1007 way, the battle handed to GS.waves by hand
+  if (get('mode', '') === 'gsretry1126') {
+    var repRT = { checks: [], errors: [], notes: [] };
+    function okRT(what, v) { repRT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    if (!D.ctx) { var cvRT = document.createElement('canvas'); cvRT.width = D.W; cvRT.height = D.H; D.ctx = cvRT.getContext('2d'); D.R = D.R || 1; }
+    var clockRT = 1000, memRT = {}, stGRT = D.store.get, stSRT = D.store.set;
+    D.store.get = function (k) { return memRT[k] ? JSON.parse(memRT[k]) : null; }; D.store.set = function (k, v) { memRT[k] = JSON.stringify(v); return true; };
+    var GSR2 = D.gameshow;
+    try {
+      D.store.set('deep16.gameshow.group', 'BENCH');
+      GSR2.make('?gameshow&feast&fast&auto');   // (the special set)
+      var WVR = GSR2.wave, keyR = WVR.saveKey('BENCH', 1);
+      okRT('R1 THE FEAST\'s saves are its own (' + keyR + ')', keyR === 'deep16.gameshow.feastsave.BENCH');
+      D.store.set(keyR, { v: 1, group: 'BENCH', slot: 1, seq: 1, saved: '2026-11-26T22:00:00Z', tier: 3, wi: 2, held: 2, count: 2, xp: {}, hd: { denny: 1, beholda: 1, rascal: 1, goose: 1 },
+        lampHP: 70, lampMax: 100, loot: {}, gains: {}, inv: [], su: null, four: [{ k: 'denny', hp: 20 }, { k: 'beholda', hp: 25 }, { k: 'rascal', hp: 18 }, { k: 'goose', hp: 22 }] });
+      var made = GSR2.make('?gameshow&feast&retry&fast&auto');
+      okRT('R2 &retry: past the title to the Bowl with the save (resume ' + !!GSR2.resume + ', wave ' + (GSR2.resume && GSR2.resume.wi + 1) + ', retried ' + !!GSR2.retried + ', a fight ' + !!(made && made.enter) + ')', !!GSR2.resume && GSR2.resume.wi === 2 && GSR2.retried && !!(made && made.enter));
+      var BRT = D.npcFight('?npc=goblin&vs=denny:3,beholda:3,rascal:3,goose:3&map=harvestbowl&lvl=3', {}), enRT = BRT.enter;
+      BRT.enter = function () {
+        enRT.apply(this, arguments);
+        var cs = [[19, 23], [23, 23], [19, 27], [23, 27]];
+        this.units = this.units.filter(function (u) { return u.side === 'party'; });
+        this.units.forEach(function (u, i) { u.x = cs[i][0]; u.y = cs[i][1]; });
+        D.grid.setup(D.grid.map, this.units); this.order = []; this.active = null; this.req = null;
+        this.gs = { clicks: [], fade: 0, mode: 'fight' }; this.cine = false;
+        this.co = GSR2.waves(this, GSR2);
+      };
+      D.scenes.length = 0; D.lastError = null; D.push(BRT);
+      var trailAtFoes = null, fR;
+      for (fR = 0; fR < 60000; fR++) {
+        clockRT += 17; D.loopStep(clockRT);
+        if (D.lastError) { if (repRT.errors.length < 5) repRT.errors.push(String(D.lastError.stack || D.lastError).slice(0, 400)); D.lastError = null; }
+        var SR = GSR2.run; if (!SR) continue;
+        if ((SR.foes || []).length && !trailAtFoes) { trailAtFoes = (SR.trail || []).slice(); break; }
+      }
+      var SR2 = GSR2.run;
+      okRT('R3 the resumed run is at wave 3 with 2 held (wave ' + (SR2 && SR2.wi + 1) + ', held ' + (SR2 && SR2.held) + ', the lamp ' + (SR2 && SR2.lamp ? SR2.lamp.hp + '/' + SR2.lampMax : '-') + ')', !!SR2 && SR2.wi === 2 && SR2.held === 2 && !!SR2.lamp && SR2.lamp.hp === 70);
+      okRT('R4 before wave 3 came: gather, the lamp\'s turn, the chest, scatter -- no bed (' + (trailAtFoes ? trailAtFoes.join(' > ') : 'NO WAVE in ' + fR + ' frames') + ')', !!trailAtFoes && trailAtFoes.join() === 'gather,lamp,chest,scatter');
+      okRT('R5 the retry\'s flag spent (' + !GSR2.retried + '), the wave in by its sides (' + Object.keys((SR2.foes || []).reduce(function (m, u) { m[u.gsSide + ':' + u.kind] = 1; return m; }, {})).join(', ') + ')', !GSR2.retried && (SR2.foes || []).length === 5);
+    } catch (eRT) { repRT.errors.push(String(eRT && eRT.stack || eRT).slice(0, 900)); }
+    D.store.get = stGRT; D.store.set = stSRT;
+    var preRT = document.createElement('pre'); preRT.id = 'out'; preRT.textContent = 'BENCH16 ' + JSON.stringify(repRT);
+    document.body.appendChild(preRT);
+    return;
+  }
   if (get('mode', '') === 'gsrun1007') {
     var repR = { seed: +get('seed', 1007), waves: [], end: null, frames: 0, did: {}, foes: {}, cover: { half: 0, three: 0, rolls: 0 }, recBytes: 0, recSteps: 0, errors: [] };
     if (!D.ctx) { var cvR0 = document.createElement('canvas'); cvR0.width = D.W; cvR0.height = D.H; D.ctx = cvR0.getContext('2d'); D.R = D.R || 1; }

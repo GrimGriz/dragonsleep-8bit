@@ -94,6 +94,9 @@
   GS.make = function (q) {
     q = q || ''; FAST = /[?&]fast\b/.test(q); GS.q = q;   // (the address the show was made from: the waves read &tier, &wave, &auto from it -- js/waves.js)
     GS.special = /[?&]feast\b/.test(q) ? GS.SPECIALS.feast : null;
+    // RETRY THE WAVE (11-26, Griz: "try insert a chest opportunity before the retry wave begins"): &retry -- the loss screen's button -- takes the group's newest save (the start
+    // of the wave just lost) straight to its floor, skipping the title; js/waves.js opens the run with the lamp's turn and the chest before that wave comes
+    if (/[?&]retry\b/.test(q) && GS.wave && GS.wave.loadSave) { var rs = GS.wave.loadSave(GS.group()); if (rs) { GS.resume = rs; GS.retried = true; return GS.special ? GS.bowl(null) : GS.lamp(null); } }
     if (GS.special && /[?&]at=bowl\b/.test(q)) return GS.bowl(null);
     if (/[?&]at=lamp\b/.test(q)) return GS.lamp(null);
     return asShow(stage('lighthouse'), lighthouse);
@@ -491,9 +494,14 @@
     st.mode = 'gameover'; yield W(240);
     var row = { group: st.over.group, waves: st.over.waves, tier: st.over.tier, t: Date.now() };
     st.mine = GS.record(row); st.mode = 'scores';
+    st.canRetry = savedRuns(st.over.group).length > 0;   // (RETRY THE WAVE: the group's save at the start of the wave just lost -- 11-26)
     while (true) {
-      var ck = st.clicks.shift();
-      if (ck && titleHit(B, ck) === 'again') { location.search = GS.special ? GS.special.door : '?gameshow'; return; }
+      var ck = st.clicks.shift(), hk = ck && titleHit(B, ck);
+      if (hk === 'again') { location.search = GS.special ? GS.special.door : '?gameshow'; return; }
+      if (hk === 'retry' && st.canRetry) {   // (the loss's high score taken back: the run goes on)
+        var sc = GS.scores(); if (st.mine >= 0 && sc[st.mine] && sc[st.mine].t === row.t) { sc.splice(st.mine, 1); D.store.set(SK(), sc); }
+        location.search = (GS.special ? GS.special.door : '?gameshow') + '&retry'; return;
+      }
       yield 1;
     }
   };
@@ -580,7 +588,10 @@
       big(ctx, st.over.group, Wd / 2, Hd / 2 + 4, P('gold', 4), 2);
       D.text(ctx, GS.special ? 'the feast: ' + st.over.waves + ' of 4 waves held, at level ' + st.over.tier : 'waves held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
     }
-    if (st.mode === 'scores' && st.over) { button(ctx, 'again', 'BACK TO THE LIGHTHOUSE', Wd / 2 - 90, Hd - 30, 180, 18); }
+    if (st.mode === 'scores' && st.over) {
+      if (!st.over.won && st.canRetry) { button(ctx, 'retry', 'RETRY THE WAVE', Wd / 2 - 186, Hd - 30, 176, 18, true); button(ctx, 'again', 'BACK TO THE LIGHTHOUSE', Wd / 2 + 10, Hd - 30, 180, 18); } // (11-26)
+      else button(ctx, 'again', 'BACK TO THE LIGHTHOUSE', Wd / 2 - 90, Hd - 30, 180, 18);
+    }
   };
   // the Ledger-Lamp held up over her head while the circle is open for her: a lantern on her raised hand, lit, its glow round it (screen px, at the zoom)
   function ledgerLamp(ctx, B, u) {
