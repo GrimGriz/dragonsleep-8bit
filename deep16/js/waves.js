@@ -451,11 +451,12 @@
     var pw0 = B.paint; B.paint = function (ctx) { pw0.apply(this, arguments); WV.hud(ctx, this); };
     // A CHEST BEFORE THE WAVE COMES AGAIN (11-26, Griz: "the chest allows for those powerful sponsored items which aren't included in the bench, so close fights with them losing
     // might be okay - do we allow retry on loss, restoring with time to get sponsor items after a fail?", then "try insert a chest opportunity before the retry wave begins"): a
-    // resumed run -- RETRY THE WAVE after a loss (js/gameshow.js), or CONTINUE from the title -- opens with the stop between waves but the bed (they rested before the save): the
+    // retried run -- RETRY THE WAVE after a loss (js/gameshow.js) -- opens with the stop between waves but the bed (they rested before the save): the
     // four into the token, THE LAMP's turn (chat, the supply buttons -- js/supplies.js), THE CHEST (what came in handed out), out onto the circle's corners; then the wave it was
-    // saved at. The seat's call: CONTINUE stops there too (a group back the next day has chat to hear from as well)
-    if (RS) {
-      B.card(['{y}' + (GS.retried ? 'ANOTHER TRY' : 'BACK IN') + '{/}: before wave ' + (S.wi + 1) + ' comes, the lamp and the chest.'], W(300)); yield W(90);
+    // saved at. A RETRY only, as he asked: CONTINUE from the title starts its wave at once as ever (the seat had it stop too; the full gate's gswaves1007, whose CONTINUE starts
+    // its wave at once, refused it -- 11-26)
+    if (RS && GS.retried) {
+      B.card(['{y}' + 'ANOTHER TRY' + '{/}: before wave ' + (S.wi + 1) + ' comes, the lamp and the chest.'], W(300)); yield W(90);
       B.units = B.units.filter(function (u) { return u !== S.lamp; });
       S.prewave = true; yield* afterWave(B, S, null); S.prewave = false;
       for (var g0 = 0; g0 < 600 && (four(B).length < 4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g0++) yield 1;
