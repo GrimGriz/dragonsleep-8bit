@@ -20741,6 +20741,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okT(!!RT6.def.hexIn && !!uW && !!cW.sc && cW.sc.sheet === 'pt_pete' && /Six of us went down past the wet/.test(cW.said) && /Dressed stone/.test(cW.said) && /orders another/.test(cW.said) && jW0.indexOf('warrens') < 0 && jW1.indexOf('warrens') >= 0 && !!qW && /Edric Pellam at the tally-house/.test(qW.where || ''),
         'B2 in the Hex (' + RT6.def.hexIn + '), Warrens Pete by the west bar at ' + (uW ? uW.x + ',' + uW.y : 'NOT STOOD') + ': his portrait ' + (cW.sc && cW.sc.sheet) + ', "' + cW.said.slice(0, 260) + '" -- the JOURNAL ' + jW0.join(',') + ' -> ' + jW1.join(',') + ', NEXT "' + (qW && qW.where || '').slice(0, 70) + '"');
       HH6.playing = false; HH6.cur = null; window.DS.autoPicks = apT;
+      // C. A LONG REST GIVES BACK EVERY HIT DIE, A HOUSE RULE (the house lane's 11-22 item 2, RULED his "2 - house rule it"): four at level 4, their dice spent (0, 1, 3, 4 of 4
+      //    left) -- every one back, and the morning says it is a house rule; spent none, nothing said
+      var recC = HH6.fresh(), ptyC = recC.party.slice(0, 4); window.DS.autoPicks = true; HH6.raise(recC, 4); window.DS.autoPicks = apT; [0, 1, 3, 4].forEach(function (n, i) { if (ptyC[i]) ptyC[i].hdLeft = n; });
+      var lnC = HH6.restSheets(ptyC), hdC = ptyC.map(function (h) { return h.hdLeft; }), lnC2 = HH6.restSheets(ptyC);
+      okT(ptyC.length === 4 && ptyC.every(function (h, i) { return h.lvl === 4 && hdC[i] === 4; }) && lnC.filter(function (l) { return /a house rule/.test(l); }).length === 1 && !lnC2.some(function (l) { return /a house rule/.test(l); }),
+        'C a long rest at level 4 (dice left 0, 1, 3, 4): after, ' + ptyC.map(function (h, i) { return h.name + ' ' + hdC[i] + '/' + h.lvl; }).join(', ') + '; said: "' + lnC.filter(function (l) { return /hit di/.test(l); }).join(' / ') + '"; again with none spent: ' + (lnC2.some(function (l) { return /a house rule/.test(l); }) ? 'SAID AGAIN' : 'nothing said'));
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.store.get = stGT; D.store.set = stST;
     var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);

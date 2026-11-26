@@ -354,16 +354,22 @@
   // Goodberry's berries lose their magic (SRD 5.1: "within 24 hours of the casting"; here at the next long rest -- 11-03): gone from the pack; true when there were some
   H.DRY = 'The goodberries have dried out.';
   H.dry = function (inv) { if (!inv) return false; var had = inv.some(function (s) { return s.id === 'goodberry' && s.n > 0; }); for (var i = inv.length - 1; i >= 0; i--) if (inv[i].id === 'goodberry') inv.splice(i, 1); return had; };
+  // THE HOUSE RULES (the first, RULED 2026-11-22, Griz on his playthrough notes: "Might deviate from SRD, but refill the hit dice spent on short rest to full on a long rest if
+  // we're doing less than that", then "2 - house rule it"): where the game departs from the SRD 5.1 on his word, said as a house rule where it happens -- and read by the
+  // house-rules loader when it comes (RULED 10-17, "a house rules loader later")
+  H.HOUSE_RULES = { hitDice: 'Every hit die is back (a house rule: the SRD gives back half).' };
   H.restSheets = function (party) {
-    var R = DS.R, lines = [];
+    var R = DS.R, lines = [], houseHD = false;
     party.forEach(function (h) {
       if (h.dead) return; // (the dead stay dead: exhaustion's sixth level, H.exhaust)
       h.conds = h.conds || {}; var ex = h.conds.exhaustion ? JSON.parse(JSON.stringify(h.conds.exhaustion)) : null;
       DS.R.pieOff(h); if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor;
       h.bondsBefore = (h.attuned || []).slice(); R.refresh(h, true); // (bondsBefore: the morning's sheet says what the night bonded -- the first game's EV.longRest, EV.bonds)
       if (ex) { h.conds.exhaustion = ex; H.exhaust(h, -1); h.hp = h.maxhp; lines.push(h.name + (exh(h) ? ' is less worn (exhausted ' + exh(h) + ').' : ' is rested out of the exhaustion.')); } // (the SRD: a long rest takes a level off -- with food and drink, not counted yet)
-      h.hdLeft = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); // (the SRD: a long rest gives back half the hit dice spent, at least one)
+      var srdHD = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); // (the SRD: a long rest gives back half the hit dice spent, at least one)
+      if (srdHD < h.lvl) houseHD = true; h.hdLeft = h.lvl; // (the house rule, H.HOUSE_RULES.hitDice: every one back -- said when it gave more than the SRD would)
     });
+    if (houseHD) lines.push(H.HOUSE_RULES.hitDice);
     party.forEach(function (h) { if (!h.dead) lines = lines.concat(R.gainXP(h, 0)); });
     return lines;
   };
