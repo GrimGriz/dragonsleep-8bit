@@ -2022,9 +2022,11 @@
   F.canPivot = function (B, u) { return F.pivotOptions(B, u).length > 0; };
   // the AI's pick: the turn that puts the most of the foes it knows of in front of the new line; none in front by any turn, no pivot (it breaks to re-form, as before)
   F.pivotPick = function (B, u, foes) {
-    var best = null;
+    // (and only a turn as good as any front could be: with the foes straight behind it a quarter turn faces one of them at a slant and wants a second turn -- it breaks to
+    // re-form facing them, as he ruled 11-22; the quarter turn is for the foes on its flank)
+    var best = null, wl0 = F.wallOf(B, u), most = Math.max.apply(null, [[0, -1], [1, 0], [0, 1], [-1, 0]].map(function (f) { return foes.filter(function (w) { return F.inFront(wl0, f, w); }).length; }));
     F.pivotOptions(B, u).forEach(function (o) {
-      var line = o.moves.map(function (mv) { return { x: mv.x, y: mv.y }; }), n = foes.filter(function (w) { return F.inFront(line, o.face, w); }).length; if (!n) return;
+      var line = o.moves.map(function (mv) { return { x: mv.x, y: mv.y }; }), n = foes.filter(function (w) { return F.inFront(line, o.face, w); }).length; if (!n || n < most) return;
       var cost = o.moves.reduce(function (s, mv) { return s + Math.max(Math.abs(mv.x - mv.u.x), Math.abs(mv.y - mv.u.y)); }, 0) + o.swaps.length;
       if (!best || n > best.n || (n === best.n && cost < best.cost)) best = { n: n, cost: cost, o: o };
     });

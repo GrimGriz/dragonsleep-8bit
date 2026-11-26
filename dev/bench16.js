@@ -21638,6 +21638,15 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var h8 = mkW6(); put6(h8, [[h8.f, -1, 0], [h8.m, 0, 0], [h8.g, 1, 0], [h8.d1, -1, -4]]); set6(h8, h8.f, N); set6(h8, h8.m, N); [h8.f, h8.m].forEach(function (u) { u.guest = true; u.classAI = true; });
       h8.f.conds.wall.shotRounds = 2; h8.f.conds.wall.shot = false; RU6.startTurn(h8.f); h8.B.active = h8.f; var n8 = (h8.B.log || []).length; run6(F6.aiWall(h8.B, h8.f)); var l8 = log6(h8, n8);
       ok6('the whole wall\'s reach: two rounds of missiles on the near end, a foe at the far end\'s elbow -- "' + l8.slice(0, 120) + '"; its count ' + (h8.f.conds.wall ? h8.f.conds.wall.shotRounds : 'out'), !/two rounds of missiles/.test(l8) && (!h8.f.conds.wall || h8.f.conds.wall.shotRounds === 0));
+      // 8b. THE AI PIVOTS FOR A FOE ON ITS FLANK, AND BREAKS FOR ONE STRAIGHT BEHIND: three facing north, the only foe 10 ft east of the east end -- the first to act calls
+      // PIVOT and the wall faces east, still set; the same wall with the foe straight behind it breaks to re-form (his 11-22 ruling), no quarter turn at a slant
+      var ai8 = function (gx, gy) {
+        var h = mkW6(); h.d1.hp = h.d2.hp = 0; h.d1.dead = h.d2.dead = true; put6(h, [[h.f, -1, 0], [h.m, 0, 0], [h.k, 1, 0], [h.g, gx, gy]]); set6(h, h.f, N); set6(h, h.m, N); set6(h, h.k, N); [h.f, h.m, h.k].forEach(function (u) { u.guest = true; u.classAI = true; });
+        RU6.startTurn(h.f); h.B.active = h.f; var n0 = (h.B.log || []).length; run6(F6.aiWall(h.B, h.f)); return { l: log6(h, n0), face: h.f.conds.wall ? h.f.conds.wall.face.join() : 'out', n: F6.wallOf(h.B, h.f).length };
+      };
+      var a8f = ai8(3, 0), a8b = ai8(0, 4);
+      ok6('the AI\'s pivot: a foe on its east flank -- "' + (a8f.l.match(/calls PIVOT[^(]*/) || [''])[0] + '", facing ' + a8f.face + ', a wall of ' + a8f.n + '; a foe straight behind -- "' + (a8b.l.match(/breaks from the wall to re-form/) || [''])[0] + '", pivot called ' + /calls PIVOT/.test(a8b.l),
+        /calls PIVOT/.test(a8f.l) && a8f.face === '1,0' && a8f.n === 3 && /breaks from the wall to re-form/.test(a8b.l) && !/calls PIVOT/.test(a8b.l));
       // 9. A DAGGER CUTS A NET (his "4 - yes, let it be like slash attack not new cut-free button or anything"): a dagger's blow at the net on the netted one's square cuts it
       // as a slashing blow does; a shortsword's, piercing, does nothing to it. And FREE FROM THE NET's note no longer speaks of slashing ("the slash is in the break-free text
       // and shouldn't be")
