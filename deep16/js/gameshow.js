@@ -89,7 +89,7 @@
   // THE SPECIALS (11-26, the Thanksgiving seat; Griz: "an intro from the lighthouse would be good, and if waves gameshow style with the chest were possible, that'd be ideal"):
   // deep16/?gameshow&feast is THE FEAST -- the title over the lighthouse as ever, THANKSGIVING SPECIAL under it; the jump in lands the four in the Harvest Bowl (GS.bowl), not at
   // Third Lamp; the waves are js/waves.js WV.SPECIALS.feast, through the Bowl's gates, the chest and the cots between them as at Third Lamp, and the run won on the Gallows
-  // Gobbler (GS.specialWon). &at=bowl straight to the Bowl; &lvl=N the four's level (5 unless said). Its saves and high scores its own
+  // Gobbler (GS.specialWon). &at=bowl straight to the Bowl; &lvl=N the four's level (3 unless said). Its saves and high scores its own
   GS.SPECIALS = { feast: { key: 'feast', map: 'harvestbowl', title: 'THANKSGIVING SPECIAL', door: '?gameshow&feast' } };
   GS.make = function (q) {
     q = q || ''; FAST = /[?&]fast\b/.test(q); GS.q = q;   // (the address the show was made from: the waves read &tier, &wave, &auto from it -- js/waves.js)
@@ -354,7 +354,7 @@
   // The lighthouse's jump lands here: the circle at the Bowl's south end spins them out onto its corners, the show's words (the seat's drafts), the chest by the lamp
   // thumped as at Third Lamp, and the waves (js/waves.js, THE FEAST's). No king and no cleric: Pyro is at Sólskaft. A return (CONTINUE) is the pop-out and the back-at line
   GS.bowl = function (sign) {
-    var sp = GS.special || GS.SPECIALS.feast, lv = +((/[?&]lvl=(\d+)/.exec(GS.q || '') || [])[1]) || 5;
+    var sp = GS.special || GS.SPECIALS.feast, lv = +((/[?&]lvl=(\d+)/.exec(GS.q || '') || [])[1]) || (GS.wave && GS.wave.SPECIALS && GS.wave.SPECIALS[sp.key] ? GS.wave.SPECIALS[sp.key].lvl : 3); // (the special's own level, js/waves.js: 3 on the bench of 11-26)
     var B = stage(sp.map, [], lv);
     B.gs = { clicks: [], fade: 1, sign: sign || 'sagittarius' };
     return asShow(B, bowlScene);

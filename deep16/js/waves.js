@@ -98,10 +98,10 @@
   // a show on another floor -- deep16/?gameshow&feast, js/gameshow.js GS.special -- runs its own short list of waves in place of the tiers, and ends when the last is held.
   // Each wave's sides are the floor's own ways in (its map's `waysIn`: the Harvest Bowl's west gate by the pantry, its east gate by the ovens, the gallows stage). THE FEAST is
   // the Pocket DM module's four (data/modules.js feast) as the show plays them: the cans, the ovens, second helpings, and the Gallows Gobbler; a short rest at the cots after
-  // each of the first three, the chest between. The seat's calls, his to overrule: the waves (the module's), one tier at the four's level (&lvl=N, 5 unless said), the run won
+  // each of the first three, the chest between. The seat's calls, his to overrule: the waves (the module's), one tier at the four's level (&lvl=N, 3 unless said: the bench), the run won
   // on the turkey's wave (no tier after it), its own saves and high scores
   WV.SPECIALS = {
-    feast: { name: 'THE FEAST', lvl: 5, waves: [
+    feast: { name: 'THE FEAST', lvl: 3, waves: [ // (lvl 3: the bench of 11-26, mode=gsfeast1126 on &auto -- level 2 wiped twice, 3 won twice once by a hair (three down to the Gobbler), 4 and 5 won with none down)
       { west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'The pantry door bangs open: four cans of cranberry sauce waddle out!' },
       { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan'], card: 'The ovens open. Something baked climbs out -- and the pantry sends more sauce.' },
       { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'Second helpings. Nobody asked for second helpings.' },
