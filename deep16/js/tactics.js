@@ -214,6 +214,57 @@
     if ((t.conds.asleep || t.conds.paralyzed) && G.dist(u, t, x, y) <= 5) { d += avg(wp.dice); sneak *= 2; }
     return { p: p, d: d, sneak: sneak, net: e.net };
   }
+  // THE WALK'S TOLL (2026-11-26, the seat ai-1126 -- Griz, on his Fare Home record, where Drill and Bruin ran past a set soldier into two readied pikes to reach the rank behind:
+  // "that's 'readied pikes not weighed' or something else?" -- both: till now only the foes beside the walker where it STARTED were priced, the 11-14 lines below). The walk to
+  // square e by the way G.reach found it (G.path), every reach it passes through: a foe able to react whose reach a step of it LEAVES swings as it goes (battle.js provoke: a
+  // melee one, with its reaction, that can act -- none when the walker disengaged), and a foe with a blow READIED "when a foe comes within reach" (battle.js readyHook: its
+  // trigger 'near', not a bow's or a spell's "into sight") whose reach a step or the end ENTERS springs it, Disengage or no. Each such foe once -- it has the one reaction --
+  // at half a round of its blows, as the walk off was priced
+  TX.walkToll = function (B, u, rm, e) {
+    if (!e || !rm || (e.x === u.x && e.y === u.y)) return 0;
+    var path = G.path(rm, e.x, e.y); if (!path || !path.length) return 0;
+    var T = u.turn || {}, toll = 0;
+    AI.heroes(B, u).forEach(function (w) { // (the ones it KNOWS of: one hidden and not found is no toll -- the mound lying in the Glowseep, the bugbears in the breach)
+      if (!G.hostile(u, w) || !G.standing(w) || w.object || w.familiar || w.riding || !RU.canAct(w) || w.reaction === 0 || w.conds.turned) return;
+      var rd = w.ready, near = !!rd && (rd.trigger || 'near') === 'near' && !(rd.what === 'spell' || (rd.wp && rd.wp.ranged) || rd.see) && !(rd.had && rd.had[u.id]);
+      var arm = G.armOf(w), rr = near ? G.reachOf(w, rd.wp && rd.wp.reach) : 0, oa = !T.disengaged && !(w.weapon && w.weapon.ranged) && !u.ethereal;
+      if (!oa && !near) return;
+      var inR = G.dist(u, w) <= arm, paid = false;
+      for (var i = 0; i < path.length && !paid; i++) {
+        var d = G.dist(u, w, path[i][0], path[i][1]);
+        if (near && d <= rr) paid = true;
+        else if (oa && inR && d > arm) paid = true;
+        inR = d <= arm;
+      }
+      if (paid) toll += TX.oneBlow(w);
+    });
+    return toll;
+  };
+  // the one blow a reaction buys: a stat block's, half its round as the walk off was priced (11-14); a class one's, a swing of the weapon in its hand at the 0.65 a blow lands
+  // for (and a rogue's sneak) -- not TX.dpr's spell floor: a cleric's opportunity attack is her mace, not her slots
+  TX.oneBlow = function (w) {
+    if (typeof w.attacks !== 'number') return TX.dpr(w) * 0.5;
+    var wp = w.weapon || {}; return 0.65 * (avg(wp.dice) + (wp.mod || 0)) + (w.cls === 'rogue' ? avg(RU.sneakDice(w)) * 0.6 : 0);
+  };
+  // the one hardest blow w has, landed as a critical (its dice twice): what a single swing at u -- an opportunity attack -- could do at its worst
+  TX.hardBlow = function (w) {
+    if (!w || w.hp <= 0 || w.dead) return 0;
+    if (typeof w.attacks === 'number') { var wp = w.weapon || {}, sn = w.cls === 'rogue' ? avg(RU.sneakDice(w)) : 0; return avg(wp.dice) + TX.dicePart(wp.dice) + (wp.mod || 0) + 2 * sn; }
+    var at = w.attacks || {}, top = 0;
+    Object.keys(at).forEach(function (k) { var a = at[k]; if (!a || a.ranged || !a.dice) return; top = Math.max(top, avg(a.dice) + TX.dicePart(a.dice) + (a.mod || 0) + (a.save ? avg(a.save.dice) : 0)); });
+    return top;
+  };
+  // A SWING THAT WOULD END A HELD SPELL PAYS THAT SPELL'S VALUE (2026-11-26, the seat ai-1126 -- Griz: "does not recast vs recast weighed against dropping concentration cost (for
+  // all conc spells?)"; a new concentration spell is already docked what the old one holds, spellPlans below). The spells that end on an act at another: Called to Account
+  // (ours; battle.js attack "an attack at another", magic.js cast "a spell at another") -- in his Fare Home record wut called the Chief to account and swung at the other
+  // bugbear the same turn. What a blow or a harmful spell at t would cost u in the spell it holds: its value (castGo's u.conc.value), or 0
+  TX.concBreak = function (B, u, t) {
+    if (!u.conc || !t || t.id == null || !G.hostile(u, t)) return 0;
+    if (u.conc.id === 'calledtoaccount' && M.accountedBy) { var a = M.accountedBy(B, u); if (a && a !== t) return u.conc.value != null ? u.conc.value : 6; }
+    return 0;
+  };
+  // one with a cantrip to stand off with that can take the front all the same: armoured (AC 16 or better as it stands) and at half its hit points or more (weaponPlans, keepOff)
+  TX.frontable = function (u) { return !!(u && TX.caster(u) && RU.ac(u) >= 16 && u.hp >= u.maxhp * 0.5); };
   // the best weapon plan: from the squares it can walk to this turn, the target and weapon worth most
   TX.HOOK_WORTH = 40; // (the deciding weight: his "the footmen and sergeants to focus dragged heroes")
   function weaponPlans(B, u, fs) {
@@ -222,8 +273,8 @@
     var rm = G.reach(u, T.move), here = rm[u.x + ',' + u.y] || { x: u.x, y: u.y, cost: 0, stand: true };
     // the blows a walk off costs (11-14, the AI lane's §2.8, "weaponPlans walks out of reach with no opportunity-attack cost"): each foe beside it now, able to react, that a square
     // leaves the reach of swings as it goes -- half a round of its blows, none when it disengaged (as a caster's step is weighed: castFrom, below)
-    var press0 = T.disengaged ? [] : G.foesNear(u, u.x, u.y, 5).filter(function (w) { return RU.canAct(w) && w.reaction !== 0; });
-    var oaOf = function (e) { return press0.reduce(function (s, w) { return s + (G.dist(u, w, e.x, e.y) > G.reachOf(w) ? TX.dpr(w) * 0.5 : 0); }, 0); };
+    // (2026-11-26: every reach the walk passes through, and the blows readied for it -- TX.walkToll, above; the square's toll kept on it, one reckoning a square)
+    var oaOf = function (e) { if (e.toll == null) e.toll = TX.walkToll(B, u, rm, e); return e.toll; };
     // PROTECTION in the AI's hands (11-14, the AI lane §2.11: "the AI never stands a Protection fighter beside a friend" -- benched four fights, it stood 30-50 ft off every time):
     // a square within 5 ft of a friend that foes are on is worth the reaction's disadvantage there -- about a quarter of the hardest blow coming at that friend (battle.js attack's
     // `prot`: a shield-bearer of its side within 5 ft of the one attacked, who sees the attacker)
@@ -231,6 +282,16 @@
     var guardOf = function (e) { var v = 0; guards.forEach(function (w) { if (G.dist(u, w, e.x, e.y) > 5) return; G.foesNear(w, w.x, w.y, 5).forEach(function (f) { v = Math.max(v, TX.dpr(f) * 0.25); }); }); return v; };
     // (the one on a fellow's hook, 11-26: struck from where it stands; walked to only when no one else of theirs stands in its reach -- as the footman's, js/features.js F.hookPrey)
     var hookBusy = D.features && D.features.onHook ? G.foesNear(u, u.x, u.y, G.reachOf(u)).some(function (w) { return !w.object && !D.features.onHook(w); }) : false, hookFree = function (e) { return e === here || !hookBusy; };
+    // STANDING WITH THE FRONT (2026-11-26, the seat ai-1126 -- the lean Griz took, "A value for standing with the front, so the back line stops parking", after his "we know
+    // the why of the back line?": a plan was scored by that turn's own damage alone, so Ingrith -- AC 18, 32 hp, a mace -- cast Sacred Flame (3.41) from her start square for
+    // nineteen rounds over a strike (1.7) while the front died). One who has a cantrip to stand off with but can take the front (TX.frontable: AC 16 or better, half its hit
+    // points or more) counts, for a blow in melee at t, what its standing there buys the friends already in t's reach: a share of t's round of blows drawn off them (a
+    // quarter; half that when none of them is hurt) and the flank it gives (a point). Nothing with no friend there, and nothing for a robed one. Modest: it tips a near thing
+    var frontOf = TX.frontable(u) ? function (t) {
+      var fr = alliesOf(B, u).filter(function (w) { return w !== u && G.standing(w) && !w.object && !w.familiar && G.dist(w, t) <= G.reachOf(t); });
+      if (!fr.length) return 0;
+      return TX.dpr(t) * (fr.some(function (w) { return w.hp < w.maxhp * 0.6; }) ? 0.25 : 0.125) + 1;
+    } : null;
     var squares = [here];
     Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y) && !(M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y))) squares.push(e); }); // (never out of the globe that freed it: what it holds off takes hold again -- 11-14, the AI lane §2.8)
     weapons(u).forEach(function (wp) {
@@ -245,10 +306,11 @@
           var near = G.foesNear(u, e.x, e.y, 5).length;
           var s = swing(B, u, t, wp, e.x, e.y), dmg = n * s.p * s.d + s.p * s.sneak;
           if (u.combo && wp === u.combo[0]) dmg = u.combo.slice(0, n).reduce(function (a, w) { var sw = swing(B, u, t, w, e.x, e.y); return a + sw.p * sw.d; }, 0); // (claw, claw, bite: each swing its own dice)
-          var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it)
+          var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p) - TX.concBreak(B, u, t); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it) (TX.concBreak: a blow at another ends the call it holds, 11-26)
           // (THE RANKS FINISH WHAT THE HOOK HOLDS, 11-26 -- the study of the drag's lean 2, his "the footmen and sergeants to focus dragged heroes": a trained rank, not a dragger,
           // with one on a fellow's hook that this blow can reach counts it far the better blow (TX.HOOK_WORTH) -- js/features.js F.hookHeldFor; the footmen's is js/ai.js the brute)
           if (hookFree(e) && D.features && D.features.hookHeldFor && D.features.hookHeldFor(B, u, t)) sc += TX.HOOK_WORTH;
+          if (frontOf && !wp.ranged) { if (t._frontW == null || t._frontR !== B.round + ':' + u.id) { t._frontW = frontOf(t); t._frontR = B.round + ':' + u.id; } sc += t._frontW; } // (standing with the front, above: reckoned once a target)
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not; harmful ground on the way and where it ends,
           // in hit points (`harm`, `stayHp`: js/grid.js G.reach, js/ai.js harmful ground -- 11-18)
           sc -= e.cost / 30 + (e.harm || 0) + (e.stayHp || 0) + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0) + (e === here ? 0 : oaOf(e)) - (guards.length ? guardOf(e) : 0);
@@ -273,7 +335,7 @@
     // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)
     if (!wp.ranged && D.features && D.features.reckless(u) && !u.conds.reckless) { u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' swings recklessly.{/}'], 160); }
     while (T.attacksLeft > 0 && !u.dead && u.hp > 0) {
-      var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return (b.id === caller) - (a.id === caller) || a.hp - b.hp; })[0];
+      var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return (b.id === caller) - (a.id === caller) || (TX.concBreak(B, u, a) > 0) - (TX.concBreak(B, u, b) > 0) || a.hp - b.hp; })[0]; // (the one it holds to account before another, whose blow would end the call: TX.concBreak, 11-26)
       first = false;
       if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
       if (carriedThrow(u, wp)) { if (T.freeObj) break; T.freeObj = true; } // (its draw, the turn's free one: one carried throw a turn -- the throw, 11-11)
@@ -315,6 +377,7 @@
         hitT.forEach(function (w) { if (w && G.hostile(u, w) && w.regen > 0 && !w.burned && !w.regenDown) best.score += TX.dpr(w) * 2; });
       }
       if (u.conds.accounted && spD.dmg && !(best.t && best.t.id === u.conds.accounted.by)) best.score -= B.typed(u, avg(u.conds.accounted.dice), 'radiant').n; // (Called to Account: a spell that harms another is answered once a cast -- M.accountAnswer)
+      if (e.id !== 'calledtoaccount' && best.t && best.t.id != null) best.score -= TX.concBreak(B, u, best.t); // (a spell at another ends the call it holds: TX.concBreak, 11-26)
       if (D.features && D.features.metaPlan) D.features.metaPlan(B, u, e, slot, best, ev, fs, allies); // (a sorcerer's metamagic on the plan, even one its friends spoil without it: js/features.js)
       if (!(best.score > 0)) return;
       // concentration: a new one must be worth more than what the old one still holds
@@ -324,12 +387,37 @@
       // would be good tactic")
       if (e.level > 0 && !(e.g.free || e.g.again || e.g.move) && D.traits && D.traits.drinker) { var dk = D.traits.drinker(B, u); if (dk) best.score *= 1 - D.traits.drinkChance(dk, e.level); } // (the spell's own level, as the drink reads it -- not the slot)
       // a slot is dear: a leveled spell must beat what a cantrip or a swing would do by its level's cost (a spell already paid for is free)
-      if (e.level > 0 && !e.g.free) best.score -= slot * 1.2;
+      if (e.level > 0 && !e.g.free) best.score -= slot * 1.2 + TX.paceCost(B, u, slot); // (TX.paceCost: the day's fights still to come, 11-26)
       if (best.score <= 0) return;
       out.push({ kind: 'spell', id: e.id, level: e.level, score: best.score, why: e.name + (best.t && best.t.name ? ' on ' + best.t.name : '') + (best.meta ? ' (' + best.meta.name + ')' : ''), bonus: e.g.time === 'B', meta: best.meta || null, go: castGo(B, u, e, slot, best) });
     });
     return out;
   }
+  // THE SLOTS PACED ACROSS A MODULE'S DAY (2026-11-26, the seat ai-1126 -- the lean Griz took with the first batch, "Slots paced when the module says more fights come before
+  // a long rest": in his Fare Home record the party's AI spent the day's slots in fight one -- into the Ledger's squad with 2 of 13, into the bugbear with 3 -- and both bad
+  // fights started near dry). TX.fightsToRest: in a Pocket DM module's fight (B.o.pocket; the Pocket under the fight on D.scenes, its run's plan -- each slot's `rest`,
+  // data/modules.js), the fights still to come after this one before a long rest (a warlock's: before any rest, its slots a short rest's); 0 anywhere else, and in the last
+  // fight before the rest, which spends freely. TX.paceCost: what a levelled spell costs on top of its slot -- a little for each fight to come (two at most), and much more once
+  // the caster has spent this fight's share of what it came in with (its slots at its first weighing here, over the fights they must last). Never while one of its own is down or
+  // it is under four tenths of its hit points: a fight being lost is not saved for. The seat's numbers, standing for his overrule (TX.PACE); Divine Smite is battle.js's and is
+  // not paced here
+  TX.PACE = { each: 0.6, over: 6, more: 3 };
+  TX.fightsToRest = function (B, u) {
+    if (!B || !B.o || !B.o.pocket || !u || u.side !== 'party') return 0;
+    var pk = (D.scenes || []).filter(function (s) { return s && s !== B && s.st && s.st.run && s.st.run.module && s.st.run.plan; })[0], run = pk && pk.st.run;
+    if (!run) return 0;
+    var rested = function (sl) { var r = (sl && sl.rest) || {}; return !!(r.long || (u.cls === 'warlock' && r.short)); }, n = 0;
+    for (var i = run.rung - 1; i >= 0 && i < run.plan.length - 1 && !rested(run.plan[i]); i++) n++;
+    return n;
+  };
+  TX.paceCost = function (B, u, slot) {
+    var F = Math.min(2, TX.fightsToRest(B, u)); if (!F) return 0;
+    if (u.hp < u.maxhp * 0.4 || alliesOf(B, u).some(function (w) { return w.hp <= 0 && !w.object && !w.familiar && !w.summon; })) return 0;
+    var now = (u.slots || []).reduce(function (s, k) { return s + (k || 0); }, 0);
+    var pc = B.paceAt = B.paceAt || {}; if (pc[u.id] == null) pc[u.id] = now;
+    var P = TX.PACE, spent = pc[u.id] - now, share = Math.ceil(pc[u.id] / (TX.fightsToRest(B, u) + 1));
+    return slot * P.each * F + (spent >= share ? P.over * F + P.more * (spent - share) : 0);
+  };
   function castGo(B, u, e, slot, best) {
     return function* () {
       if (best.from) yield* walk(B, u, best.from);
@@ -534,6 +622,24 @@
     var frac = w.hp / Math.max(1, w.maxhp);
     return w.hp <= 0 ? 3 : frac < 0.3 ? 1.6 : frac < 0.55 ? 1 : frac < 0.8 ? 0.35 : 0;
   };
+  // WHAT A RAISE IS WORTH (2026-11-26, the seat ai-1126 -- Griz, on wut standing Drill up at 3 hp beside the Chief three times: "raising ally weighed, vs single attack its
+  // often worth it to have the big baddy smack a fella down again vs smack a squishy..."). The turn a raise gives is the heals' own weighing already (TX.healNeed: one at 0
+  // counts three times the hit points given; the "two rounds of its blows" written beside it had always counted nothing -- TX.dpr answers 0 for one at 0 hit points). What was
+  // never counted is his point, THE BLOWS IT DRAWS: each foe in reach of the fallen one that, with it still down, would turn on a squishier friend -- the nearest other of ours
+  // within its stride and reach, robed (a cantrip to stand off with and AC under 16) or two or more AC softer than the one raised -- spends its round on the one stood up
+  // instead: that round of blows, weighed as hit points kept on the other (0.6, a wound's share in TX.worth). Nothing where the foe's next would be as hard a target, or there
+  // is no one else. Cure Wounds, Lay on Hands, the potion (below); Healing Word and its Mass (js/grimoire.js)
+  TX.raiseWorth = function (B, u, w, got) {
+    if (!w || w.hp > 0 || w.dead) return 0;
+    var acW = RU.ac(w), mine = B.units.filter(function (a) { return a !== w && a.side === w.side && G.standing(a) && !a.object && !a.familiar && !a.summon; });
+    return B.units.reduce(function (s, f) {
+      if (!G.hostile(w, f) || !G.standing(f) || f.object || !RU.canAct(f) || G.dist(f, w) > G.reachOf(f)) return s;
+      var next = mine.filter(function (a) { return G.dist(f, a) <= G.reachOf(f) + (f.speed || 30); }).sort(function (a, b) { return G.dist(f, a) - G.dist(f, b); })[0];
+      if (!next) return s;
+      var soft = (TX.caster(next) && RU.ac(next) < 16) || RU.ac(next) <= acW - 2;
+      return s + (soft ? TX.dpr(f) * 0.6 : 0);
+    }, 0);
+  };
   EV.curewounds = function (B, u, e, slot, fs, allies) {
     var amt = avg((1 + Math.max(0, slot - 1)) + 'd8') + M.mod(u) + (u.subclass === 'Life Domain' ? 2 + slot : 0), best = null;
     allies.forEach(function (w) {
@@ -541,7 +647,7 @@
       var need = TX.healNeed(B, u, w); if (!need) return;
       var got = Math.min(amt, w.maxhp - Math.max(0, w.hp)), d = G.dist(u, w), from = null;
       if (d > 5) { var rm = G.reach(u, u.turn.move); from = AI.approach(u, w, rm, 5); if (!from || G.dist(u, w, from.x, from.y) > 5) return; }
-      var sc = got * need + (w.hp <= 0 ? TX.dpr(w) * 2 : 0);
+      var sc = got * need + TX.raiseWorth(B, u, w, got); // (the raise by what it buys: TX.raiseWorth, 11-26)
       if (!best || sc > best.score) best = { score: sc, t: w, from: from };
     });
     return best;
@@ -881,19 +987,36 @@
     if (u.cls === 'druid' && u.conds.shillelagh && !retreat()) return; // (10-01c: the druid with the wood lit has come to the fight, and stays in it -- a step off the front is a free blow for each foe it leaves: the survey's druid at 1 and 2 won more when it held)
     var ranged = (u.weapon && u.weapon.ranged) || TX.caster(u);
     if (!ranged && !T.disengaged) return; // (one who disengaged -- the rogue's Cunning Action, a goblin's -- steps back out of reach too)
+    if (TX.frontable(u) && !T.disengaged && !u.conds.retreat) return; // (armoured and half whole or better: it has come to the front and stays in it -- TX.frontable, 11-26)
     var fs = foesOf(B, u), pressed = G.foesNear(u, u.x, u.y, 5).length;
     // (Expeditious Retreat up, 10-01: the run is a kite, not a step -- with a melee foe that could be on it by its next turn (TX.chasers), pressed or not and whole or not,
     // a square past what every one of them could cover (TX.outOfReach) is worth more than any near one, and the bonus Dash is taken to reach it. It is what the
     // grimoire's retreatKite counts the cast worth)
     var chase = u.conds.retreat ? TX.chasers(u, fs) : [];
     if (!pressed && !chase.length) return;
-    if (!T.disengaged && !chase.length && u.hp > u.maxhp * 0.6) return; // (not worth the swings at it while it is whole)
+    // THE STEP AWAY, WEIGHED (2026-11-26, the seat ai-1126 -- Griz, on the lean "keepOff steps away only when no one gets a swing, or it Disengages": "7 - dunno bout only, but
+    // definitely weighted"). Till now one pressed and under six tenths of its hit points stepped off with no Disengage and took the opportunity attack every round ("not worth
+    // the swings at it while it is whole" was the only weighing): in his Fare Home record Ingrith took five in a row from one soldier, three more from the Chief, and one dropped
+    // Aurdin. Now each square's step is priced -- TX.walkToll: the swing of each foe whose reach it leaves, the blows readied for it -- against what it spares: the round of
+    // blows of each foe it leaves that cannot be on it again by its next turn (TX.follows; one that follows strikes all the same, so its swing bought nothing). A step that
+    // draws no swing is free, whole or hurt; one that draws a swing is taken only when it spares more than it costs, and never when a swing it draws could drop it
+    // (TX.hardBlow, the blow a critical). Kiting on Expeditious Retreat (chase, below) runs as it did
+    var pressers = G.foesNear(u, u.x, u.y, 5), rmK = null;
+    var stepOK = function (e) {
+      if (T.disengaged || chase.length) return true;
+      var toll = TX.walkToll(B, u, rmK, e); if (!(toll > 0)) return true;
+      var left = pressers.filter(function (w) { return G.dist(u, w, e.x, e.y) > G.reachOf(w); });
+      if (left.some(function (w) { return RU.canAct(w) && w.reaction !== 0 && TX.hardBlow(w) >= u.hp; })) return false;
+      var spared = left.reduce(function (s, w) { return s + (RU.canAct(w) && !TX.follows(u, w, e.x, e.y) ? TX.dpr(w) : 0); }, 0);
+      return spared > toll;
+    };
     var off = function () { // (the square within the walk left with the fewest foes beside it: only one that frees it of some -- or, kiting, one that is out of reach of them all)
-      var rm = G.reach(u, T.move), pick = null, ps = -1e9;
+      var rm = rmK = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand || (M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y))) return; // (not out of the globe that freed it, 11-14)
         var n = G.foesNear(u, e.x, e.y, 5).length, sees = fs.some(function (t) { return G.los(u, t, e.x, e.y).clear; });
         var far = chase.length > 0 && TX.outOfReach(u, chase, e.x, e.y);
+        if (!(e.x === u.x && e.y === u.y) && n < pressed && !stepOK(e)) return; // (the step weighed: above)
         var s = -n * 20 + (sees ? 3 : 0) - e.cost / 10 + (far ? 40 : 0);
         if (s > ps) { ps = s; pick = e; pick.far = far; }
       });
@@ -1044,7 +1167,7 @@
     var best = null;
     foesOf(B, u).forEach(function (t) {
       if (G.dist(u, t) > G.reachOf(u) || RU.charmedBy(u, t)) return;
-      var s = swing(B, u, t, blow, u.x, u.y), sc = TX.worth(s.p * s.d + (T.sneakUsed ? 0 : s.p * s.sneak), t) - TX.accountCost(B, u, t, 1, s.p);
+      var s = swing(B, u, t, blow, u.x, u.y), sc = TX.worth(s.p * s.d + (T.sneakUsed ? 0 : s.p * s.sneak), t) - TX.accountCost(B, u, t, 1, s.p) - TX.concBreak(B, u, t); // (TX.concBreak, 11-26)
       if (!best || sc > best.sc) best = { sc: sc, t: t };
     });
     if (!best || best.sc <= 0.5) return;
@@ -1166,9 +1289,36 @@
     var t = allies.filter(function (w) { return !w.dead && G.dist(u, w) <= 5 + u.turn.move && TX.healNeed(B, u, w) >= 1; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
     if (!t) return null;
     var amt = Math.min(u.feats.lay, t.maxhp - Math.max(0, t.hp));
-    return { kind: 'feature', why: 'Lay on Hands on ' + t.name, score: amt * TX.healNeed(B, u, t) + (t.hp <= 0 ? TX.dpr(t) * 2 : 0), go: function* () {
+    return { kind: 'feature', why: 'Lay on Hands on ' + t.name, score: amt * TX.healNeed(B, u, t) + TX.raiseWorth(B, u, t, amt), go: function* () { // (TX.raiseWorth, 11-26)
       if (G.dist(u, t) > 5) yield* walk(B, u, AI.approach(u, t, G.reach(u, u.turn.move), 5));
       if (G.dist(u, t) <= 5 && u.turn.action) yield* B.layOnHands(u, t, false, Math.min(u.feats.lay, t.maxhp - Math.max(0, t.hp)));
+    } };
+  });
+  // A POTION FROM THE PACK (2026-11-26, the seat ai-1126 -- Griz, on his Fare Home record: "AI: feed a potion to the fallen, or drink one, when there is no better heal. I saw
+  // in one fight aurdin positioned flank next to a downed wut and then acid splashed - when as a table player making it a 3v1 instead of a 2v1 would have been higher value
+  // play"; 16 potions sat in the pack through fourteen watched fights, three heroes down for fourteen rounds of one). The party's own AI (the pack is the party's: no foe's
+  // class NPC, no story guest), its action (battle.js itemList, exec 'item'; the Thief's bonus action left to the player): the smallest healing potion in the pack to one of
+  // ours at 0 within a walk and 5 ft -- the heal as the heals are weighed, and the raise by what it buys (TX.raiseWorth) -- or its own, under three tenths of its hit
+  // points. Weighed beside the heals and the blows: a Cure Wounds gives more and wins where there is a slot for it; the walk's toll (TX.walkToll) and a point for the potion off
+  TX.ACTIONS.push(function (B, u, fs, allies) {
+    var T = u.turn; if (u.side !== 'party' || u.guest || !T || !(T.action > 0) || T.attacksLeft || !B.itemList || !(B.inv || []).length) return null;
+    var pots = B.itemList(u).filter(function (x) { return x.ok && x.n > 0 && x.use && x.use.effect === 'heal' && x.use.dice; }).sort(function (a, b) { return avg(a.use.dice) - avg(b.use.dice); });
+    if (!pots.length) return null;
+    var pot = pots[0], amt = avg(pot.use.dice), rm = null, best = null;
+    allies.forEach(function (w) {
+      if (w.dead || w.object || w.familiar || w.summon || w.conds.noHeal || w.carriedBy) return;
+      if (w === u ? !(u.hp < u.maxhp * 0.3) : w.hp > 0) return;
+      var need = TX.healNeed(B, u, w), got = Math.min(amt, w.maxhp - Math.max(0, w.hp)), from = null, toll = 0;
+      if (w !== u && G.dist(u, w) > 5) { rm = rm || G.reach(u, T.move); from = AI.approach(u, w, rm, 5); if (!from || G.dist(u, w, from.x, from.y) > 5) return; toll = TX.walkToll(B, u, rm, from) + from.cost / 30; }
+      var sc = got * need + TX.raiseWorth(B, u, w, got) - 1 - toll;
+      if (!best || sc > best.score) best = { score: sc, t: w, from: from };
+    });
+    if (!best) return null;
+    var t = best.t;
+    return { kind: 'item', id: pot.id, score: best.score, why: t === u ? 'drinks a ' + pot.name : 'a ' + pot.name + ' to ' + t.name, go: function* () {
+      if (best.from) yield* walk(B, u, best.from);
+      if (u.dead || u.hp <= 0 || !u.turn.action || !B.itemTargetOK(u, pot.id, t)) return;
+      yield* B.exec(u, { do: 'item', id: pot.id, target: t });
     } };
   });
 
@@ -1202,7 +1352,7 @@
           var pc = TX.pCut(B, u, st, wp, e.x, e.y), sc = pc * worth - e.cost / 30 - (wp.ranged && G.foesNear(u, e.x, e.y, 5).length ? 2 : 0);
           if (!best || sc > best.score) best = { score: sc, e: e, wp: wp };
         });
-        if (best) out.push({ kind: 'cut', score: best.score, why: 'cuts the ' + (web ? 'webbing' : 'tendril') + ' on ' + w.name, go: (function (b) { return function* () {
+        if (best) out.push({ kind: 'cut', score: best.score, why: 'cuts the ' + (st.net ? 'net' : web ? 'webbing' : 'tendril') + ' on ' + w.name, go: /* (a dragger's net is a net: the stub's `net`, battle.js webStub -- 11-26, his record's hint "cuts the webbing on Aurdin") */ (function (b) { return function* () {
           yield* walk(B, u, b.e);
           var s2 = D.Battle.tendrilOn(u, w, B.units), keep = u.weapon; u.weapon = b.wp;
           while (s2 && (u.turn.action || u.turn.attacksLeft) && !u.dead && u.hp > 0) { yield* B.exec(u, { do: 'attack', target: s2 }); s2 = D.Battle.tendrilOn(u, w, B.units); }
