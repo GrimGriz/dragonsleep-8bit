@@ -2017,8 +2017,28 @@
         if (ok) out.push({ pivot: m, dir: d, face: nf, moves: moves, swaps: swaps, pikes: pikes });
       });
     });
+    var ab = aboutOption(B, u, wall, face, pikes); if (ab) out.push(ab);
     return out;
   };
+  // ABOUT FACE (RULED 2026-11-26, Griz -- on the window's "an about-face: a half turn where nobody moves ... the pikes would end up in front of the line", "what if the about
+  // face flips the pike row? they all have 'wheel' technically?", then "really feels like soldier training is a feat worthy feat, try and get that on live", on the window's
+  // two leans): PIVOT's third way. The wall turns right round and its two rows trade: each shield takes the square behind it, by WHEEL with the set pike that stands there
+  // (the pike's reaction, no opportunity attacks -- Soldiering's own trade) or by a step where the square is open (a step out of a foe's reach is struck at, as any wall
+  // move's); the pikes are then behind the shields again, still set, the front reversed. The caller's move, in place of a MARCH; the bonus action kept. `flip`: every
+  // square behind a shield open or held by its pike with a reaction to spend. Where one is not, the wall turns round IN PLACE (`turn`): nobody moves, the front reverses,
+  // and the pikes, now before the line, come out of set. (The AI's WHEEL keeps pike with pike, 11-25, so a trade never brings a pike to the front rank: here the trade is
+  // what puts every pike behind its shield again)
+  function aboutOption(B, u, wall, face, pikes) {
+    var nf = [-face[0], -face[1]], moves = [], swaps = [], flip = true;
+    wall.forEach(function (s) {
+      var x = s.x - face[0], y = s.y - face[1], o = G.occupant(x, y);
+      if (o && o.side === u.side && pikes.indexOf(o) >= 0 && o.reaction > 0 && RU.canAct(o)) { moves.push({ u: s, x: x, y: y, wheel: o }); swaps.push({ u: o, x: s.x, y: s.y }); }
+      else if (!o && G.canStand(s, x, y)) moves.push({ u: s, x: x, y: y });
+      else flip = false;
+    });
+    if (!flip) return { about: true, kind: 'turn', pivot: null, dir: 2, face: nf, moves: wall.map(function (s) { return { u: s, x: s.x, y: s.y }; }), swaps: [], pikes: pikes };
+    return { about: true, kind: 'flip', pivot: null, dir: 2, face: nf, moves: moves, swaps: swaps, pikes: pikes };
+  }
   F.canPivot = function (B, u) { return F.pivotOptions(B, u).length > 0; };
   // the AI's pick: the turn that puts the most of the foes it knows of in front of the new line; none in front by any turn, no pivot (it breaks to re-form, as before)
   F.pivotPick = function (B, u, foes) {
@@ -2036,6 +2056,7 @@
     if (!o || !F.joined(u, B) || !(u.turn && u.turn.wallMove > 0)) return;
     var wall = F.wallOf(B, u);
     D.sfx('confirm');
+    if (o.about) { yield* wallAbout(B, u, o, wall); return; }
     B.card(['{y}' + u.name + '{/} calls PIVOT: the wall of ' + wall.length + ' turns about ' + (o.pivot === u ? 'itself' : o.pivot.name) + ' to face ' + (FACE_WORD[o.face.join(',')] || 'about') + '  {g}(' + u.name + '\'s move, in place of a MARCH; the bonus action kept' + (o.pikes.length ? '; the pikes come out of set and take the rank again on their turns' : '') + '){/}'], 260);
     yield 8;
     yield* F.wallLeaves(B, o.moves.filter(function (mv) { return mv.x !== mv.u.x || mv.y !== mv.u.y; }).concat(o.swaps), 'turning with its wall');
@@ -2053,13 +2074,34 @@
     o.moves.forEach(function (mv) { F.faceFront(B, mv.u); });
     yield 14;
   };
-  // the player's PIVOT: the member to turn about, lit on the floor, then the way where both are open
+  function* wallAbout(B, u, o, wall) {
+    var wheels = o.moves.filter(function (mv) { return mv.wheel; }).length;
+    B.card(['{y}' + u.name + '{/} calls ABOUT FACE: the wall of ' + wall.length + ' turns round to face ' + (FACE_WORD[o.face.join(',')] || 'about') + '  {g}(' + u.name + '\'s move, in place of a MARCH; the bonus action kept; ' +
+      (o.kind === 'flip' ? 'the two rows trade' + (wheels ? ' -- ' + wheels + ' by WHEEL, each pike its reaction, and the pikes stay set behind' : '') : 'in place: no room behind the line for the rows to trade' + (o.pikes.length ? ', and the pikes come out of set' : '')) + '){/}'], 260);
+    yield 8;
+    // (a step back that is no WHEEL leaves reaches as any wall move does; a WHEEL draws nothing)
+    yield* F.wallLeaves(B, o.moves.filter(function (mv) { return !mv.wheel && (mv.x !== mv.u.x || mv.y !== mv.u.y); }), 'turning with its wall');
+    if (o.moves.some(function (mv) { return !F.wallSet(mv.u); })) o = F.wallSet(u) && F.joined(u, B) ? F.pivotOptions(B, u).filter(function (q) { return q.about; })[0] : null; // (one struck down as it stepped: read again for the line that is left)
+    if (u.turn) u.turn.wallMove = 0;
+    F.wallOf(B, u).concat(F.wallSet(u) ? [u] : []).forEach(function (w) { if (w.conds.wall) { w.conds.wall.marched = B.round; w.conds.wall.shotRounds = 0; w.conds.wall.shot = false; } });
+    if (!o) { B.card(['  {g}the turn is broken: the wall holds as it stands.{/}'], 160); yield 8; return; }
+    if (o.kind !== 'flip') o.pikes.forEach(function (p) { F.leavePikes(B, p, true); });
+    o.moves.forEach(function (mv) { var s = mv.u; if (mv.x !== s.x || mv.y !== s.y) F.wallStep(B, s, mv.x, mv.y); s.conds.wall.face = o.face.slice(); });
+    o.swaps.forEach(function (sw) { F.wallStep(B, sw.u, sw.x, sw.y); sw.u.reaction = 0; if (sw.u.conds.pikes) sw.u.conds.pikes.face = o.face.slice(); if (FX && FX.float) FX.float('reaction spent', sw.u, D.PAL.ramps.silver ? D.PAL.ramps.silver[5] : '#ccc'); });
+    if (G.setup && B.map) G.setup(B.map, B.units);
+    o.moves.forEach(function (mv) { F.faceFront(B, mv.u); }); o.swaps.forEach(function (sw) { F.faceFront(B, sw.u); });
+    yield 14;
+  }
+  // the player's PIVOT: the member to turn about, lit on the floor -- or ABOUT FACE, the whole wall round -- then the way where both are open
   F.pivotAsk = function* (B, u) {
-    var os = F.pivotOptions(B, u); if (!os.length) return null;
+    var osAll = F.pivotOptions(B, u); if (!osAll.length) return null;
+    var ab = osAll.filter(function (o) { return o.about; })[0] || null, os = osAll.filter(function (o) { return !o.about; });
     var ms = []; os.forEach(function (o) { if (ms.indexOf(o.pivot) < 0) ms.push(o.pivot); });
-    var mi = ms.length > 1 ? yield { prompt: { who: u, title: u.name + ': PIVOT ABOUT WHOM?', lines: ['The wall turns a quarter about one of its members, lit on the floor, who keeps its square (your move, in place of a MARCH; set pikes come out of set).'],
-      opts: ms.map(function (m, i) { return { label: (m === u ? 'YOURSELF' : Nm(B, m).toUpperCase()) + ' -- ' + (m === u ? 'HERE' : F.whereFrom(u, m)), value: i + 1 }; }).concat([{ label: 'STAY', value: 0, no: true }]), pick: ms } } : 1;
+    var abWord = ab ? 'ABOUT FACE -- ' + (ab.kind === 'flip' ? 'THE ROWS TRADE, TO FACE ' : 'IN PLACE, TO FACE ') + (FACE_WORD[ab.face.join(',')] || '').toUpperCase() : '';
+    var mi = ms.length > 1 || ab ? yield { prompt: { who: u, title: u.name + ': PIVOT ABOUT WHOM?', lines: ['The wall turns a quarter about one of its members, lit on the floor, who keeps its square (your move, in place of a MARCH; set pikes come out of set).'].concat(ab ? ['ABOUT FACE turns it right round' + (ab.kind === 'flip' ? ': each shield takes the square behind it, by WHEEL with its pike (the pike\'s reaction) or a step, and the pikes stay set behind.' : ' in place: no room behind for the rows to trade, and set pikes come out of set.')] : []),
+      opts: ms.map(function (m, i) { return { label: (m === u ? 'YOURSELF' : Nm(B, m).toUpperCase()) + ' -- ' + (m === u ? 'HERE' : F.whereFrom(u, m)), value: i + 1 }; }).concat(ab ? [{ label: abWord, value: -1 }] : []).concat([{ label: 'STAY', value: 0, no: true }]), pick: ms } } : 1;
     if (!mi) return null;
+    if (mi === -1) return ab;
     var mine2 = os.filter(function (o) { return o.pivot === ms[mi - 1]; });
     var di = mine2.length > 1 ? yield { prompt: { who: u, title: u.name + ': PIVOT TO FACE?', lines: ['About ' + (ms[mi - 1] === u ? 'yourself' : ms[mi - 1].name) + ': which way does the wall face after?'],
       opts: mine2.map(function (o, i) { return { label: 'FACE ' + (FACE_WORD[o.face.join(',')] || '').toUpperCase(), value: i + 1 }; }).concat([{ label: 'STAY', value: 0, no: true }]) } } : 1;
@@ -2682,7 +2724,7 @@
           note: 'the whole wall shoves as one (each mate its reaction): STR DC ' + F.pushDC(B, u) + '; every foe ahead fails and the line steps 5 ft, any holds and nobody steps (the failed take 1d6 either way)' });
         else out.push({ id: 'wallmarch', label: 'MARCH', cost: 'M', icon: 'move', skill: true, ok: F.canMarch(B, u), why: !(u.turn.wallMove > 0) ? 'your move is spent' : F.wallOf(B, u).some(function (w) { return w.conds.wall.marched === B.round; }) ? 'the wall has marched this round' : 'no room ahead', note: 'no foe ahead: the whole wall moves ' + F.marchFt(B, u) + ' ft forward together (half the slowest one\'s speed, rounded up; your move)' });
         if (jW) out.push({ id: 'wallpivot', label: 'PIVOT', cost: 'M', icon: 'move', skill: true, ok: F.canPivot(B, u), why: !(u.turn.wallMove > 0) ? 'your move is spent' : F.wallOf(B, u).some(function (w) { return w.conds.wall.marched === B.round; }) ? 'the wall has marched or turned this round' : 'no room to turn',
-          note: 'the whole wall turns a quarter about the member you pick, who keeps its square, to face a new way (your move, in place of a MARCH; set pikes come out of set; foes whose reach a member leaves may strike)' }); // (PIVOT, 11-26)
+          note: 'the whole wall turns a quarter about the member you pick, who keeps its square, to face a new way -- or ABOUT FACE, right round, the shields and the pikes behind them trading rows by WHEEL (your move, in place of a MARCH; a quarter turn takes set pikes out of set; foes whose reach a member leaves may strike)' }); // (PIVOT, 11-26; ABOUT FACE the same day)
         out.push({ id: 'leavewall', label: 'LEAVE THE WALL', cost: 'B', icon: 'shield', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'a bonus action: your move back' });
       }
     }
@@ -2805,7 +2847,7 @@
       case 'walladvance': case 'wallmarch': yield* F.wallMarch(B, u); return;
       case 'wallpush': yield* F.wallPush(B, u); return;
       case 'wallpivot': { // (PIVOT, 11-26: c.pivot and c.dir name it -- a bench's, the AI's; else the player is asked)
-        var pvo = c.pivot ? F.pivotOptions(B, u).filter(function (o) { return o.pivot === c.pivot && (c.dir == null || o.dir === c.dir); })[0] : (mine(u) ? yield* F.pivotAsk(B, u) : null);
+        var pvo = c.about ? F.pivotOptions(B, u).filter(function (o) { return o.about; })[0] : c.pivot ? F.pivotOptions(B, u).filter(function (o) { return o.pivot === c.pivot && (c.dir == null || o.dir === c.dir); })[0] : (mine(u) ? yield* F.pivotAsk(B, u) : null);
         if (pvo) yield* F.wallPivot(B, u, pvo); return;
       }
       case 'setpikes': if (F.canSetPikes(B, u)) { F.setPikes(B, u); yield 10; } return; // (THE PIKE WALL, 11-21)
