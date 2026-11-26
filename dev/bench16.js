@@ -21638,6 +21638,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var h8 = mkW6(); put6(h8, [[h8.f, -1, 0], [h8.m, 0, 0], [h8.g, 1, 0], [h8.d1, -1, -4]]); set6(h8, h8.f, N); set6(h8, h8.m, N); [h8.f, h8.m].forEach(function (u) { u.guest = true; u.classAI = true; });
       h8.f.conds.wall.shotRounds = 2; h8.f.conds.wall.shot = false; RU6.startTurn(h8.f); h8.B.active = h8.f; var n8 = (h8.B.log || []).length; run6(F6.aiWall(h8.B, h8.f)); var l8 = log6(h8, n8);
       ok6('the whole wall\'s reach: two rounds of missiles on the near end, a foe at the far end\'s elbow -- "' + l8.slice(0, 120) + '"; its count ' + (h8.f.conds.wall ? h8.f.conds.wall.shotRounds : 'out'), !/two rounds of missiles/.test(l8) && (!h8.f.conds.wall || h8.f.conds.wall.shotRounds === 0));
+      // 9. A DAGGER CUTS A NET (his "4 - yes, let it be like slash attack not new cut-free button or anything"): a dagger's blow at the net on the netted one's square cuts it
+      // as a slashing blow does; a shortsword's, piercing, does nothing to it. And FREE FROM THE NET's note no longer speaks of slashing ("the slash is in the break-free text
+      // and shouldn't be")
+      var cut9 = function (atk) {
+        var h = mkW6(); put6(h, [[h.f, 0, 0], [h.m, 1, 0], [h.g, 3, 0]]); F6.netOn(h.B, h.g, h.m); RU6.startTurn(h.f); h.B.active = h.f;
+        var note = (h.B.commands(h.f).filter(function (c) { return c.id === 'freenet'; })[0] || {}).note || '', st = D.Battle.webStub(h.m, h.g), n0 = (h.B.log || []).length;
+        D.d = function (n) { return n === 20 ? 15 : n; }; run6(h.B.strikeTendril(h.f, st, atk, {})); D.d = d06;
+        return { free: !h.m.conds.restrained, log: log6(h, n0), note: note };
+      };
+      var c9a = cut9({ name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 }), c9b = cut9({ name: 'Shortsword', atk: 5, dice: '1d6', mod: 3, type: 'piercing', reach: 5 }), c9c = cut9({ name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 });
+      ok6('a dagger cuts a net: the dagger frees ' + c9a.free + ' ("' + (c9a.log.match(/the dagger's edge cuts a net/) || [''])[0] + '"), the shortsword ' + c9b.free + ' ("' + (c9b.log.match(/immune to piercing/) || [''])[0] + '"), the longsword ' + c9c.free + '; FREE FROM THE NET\'s note "' + c9a.note + '"',
+        c9a.free && /the dagger's edge cuts a net/.test(c9a.log) && !c9b.free && /immune to piercing/.test(c9b.log) && c9c.free && c9a.note.length > 0 && !/slashing/.test(c9a.note));
     } catch (e) { rep6.errors.push(String(e && e.stack || e)); }
     D.d = d06;
     var pre6 = document.createElement('pre'); pre6.id = 'out'; pre6.textContent = 'BENCH16 ' + JSON.stringify(rep6);

@@ -1368,7 +1368,7 @@
     if (u.conds.grappled && !u.conds.grappled.hook && !(u.conds.restrained && u.conds.restrained.pin)) out.push({ id: 'escapegrip', label: 'ESCAPE THE HOLD', cost: 'A', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', icon: 'free', note: 'your action: your Athletics or Acrobatics against the holder\'s Athletics -- free, you may stand and walk' });
     // FREE FROM THE NET (SRD 5.1, the net: "A creature can use its action to make a DC 10 Strength check, freeing itself or another creature within its reach"): a friend's
     var netFr = D.features && D.features.freeNetFor ? D.features.freeNetFor(this, u) : [];
-    if (netFr.length) out.push({ id: 'freenet', label: 'FREE FROM THE NET', cost: 'A', icon: 'free', tool: 'freenet', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC 10: the net off ' + netFr[0].name + ' (or 5 slashing to the net, AC 10)' });
+    if (netFr.length) out.push({ id: 'freenet', label: 'FREE FROM THE NET', cost: 'A', icon: 'free', tool: 'freenet', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC 10: the net off ' + netFr[0].name }); // (the "or 5 slashing to the net" came off this note, 11-26 -- Griz: "the slash is in the break-free text and shouldn't be": cutting it is an ATTACK at the net, not this button)
     var spells = D.magic.list(this, u);
     // (greyed with its reason, 11-03 -- the desk's read of his record: "SPELLS: not now." when the slots were spent and nothing said so. Every spell's own `why` is in the list, js/magic.js M.list: one reason
     // they all share is the command's; else the action gone says so; else the slots -- and for which levels)
@@ -3354,7 +3354,11 @@
     if (att.conds.enlarged && !atk.spell) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
     var fire = 0;
     if (atk.flame && att.conds.ablaze) { var fl = D.roll(atk.flame, { crit: crit }); fire = fl.total; parts.push('{o}flame ' + atk.flame + ' ' + RU.fmtRolls(fl.rolls) + ' = ' + fl.total + ' fire{/}'); }
-    if ((t.immune || []).indexOf(atk.type) >= 0) { parts.push('{g}immune to ' + atk.type + '{/}'); dmg = 0; }
+    // (A DAGGER CUTS A NET -- RULED 2026-11-26, Griz, asked whether daggers cut it: "4 - yes, let it be like slash attack not new cut-free button or anything": its blow at
+    // the net on the netted one's square counts as a slashing one; the SRD's dagger is piercing, and one with a shortsword and a dagger had no blade for a net)
+    var netDagger = !!(t.net && atk.type === 'piercing' && /dagger/i.test(atk.name || ''));
+    if (netDagger) parts.push('{g}the dagger\'s edge cuts a net{/}');
+    else if ((t.immune || []).indexOf(atk.type) >= 0) { parts.push('{g}immune to ' + atk.type + '{/}'); dmg = 0; }
     if ((t.vuln || []).indexOf(atk.type) >= 0) { dmg *= 2; parts.push('{o}vulnerable to ' + atk.type + ': x2{/}'); } // (the webbing and fire, 11-16)
     if (fire && (t.vuln || []).indexOf('fire') >= 0) { fire *= 2; parts.push('{o}the webbing burns: fire x2{/}'); }
     if (fire && (t.immune || []).indexOf('fire') >= 0) { fire = 0; parts.push('{g}the flame does not cut it{/}'); } // (a net: only slashing -- js/features.js F.netOn, nets-1125)

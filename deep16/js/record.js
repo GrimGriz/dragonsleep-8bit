@@ -102,7 +102,7 @@
       foes: B.units.filter(function (w) { return w.side !== u.side && live(w); }).map(function (w) { return brief(B, w, u); }),
       allies: B.units.filter(function (w) { return w.side === u.side && w !== u && live(w) && !folk(w); }).map(function (w) { return brief(B, w, u); }),
       folk: B.units.filter(function (w) { return w !== u && live(w) && folk(w); }).map(function (w) { return brief(B, w, u); }), // (11-21, the reader of his 11-20 record: the gulch's Ettercap stood among ALLIES -- a floor's own people stand on its fights on the party's side, nobody's allies (ours, above): their own list, dev/records.py prints it)
-      ai: plans(B, u, false, 3, fresh), aiBonus: plans(B, u, true, 2, fresh) };
+      ai: u.hp > 0 && !u.dead ? plans(B, u, false, 3, fresh) : [], aiBonus: u.hp > 0 && !u.dead ? plans(B, u, true, 2, fresh) : [] }; // (one who is down has no plan to show: his Fare Home record's "AI would: strikes ... | disengages from 1" beside "Drill is down", 11-26)
     try { o.light = D.light.name(D.light.levelAt(B, u.x, u.y)); } catch (e) { /* (a lit map: nothing to say) */ }
     return o;
   }

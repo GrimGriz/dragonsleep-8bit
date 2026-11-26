@@ -268,6 +268,10 @@
   // (greenagain, feedthem: the Oath of the Green Return's -- GREEN AGAIN and the free FEED THEM toggle beside it, RULED 2026-11-24, Griz: "Toggle the feed them as free action channel
   // divinity ring"; GREEN AGAIN had sat under SKILLS since 10-30, against this list's rule -- js/features.js F.commands)
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1, greenagain: 1, feedthem: 1 };
+  // A TAB WITH ONLY A FREE TOGGLE TO FLIP (2026-11-26, Griz, on the Green Return's FEED THEM: ASK / HOLD: "makes it look like you can channel divinity when you can't", then "a
+  // different form of highlight when the only thing to do in channel divinity tab is flip a free toggle?"): every entry that can be picked costs nothing ('F') -- the tab is
+  // marked `toggleOnly` and priced free, and the ring and the list draw it apart from one with a Channel Divinity to spend (a dashed rim at part strength; a dimmer name)
+  function chanFree(cd) { var live = cd.filter(function (x) { return x.ok; }); return live.length > 0 && live.every(function (x) { return x.cost === 'F'; }); }
   // the PLAYS, a tab of their own as CHANNEL DIVINITY is (RULED 2026-11-20, Griz: "Rather than a hit reaction, a chosen move?", "3 - agreed, doe plays get their own tab like
   // channel divinity or something?"): the Drillyard's plays readied before the swing, CALL THE MARK, and Soldiering's WHEEL -- js/features.js F.playCommands. The tab counts the openings
   var PLAYS = { callmark: 1, play_pinshield: 1, play_bind: 1, play_breakstride: 1, play_takelegs: 1, play_spook: 1, play_wheel: 1 }; // (the Ledger's two on-hit plays, 11-25)
@@ -328,7 +332,7 @@
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'escapegrip', 'freenet', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (pl.length) out.push(playsTab(u, pl));
-    if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
+    if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: chanFree(cd) ? 'F' : 'A', toggleOnly: chanFree(cd), ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     // SHOVE beside GRAPPLE under ACTIONS (RULED 11-16, Griz on the lanes order's 23: "Y - consider whether we need subcategories on the ring."; the menus lane §2.8, found 10-16: SHOVE
     // (10-13) was in neither ACTIONS nor the first ring's list, so the classic RING never showed it -- RING2 had it among the actions by its cost): the SRD's two special melee attacks
     // side by side, each one attack of the Attack action; with no hand free for a grapple, SHOVE stands among the actions alone
@@ -374,7 +378,7 @@
     if (q2) top.beside = q2;
     if (wd) { if (q && !q2) top.beside = q; top.attack = wd; } // (11-24)
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3;
-    if (cd.length) { var left = (u.feats && u.feats.channel) || 0; A.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
+    if (cd.length) { var left = (u.feats && u.feats.channel) || 0; A.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: chanFree(cd) ? 'F' : 'A', toggleOnly: chanFree(cd), ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     var skillsFirst = function (a, b) { return (b.skill ? 1 : 0) - (a.skill ? 1 : 0); }; // (the skills lead each ring, the plain actions and the free odds and ends after -- PUT AWAY was the front of the blue ring, 10-08)
     A = foldUnder(A).sort(skillsFirst); Bn = foldUnder(Bn).sort(skillsFirst);
     // SPELLS by ACTION and BONUS before the level (10-15, the menus lane §2.6, Griz: "Spells on the Ring2 should be divided by Action/Bonus prior to level. The action wheel should
@@ -3106,7 +3110,7 @@
       var r = { x: x + 12, y: y + 4 + i * 11, w: w - 16, h: 11, cmd: c, idx: i };
       B.buttons.push(r);
       var on = (c.tool && B.tool === c.tool && c.tool !== 'move') || (c.sub && B.list && B.list.kind === c.sub);
-      D.text(ctx, c.label, r.x + 2, r.y + 2, on ? R('gold', 4) : c.ok ? R('bone', 2) : R('silver', 3));
+      D.text(ctx, c.label, r.x + 2, r.y + 2, on ? R('gold', 4) : c.ok && !c.toggleOnly ? R('bone', 2) : c.ok ? R('silver', 5) : R('silver', 3)); // (toggleOnly: a tab with only a free toggle to flip, between lit and spent -- chanFree, 11-26)
       D.text(ctx, costTag(c.cost), r.x + r.w - 2, r.y + 2, R('bone', 1), 'right');
       if (i === B.cmdSel && (focus || on)) hand(ctx, x + 1, r.y + 1);
     });
@@ -3147,8 +3151,10 @@
       var r = { x: bx - 2, y: by - 2, w: 12 * s + 4, h: 12 * s + 4, cmd: B.list ? null : o.c, idx: o.i, list: B.list ? o.i : null };
       B.buttons.push(r); B.uiRects.push(r);
       ctx.fillStyle = front ? R('gold', 1) : r2 === 'A' ? R('gold', 0) : r2 === 'B' ? R('blue', 1) : R('stone', 1); ctx.fillRect(bx - 2, by - 2, 12 * s + 4, 12 * s + 4);
+      var tgl = !!o.c.toggleOnly; if (tgl && ctx.setLineDash) ctx.setLineDash([2, 2]); // (a tab with only a free toggle to flip: a dashed rim, its icon at part strength -- chanFree, 11-26)
       ctx.strokeStyle = front ? R('gold', 4) : o.c.ok ? R('silver', 3) : R('stone', 3); ctx.strokeRect(bx - 1.5, by - 1.5, 12 * s + 3, 12 * s + 3);
-      ctx.globalAlpha = o.c.ok ? 1 : 0.4; ctx.drawImage(ic, bx, by, 12 * s, 12 * s); ctx.globalAlpha = 1;
+      if (tgl && ctx.setLineDash) ctx.setLineDash([]);
+      ctx.globalAlpha = !o.c.ok ? 0.4 : tgl ? 0.65 : 1; ctx.drawImage(ic, bx, by, 12 * s, 12 * s); ctx.globalAlpha = 1;
       if (o.c.kind === 'level') D.text(ctx, o.c.level ? String(o.c.level) : 'C', bx + 6 * s, by + 3 * s, R('outline', 0), 'center');
       // a level's stars share colours by element, so the ones behind wear their initials (Shield of Faith: SF);
       // the one at the front is named in full below the ring
