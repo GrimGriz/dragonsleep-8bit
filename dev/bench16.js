@@ -32701,6 +32701,104 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preSl);
     return;
   }
+  // THE POCKET DM'S OPEN FIXES OF 11-26 (mode=pocket1126; the Pocket DM lane, the seat pocket-1126). His 11-20 notes -- eyes-pocketmade-1112h: "chose fog cloud and still had it
+  // after level down and to-the-fight. Can't see 5th party member in camp party menu"; eyes-pocketparty-1112g: "'swap brann for aurdin' - door isn't loading applicable test party,
+  // brann isn't in it" -- the lane's §2.7 (a two-hander's loot), and its 11-03 lead (Ingrith's day changed with no rest): 1 the maker's level given back takes the level's own
+  // spells (EDIT, THE LEVEL's <), and the arrows' guess where no box holds them; 2 the camp menu's party panel draws five and six, four as ever; 3 the try doors lay their own
+  // tables, his own untouched; 4 the greatsword and greataxe +1 among a two-hander's winnings, the maul +1 found by a maul; 5 the morning kept through a gear change between a
+  // module's fights, and still put down for another card. On a stand-in store
+  if (get('mode', '') === 'pocket1126') {
+    var repP = { checks: [], errors: [] }, okP = function (c, s) { repP.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memP = {}, stGP = D.store.get, stSP = D.store.set, sc0P = D.scenes.slice(), txt0P = window.DS.text, PKp = D.pocket, NPp = D.npc, try0P = PKp.TRY;
+    D.store.get = function (k) { return memP[k] ? JSON.parse(memP[k]) : null; }; D.store.set = function (k, v) { memP[k] = JSON.stringify(v); return true; };
+    try {
+      var cvP = document.createElement('canvas'); cvP.width = D.W; cvP.height = D.H; var cxP = cvP.getContext('2d');
+      var drawP = function (pk) { pk.btns = []; pk.draw(cxP); return pk.btns.map(function (b) { return b.label; }); };
+      var btnP = function (pk, re, k) { return pk.btns.filter(function (b) { return re.test(b.label); })[k || 0] || null; };
+      var knP = function (r) { return (NPp.decode(r.code).known || []).slice(); };
+      var newP = function () { var p = new D.Pocket(); p.enter(); p.ask = function () { return true; }; D.scenes.length = 0; D.scenes.push(p); return p; };
+      var seatsP = function (ws, L) { return ws.map(function (w) { return { w: w, lvl: L, loot: [] }; }); };
+      var makeP = function (pk, seat, cls, lvl, name) { pk.makeNew(seat, null); pk.mk.cls = cls; pk.kitUp(); pk.mk.lvl = lvl; pk.mk.walked = lvl; pk.mk.name = name; var inf = pk.spellInfo(); if (inf) pk.mk.known = inf.defC.concat(inf.def); pk.saveMade(); pk.egg = null; return pk.st.roster[pk.st.roster.length - 1]; };
+      var lessP = function (pk) { pk.mk.step = 3; drawP(pk); var lt = btnP(pk, /^<$/); if (lt) pk.fire(lt); return !!lt; }; // (THE LEVEL's < in the maker)
+      // what the camp menu's panel draws: each name at the panel's x (js/menu.js Root.drawPanel), read off DS.text
+      var panelP = function (pk) { var got = []; window.DS.text = function (ctx, s, x, y) { if (x === 32) got.push({ s: String(s), y: y }); return txt0P.apply(this, arguments); }; try { pk.pm.draw(cxP); } finally { window.DS.text = txt0P; } var ns = pk.pm.host.party().map(function (h) { return h.name; }); return got.filter(function (g) { return ns.indexOf(g.s) >= 0; }); };
+
+      // 1. THE MAKER'S LEVEL GIVEN BACK (his "chose fog cloud and still had it after level down and to-the-fight")
+      var P1 = newP(); P1.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'new' }]; P1.st.roster = []; P1.st.run = null; P1.st.editLevels = true; P1.cache = {};
+      var wz = makeP(P1, 1, 'wizard', 1, 'Zed'), k1 = knP(wz);
+      P1.go('party'); P1.levelSlot(1, 1); P1.levelSlot(1, 1); PKp.levelMade(wz, 2, { spells: ['sleep'] }); PKp.levelMade(wz, 3, { spells: ['fogcloud'] }); delete wz.due; // (NEXT's pages, as Pocket.askLevel hands them on)
+      var k3 = knP(wz); P1.makeNew(1, wz); var gotIn = JSON.stringify(P1.mk.got), less1 = lessP(P1), mkK = (P1.mk.known || []).slice(), mkL = P1.mk.lvl;
+      P1.saveMade(); var wz2 = P1.st.roster[P1.st.party[1].custom], k2 = knP(wz2), sh2 = PKp.sheetOf(NPp.spec(wz2.code)), wd2 = PKp.wordOf(P1.st, P1.st.party[1]) || '';
+      okP(less1 && k3.indexOf('fogcloud') >= 0 && gotIn === '{"2":["sleep"],"3":["fogcloud"]}' && mkL === 2 && mkK.indexOf('fogcloud') < 0 && mkK.indexOf('sleep') >= 0 && k2.join() === k1.concat(['sleep']).join() && JSON.stringify(wz2.got) === '{"2":["sleep"]}' && !!sh2 && (sh2.known || []).indexOf('fogcloud') < 0 && wd2.indexOf('fogcloud') < 0,
+        '1a his note: Zed the wizard 1 to 3, Fog Cloud taken at 3; EDIT brings his box (' + gotIn + '), THE LEVEL\'s < to 2, SAVE: Fog Cloud gone from the maker\'s list, the card, its box, its sheet and the fight\'s word; level 2\'s Sleep kept (' + k2.join(',') + ')');
+      // a card with no box (made before 11-12, or a spell picked by hand on THE SPELLS): the arrows' guess, to the level's counts, the first learned kept
+      P1.go('party'); P1.levelSlot(1, 1); PKp.levelMade(wz2, 3, { spells: ['fogcloud'] }); delete wz2.due; delete wz2.got;
+      var k3b = knP(wz2); P1.makeNew(1, wz2); lessP(P1); P1.saveMade(); var wz3 = P1.st.roster[P1.st.party[1].custom], k2b = knP(wz3), inf2 = NPp.prepInfo(Object.assign({}, NPp.decode(wz3.code), { known: null }));
+      var lev2 = k2b.filter(function (id) { return (D.magic.data(id) || {}).level > 0; });
+      okP(k3b.indexOf('fogcloud') >= 0 && wz3.lvl === 2 && k2b.indexOf('fogcloud') < 0 && lev2.length <= inf2.n && k2b.indexOf('sleep') >= 0 && k2b.indexOf('magicmissile') >= 0,
+        '1b no box (an older card), EDIT and < from 3 to 2: the guess the arrows make, ' + k3b.length + ' spells to ' + k2b.length + ', ' + lev2.length + ' of ' + inf2.n + ' levelled, the last learned (Fog Cloud) gone');
+      // the arrows, as they were (PK.unlevelMade, its guess now PK.trimKnown)
+      P1.go('party'); P1.levelSlot(1, 1); PKp.levelMade(wz3, 3, { spells: ['fogcloud'] }); delete wz3.due; P1.levelSlot(1, -1); var k2c = knP(wz3);
+      okP(wz3.lvl === 2 && k2c.indexOf('fogcloud') < 0 && k2c.join() === k2b.join(), '1c the arrows, 3 back to 2: level 3\'s box taken as before (' + k2c.join(',') + ')');
+
+      // 2. THE CAMP'S MENU: five and six in the party panel (his "Can't see 5th party member in camp party menu"), four as ever
+      var P2 = newP(); P2.st.run = null; P2.st.roster = []; P2.st.party = seatsP(['barley', 'aurdin', 'vivian', 'lymen'], 3); P2.cache = {}; P2.go('hub'); P2.openMenu();
+      var g4 = P2.pm ? panelP(P2) : []; P2.pm = null;
+      P2.st.party = P2.st.party.concat(seatsP(['ingrith'], 3)); P2.cache = {}; P2.openMenu(); var g5 = P2.pm ? panelP(P2) : [], hs5 = P2.pm ? P2.pm.host.party() : [];
+      okP(g4.map(function (g) { return g.y; }).join() === '12,52,92,132' && hs5.length === 5 && g5.length === 5 && g5.every(function (g, i) { return g.s === hs5[i].name && g.y < 168 && (!i || g.y > g5[i - 1].y); }),
+        '2a THE CAMP\'s menu: four at 40 apart as ever (' + g4.map(function (g) { return g.y; }).join(',') + '); five seats, all five in the panel (' + g5.map(function (g) { return g.s + '@' + g.y; }).join(', ') + ')');
+      // who? (STATUS): the cursor walks to the fifth with the panel still whole
+      var rt5 = P2.pm ? P2.pm.root : null, KD = { pressed: function () { return false; }, repeat: function (x) { return x === 'down'; } };
+      if (rt5) { rt5.go('status'); for (var d5 = 0; d5 < 4; d5++) rt5.update(KD); }
+      var g5p = rt5 ? panelP(P2) : [];
+      okP(!!rt5 && rt5.mode === 'pick' && rt5.pi === 4 && rt5.ps === 0 && g5p.length === 5, '2b WHOSE STATUS? down four times: the fifth picked (pi ' + (rt5 && rt5.pi) + '), the panel not scrolled (ps ' + (rt5 && rt5.ps) + '), five names drawn');
+      P2.pm = null; P2.st.party = P2.st.party.concat(seatsP(['dace'], 3)); P2.cache = {}; P2.openMenu(); var g6 = P2.pm ? panelP(P2) : [], hs6 = P2.pm ? P2.pm.host.party() : [];
+      okP(hs6.length === 6 && g6.length === 6 && g6[5].y < 168, '2c six seats: all six in the panel (' + g6.map(function (g) { return g.s + '@' + g.y; }).join(', ') + ')');
+      P2.pm = null;
+
+      // 3. THE TRY DOORS (his "door isn't loading applicable test party, brann isn't in it"): ?pocket&try=<name> lays its own table, his own untouched
+      memP['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: seatsP(['lymen'], 7), purse: 1234, pack: [] }); var his0 = memP['deep16.pocket'];
+      PKp.TRY = 'swap'; PKp.tryLaid = null; var T1 = newP(); drawP(T1);
+      okP(!!PKp.TRIES && T1.screen === 'party' && T1.words().map(PKp.baseKey).join() === 'barley,brann,vivian,lymen' && T1.st.editLevels === true && T1.st.purse === 100 && !!T1.msg && /TEST TABLE/.test(T1.msg.text),
+        '3a ?pocket&try=swap: THE PARTY first, Barley, Brann, Vivian and Lymen at 5, LEVEL-UPS: EDIT, a fresh purse, and the line that says whose table ("' + (T1.msg && T1.msg.text) + '")');
+      var sw = btnP(T1, /^SWAP$/, 1); if (sw) T1.fire(sw); var rowA = T1.screen === 'seat' ? T1.seatRows().filter(function (r) { return r.e.kind === 'stock' && r.e.w === 'aurdin'; })[0] : null; if (rowA) T1.seatPick(rowA);
+      okP(!!sw && !!rowA && T1.st.party[1].w === 'aurdin' && !T1.st.party.some(function (s) { return s.w === 'brann'; }) && T1.screen === 'party', '3b SWAP on Brann\'s card: THE ROSTER, Aurdin\'s row, and Aurdin takes seat 2, Brann out');
+      var T1b = newP();
+      okP(memP['deep16.pocket'] === his0 && !!memP['deep16.pocket.try'] && T1b.st.party[1].w === 'aurdin' && PKp.partyKey(1) === 'deep16.pocket.try.party.1', '3c his own table byte for byte untouched; the try table in deep16.pocket.try, kept for the page (the scene entered again: Aurdin still in seat 2); its party slots its own (' + PKp.partyKey(1) + ')');
+      PKp.TRY = 'made'; PKp.tryLaid = null; var T2 = newP(), fen = T2.st.roster[0], fsh = fen ? PKp.sheetOf(NPp.spec(fen.code)) : null;
+      okP(T2.screen === 'party' && T2.st.party.length === 5 && T2.st.party[4].custom === 0 && !!fen && fen.name === 'Fennick' && fen.cls === 'wizard' && fen.lvl === 1 && !!fsh && fsh.known.length > 0 && T2.st.editLevels === true, '3d ?pocket&try=made: the four at 3 and Fennick, a made wizard at 1, in seat 5 (' + (fsh && fsh.known.join(',')) + '), LEVEL-UPS: EDIT');
+      PKp.TRY = 'six'; PKp.tryLaid = null; var T3 = newP(); T3.openMenu(); var g6t = T3.pm ? panelP(T3) : [];
+      okP(T3.screen === 'hub' && T3.st.party.length === 6 && g6t.length === 6, '3e ?pocket&try=six: THE CAMP, six seats, all six in the menu\'s panel');
+      T3.pm = null; PKp.TRY = null; PKp.tryLaid = null; var T0 = newP();
+      okP(T0.st.purse === 1234 && T0.screen === 'title' && memP['deep16.pocket'] === his0, '3f ?pocket with no try: his own table, read as ever (the purse ' + T0.st.purse + ')');
+
+      // 4. THE TWO-HANDER'S LOOT (§2.7: "Loot is never a weapon for a two-handed fighter (no greatsword +1 in the item table)")
+      var lfP = function (wpn, L) { var h = PKp.sheetOf(NPp.spec('fighter:5')); h.equip.weapon = wpn; h.equip.shield = null; h.equip.offhand = null; return PKp.lootFor(h, false, L); };
+      var gsL = lfP('greatsword', 5), gaL = lfP('greataxe', 5), mlL = lfP('maul', 5), lsL = lfP('longsword', 5), gs1L = lfP('greatsword', 1);
+      okP(PKp.LOOT.indexOf('greatsword1') >= 0 && PKp.LOOT.indexOf('greataxe1') >= 0 && gsL.indexOf('greatsword1') >= 0 && gsL.indexOf('greataxe1') < 0 && gaL.indexOf('greataxe1') >= 0 && mlL.indexOf('maul1') >= 0 && lsL.indexOf('longsword1') >= 0 && lsL.indexOf('greatsword1') < 0 && gs1L.indexOf('greatsword1') < 0,
+        '4a a fighter at 5th: with a greatsword, the Greatsword +1 among his winnings; a greataxe, the Greataxe +1; a maul, the Maul +1 (it had no kind: never matched); a longsword, the Longsword +1 and no greatsword; at 1st, no +1 (the market\'s level)');
+      var s5 = PKp.stock(5), s1 = PKp.stock(1);
+      okP(s5.indexOf('greatsword1') >= 0 && s5.indexOf('greataxe1') >= 0 && s1.indexOf('greatsword1') < 0, '4b THE MARKET sells the two from 5th, as the Maul +1 (every priced thing on the market: his 10-17 word)');
+
+      // 5. THE DAY KEPT THROUGH A GEAR CHANGE (the 11-03 lead: his BUILDING run of 11-02, wut's halberd between fights 1 and 2, Ingrith's day back to her class's own)
+      var P5 = newP(); P5.st.roster = []; P5.st.party = seatsP(['barley', 'aurdin', 'vivian', 'ingrith'], 3); P5.st.pack = []; P5.st.light = null; P5.st.run = null; P5.st.morning = PKp.MORNING0(); P5.cache = {};
+      var ids5 = P5.mapIds(), mod5 = { name: 'THE DAY TEST', key: 'test:day', slots: [{ map: ids5[0], foes: ['goblin'], rest: { short: false, long: false, market: false } }, { map: ids5[1], foes: ['goblin'], rest: { short: false, long: false, market: false } }] };
+      P5.startModule(mod5); P5.mInfo = null;
+      var ci = (P5.mInfoNow().cards || []).filter(function (c) { return c && c.pi && c.i === 3; })[0], def5 = ci ? ci.prepared.slice() : [], alt5 = ci ? ci.pi.pool.filter(function (id) { return def5.indexOf(id) < 0; })[0] : null, mine5 = def5.slice(0, -1).concat(alt5 ? [alt5] : []);
+      P5.st.morning.prep[3] = mine5.slice(); P5.mInfo = null; P5.takeMorning();
+      var prepP = function () { P5.cache = {}; var fw = P5.fightWords(), w = fw[3]; return w && typeof w === 'object' && w.prepared ? w.prepared.slice() : null; };
+      var p0 = prepP(); P5.st.party[0].gear = { weapon: 'halberd' }; var w05 = P5.words()[0], p1 = prepP();
+      okP(!!ci && !!alt5 && !!p0 && p0.join() === mine5.join() && /\+halberd/.test(w05) && !!p1 && p1.join() === mine5.join(),
+        '5a a module under way, Ingrith\'s morning her own (' + alt5 + ' for ' + def5[def5.length - 1] + '); Barley takes a halberd up between the fights (' + w05 + '): her day still the morning\'s (' + (p1 && p1.join(',')) + '), no rest taken');
+      P5.st.party[0] = { w: 'brann', lvl: 5, loot: [] }; var p2 = prepP();
+      okP(!p2 || p2.join() !== mine5.join(), '5b another card in seat 1 (Brann for Barley): the morning stands down for the party, as before');
+      P5.st.run = null;
+    } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
+    finally { window.DS.text = txt0P; PKp.TRY = try0P; PKp.tryLaid = null; D.store.get = stGP; D.store.set = stSP; D.scenes.length = 0; sc0P.forEach(function (s) { D.scenes.push(s); }); }
+    var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
+    document.body.appendChild(preP);
+    return;
+  }
   // A MADE CARD LIKE THE REST OF THE ROSTER (mode=pocketmade1112; the Pocket DM lane, 11-12, Griz: "can we force 'made' spell entry into a box that let's us fix the guess for
   // anything made after today? it'd be really handy to have one interface once the characters are in the roster, I say build"): a made card's level arrows; the box (r.got)
   // written by a level's defaults, by its page and by the maker's save, and a level given back taking exactly it; the guess for a card with no box; EDIT and DROP on THE
