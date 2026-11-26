@@ -259,6 +259,7 @@
     cavern: 'underground', causeway: 'underground', restcamp: 'underground', cistern: 'underground', lampcircle: 'underground',
     hexfloor: 'urban', yard: 'urban', greyfangpit: 'urban', edifice: 'urban', lighthouse: 'urban',
     gulch: 'outdoors', bridge: 'outdoors', bog: 'outdoors', snootroad: 'outdoors', dominionroad: 'outdoors', northroad: 'outdoors', southroad: 'outdoors', gnollhills: 'outdoors', point: 'outdoors', climbfloor: 'outdoors', // (southroad: the wagon on the Pit road by day, 11-04 -- data/maps.js)
+    harvestbowl: 'urban', // (the Harvest Bowl, the Thanksgiving special's arena, 11-26 -- a built arena, beside the Hex's floor and the lighthouse; the seat's call)
     pithills: 'outdoors' // (the Pit road in the open hills, 11-24, his "roaded hills map/one without walls" for the glory-seekers -- data/maps.js)
   };
   PD.landOf = function (id) { var d = D.MAPS[id] || {}; return d.land || PD.LAND[id] || (d.dark ? 'underground' : 'outdoors'); };
