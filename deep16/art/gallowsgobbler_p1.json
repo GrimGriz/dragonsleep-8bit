@@ -1,0 +1,87 @@
+{
+ "image": "art/gallowsgobbler_p1.png",
+ "fw": 216,
+ "fh": 177,
+ "ax": 108,
+ "ay": 174,
+ "top": 161,
+ "name": "Gallows Gobbler",
+ "source": "drawn by the art desk (2026-11-26 GALLOWS-GOBBLER-COMBAT: five views of eight actions), cut by tools/gallowsgobbler-sheet.py (11-26): each view's idle to 128 px, each strip by its frame 1, x by frame 1's ground contact; SW W NW mirrored with the talon rows swapped",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 216,
+   "fh": 177,
+   "ax": 108,
+   "ay": 174,
+   "frames": 4,
+   "fps": 6
+  },
+  "walk": {
+   "y": 1416,
+   "fw": 202,
+   "fh": 177,
+   "ax": 101,
+   "ay": 174,
+   "frames": 8,
+   "fps": 8
+  },
+  "lefttalon": {
+   "y": 2832,
+   "fw": 212,
+   "fh": 177,
+   "ax": 106,
+   "ay": 174,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "righttalon": {
+   "y": 4248,
+   "fw": 212,
+   "fh": 177,
+   "ax": 106,
+   "ay": 174,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "gobble": {
+   "y": 5664,
+   "fw": 176,
+   "fh": 177,
+   "ax": 88,
+   "ay": 174,
+   "frames": 6,
+   "fps": 8,
+   "release": 3
+  },
+  "flinch": {
+   "y": 7080,
+   "fw": 228,
+   "fh": 177,
+   "ax": 114,
+   "ay": 174,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 8496,
+   "fw": 190,
+   "fh": 177,
+   "ax": 95,
+   "ay": 174,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 9912,
+   "fw": 186,
+   "fh": 177,
+   "ax": 93,
+   "ay": 174,
+   "frames": 1,
+   "fps": 4
+  }
+ }
+}

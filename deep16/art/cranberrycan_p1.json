@@ -1,0 +1,86 @@
+{
+ "image": "art/cranberrycan_p1.png",
+ "fw": 40,
+ "fh": 45,
+ "ax": 20,
+ "ay": 38,
+ "top": 32,
+ "name": "Cranberry Can",
+ "source": "drawn by the art desk (2026-11-26-CRANBERRY-CAN-COMBAT: five views of seven actions, the berry and the sauce tile), cut by tools/cranberrycan-sheet.py (11-26): each view's idle to 30 px, each strip by its frame 1, every frame on its own lowest pixel with frame 1's ground contact as the strip's x; SW W NW mirrored; the berry alone, one picture for all eight facings",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 40,
+   "fh": 45,
+   "ax": 20,
+   "ay": 38,
+   "frames": 4,
+   "fps": 6
+  },
+  "walk": {
+   "y": 360,
+   "fw": 36,
+   "fh": 45,
+   "ax": 18,
+   "ay": 38,
+   "frames": 8,
+   "fps": 8
+  },
+  "shot": {
+   "y": 720,
+   "fw": 56,
+   "fh": 45,
+   "ax": 28,
+   "ay": 38,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "spill": {
+   "y": 1080,
+   "fw": 52,
+   "fh": 45,
+   "ax": 26,
+   "ay": 38,
+   "frames": 6,
+   "fps": 8,
+   "release": 3
+  },
+  "flinch": {
+   "y": 1440,
+   "fw": 42,
+   "fh": 45,
+   "ax": 21,
+   "ay": 38,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 1800,
+   "fw": 48,
+   "fh": 45,
+   "ax": 24,
+   "ay": 38,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 2160,
+   "fw": 48,
+   "fh": 45,
+   "ax": 24,
+   "ay": 38,
+   "frames": 1,
+   "fps": 4
+  },
+  "berry": {
+   "y": 2520,
+   "fw": 14,
+   "fh": 45,
+   "ax": 7,
+   "ay": 38,
+   "frames": 1,
+   "fps": 4
+  }
+ }
+}

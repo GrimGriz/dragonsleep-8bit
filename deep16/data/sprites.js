@@ -3315,6 +3315,92 @@
 "name": "Cockatrice",
 "source": "drawn by the art desk (ART-WANTED-67 COCKATRICE ILLUSTRATED REDRAW, 11-18: image-generated, 35 pages), cut by tools/cockatrice-sheet.py redraw() by its own recipe on the installed cells; SW W NW mirrored -- the SRD 5.1 Cockatrice: deep16/data/foes.js cockatrice"
 },
+"cranberrycan_p1": {
+"image": "art/cranberrycan_p1.png?v=bd4b0681e5",
+"fw": 40,
+"fh": 45,
+"ax": 20,
+"ay": 38,
+"top": 32,
+"name": "Cranberry Can",
+"source": "drawn by the art desk (2026-11-26-CRANBERRY-CAN-COMBAT: five views of seven actions, the berry and the sauce tile), cut by tools/cranberrycan-sheet.py (11-26): each view's idle to 30 px, each strip by its frame 1, every frame on its own lowest pixel with frame 1's ground contact as the strip's x; SW W NW mirrored; the berry alone, one picture for all eight facings",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 40,
+"fh": 45,
+"ax": 20,
+"ay": 38,
+"frames": 4,
+"fps": 6
+},
+"walk": {
+"y": 360,
+"fw": 36,
+"fh": 45,
+"ax": 18,
+"ay": 38,
+"frames": 8,
+"fps": 8
+},
+"shot": {
+"y": 720,
+"fw": 56,
+"fh": 45,
+"ax": 28,
+"ay": 38,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"spill": {
+"y": 1080,
+"fw": 52,
+"fh": 45,
+"ax": 26,
+"ay": 38,
+"frames": 6,
+"fps": 8,
+"release": 3
+},
+"flinch": {
+"y": 1440,
+"fw": 42,
+"fh": 45,
+"ax": 21,
+"ay": 38,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 1800,
+"fw": 48,
+"fh": 45,
+"ax": 24,
+"ay": 38,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 2160,
+"fw": 48,
+"fh": 45,
+"ax": 24,
+"ay": 38,
+"frames": 1,
+"fps": 4
+},
+"berry": {
+"y": 2520,
+"fw": 14,
+"fh": 45,
+"ax": 7,
+"ay": 38,
+"frames": 1,
+"fps": 4
+}
+}
+},
 "crawler_p1": {
 "image": "art/crawler_p1.png?v=86d551e726",
 "fw": 120,
@@ -7113,6 +7199,93 @@
 "N greataxe: the axe reads to screen-right in the rear contact and recovery; N fall angles a little right (the art desk's own notes)"
 ],
 "source": "drawn by the art desk (ART-129-YOUNG-FROST-GIANT-SOURCES, 11-14: art-wanted section 42), cut by tools/frostgiant-sheet.py; SW W NW mirrored -- the SRD 5.1 Frost Giant: deep16/data/foes.js frostgiant"
+},
+"gallowsgobbler_p1": {
+"image": "art/gallowsgobbler_p1.png?v=a32f7aee59",
+"fw": 216,
+"fh": 177,
+"ax": 108,
+"ay": 174,
+"top": 161,
+"name": "Gallows Gobbler",
+"source": "drawn by the art desk (2026-11-26 GALLOWS-GOBBLER-COMBAT: five views of eight actions), cut by tools/gallowsgobbler-sheet.py (11-26): each view's idle to 128 px, each strip by its frame 1, x by frame 1's ground contact; SW W NW mirrored with the talon rows swapped",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 216,
+"fh": 177,
+"ax": 108,
+"ay": 174,
+"frames": 4,
+"fps": 6
+},
+"walk": {
+"y": 1416,
+"fw": 202,
+"fh": 177,
+"ax": 101,
+"ay": 174,
+"frames": 8,
+"fps": 8
+},
+"lefttalon": {
+"y": 2832,
+"fw": 212,
+"fh": 177,
+"ax": 106,
+"ay": 174,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"righttalon": {
+"y": 4248,
+"fw": 212,
+"fh": 177,
+"ax": 106,
+"ay": 174,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"gobble": {
+"y": 5664,
+"fw": 176,
+"fh": 177,
+"ax": 88,
+"ay": 174,
+"frames": 6,
+"fps": 8,
+"release": 3
+},
+"flinch": {
+"y": 7080,
+"fw": 228,
+"fh": 177,
+"ax": 114,
+"ay": 174,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 8496,
+"fw": 190,
+"fh": 177,
+"ax": 95,
+"ay": 174,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 9912,
+"fw": 186,
+"fh": 177,
+"ax": 93,
+"ay": 174,
+"frames": 1,
+"fps": 4
+}
+}
 },
 "gargoyle_p1": {
 "image": "art/gargoyle_p1.png?v=42b5a4b095",
@@ -11886,6 +12059,159 @@
 }
 },
 "source": "drawn by the art desk (2026-11-10, the Swarm of Insects: five views, three pages each), cut and snapped by tools/swarm-sheet.py; each frame's swarm middle over its square's middle"
+},
+"jacketbruiser_p1": {
+"image": "art/jacketbruiser_p1.png?v=bb6d918c1f",
+"fw": 116,
+"fh": 77,
+"ax": 58,
+"ay": 74,
+"top": 69,
+"name": "Jacket Bruiser",
+"source": "drawn by the art desk (JACKET-BRUISER-COMBAT, 11-26: five views of the baked and mashed actions, split-jacket, mashed-prone and the FX chunk, \"lock both forms together\"), cut by tools/jacketbruiser-sheet.py (11-26): each view's baked idle to 64 px, baked strips by their frame 1's height, the mash by its base width to the split's last frame, placed on the ground by frame 1's contact; SW W NW mirrored",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 116,
+"fh": 77,
+"ax": 58,
+"ay": 74,
+"frames": 4,
+"fps": 6
+},
+"walk": {
+"y": 616,
+"fw": 96,
+"fh": 77,
+"ax": 48,
+"ay": 74,
+"frames": 8,
+"fps": 8
+},
+"punch": {
+"y": 1232,
+"fw": 122,
+"fh": 77,
+"ax": 61,
+"ay": 74,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"engulf": {
+"y": 1848,
+"fw": 108,
+"fh": 77,
+"ax": 54,
+"ay": 74,
+"frames": 6,
+"fps": 8,
+"release": 3
+},
+"hold": {
+"y": 2464,
+"fw": 114,
+"fh": 77,
+"ax": 57,
+"ay": 74,
+"frames": 4,
+"fps": 6
+},
+"flinch": {
+"y": 3080,
+"fw": 124,
+"fh": 77,
+"ax": 62,
+"ay": 74,
+"frames": 4,
+"fps": 12
+},
+"split": {
+"y": 3696,
+"fw": 118,
+"fh": 77,
+"ax": 59,
+"ay": 74,
+"frames": 6,
+"fps": 8
+}
+}
+},
+"jacketbruiser_p2": {
+"image": "art/jacketbruiser_p2.png?v=685079d974",
+"fw": 120,
+"fh": 100,
+"ax": 60,
+"ay": 89,
+"top": 71,
+"name": "Jacket Bruiser (mashed)",
+"source": "drawn by the art desk (JACKET-BRUISER-COMBAT, 11-26: five views of the baked and mashed actions, split-jacket, mashed-prone and the FX chunk, \"lock both forms together\"), cut by tools/jacketbruiser-sheet.py (11-26): each view's baked idle to 64 px, baked strips by their frame 1's height, the mash by its base width to the split's last frame, placed on the ground by frame 1's contact; SW W NW mirrored",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 100,
+"ax": 60,
+"ay": 89,
+"frames": 4,
+"fps": 6
+},
+"walk": {
+"y": 800,
+"fw": 106,
+"fh": 100,
+"ax": 53,
+"ay": 89,
+"frames": 6,
+"fps": 8
+},
+"hurl": {
+"y": 1600,
+"fw": 128,
+"fh": 100,
+"ax": 64,
+"ay": 89,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"flinch": {
+"y": 2400,
+"fw": 120,
+"fh": 100,
+"ax": 60,
+"ay": 89,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 3200,
+"fw": 118,
+"fh": 100,
+"ax": 59,
+"ay": 89,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 4000,
+"fw": 116,
+"fh": 100,
+"ax": 58,
+"ay": 89,
+"frames": 1,
+"fps": 4
+},
+"chunk": {
+"y": 4800,
+"fw": 24,
+"fh": 100,
+"ax": 12,
+"ay": 89,
+"frames": 4,
+"fps": 12
+}
+}
 },
 "jory_p1": {
 "image": "art/jory_p1.png?v=db27952872",

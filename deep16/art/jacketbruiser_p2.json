@@ -1,0 +1,76 @@
+{
+ "image": "art/jacketbruiser_p2.png",
+ "fw": 120,
+ "fh": 100,
+ "ax": 60,
+ "ay": 89,
+ "top": 71,
+ "name": "Jacket Bruiser (mashed)",
+ "source": "drawn by the art desk (JACKET-BRUISER-COMBAT, 11-26: five views of the baked and mashed actions, split-jacket, mashed-prone and the FX chunk, \"lock both forms together\"), cut by tools/jacketbruiser-sheet.py (11-26): each view's baked idle to 64 px, baked strips by their frame 1's height, the mash by its base width to the split's last frame, placed on the ground by frame 1's contact; SW W NW mirrored",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 120,
+   "fh": 100,
+   "ax": 60,
+   "ay": 89,
+   "frames": 4,
+   "fps": 6
+  },
+  "walk": {
+   "y": 800,
+   "fw": 106,
+   "fh": 100,
+   "ax": 53,
+   "ay": 89,
+   "frames": 6,
+   "fps": 8
+  },
+  "hurl": {
+   "y": 1600,
+   "fw": 128,
+   "fh": 100,
+   "ax": 64,
+   "ay": 89,
+   "frames": 6,
+   "fps": 10,
+   "release": 3
+  },
+  "flinch": {
+   "y": 2400,
+   "fw": 120,
+   "fh": 100,
+   "ax": 60,
+   "ay": 89,
+   "frames": 4,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 3200,
+   "fw": 118,
+   "fh": 100,
+   "ax": 59,
+   "ay": 89,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 4000,
+   "fw": 116,
+   "fh": 100,
+   "ax": 58,
+   "ay": 89,
+   "frames": 1,
+   "fps": 4
+  },
+  "chunk": {
+   "y": 4800,
+   "fw": 24,
+   "fh": 100,
+   "ax": 12,
+   "ay": 89,
+   "frames": 4,
+   "fps": 12
+  }
+ }
+}
