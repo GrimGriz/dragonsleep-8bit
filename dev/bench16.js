@@ -547,6 +547,95 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preRC);
     return;
   }
+  // THE AI FROM HIS FARE HOME RECORD, 11-26 (mode=ai1126; the seat ai-1126 -- Griz, on play-records/deep16-play-record-2026-11-26-0955.json, sixteen fights: "try to build and
+  // get on live"). Each staged on the class floor and the choice read: 1 a hurt caster's step off a foe is weighed -- it does not walk into the opportunity attack, and steps
+  // when the swing is spent; 2 a blow at another costs the Called to Account it holds; 3 a walk is priced for a reach it passes through and a blow readied for it; 4 a potion
+  // from the pack to the fallen, and its own when low; 5 a raise is worth the turn it gives and the blows it draws; 6 an armoured caster's strike counts standing with the
+  // front; 7 a module's slots are paced by the fights to its long rest; 8 a foe leaves the one beside it for one a blow could drop, the swing weighed
+  if (get('mode', '') === 'ai1126') {
+    var repAQ = { checks: [], errors: [], notes: [] }, d0AQ = D.d, stripAQ = function (s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, ''); }, TXQ = D.tactics, GQ = D.grid;
+    var okAQ = function (what, v) { repAQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    var runAQ = function (B, u) { var n0 = (B.log || []).length; D.rules.startTurn(u); B.active = u; var g = D.ai.turn(B, u), v, q = 0, st; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } B.active = null; return stripAQ((B.log || []).slice(n0).join(' | ')); };
+    var mkAQ = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; };
+    var placeAQ = function (B, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; p[0].conds = {}; p[0].fz = null; p[0].left = false; }); B.units.forEach(function (w) { if (list.every(function (p) { return p[0] !== w; })) w.left = true; }); GQ.setup(GQ.map, B.units.filter(function (w) { return !w.left; })); B.cache = null; };
+    var oneAQ = function (B, f) { return B.units.filter(f)[0]; }, plansAQ = function (B, u) { D.rules.startTurn(u); return TXQ.plans(B, u); }, topAQ = function (pl) { return pl.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '); };
+    try {
+      // 1. a wizard at a third of its hit points beside an ogre, nothing else about
+      var B1 = mkAQ('?npc=ogre&vs=wizard:3&lvl=3'), og1 = oneAQ(B1, function (u) { return u.kind === 'ogre'; }), wz1 = oneAQ(B1, function (u) { return u.cls === 'wizard'; });
+      wz1.known = (wz1.known || []).filter(function (id) { return id !== 'mistystep' && id !== 'expeditiousretreat'; });
+      placeAQ(B1, [[wz1, 6, 8], [og1, 7, 8]]); wz1.hp = Math.max(4, Math.floor(wz1.maxhp * 0.35)); og1.reaction = 1; D.d = function (n) { return n === 20 ? 2 : d0AQ.apply(this, arguments); };
+      var hp1 = wz1.hp, l1 = runAQ(B1, wz1), adj1 = GQ.dist(wz1, og1) <= 5;
+      placeAQ(B1, [[wz1, 6, 8], [og1, 7, 8]]); wz1.hp = hp1; og1.reaction = 0;
+      var l1b = runAQ(B1, wz1), adj1b = GQ.dist(wz1, og1) <= 5; D.d = d0AQ; og1.reaction = 1;
+      okAQ('1 a wizard at ' + hp1 + ' of ' + wz1.maxhp + ' beside an ogre with its reaction: it ' + (adj1 ? 'stays' : 'STEPS OFF') + ', no opportunity attack (' + (/opportunity attack/.test(l1) ? 'ONE TAKEN' : 'none') + '); the ogre\'s reaction spent, it ' + (adj1b ? 'STAYS' : 'steps off') + ' free -- ' + l1.slice(0, 160) + ' || ' + l1b.slice(0, 120),
+        adj1 && !/opportunity attack/.test(l1) && !adj1b && !/opportunity attack/.test(l1b));
+      // 2. a paladin that holds an ogre to account, a goblin at 1 hp beside it too
+      var B2 = mkAQ('?npc=ogre,goblin&vs=paladin:3&lvl=3'), og2 = oneAQ(B2, function (u) { return u.kind === 'ogre'; }), gb2 = oneAQ(B2, function (u) { return u.kind === 'goblin'; }), pa2 = oneAQ(B2, function (u) { return u.cls === 'paladin'; });
+      placeAQ(B2, [[pa2, 6, 8], [og2, 7, 8], [gb2, 5, 8]]); gb2.hp = 1;
+      var wpTop = function () { var p = plansAQ(B2, pa2).filter(function (x) { return x.kind === 'weapon'; })[0]; return p ? p.why + ' ' + p.score.toFixed(1) : '-'; };
+      var t2a = wpTop(); og2.conds.accounted = { by: pa2.id, dice: '1d8' }; pa2.conc = { id: 'calledtoaccount', name: 'Called to Account', value: 9 };
+      var held2 = D.magic.accountedBy ? D.magic.accountedBy(B2, pa2) : null, c2g = TXQ.concBreak(B2, pa2, gb2), c2o = TXQ.concBreak(B2, pa2, og2), t2b = wpTop(); pa2.conc = null; delete og2.conds.accounted;
+      okAQ('2 a paladin with an ogre and a 1 hp goblin beside it would ' + t2a + '; the ogre held to account (the call worth 9), a blow at the goblin costs ' + c2g + ' and at the ogre ' + c2o + ', and it would ' + t2b, /Goblin/.test(t2a) && held2 === og2 && c2g === 9 && c2o === 0 && /Ogre/.test(t2b));
+      // 3. a fighter's walk along a row past a bandit: its reach entered and left
+      var B3 = mkAQ('?npc=bandit,goblin&vs=fighter:3&lvl=3'), bd3 = oneAQ(B3, function (u) { return u.kind === 'bandit'; }), gb3 = oneAQ(B3, function (u) { return u.kind === 'goblin'; }), ft3 = oneAQ(B3, function (u) { return u.cls === 'fighter'; });
+      placeAQ(B3, [[ft3, 4, 8], [bd3, 7, 7], [gb3, 11, 8]]); D.rules.startTurn(ft3);
+      var rm3 = GQ.reach(ft3, 30), e3 = rm3['10,8'], pth3 = e3 ? GQ.path(rm3, 10, 8) : null, by3 = !!pth3 && pth3.some(function (q) { return GQ.dist(ft3, bd3, q[0], q[1]) <= 5; });
+      bd3.reaction = 1; var tl3a = TXQ.walkToll(B3, ft3, rm3, e3); bd3.reaction = 0; var tl3b = TXQ.walkToll(B3, ft3, rm3, e3); bd3.reaction = 1;
+      ft3.turn.disengaged = true; var tl3c = TXQ.walkToll(B3, ft3, rm3, e3);
+      bd3.ready = { trigger: 'near', what: 'attack', wp: bd3.weapon || bd3.attacks[Object.keys(bd3.attacks)[0]], had: {} }; var tl3d = TXQ.walkToll(B3, ft3, rm3, e3);
+      bd3.ready.had[ft3.id] = 1; var tl3e = TXQ.walkToll(B3, ft3, rm3, e3); bd3.ready = null; ft3.turn.disengaged = false;
+      okAQ('3 a walk from 4,8 to 10,8 ' + (by3 ? 'through' : 'NOT through') + ' a bandit\'s reach at 7,7: the toll ' + tl3a.toFixed(1) + ' (half its round ' + (TXQ.dpr(bd3) * 0.5).toFixed(1) + '); its reaction spent ' + tl3b + '; disengaged ' + tl3c + '; disengaged and its blow readied for one who comes within reach ' + tl3d.toFixed(1) + '; readied with the walker in its reach already ' + tl3e,
+        by3 && Math.abs(tl3a - TXQ.dpr(bd3) * 0.5) < 0.01 && tl3b === 0 && tl3c === 0 && Math.abs(tl3d - TXQ.dpr(bd3) * 0.5) < 0.01 && tl3e === 0);
+      // 4. two potions in the pack; the wizard down 10 ft from the fighter, the ogre far off
+      var B4 = mkAQ('?npc=ogre&vs=fighter:3,wizard:3&lvl=3'), og4 = oneAQ(B4, function (u) { return u.kind === 'ogre'; }), ft4 = oneAQ(B4, function (u) { return u.cls === 'fighter'; }), wz4 = oneAQ(B4, function (u) { return u.cls === 'wizard'; });
+      placeAQ(B4, [[ft4, 3, 4], [wz4, 5, 4], [og4, 14, 11]]); B4.inv = [{ id: 'potion', n: 2 }]; wz4.hp = 0;
+      var pl4 = plansAQ(B4, ft4), top4 = pl4[0] || {}; B4.inv = []; var none4 = plansAQ(B4, ft4).filter(function (p) { return p.kind === 'item'; }).length; B4.inv = [{ id: 'potion', n: 2 }];
+      ft4.turn = null; var l4 = runAQ(B4, ft4), up4 = wz4.hp, left4 = B4.inv[0].n;
+      wz4.hp = wz4.maxhp; ft4.hp = Math.max(1, Math.floor(ft4.maxhp * 0.2)); if (ft4.feats) ft4.feats.secondWind = 0;
+      var pl4b = plansAQ(B4, ft4), self4 = pl4b.filter(function (p) { return p.kind === 'item'; })[0]; ft4.hp = ft4.maxhp; var whole4 = plansAQ(B4, ft4).filter(function (p) { return p.kind === 'item'; }).length;
+      okAQ('4 the wizard down 10 ft off, two potions in the pack: the fighter would ' + topAQ(pl4) + ' (no pack: ' + none4 + ' item plans); it does -- the wizard on ' + up4 + ' hp, ' + left4 + ' potion left -- ' + l4.slice(0, 140) + ' || itself at a fifth of its hit points: ' + (self4 ? self4.why + ' ' + self4.score.toFixed(1) : 'NONE') + '; whole, ' + whole4 + ' item plans',
+        top4.kind === 'item' && /Potion of Healing to/.test(top4.why || '') && none4 === 0 && up4 > 0 && left4 === 1 && !!self4 && /^drinks/.test(self4.why) && whole4 === 0);
+      // 5. the raise: the wizard down with no foe by it, and with the ogre standing over it
+      placeAQ(B4, [[ft4, 5, 4], [wz4, 3, 4], [og4, 14, 11]]); ft4.hp = 0; wz4.hp = wz4.maxhp; var r5a = TXQ.raiseWorth(B4, wz4, ft4, 7);
+      placeAQ(B4, [[ft4, 5, 4], [wz4, 3, 4], [og4, 6, 4]]); ft4.hp = 0; var r5b = TXQ.raiseWorth(B4, wz4, ft4, 7), dO5 = TXQ.dpr(og4);
+      ft4.hp = ft4.maxhp; wz4.hp = 0; placeAQ(B4, [[ft4, 3, 4], [wz4, 5, 4], [og4, 6, 4]]); wz4.hp = 0; var r5c = TXQ.raiseWorth(B4, ft4, wz4, 7);
+      wz4.hp = wz4.maxhp; var r5d = TXQ.raiseWorth(B4, ft4, wz4, 7);
+      okAQ('5 the blows a raise draws: the fighter (AC ' + D.rules.ac(ft4) + ') at 0 with no foe by it ' + r5a + '; the ogre over it and the wizard (AC ' + D.rules.ac(wz4) + ', robed) its next ' + r5b.toFixed(1) + ' (the ogre\'s round ' + dO5.toFixed(1) + ' at 0.6); the wizard at 0 under the ogre, the fighter its next ' + r5c + ' (as hard a target: nothing drawn off a softer one); one standing ' + r5d,
+        r5a === 0 && Math.abs(r5b - dO5 * 0.6) < 0.01 && r5b > 2 && r5c === 0 && r5d === 0);
+      // 6. a cleric 15 ft from an ogre that is on the hurt fighter
+      var B6 = mkAQ('?npc=ogre&vs=cleric:3,fighter:3&lvl=3'), og6 = oneAQ(B6, function (u) { return u.kind === 'ogre'; }), cl6 = oneAQ(B6, function (u) { return u.cls === 'cleric'; }), ft6 = oneAQ(B6, function (u) { return u.cls === 'fighter'; });
+      placeAQ(B6, [[ft6, 6, 8], [og6, 7, 8], [cl6, 7, 12]]); ft6.hp = Math.floor(ft6.maxhp * 0.4);
+      var str6 = function () { var p = plansAQ(B6, cl6).filter(function (x) { return x.kind === 'weapon' && /^strikes/.test(x.why); })[0]; return p ? p.score : null; };
+      var fr6 = TXQ.frontable(cl6), s6a = str6(), hp6 = cl6.hp; cl6.hp = Math.floor(cl6.maxhp * 0.4); var fr6b = TXQ.frontable(cl6), s6b = str6(); cl6.hp = hp6;
+      okAQ('6 a cleric (AC ' + D.rules.ac(cl6) + ') 20 ft from the ogre on the hurt fighter: its strike ' + (s6a == null ? '-' : s6a.toFixed(1)) + ' standing with the front (frontable ' + fr6 + '); at four tenths of its own hit points ' + (s6b == null ? '-' : s6b.toFixed(1)) + ' (frontable ' + fr6b + ') -- a quarter of the ogre\'s round and the flank, ' + (TXQ.dpr(og6) * 0.25 + 1).toFixed(1),
+        fr6 === true && fr6b === false && s6a != null && s6b != null && Math.abs((s6a - s6b) - (TXQ.dpr(og6) * 0.25 + 1)) < 0.3);
+      // 7. a module's day under the fight: three fights to its long rest
+      var B7 = mkAQ('?npc=ogre&vs=wizard:3&lvl=3'), wz7 = oneAQ(B7, function (u) { return u.cls === 'wizard'; }), og7q = oneAQ(B7, function (u) { return u.kind === 'ogre'; });
+      placeAQ(B7, [[wz7, 3, 4], [og7q, 12, 9]]); B7.o = B7.o || {}; var pk0 = B7.o.pocket; B7.o.pocket = true;
+      var fakeQ = { st: { run: { module: { name: 'the bench' }, rung: 1, plan: [{ rest: { short: true } }, { rest: { short: true } }, { rest: { long: true } }, {}] } } }; D.scenes.unshift(fakeQ);
+      var f7a = TXQ.fightsToRest(B7, wz7), all7 = (wz7.slots || []).reduce(function (s, k) { return s + (k || 0); }, 0), c7a = TXQ.paceCost(B7, wz7, 1), sh7 = Math.ceil(all7 / 3);
+      var keep7 = wz7.slots.slice(), sp7 = sh7; wz7.slots = wz7.slots.map(function (k) { var t = Math.min(k, sp7); sp7 -= t; return k - t; }); var c7b = TXQ.paceCost(B7, wz7, 1);
+      var hpw7 = wz7.hp; wz7.hp = Math.floor(wz7.maxhp * 0.3); var c7low = TXQ.paceCost(B7, wz7, 1); wz7.hp = hpw7;
+      fakeQ.st.run.rung = 3; var f7c = TXQ.fightsToRest(B7, wz7), c7c = TXQ.paceCost(B7, wz7, 1); fakeQ.st.run.rung = 4; var f7d = TXQ.fightsToRest(B7, wz7);
+      D.scenes.splice(D.scenes.indexOf(fakeQ), 1); var f7e = TXQ.fightsToRest(B7, wz7); B7.o.pocket = pk0; wz7.slots = keep7;
+      okAQ('7 fight 1 of a day of three (S S L): ' + f7a + ' fights to the long rest; a 1st-level slot costs ' + c7a.toFixed(1) + ' more with ' + all7 + ' slots in hand, and ' + c7b.toFixed(1) + ' once its share (' + sh7 + ') is spent; under four tenths of its hit points ' + c7low + '; fight 3, the last before the rest, ' + f7c + ' and ' + c7c + '; the module\'s last fight ' + f7d + '; no module under the fight ' + f7e,
+        f7a === 2 && c7a > 0 && c7b > c7a + 5 && c7low === 0 && f7c === 0 && c7c === 0 && f7d === 0 && f7e === 0);
+      // 8. a Dominion soldier beside the cleric, the wizard at 2 hp 10 ft from it
+      var B8 = mkAQ('?npc=dominion&vs=cleric:3,wizard:3&lvl=3'), ds8 = oneAQ(B8, function (u) { return u.kind === 'dominion'; }), cl8 = oneAQ(B8, function (u) { return u.cls === 'cleric'; }), wz8 = oneAQ(B8, function (u) { return u.cls === 'wizard'; });
+      var set8 = function () { placeAQ(B8, [[ds8, 8, 8], [cl8, 9, 8], [wz8, 6, 8]]); cl8.hp = cl8.maxhp; cl8.reaction = 1; ds8.hp = ds8.maxhp; ds8.conds = {}; D.rules.startTurn(ds8); };
+      var near8 = function () { var hs = D.ai.heroes(B8, ds8); return [hs, hs.filter(function (w) { return GQ.dist(ds8, w) <= 5; })]; };
+      set8(); wz8.hp = 2; var n8 = near8(), dw8 = D.ai.dropWalk(B8, ds8, n8[0], n8[1]);
+      wz8.hp = wz8.maxhp; var dw8b = D.ai.dropWalk(B8, ds8, n8[0], n8[1]);
+      wz8.hp = 2; ds8.hp = 3; var dw8c = D.ai.dropWalk(B8, ds8, n8[0], n8[1]); ds8.hp = ds8.maxhp;
+      set8(); wz8.hp = 2; ds8.turn = null; D.d = function (n) { return n === 20 ? 15 : d0AQ.apply(this, arguments); }; var l8 = runAQ(B8, ds8); D.d = d0AQ;
+      okAQ('8 a Dominion soldier beside the cleric, the wizard at 2 hp 10 ft off: ' + (dw8 ? 'it goes for ' + dw8.w.name + ' (the drop ' + Math.round(dw8.pd * 100) + '%, worth ' + dw8.gain.toFixed(1) + ' against ' + dw8.stay.toFixed(1) + ' where it stands; the swing it takes ' + dw8.toll.toFixed(1) + ')' : 'IT STAYS') + '; the wizard whole, ' + (dw8b ? 'IT GOES' : 'it stays') + '; itself at 3 hp, ' + (dw8c ? 'IT GOES' : 'it stays') + ' -- ' + l8.slice(0, 160) + ' ... ' + (/Dominion Soldier > Wizard/.test(l8) ? 'and strikes at the wizard' : 'NO BLOW AT THE WIZARD'),
+        !!dw8 && dw8.w === wz8 && !dw8b && !dw8c && /breaks from/.test(l8) && /Dominion Soldier > Wizard/.test(l8));
+    } catch (eAQ) { repAQ.errors.push(String(eAQ && eAQ.stack || eAQ).slice(0, 900)); }
+    D.d = d0AQ;
+    var preAQ = document.createElement('pre'); preAQ.id = 'out'; preAQ.textContent = 'BENCH16 ' + JSON.stringify(repAQ);
+    document.body.appendChild(preAQ);
+    return;
+  }
   // THE AI LANE'S THREE LEADS, 11-14 (mode=aileads1114; the todo-pairs seat, on the lanes desk's brief): 1. the giant bat that "paces: it cannot get at anyone" with every square
   // beside the nearest hero held by the other bats' 2 x 2 bodies (Griz, 11-13: "Giant bat pacing is what they think it is, don't burn usage confirming") -- it bites another it can
   // reach; 2. a caster with a foe beside it steps off before its ray, not "dis: in melee" at the 1 hp one beside it (his record of 11-03, the patrol ladies); 3. a watched turn's
@@ -33305,7 +33394,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     try {
       var PKf = D.pocket, idsF;
       memF['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null });
-      var Pf = new D.Pocket(); Pf.enter(); Pf.ask = function () { return true; }; Pf.xpAlways = true; idsF = Pf.mapIds();
+      var Pf = new D.Pocket(); Pf.enter(); if (get('pace', '')) D.scenes.push(Pf); Pf.ask = function () { return true; }; Pf.xpAlways = true; idsF = Pf.mapIds();
       var fh = PKf.modules(Pf.st).filter(function (m) { return m.key === 'game:farehome'; })[0], src = (D.MODULES || []).filter(function (m) { return m.id === 'farehome'; })[0];
       okF(!!fh && fh.slots.length === 9 && fh.party.n === 4 && fh.party.lvl === 3 && fh.slots.every(function (s) { return idsF.indexOf(s.map) >= 0 && s.foes.every(function (k) { return !!PKf.foe(k); }); }),
         'THE FARE HOME comes with the game: ' + (fh && fh.slots.length) + ' fights, made for ' + (fh && fh.party && fh.party.n + ' at ' + fh.party.lvl) + ', every floor one the table deals and every foe one it builds');
