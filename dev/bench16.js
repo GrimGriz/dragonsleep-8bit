@@ -19961,7 +19961,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 2. two trained, 15 ft apart, the foe 25 ft off: the first sets where it stands, front north; the second walks to the line's end and joins it
       var h2 = mkFm(true, true, false, false); turnFm(h2, h2.a); var f2 = h2.a.conds.wall && h2.a.conds.wall.face; turnFm(h2, h2.b);
       okFm('two trained, round 1, the foe 25 ft off: the first set ' + FFm.wallSet(h2.a) + ' at ' + h2.a.x + ',' + h2.a.y + ' facing ' + JSON.stringify(f2) + '; the second walked ' + (h2.X + 4) + ',' + h2.Y + ' -> ' + h2.b.x + ',' + h2.b.y + ', set ' + FFm.wallSet(h2.b) + ', joined ' + FFm.joined(h2.b) + ', facing ' + JSON.stringify(h2.b.conds.wall && h2.b.conds.wall.face),
-        FFm.wallSet(h2.a) && f2 && f2.join() === '0,-1' && FFm.wallSet(h2.b) && FFm.joined(h2.b) && h2.b.conds.wall.face.join() === '0,-1' && h2.b.y === h2.Y && Math.abs(h2.b.x - h2.a.x) === 1);
+        FFm.wallSet(h2.a) && f2 && f2.join() === '0,-1' && FFm.wallSet(h2.b) && FFm.joined(h2.b) && h2.b.conds.wall.face.join() === '0,-1' && h2.b.y === h2.a.y && h2.a.y <= h2.Y && h2.a.y > h2.Y - 5 && Math.abs(h2.b.x - h2.a.x) === 1); // (the line's row: the caller's, at or forward of where it began and short of the foe -- THE FIRST SET IS THE CALLER'S, js/features.js F.formPlan, 11-26; till then h2.Y)
       // 3. a trained piker with a wall standing: to the square behind a member, and holds there
       var h3 = mkFm(true, true, true, true); turnFm(h3, h3.a); turnFm(h3, h3.b); var c3 = h3.c.x + ',' + h3.c.y; turnFm(h3, h3.c);
       var behind = [h3.a, h3.b].some(function (m) { return h3.c.x === m.x && h3.c.y === m.y + 1; });
@@ -19976,7 +19976,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       fullFm(h6.a); var a6 = at6(h6.a), s6 = FFm.wallSet(h6.a); fullFm(h6.b); fullFm(h6.c); var c6 = at6(h6.c);
       var l6 = (h6.B.log || []).slice(n6).join(' / ').replace(/\{\/?[a-z]*\}/g, '');
       okFm('the whole AI turn, round 1: the first set ' + s6 + ' at ' + a6 + ' (from ' + (h6.X + 1) + ',' + h6.Y + '), still set ' + FFm.wallSet(h6.a) + '; the second set ' + FFm.wallSet(h6.b) + '; the piker at ' + c6 + '; a Dash on the log ' + /dashes/.test(l6),
-        s6 && a6 === (h6.X + 1) + ',' + h6.Y && FFm.wallSet(h6.a) && FFm.wallSet(h6.b) && !/dashes/.test(l6) && [h6.a, h6.b].some(function (m) { return h6.c.x === m.x && h6.c.y === m.y + 1; }));
+        s6 && a6 === at6(h6.a) && h6.a.y <= h6.Y && h6.a.y > h6.Y - 5 && FFm.wallSet(h6.a) && FFm.wallSet(h6.b) && !/dashes/.test(l6) && [h6.a, h6.b].some(function (m) { return h6.c.x === m.x && h6.c.y === m.y + 1; })); // (set where the caller called the line, and still there at the turn's end -- 11-26; till then its starting square)
       // 5. ONE PUSH A ROUND: the wall pushes (a goblin holds, so the line and the goblins stay); the mate's own call the same round is refused and says why; the next round, allowed
       var h5 = mkFm(true, true, false, false); h5.a.guest = h5.b.guest = false; h5.b.x = h5.a.x + 1; h5.b.y = h5.a.y; h5.g[0].x = h5.a.x; h5.g[0].y = h5.a.y - 1; h5.g[1].x = h5.b.x; h5.g[1].y = h5.b.y - 1; Gf.setup(h5.B.map, h5.B.units);
       [h5.a, h5.b].forEach(function (u) { RUFm.startTurn(u); h5.B.active = u; runFm(h5.B.exec(u, { do: 'setshields' })); });
@@ -21544,6 +21544,106 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // take the 1d6; a foe with nowhere to go holds the line; a Huge one holds it with no save; a mate set this round pushes the next; no foe ahead, no push -- ADVANCE; the
   // trained piker behind steps with the line and thrusts (its reaction); the log carries it; pushed out or prone, out; the members keep their Attack; LEAVE gives the move back
   // for the bonus action; a move click asks first; one untrained cannot set
+  // THE WALL AFTER HIS FARE HOME RECORD (mode=wall1126; RULED 2026-11-26, Griz to the window that read play-records/deep16-play-record-2026-11-26-0955.json with him -- "liking
+  // your first batch of leans save 5"; "it felt like a formed wall should be able to pivot around a member"; "when first forming it'd have been better if the shield guy moved
+  // forward 2 before setting"; "we're fixing the AC bonus to only apply to the front of the wall?", "2 - half-plane"; a pivot's and a march's opportunity attacks, "2 - it
+  // should", "3 - yes"; a set shield against the push, "1 - yes"): a mate is one ACROSS the front; the +2 is the front's; PIVOT; a wall that moves leaves reaches; the set
+  // shield's +1 a mate against the push; the caller's forward spot; the missile break by the whole wall's reach
+  if (get('mode', '') === 'wall1126') {
+    var rep6 = { checks: [], errors: [] }, d06 = D.d, F6 = D.features, RU6 = D.rules, G6 = D.grid;
+    function ok6(what, v) { rep6.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function run6(g, want) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts; v = (want === false ? os[os.length - 1] : os[0]).value; } } }
+    function pinW6(seq) { var i = 0; D.d = function (n) { return n === 20 ? seq[Math.min(i++, seq.length - 1)] : (n === 6 ? 4 : d06(n)); }; }
+    function atW6(u) { return u.x + ',' + u.y; }
+    // three shields (f, m, k) and a pike (p), all trained; two Dominion Soldiers (d1, d2: trained, shields) and a goblin (g); a block open 5 across and 9 deep, its middle X,Y; all parked
+    function mkW6() {
+      var B = D.npcFight('?npc=dominion,dominion,goblin&lvl=3&vs=fighter:3,fighter:3,fighter:3,fighter:3', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), fs = B.units.filter(function (w) { return w.side === 'foe'; });
+      ps.forEach(function (u) { u.abil.str = u.src.abil.str = 15; u.src.featIds = ['soldiering']; u.src.equip = Object.assign({}, u.src.equip || {}, { shield: 'shield', weapon: 'longsword' }); u.weapon = D.save.weaponOf(u.src); u.conds = {}; });
+      var p = ps[3]; p.src.equip = Object.assign({}, p.src.equip, { weapon: 'pike', shield: null }); p.weapon = D.save.weaponOf(p.src);
+      fs.forEach(function (w) { w.maxhp = w.hp = 999; w.conds = {}; });
+      G6.setup(B.map, []); var spot = null, W = B.map.w || B.map.def.w || 40, H = B.map.h || B.map.def.h || 30;
+      for (var y = 0; y <= H - 9 && !spot; y++) for (var x = 0; x <= W - 5 && !spot; x++) { var all = true; for (var yy = y; yy < y + 9 && all; yy++) for (var xx = x; xx < x + 5 && all; xx++) all = G6.canStand(ps[0], xx, yy) && Math.abs(G6.gzAt(ps[0], xx, yy) - G6.gzAt(ps[0], x, y)) < 2; if (all) spot = [x + 2, y + 4]; } // (5 across, 9 deep: the checks use 2 either side of the middle and 4 before and behind)
+      var X = spot ? spot[0] : 5, Y = spot ? spot[1] : 5, park = [];
+      for (var py = 0; py < H && park.length < 8; py++) for (var px = 0; px < W && park.length < 8; px++) if (Math.max(Math.abs(px - X), Math.abs(py - Y)) >= 6 && G6.canStand(ps[0], px, py)) park.push([px, py]);
+      var h = { B: B, f: ps[0], m: ps[1], k: ps[2], p: p, d1: fs[0], d2: fs[1], g: fs[2], X: X, Y: Y, ok: !!spot };
+      [h.f, h.m, h.k, h.p, h.d1, h.d2, h.g].forEach(function (u, i) { var q = park[i] || [i, 0]; u.x = q[0]; u.y = q[1]; u.reaction = 1; });
+      B.round = 3; G6.setup(B.map, B.units);
+      return h;
+    }
+    function put6(h, list) { list.forEach(function (r) { r[0].x = h.X + r[1]; r[0].y = h.Y + r[2]; }); G6.setup(h.B.map, h.B.units); }
+    function set6(h, u, face) { RU6.startTurn(u); h.B.active = u; F6.setShields(h.B, u, face); }
+    function log6(h, n0) { return (h.B.log || []).slice(n0).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      D.seed = 1126;
+      // 1. A FILE IS NO WALL: one set behind another, the same front -- not joined, no +2; a third beside the second, across the front: those two are a wall of 2
+      var h1 = mkW6(), N = [0, -1]; put6(h1, [[h1.f, 0, 0], [h1.m, 0, 1], [h1.k, 1, 1]]); var ac1 = RU6.ac(h1.f);
+      set6(h1, h1.f, N); set6(h1, h1.m, N); var j1a = F6.joined(h1.f, h1.B), j1b = F6.joined(h1.m, h1.B); set6(h1, h1.k, N);
+      ok6('a file is no wall (placed ' + h1.ok + '): the one behind sets -- joined ' + j1a + ' / ' + j1b + ', AC ' + ac1 + ' -> ' + RU6.ac(h1.f) + '; a third beside the second: ' + F6.joined(h1.m, h1.B) + ' / ' + F6.joined(h1.k, h1.B) + ', a wall of ' + F6.wallOf(h1.B, h1.m).length + ', the first still alone ' + !F6.joined(h1.f, h1.B),
+        h1.ok && !j1a && !j1b && RU6.ac(h1.f) === ac1 && F6.joined(h1.m, h1.B) && F6.joined(h1.k, h1.B) && F6.wallOf(h1.B, h1.m).length === 2 && !F6.joined(h1.f, h1.B));
+      // 1b. a diagonal neighbour is no mate either
+      var h1b = mkW6(); put6(h1b, [[h1b.f, 0, 0], [h1b.m, 1, 1]]); set6(h1b, h1b.f, N); set6(h1b, h1b.m, N);
+      ok6('a diagonal neighbour is no mate: joined ' + F6.joined(h1b.f, h1b.B) + ' / ' + F6.joined(h1b.m, h1b.B), !F6.joined(h1b.f, h1b.B) && !F6.joined(h1b.m, h1b.B));
+      // 2. THE +2 IS THE FRONT'S: ahead of the line (straight, or off its end) yes; beside the line and behind it no; the blow from the flank says so
+      var h2 = mkW6(); put6(h2, [[h2.f, 0, 0], [h2.m, 1, 0], [h2.g, 0, -1]]); var ac2 = RU6.ac(h2.f); set6(h2, h2.f, N); set6(h2, h2.m, N);
+      var a2 = RU6.ac(h2.f, h2.g); put6(h2, [[h2.g, -2, -1]]); var a2d = RU6.ac(h2.f, h2.g); put6(h2, [[h2.g, -1, 0]]); var a2s = RU6.ac(h2.f, h2.g); put6(h2, [[h2.g, 0, 1]]); var a2b = RU6.ac(h2.f, h2.g);
+      put6(h2, [[h2.g, -1, 0]]); var n2 = (h2.B.log || []).length, ga = h2.g.weapon || h2.g.attacks[Object.keys(h2.g.attacks).filter(function (k) { return !h2.g.attacks[k].ranged; })[0]]; pinW6([10]); RU6.startTurn(h2.g); h2.B.active = h2.g; run6(h2.B.attack(h2.g, h2.f, ga)); D.d = d06; var l2 = log6(h2, n2);
+      ok6('the +2 is the front\'s: AC ' + ac2 + ' unset; ahead ' + a2 + ', ahead off the line\'s end ' + a2d + ', beside the line ' + a2s + ', behind ' + a2b + '; with no attacker named ' + RU6.ac(h2.f) + '; the flank blow\'s line "' + (l2.match(/vs AC[^/]*/) || [''])[0].slice(0, 70) + '"',
+        a2 === ac2 + 2 && a2d === ac2 + 2 && a2s === ac2 && a2b === ac2 && RU6.ac(h2.f) === ac2 + 2 && /vs AC \d+ \(not from its wall's front: no \+2\)/.test(l2));
+      // 3. PIVOT: three abreast facing north, a set pike behind the middle one; the caller (the west end) names the MIDDLE one and the turn to the east -- the middle keeps its
+      // square, the west end swings north of it, the east end south of it (into the pike's square: the pike steps behind the new line); all three joined facing east, the
+      // pike out of set, the caller's move spent and its bonus action kept, no MARCH after it this round
+      var h3 = mkW6(); put6(h3, [[h3.f, -1, 0], [h3.m, 0, 0], [h3.k, 1, 0], [h3.p, 0, 1]]); set6(h3, h3.f, N); set6(h3, h3.m, N); set6(h3, h3.k, N);
+      RU6.startTurn(h3.p); h3.B.active = h3.p; run6(h3.B.exec(h3.p, { do: 'setpikes' })); var ps3 = !!F6.pikeSet(h3.p, h3.B);
+      RU6.startTurn(h3.f); h3.B.active = h3.f; var os3 = F6.pivotOptions(h3.B, h3.f), cmd3 = h3.B.commands(h3.f).filter(function (c) { return c.id === 'wallpivot'; })[0], n3 = (h3.B.log || []).length;
+      run6(h3.B.exec(h3.f, { do: 'wallpivot', pivot: h3.m, dir: 1 })); var l3 = log6(h3, n3), fc3 = [h3.f, h3.m, h3.k].map(function (u) { return u.conds.wall ? u.conds.wall.face.join() : '-'; }).join(' ');
+      ok6('PIVOT about the middle one, to the east: ' + os3.length + ' turns open, the ring\'s PIVOT ' + (cmd3 && cmd3.ok) + '; the pike set before ' + ps3 + '; after -- west end ' + atW6(h3.f) + ', middle ' + atW6(h3.m) + ', east end ' + atW6(h3.k) + ' (middle at ' + h3.X + ',' + h3.Y + '), fronts ' + fc3 + ', a wall of ' + F6.wallOf(h3.B, h3.f).length + '; the pike ' + atW6(h3.p) + ', set ' + !!F6.pikeSet(h3.p, h3.B) + '; the caller\'s held move ' + h3.f.turn.wallMove + ', bonus ' + h3.f.turn.bonus + ', may march ' + F6.canMarch(h3.B, h3.f) + '; "' + (l3.match(/calls PIVOT[^/(]*/) || [''])[0] + '"',
+        os3.length >= 2 && cmd3 && cmd3.ok && ps3 && atW6(h3.f) === h3.X + ',' + (h3.Y - 1) && atW6(h3.m) === h3.X + ',' + h3.Y && atW6(h3.k) === h3.X + ',' + (h3.Y + 1) && fc3 === '1,0 1,0 1,0' && F6.wallOf(h3.B, h3.f).length === 3 && !F6.pikeSet(h3.p, h3.B) && h3.p.x === h3.X - 1 && h3.f.turn.wallMove === 0 && h3.f.turn.bonus === 1 && !F6.canMarch(h3.B, h3.f) && /calls PIVOT: the wall of 3 turns about/.test(l3));
+      // 3b. the player's PIVOT asks which member, then which way (the bench answers the first of each); a member too far to swing in a MARCH's distance is not offered
+      var h3b = mkW6(); put6(h3b, [[h3b.f, -1, 0], [h3b.m, 0, 0], [h3b.k, 1, 0]]); set6(h3b, h3b.f, N); set6(h3b, h3b.m, N); set6(h3b, h3b.k, N); RU6.startTurn(h3b.f); h3b.B.active = h3b.f;
+      var asked3b = [], g3b = h3b.B.exec(h3b.f, { do: 'wallpivot' }), st3b, v3b, k3b = 0; while (k3b++ < 4000) { st3b = g3b.next(v3b); v3b = undefined; if (st3b.done) break; if (st3b.value && st3b.value.prompt) { asked3b.push(st3b.value.prompt.title); v3b = st3b.value.prompt.opts[0].value; } }
+      var far3b = F6.pivotOptions(h3b.B, h3b.k).length; h3b.f.speed = h3b.m.speed = h3b.k.speed = 10; [h3b.f, h3b.m, h3b.k].forEach(function (u) { delete u.conds.wall.marched; }); RU6.startTurn(h3b.f); var slow3b = F6.pivotOptions(h3b.B, h3b.f).map(function (o) { return o.pivot === h3b.f ? 'end' : o.pivot.id === (F6.wallOf(h3b.B, h3b.f).filter(function (w) { return F6.wallMates(h3b.B, w).length === 2; })[0] || {}).id ? 'middle' : 'end'; });
+      ok6('the player\'s PIVOT: asked ' + JSON.stringify(asked3b) + ', the wall then facing ' + (h3b.f.conds.wall ? h3b.f.conds.wall.face.join() : '-') + ', joined ' + F6.joined(h3b.f, h3b.B) + '; a wall that marches 5 ft turns only about ' + JSON.stringify(slow3b),
+        asked3b.length === 2 && /PIVOT ABOUT WHOM/.test(asked3b[0]) && /PIVOT TO FACE/.test(asked3b[1]) && F6.joined(h3b.f, h3b.B) && h3b.f.conds.wall.face.join() !== '0,-1' && slow3b.length > 0 && slow3b.every(function (s) { return s === 'middle'; }));
+      // 4. A PIVOT LEAVES REACHES: a goblin beside the west end; the end swings away from it, and the goblin strikes first
+      var h4 = mkW6(); put6(h4, [[h4.f, -1, 0], [h4.m, 0, 0], [h4.k, 1, 0], [h4.g, -2, 0]]); set6(h4, h4.f, N); set6(h4, h4.m, N); set6(h4, h4.k, N); RU6.startTurn(h4.f); h4.B.active = h4.f; h4.g.reaction = 1;
+      var n4 = (h4.B.log || []).length; pinW6([2]); run6(h4.B.exec(h4.f, { do: 'wallpivot', pivot: h4.m, dir: 1 })); D.d = d06; var l4 = log6(h4, n4);
+      ok6('a pivot leaves reaches: "' + (l4.match(/an opportunity attack on[^/]*/) || [''])[0].slice(0, 90) + '"; the goblin\'s reaction ' + h4.g.reaction + '; the wall turned ' + (h4.f.conds.wall && h4.f.conds.wall.face.join()), /an opportunity attack on .*turning with its wall/.test(l4) && h4.g.reaction === 0 && h4.f.conds.wall && h4.f.conds.wall.face.join() === '1,0');
+      // 5. A MARCH LEAVES REACHES: the same goblin beside the west end, nothing ahead; the wall marches north and the goblin strikes as the end leaves it
+      var h5 = mkW6(); put6(h5, [[h5.f, -1, 0], [h5.m, 0, 0], [h5.g, -2, 0]]); set6(h5, h5.f, N); set6(h5, h5.m, N); RU6.startTurn(h5.f); h5.B.active = h5.f; h5.g.reaction = 1;
+      var n5 = (h5.B.log || []).length; pinW6([2]); run6(h5.B.exec(h5.f, { do: 'wallmarch' })); D.d = d06; var l5 = log6(h5, n5);
+      ok6('a march leaves reaches: "' + (l5.match(/an opportunity attack on[^/]*/) || [''])[0].slice(0, 90) + '"; the goblin\'s reaction ' + h5.g.reaction + '; the wall at ' + atW6(h5.f) + ' ' + atW6(h5.m) + ' (from row ' + h5.Y + ')', /an opportunity attack on .*marching with its wall/.test(l5) && h5.g.reaction === 0 && h5.f.y < h5.Y && h5.m.y === h5.f.y);
+      // 6. A SET SHIELD AGAINST THE PUSH: the party's wall of 3 pushes two Dominion Soldiers set and joined facing it -- each saves against the DC less 1 (its one mate), and
+      // the card says so; the same two not set save against the DC itself; set with their backs to the push, the DC itself
+      var S = [0, 1], push6 = function (setFace) {
+        var h = mkW6(); put6(h, [[h.f, -1, 0], [h.m, 0, 0], [h.k, 1, 0], [h.d1, -1, -1], [h.d2, 0, -1]]); set6(h, h.f, N); set6(h, h.m, N); set6(h, h.k, N);
+        if (setFace) { set6(h, h.d1, setFace); set6(h, h.d2, setFace); }
+        [h.f, h.m, h.k].forEach(function (u) { u.reaction = 1; }); RU6.startTurn(h.f); h.B.active = h.f; var dc = F6.pushDC(h.B, h.f), n0 = (h.B.log || []).length; pinW6([10, 10]); run6(h.B.exec(h.f, { do: 'wallpush' })); D.d = d06;
+        var l = log6(h, n0), m = l.match(/vs DC (\d+)/g) || []; return { dc: dc, seen: m.map(function (s) { return +s.replace(/\D/g, ''); }), said: /its own wall of 2 set against it: \+1/.test(l), brace: F6.pushBrace(h.B, h.d1, N) };
+      };
+      var p6a = push6(S), p6b = push6(null), p6c = push6(N);
+      ok6('a set shield against the push: the DC ' + p6a.dc + '; set and facing it, each saves against ' + JSON.stringify(p6a.seen) + ' (said ' + p6a.said + '); not set ' + JSON.stringify(p6b.seen) + '; set with their backs to it ' + JSON.stringify(p6c.seen),
+        p6a.seen.length === 2 && p6a.seen.every(function (n) { return n === p6a.dc - 1; }) && p6a.said && p6b.seen.every(function (n) { return n === p6b.dc; }) && p6b.seen.length === 2 && p6c.seen.every(function (n) { return n === p6c.dc; }) && !p6c.said);
+      // 7. THE CALLER'S SPOT: round one, two shields abreast and a pike behind, the goblin 40 ft north -- the first to act walks forward and sets facing it, the second comes
+      // up beside it and joins, the pike takes the rank behind; the line is nearer the foe than it began and not past it
+      var h7 = mkW6(); h7.d1.hp = h7.d2.hp = 0; h7.d1.dead = h7.d2.dead = true; put6(h7, [[h7.f, 0, 4], [h7.m, 1, 4], [h7.p, 0, 3], [h7.g, 0, -4]]); h7.B.round = 1; [h7.f, h7.m, h7.p].forEach(function (u) { u.guest = true; u.classAI = true; });
+      var turn7 = function (u) { RU6.startTurn(u); h7.B.active = u; run6(F6.aiWall(h7.B, u)); }; var n7 = (h7.B.log || []).length; turn7(h7.f); var a7 = atW6(h7.f), s7 = F6.wallSet(h7.f); turn7(h7.m); turn7(h7.p); var l7 = log6(h7, n7);
+      ok6('the caller\'s spot: the first walked ' + h7.X + ',' + (h7.Y + 4) + ' -> ' + a7 + ', set ' + s7 + ' facing ' + (h7.f.conds.wall && h7.f.conds.wall.face.join()) + '; the second ' + atW6(h7.m) + ', joined ' + F6.joined(h7.m, h7.B) + '; the pike ' + atW6(h7.p) + '; "' + (l7.match(/calls the line[^(]*/) || [''])[0] + '"',
+        s7 && h7.f.y < h7.Y + 4 && h7.f.y > h7.g.y && h7.f.conds.wall.face.join() === '0,-1' && F6.joined(h7.m, h7.B) && h7.m.y === h7.f.y && Math.abs(h7.m.x - h7.f.x) === 1 && h7.p.y === h7.f.y + 1 && /calls the line \d+ ft forward/.test(l7));
+      // 7b. one laid to STAND sets where it stands
+      var h7b = mkW6(); h7b.d1.hp = h7b.d2.hp = 0; h7b.d1.dead = h7b.d2.dead = true; put6(h7b, [[h7b.f, 0, 4], [h7b.m, 1, 4], [h7b.g, 0, -4]]); h7b.B.round = 1; [h7b.f, h7b.m].forEach(function (u) { u.guest = true; u.classAI = true; }); h7b.f.post = { kind: 'stand', at: [h7b.f.x, h7b.f.y] };
+      RU6.startTurn(h7b.f); h7b.B.active = h7b.f; run6(F6.aiWall(h7b.B, h7b.f));
+      ok6('one laid to STAND sets where it stands: at ' + atW6(h7b.f) + ' (from ' + h7b.X + ',' + (h7b.Y + 4) + '), set ' + F6.wallSet(h7b.f), F6.wallSet(h7b.f) && h7b.f.y === h7b.Y + 4 && h7b.f.x === h7b.X);
+      // 8. THE WHOLE WALL'S REACH: two rounds under fire, a foe at the far end's elbow -- the near end, with no foe in its own reach, does not break for the missiles
+      var h8 = mkW6(); put6(h8, [[h8.f, -1, 0], [h8.m, 0, 0], [h8.g, 1, 0], [h8.d1, -1, -4]]); set6(h8, h8.f, N); set6(h8, h8.m, N); [h8.f, h8.m].forEach(function (u) { u.guest = true; u.classAI = true; });
+      h8.f.conds.wall.shotRounds = 2; h8.f.conds.wall.shot = false; RU6.startTurn(h8.f); h8.B.active = h8.f; var n8 = (h8.B.log || []).length; run6(F6.aiWall(h8.B, h8.f)); var l8 = log6(h8, n8);
+      ok6('the whole wall\'s reach: two rounds of missiles on the near end, a foe at the far end\'s elbow -- "' + l8.slice(0, 120) + '"; its count ' + (h8.f.conds.wall ? h8.f.conds.wall.shotRounds : 'out'), !/two rounds of missiles/.test(l8) && (!h8.f.conds.wall || h8.f.conds.wall.shotRounds === 0));
+    } catch (e) { rep6.errors.push(String(e && e.stack || e)); }
+    D.d = d06;
+    var pre6 = document.createElement('pre'); pre6.id = 'out'; pre6.textContent = 'BENCH16 ' + JSON.stringify(rep6);
+    document.body.appendChild(pre6);
+    return;
+  }
   if (get('mode', '') === 'shieldwall1120') {
     var repSw = { checks: [], errors: [] }, d0Sw = D.d, FSw = D.features, RUSw = D.rules;
     function okSw(what, v) { repSw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

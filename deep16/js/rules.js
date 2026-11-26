@@ -9,12 +9,12 @@
   RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned && !u.conds.surprised && !u.conds.incapacitated && !u.conds.petrified; };
   // AC: armour, Shield, Shield of Faith; and the class NPCs' spells (09-28, js/grimoire.js): Barkskin's floor of 16, Haste's +2,
   // Slow's -2, Warding Bond's +1
-  RU.ac = function (u) {
+  RU.ac = function (u, by) { // (by: the attacker, where the caller has one -- a wall's +2 is its front's, js/features.js F.wallFronts, 11-26)
     var c = u.conds, ac = (u.baseAC || u.ac) - (c.shieldPinned ? 2 : 0); // (the Drillyard's PIN THE SHIELD: a shield's +2 off, js/features.js -- 10-30)
     if (c.barkskin) ac = Math.max(ac, 16);
     if (c.pelt && c.pelt.parts.indexOf('hide') >= 0 && u.hp > 0) ac = Math.max(ac, 13 + D.mod(u.abil.wis) + (D.features && D.features.bearsShield && D.features.bearsShield(u) ? 2 : 0)); // (the Pelt's HIDE, ours: 13 + WIS at the least -- js/features.js, 10-30)
     var ward = D.battle && D.battle.doorWardOn && u.side === 'party' && u.hp > 0 ? 3 : 0; // the Door-Shield protects the party (battle.js doorWard)
-    var wallAC = c.wall && D.features && D.features.joined && D.features.joined(u) ? 2 : 0; // (Soldiering's shield wall, joined: +2 -- js/features.js, 11-20)
+    var wallAC = c.wall && D.features && D.features.joined && D.features.joined(u) && (!by || !D.features.wallFronts || D.features.wallFronts(u, by)) ? 2 : 0; // (Soldiering's shield wall, joined: +2 -- js/features.js, 11-20; against one ahead of the line only, 11-26)
     return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward + wallAC;
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
