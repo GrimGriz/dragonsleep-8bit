@@ -20661,6 +20661,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function setN(B, list) { list.forEach(function (e) { e[0].x = e[1]; e[0].y = e[2]; }); GGn.setup(GGn.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; }
     function logN(B, n) { return (B.log || []).slice(n).join(' / ').replace(/R\d+ /g, ''); }
     function cmdN(B, u, id) { RUn.startTurn(u); B.active = u; return (B.commands(u) || []).filter(function (c) { return c.id === id; })[0] || null; }
+    function ordN(B, first) { B.order = first.concat(B.order.filter(function (w) { return first.indexOf(w) < 0; })); }
     function ranksN(B, near) { return Math.min.apply(null, B.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.hp > 0 && !Fn.wagonDrill(w) && Fn.soldiering(w); }).map(function (w) { return GGn.dist(w, near); })); }
     try {
       // 1. THE NET: the west dragger, one of the four 15 ft off -- past the hook's reach (the rest far east) -- a hit restrains; the net AC 10, 5 HP, only slashing; thrown once
@@ -20697,24 +20698,31 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // 5. THE HOOK: the west dragger's net spent, a hero standing 10 ft off and its fellow dragger free -- the Shove to knock prone, at the pike's reach
       var B5 = mkN(), e1 = byN(B5, 'bd1'), e2 = byN(B5, 'bd2'), P5 = heroesN(B5), k5 = P5[0];
       P5.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B5, [[k5, e1.x, e1.y + 2]]); e1.netGone = true;
+      ordN(B5, [e1, e2, byN(B5, 'b1'), byN(B5, 'sb'), byN(B5, 'b2')]); // (11-26: the hook is made where a fellow with its net in hand acts before the one felled stands -- the two draggers, then their ranks, ahead of him)
       var n5 = (B5.log || []).length; q20 = [18, 2]; RUn.startTurn(e1); B5.active = e1; var did5 = runN(Fn.aiWagonDrill(B5, e1)); q20 = []; var l5 = logN(B5, n5);
       okN('5 THE HOOK from 10 ft (' + did5 + '): ' + k5.name + ' prone ' + !!k5.conds.prone + ', the dragger where it stood (' + GGn.dist(e1, k5) + ' ft), its action spent ' + (e1.turn.action === 0) + ', the pike in hand ' + !!e1.attacks.pike + '; "' + l5.slice(0, 240) + '"',
         did5 === true && !!k5.conds.prone && GGn.dist(e1, k5) === 10 && e1.turn.action === 0 && !!e1.attacks.pike && /HOOK/.test(l5) && /knocked flat/.test(l5));
-      // 6. THE PRONE TAKEN: the fellow dragger comes beside, the grapple's contest (one awake), holds and drags at half speed; held, he cannot stand
-      var nr6 = ranksN(B5, k5), at6 = k5.x + ',' + k5.y, n6 = (B5.log || []).length; q20 = [18, 2]; RUn.startTurn(e2); B5.active = e2; var did6 = runN(Fn.aiWagonDrill(B5, e2)); q20 = []; B5.sweep(); var l6 = logN(B5, n6);
-      okN('6 the prone taken (' + did6 + '): held by the second ' + !!(k5.conds.grappled && k5.conds.grappled.by === e2.id) + ', still prone ' + !!k5.conds.prone + ', cannot stand ' + !RUn.canRise(k5) + '; dragged ' + at6 + ' -> ' + k5.x + ',' + k5.y + ', nearest of the ranks ' + nr6 + ' -> ' + ranksN(B5, k5) + ' ft; "' + l6.slice(0, 300) + '"',
-        did6 === true && !!k5.conds.grappled && k5.conds.grappled.by === e2.id && !!k5.conds.prone && !RUn.canRise(k5) && /GRAPPLE|WAGON DRILL/.test(l6) && /prone: .*WAGON DRILL/.test(l6) && (ranksN(B5, k5) < nr6 || nr6 <= 5));
-      // 7. ESCAPE THE HOLD: on his ring; his Athletics or Acrobatics against the dragger's -- free, he may stand
-      var es7 = cmdN(B5, k5, 'escapegrip'), mv7 = (D.ui && D.ui.moveWhy) ? D.ui.moveWhy(B5, k5) : '', n7 = (B5.log || []).length; q20 = [18, 2]; runN(B5.exec(k5, { do: 'escapegrip' })); q20 = []; var l7 = logN(B5, n7);
-      okN('7 ESCAPE THE HOLD on ' + k5.name + '\'s ring (' + !!(es7 && es7.ok) + '; MOVE greyed "' + mv7 + '"); an 18 against a 2: free ' + !k5.conds.grappled + ', can stand ' + RUn.canRise(k5) + '; "' + l7.slice(0, 200) + '"',
-        !!es7 && es7.ok && /ESCAPE THE HOLD/.test(mv7) && !k5.conds.grappled && RUn.canRise(k5) && /breaks/.test(l7));
-      // 8. THE NETTED TAKEN, THEN UP AND OUT OF IT: netted and held, the net cut away (standing) -- the dragger lets go and takes the pike up
+      // 6. THE PRONE NETTED, AHEAD OF THE RANK (11-26, his "have netting a prone be more valuable than forming behind the wall"): the fellow dragger walks beside the one felled
+      // and throws -- a straight roll there (prone within 5 ft against the ranged attack beside a foe); in the net he cannot stand. No hand is laid on him
+      var n6 = (B5.log || []).length; q20 = [18]; RUn.startTurn(e2); B5.active = e2; var p6far = Fn.pNet(e2, k5), did6 = runN(Fn.aiWagonDrill(B5, e2)); q20 = []; B5.sweep(); var l6 = logN(B5, n6), r6 = k5.conds.restrained;
+      okN('6 the prone netted, ahead of the rank (' + did6 + '): the fellow walked beside ' + k5.name + ' (' + GGn.dist(e2, k5) + ' ft; the net\'s chance from where it stood ' + p6far.toFixed(2) + ', from beside ' + Fn.pNet(e2, k5).toFixed(2) + '), netted ' + !!(r6 && r6.net) + ', one d20 ' + /d20 18 \+4/.test(l6) + ', cannot stand ' + !RUn.canRise(k5) + ', no hand on him ' + !k5.conds.grappled + ', its pike in hand ' + !!e2.attacks.pike + '; "' + l6.slice(0, 300) + '"',
+        did6 === true && !!r6 && !!r6.net && GGn.dist(e2, k5) <= 5 && /NET/.test(l6) && /d20 18 \+4/.test(l6) && /adv: prone target/.test(l6) && !RUn.canRise(k5) && !k5.conds.grappled && !!e2.attacks.pike && !!e2.netGone);
+      // 7. THE HOOK'S HOLD: the first dragger's hook takes the net from 10 ft -- no contest, no die -- with a footman beside him to strike before his turn; his ring has BREAK FREE
+      // and no ESCAPE THE HOLD; the net off, the hook has nothing
+      var n7 = (B5.log || []).length; q20 = [3, 3]; RUn.startTurn(e1); B5.active = e1; var did7 = runN(Fn.aiWagonDrill(B5, e1)), dice7 = q20.length; q20 = []; B5.sweep(); var g7 = k5.conds.grappled, hook7 = !!(g7 && g7.by === e1.id && g7.hook), l7 = logN(B5, n7);
+      var es7 = cmdN(B5, k5, 'escapegrip'), bf7 = cmdN(B5, k5, 'breakfree'), mv7 = (D.ui && D.ui.moveWhy) ? D.ui.moveWhy(B5, k5) : '', n7b = (B5.log || []).length; q20 = [15]; runN(B5.exec(k5, { do: 'breakfree' })); q20 = []; B5.sweep(); var l7b = logN(B5, n7b);
+      okN('7 THE HOOK\'S HOLD (' + did7 + '): ' + k5.name + ' on the hook ' + hook7 + ' from ' + GGn.dist(e1, k5) + ' ft, no die rolled ' + (dice7 === 2) + ', the pike in hand ' + !!e1.attacks.pike + ', no attack left ' + (e1.turn.action === 0) + '; his ring: ESCAPE THE HOLD ' + !!es7 + ', BREAK FREE ' + !!(bf7 && bf7.ok) + ' (MOVE greyed "' + mv7 + '"); a 15 on the net: out of it ' + !k5.conds.restrained + ', off the hook ' + !k5.conds.grappled + '; "' + l7.slice(0, 200) + ' // ' + l7b.slice(0, 200) + '"',
+        did7 === true && hook7 && dice7 === 2 && !!e1.attacks.pike && e1.reach === 10 && e1.turn.action === 0 && /hooks the net on/.test(l7) && !es7 && !!bf7 && bf7.ok && /restrained/.test(mv7) && !k5.conds.restrained && !k5.conds.grappled && /hook has nothing/.test(l7b));
+      // 8. AT 0 THE HOOK LETS GO AND THE NET STAYS ON; HEALED, HE HAS IT STILL -- AND IS HOOKED AGAIN (his "the hook-hold and draggers lose interest at 0 hp, but healed from 0
+      // folks still have a net to deal with")
       var B8 = mkN(), f1 = byN(B8, 'bd1'), P8 = heroesN(B8), m8 = P8[0];
-      P8.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B8, [[m8, f1.x, f1.y + 2]]); Fn.netOn(B8, f1, m8); f1.netGone = true;
-      var n8 = (B8.log || []).length; q20 = [18, 2]; RUn.startTurn(f1); B8.active = f1; var did8 = runN(Fn.aiWagonDrill(B8, f1)); q20 = []; B8.sweep(); var held8 = !!(m8.conds.grappled && m8.conds.grappled.by === f1.id), l8 = logN(B8, n8);
-      B8.webGone(m8, 'cut away'); RUn.startTurn(f1); B8.active = f1; var did8b = runN(Fn.aiWagonDrill(B8, f1));
-      okN('8 the netted taken (' + did8 + ', held ' + held8 + ', "' + (l8.match(/takes hold[^/]*/) || [''])[0].slice(0, 120) + '"); the net cut, on his feet: let go ' + !(m8.conds.grappled && m8.conds.grappled.by === f1.id) + ', the pike up ' + !!f1.attacks.pike + ' (the turn a piker\'s: ' + did8b + ')',
-        did8 === true && held8 && /in the net/.test(l8) && !(m8.conds.grappled && m8.conds.grappled.by === f1.id) && !!f1.attacks.pike && f1.reach === 10);
+      P8.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); setN(B8, [[m8, f1.x, f1.y + 2]]); Fn.netOn(B8, f1, m8); f1.netGone = true; ordN(B8, [f1, byN(B8, 'b1'), byN(B8, 'sb'), byN(B8, 'b2')]);
+      var n8 = (B8.log || []).length; RUn.startTurn(f1); B8.active = f1; var did8 = runN(Fn.aiWagonDrill(B8, f1)); B8.sweep(); var held8 = !!(m8.conds.grappled && m8.conds.grappled.by === f1.id && m8.conds.grappled.hook);
+      m8.hp = 0; m8.ko = true; B8.sweep(); var off8 = !m8.conds.grappled, net8 = Fn.netted(m8), l8 = logN(B8, n8);
+      RUn.startTurn(f1); B8.active = f1; var did8b = runN(Fn.aiWagonDrill(B8, f1)), left8 = !m8.conds.grappled;
+      m8.hp = 6; m8.ko = false; B8.sweep(); RUn.startTurn(f1); B8.active = f1; var did8c = runN(Fn.aiWagonDrill(B8, f1)), again8 = !!(m8.conds.grappled && m8.conds.grappled.by === f1.id && m8.conds.grappled.hook);
+      okN('8 the netted hooked (' + did8 + ', on the hook ' + held8 + '); at 0: the hook lets go ' + off8 + ', the net stays on ' + net8 + ', the dragger\'s next turn leaves him (' + did8b + ', ' + left8 + '); healed to 6 in the net still ' + Fn.netted(m8) + ': hooked again (' + did8c + ', ' + again8 + '); the pike in hand ' + !!f1.attacks.pike + '; "' + l8.slice(0, 260) + '"',
+        did8 === true && held8 && off8 && net8 && /is down: .*hook lets go -- the net stays on/.test(l8) && did8b === false && left8 && did8c === true && again8 && !!f1.attacks.pike && f1.reach === 10);
       // 9. no fellow free to take him: the dragger thrusts the pike as before (no hook)
       var B9 = mkN(), g1 = byN(B9, 'bd1'), P9 = heroesN(B9), o9 = P9[0];
       B9.units.forEach(function (w) { if (w !== g1 && Fn.wagonDrill(w)) { w.hp = 0; w.dead = true; } });
@@ -20730,13 +20738,91 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (get('dbgall', '') === String(sN)) repN.log = LN.slice(-70); // (the seed's last lines whole)
         if (get('dbgre', '') && get('dbgs', '') === String(sN)) { var reN = new RegExp(get('dbgre', '')); repN.log = LN.filter(function (s) { return reN.test(s); }).slice(0, 120); } // (&dbgs=N&dbgre=<regex>: seed N's lines that match)
         if (get('logsum', '')) { var hN = 0, sAll = LN.join('\n'); for (var iN = 0; iN < sAll.length; iN++) hN = (hN * 31 + sAll.charCodeAt(iN)) | 0; (repN.sums = repN.sums || []).push('s' + sN + ' ' + LN.length + ' ' + (hN >>> 0).toString(16)); } // (&logsum=1: each seed's whole log fingerprinted -- a map or AI change seen to move a watched door's beats, or not)
-        rowsN.push('s' + sN + ' ' + rN + ' R' + Bw.round + ': nets ' + cN(/  NET  /) + ' (hit ' + cN(/RESTRAINED/) + '), hooks ' + cN(/: HOOK/) + ' (flat ' + cN(/knocked flat/) + '), taken prone ' + cN(/, prone: .*WAGON DRILL/) + ', in the net ' + cN(/, in the net: .*WAGON DRILL/) + ', down ' + cN(/, down: .*WAGON DRILL/) + ', drags ' + cN(/drags .* toward/) + ', escapes ' + cN(/breaks .* hold/) + ', nets off ' + (cN(/The net is/) + cN(/heaves at the net.*FREE/)));
+        rowsN.push('s' + sN + ' ' + rN + ' R' + Bw.round + ': nets ' + cN(/  NET  /) + ' (hit ' + cN(/RESTRAINED/) + '), hooks ' + cN(/: HOOK/) + ' (flat ' + cN(/knocked flat/) + '), the net hooked ' + cN(/hooks the net on .*WAGON DRILL/) + ', hauls ' + cN(/hauls .* on the hook/) + ', the hook off ' + cN(/'s hook (lets go|has nothing|is off)|the hook is off |takes the hook off/) + ', nets off ' + (cN(/The net is/) + cN(/heaves at the net.*FREE/))); // (11-26: the hook's hold in the hand drag's place)
       }
       okN('10 the watched wagon at 3 (informational): ' + rowsN.join('; '), true);
     } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
     D.d = d0N;
     var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
     document.body.appendChild(preN);
+    return;
+  }
+  // THE HOOK'S HOLD (mode=drag1126; 2026-11-26, the seat fable-party-1125 -- RULED, Griz, on that seat's study of the drag: "Turn off dragging 0 hp folk but otherwise these
+  // lean"; in the seat's window "my hunch is saying only the netted, and have netting a prone be more valuable than forming behind the wall", and "that's all a go, save 4. the
+  // hook-hold and draggers lose interest at 0 hp, but healed from 0 folks still have a net to deal with"): what mode=nets1125 (6-8) and mode=grid1125c (4-4c) do not check --
+  // the hook refused with no rank to strike before the netted one's turn; one prone and in no net left to the pike; the knock-down hook wanting a fellow's net and its turn
+  // first; a footman and a sergeant striking the one on the hook, whichever of two netted in their reach it is; a dragger holding making no attack. &wseeds=N: the watched
+  // wagons counted (6; informational)
+  if (get('mode', '') === 'drag1126') {
+    var repD = { checks: [], errors: [] }, d0D = D.d, RUd = D.rules, GGd = D.grid, Fd = D.features, q20d = [];
+    function okD(what, v) { repD.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runD(g) { var v, k = 0, st; while (g && k++ < 20000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    D.d = function (n) { if (n === 20 && q20d.length) return q20d.shift(); return d0D.apply(this, arguments); }; // (the d20s queued)
+    function mkD() { var B = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, bench: true }); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; B.round = 2; return B; }
+    function byD(B, id) { return B.units.filter(function (w) { return w.id === id; })[0]; }
+    function heroesD(B) { return B.units.filter(function (w) { return w.side === 'party'; }); }
+    function setD(B, list) { list.forEach(function (e) { e[0].x = e[1]; e[0].y = e[2]; }); GGd.setup(GGd.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; }
+    function ordD(B, first) { B.order = first.concat(B.order.filter(function (w) { return first.indexOf(w) < 0; })); }
+    function logD(B, n) { return (B.log || []).slice(n).join(' / ').replace(/R\d+ /g, ''); }
+    function awayD(B, keep) { heroesD(B).filter(function (w) { return keep.indexOf(w) < 0; }).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); }
+    function hookD(d, h) { h.conds.grappled = { by: d.id, hook: true }; d.grappling = h.id; }
+    function drillD(B, u, dice) { var n = (B.log || []).length; q20d = dice || []; RUd.startTurn(u); B.active = u; var did = runD(Fd.aiWagonDrill(B, u)); q20d = []; B.sweep(); return { did: did, l: logD(B, n) }; }
+    function turnD(B, u, dice) { var n = (B.log || []).length; q20d = dice || []; RUd.startTurn(u); B.active = u; runD(D.ai.turn(B, u)); q20d = []; B.active = null; B.sweep(); return logD(B, n); }
+    try {
+      // 1. ONLY WHERE IT PAYS: one in a net 10 ft from the west dragger, a footman beside him -- his own turn next, no rank acts before it: no hook (the turn a piker's); the
+      // footman's turn first: the hook goes on
+      var B1 = mkD(), d1 = byD(B1, 'bd1'), h1 = heroesD(B1)[0]; awayD(B1, [h1]); setD(B1, [[h1, d1.x, d1.y + 2]]); Fd.netOn(B1, d1, h1); d1.netGone = true;
+      ordD(B1, [d1, h1]); var r1 = drillD(B1, d1), st1 = Fd.strikers(B1, d1, h1, 0).length, held1 = !!h1.conds.grappled;
+      ordD(B1, [d1, byD(B1, 'b1'), h1]); var r1b = drillD(B1, d1), st1b = Fd.strikers(B1, d1, h1, 0).length, held1b = !!(h1.conds.grappled && h1.conds.grappled.by === d1.id && h1.conds.grappled.hook);
+      okD('1 only where it pays: ' + h1.name + ' netted 10 ft off, his turn next (ranks to strike first ' + st1 + '): no hook (' + r1.did + ', held ' + held1 + '); a footman\'s turn before his (' + st1b + '): hooked (' + r1b.did + ', ' + held1b + ')',
+        r1.did === false && !held1 && st1 === 0 && r1b.did === true && held1b && st1b > 0 && /hooks the net on/.test(r1b.l));
+      // 2. NO HAND ON THE BODY: one prone and in no net, both draggers' nets spent -- nobody takes hold of him; the pike kept
+      var B2 = mkD(), e1 = byD(B2, 'bd1'), e2 = byD(B2, 'bd2'), h2 = heroesD(B2)[0]; awayD(B2, [h2]); setD(B2, [[h2, e1.x, e1.y + 2]]); h2.conds.prone = true; e1.netGone = true; e2.netGone = true; ordD(B2, [e1, e2, byD(B2, 'b1'), h2]);
+      var r2 = drillD(B2, e1), r2b = drillD(B2, e2);
+      okD('2 one prone, in no net: left to the pike (' + r2.did + ', ' + r2b.did + '), nobody holds him ' + !h2.conds.grappled + ', the pikes in hand ' + (!!e1.attacks.pike && !!e2.attacks.pike) + '; "' + (r2.l + r2b.l).slice(0, 120) + '"',
+        r2.did === false && r2b.did === false && !h2.conds.grappled && !!e1.attacks.pike && !!e2.attacks.pike && !/WAGON DRILL|takes hold|drops the pike/.test(r2.l + r2b.l));
+      // 3. THE KNOCK-DOWN WANTS A FELLOW'S NET AND ITS TURN FIRST: one standing 10 ft off -- the fellow's net spent, no hook; its net in hand but his turn before the fellow's,
+      // no hook; its net in hand and its turn first, the hook
+      var B3 = mkD(), f1 = byD(B3, 'bd1'), f2 = byD(B3, 'bd2'), h3 = heroesD(B3)[0]; awayD(B3, [h3]); setD(B3, [[h3, f1.x, f1.y + 2]]); f1.netGone = true; f2.netGone = true;
+      ordD(B3, [f1, f2, h3]); var r3 = drillD(B3, f1, [18, 2]), up3 = !h3.conds.prone;
+      f2.netGone = false; ordD(B3, [f1, h3, f2]); var r3b = drillD(B3, f1, [18, 2]), up3b = !h3.conds.prone;
+      ordD(B3, [f1, f2, h3]); var r3c = drillD(B3, f1, [18, 2]), down3c = !!h3.conds.prone;
+      okD('3 the knock-down hook: the fellow\'s net spent, none (' + r3.did + ', standing ' + up3 + '); its net in hand but ' + h3.name + '\'s turn first, none (' + r3b.did + ', standing ' + up3b + '); its net in hand and its turn first, the hook (' + r3c.did + ', prone ' + down3c + ')',
+        r3.did === false && up3 && !/HOOK/.test(r3.l) && r3b.did === false && up3b && !/HOOK/.test(r3b.l) && r3c.did === true && down3c && /HOOK/.test(r3c.l));
+      // 4. THE RANKS FINISH WHAT THE HOOK HOLDS: two of ours netted in a rank's reach, one of them on the west dragger's hook -- the footman strikes that one; the hook on the
+      // other, it strikes the other. The sergeant the same (built by his class: js/tactics.js weaponPlans)
+      var rank4 = function (rankId, ax, ay, cx, cy, hookA) {
+        var B = mkD(), d = byD(B, 'bd1'), r = byD(B, rankId), P = heroesD(B), A = P[0], C = P[1]; awayD(B, [A, C]); setD(B, [[A, ax, ay], [C, cx, cy]]);
+        Fd.netOn(B, d, A); Fd.netOn(B, d, C); hookD(d, hookA ? A : C); B.sweep();
+        RUd.startTurn(r); var prey = Fd.hookPrey(B, r, P), on = (hookA ? A : C), why = 'onHook ' + Fd.onHook(on) + ', heldFor ' + Fd.hookHeldFor(B, r, on) + ', ' + GGd.dist(r, on) + ' ft, reach ' + GGd.reachOf(r);
+        var l = turnD(B, r, [12, 12, 12, 12, 12, 12, 12, 12]), m = new RegExp(r.name.replace(/[()]/g, '\\$&') + ' > (\\S+)').exec(l);
+        return { hooked: on.name, struck: m ? m[1] : null, l: l, prey: prey ? prey.name : null, why: why };
+      };
+      var s4a = rank4('b1', 4, 6, 6, 6, true), s4b = rank4('b1', 4, 6, 6, 6, false);
+      okD('4 a footman, two netted in his reach: ' + s4a.hooked + ' on the hook (his prey ' + s4a.prey + '; ' + s4a.why + '), he strikes ' + s4a.struck + '; ' + s4b.hooked + ' on the hook (' + s4b.prey + '), he strikes ' + s4b.struck + '; "' + s4a.l.slice(0, 110) + '"',
+        s4a.struck === s4a.hooked && s4b.struck === s4b.hooked && s4a.hooked !== s4b.hooked);
+      var s4c = rank4('sb', 3, 6, 5, 6, true), s4d = rank4('sb', 3, 6, 5, 6, false);
+      okD('4b the Blade, two netted in his reach: ' + s4c.hooked + ' on the hook (his prey ' + s4c.prey + '; ' + s4c.why + '), he strikes ' + s4c.struck + '; ' + s4d.hooked + ' on the hook (' + s4d.prey + '), he strikes ' + s4d.struck + '; "' + s4c.l.slice(0, 110) + '"',
+        s4c.struck === s4c.hooked && s4d.struck === s4d.hooked && s4c.hooked !== s4d.hooked);
+      // 5. A DRAGGER HOLDING MAKES NO ATTACK: one on its hook in a footman's reach, its whole turn -- no blow, no walk, the hold kept; the same turn with no hook on him, the pike's thrust
+      var B5 = mkD(), g1 = byD(B5, 'bd1'), h5 = heroesD(B5)[0]; awayD(B5, [h5]); setD(B5, [[h5, g1.x, g1.y + 2]]); Fd.netOn(B5, g1, h5); g1.netGone = true; hookD(g1, h5); ordD(B5, [g1, byD(B5, 'b1'), h5]);
+      var at5 = g1.x + ',' + g1.y, l5 = turnD(B5, g1, [15, 15, 15, 15]), kept5 = !!(h5.conds.grappled && h5.conds.grappled.by === g1.id);
+      B5.letGo(g1, h5, 'release'); ordD(B5, [g1, h5]); var l5b = turnD(B5, g1, [15, 15, 15, 15]);
+      okD('5 a dragger holding: no blow (' + !/Dragger > /.test(l5) + '), where it stood ' + (at5 === g1.x + ',' + g1.y) + ', the hold kept ' + kept5 + '; with no hook on him and no rank to strike first, the pike: "' + l5b.slice(0, 110) + '"',
+        !/Dragger > /.test(l5) && at5 === g1.x + ',' + g1.y && kept5 && /Dragger > .*Hooked Pike/.test(l5b));
+      // 6. the watched wagon at 3, seeds 1-N: the drill as it falls in a whole fight (informational)
+      var NWd = +get('wseeds', '6'), rowsD = [];
+      for (var sD = 1; sD <= NWd; sD++) {
+        D.seed = sD; var BwD = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, watch: true, bench: true }); D.battle = BwD; BwD.enter(); var rD = drive(BwD), LD = BwD.log || [];
+        var cD = function (re) { return LD.filter(function (s) { return re.test(s); }).length; };
+        if (get('dbgre', '') && get('dbgs', '') === String(sD)) { var reD = new RegExp(get('dbgre', '')); repD.log = LD.filter(function (s) { return reD.test(s); }).slice(0, 120); } // (&dbgs=N&dbgre=<regex>: seed N's lines that match)
+        rowsD.push('s' + sD + ' ' + rD + ' R' + BwD.round + ': nets ' + cD(/  NET  /) + ' (hit ' + cD(/RESTRAINED/) + '), hooks ' + cD(/: HOOK/) + ' (flat ' + cD(/knocked flat/) + '), the net hooked ' + cD(/hooks the net on .*WAGON DRILL/) + ', hauls ' + cD(/hauls .* on the hook/) + ', the hook off ' + cD(/'s hook (lets go|has nothing|is off)|the hook is off |takes the hook off/));
+      }
+      okD('6 the watched wagon at 3 (informational): ' + rowsD.join('; '), true);
+    } catch (eD) { repD.errors.push(String(eD && eD.stack || eD).slice(0, 900)); }
+    D.d = d0D;
+    var preD = document.createElement('pre'); preD.id = 'out'; preD.textContent = 'BENCH16 ' + JSON.stringify(repD);
+    document.body.appendChild(preD);
     return;
   }
   // THE GRID SEAT grid-1125b, the lanes desk's second and third relays (mode=grid1125c; his answers of 2026-11-25 ~12:40Z and ~13:00Z): THE SPHERE'S OWN RING (js/grimoire.js
@@ -20752,6 +20838,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     function placeGc(B, list) { list.forEach(function (e) { e[0].x = e[1]; e[0].y = e[2]; }); GGc.setup(GGc.map, B.units.filter(function (w) { return !w.dead; })); B.cache = null; }
     function onlyGc(B, keep) { B.units.forEach(function (w) { if (keep.indexOf(w) < 0) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } }); }
     function sideGc(B, s) { return B.units.filter(function (w) { return w.side === s; }); }
+    function ordGc(B, first) { B.order = first.concat(B.order.filter(function (w) { return first.indexOf(w) < 0; })); }
     function runGcR(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
     // a generator stepped: each prompt handed to `answer` (its value back), the prompts seen
     function stepGc(g, answer) { var v, k = 0, st, seen = []; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; var sv = st.value; if (sv && sv.prompt) { seen.push(sv.prompt); v = answer(sv.prompt, seen.length); } } return seen; }
@@ -20805,24 +20892,24 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       P4.slice(1).forEach(function (w, i) { w.x = 14 + i; w.y = 12; }); h4.x = d1.x; h4.y = d1.y + 3; h4.hp = 0; h4.ko = true; GGc.setup(GGc.map, B4.units.filter(function (w) { return !w.dead; })); B4.cache = null;
       var ranks4 = function () { return B4.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.hp > 0 && !FGc.wagonDrill(w) && FGc.soldiering(w); }); }, near4 = function () { return Math.min.apply(null, ranks4().map(function (w) { return GGc.dist(w, h4); })); };
       var at0 = h4.x + ',' + h4.y, nr0 = near4(), n4 = (B4.log || []).length;
-      RUc.startTurn(d1); B4.active = d1; var did1 = runGcR(FGc.aiWagonDrill(B4, d1)); B4.sweep(); // (the sweep a fight runs after every action: the cargo at 0 held still)
+      // (11-26, RULED, Griz: "Turn off dragging 0 hp folk": one at 0 is no one's cargo -- the pike kept, no hand on the body, no second dragger; js/features.js THE HOOK'S HOLD.
+      // From 11-25 to then this check had the west dragger drop its pike, take hold and drag him into the flank, and the second take the other side)
+      RUc.startTurn(d1); B4.active = d1; var did1 = runGcR(FGc.aiWagonDrill(B4, d1)); B4.sweep();
       var l4a = (B4.log || []).slice(n4).join(' / ');
-      okGc('4 a hero down 15 ft from the dragger: it acts ' + did1 + '; the pike ' + (d1.pikeDown ? 'dropped (its attacks ' + Object.keys(d1.attacks).join(',') + ', reach ' + d1.reach + ')' : 'in hand') + '; it holds ' + (h4.conds.grappled && h4.conds.grappled.by === d1.id) + '; the body ' + at0 + ' -> ' + h4.x + ',' + h4.y + ', nearest of the ranks ' + nr0 + ' -> ' + near4() + ' ft; "' + l4a.replace(/R\d+ /g, '').slice(0, 300) + '"',
-        did1 === true && !!d1.pikeDown && !d1.attacks.pike && !!h4.conds.grappled && h4.conds.grappled.by === d1.id && near4() < nr0 && /WAGON DRILL/.test(l4a) && /drags/.test(l4a));
-      RUc.startTurn(d2); B4.active = d2; var did2 = runGcR(FGc.aiWagonDrill(B4, d2)); B4.sweep(); var shared = !!(h4.conds.grappled && h4.conds.grappled.share === d2.id);
-      var nr1 = near4(), at1 = h4.x + ',' + h4.y, n4b = (B4.log || []).length; RUc.startTurn(d1); B4.active = d1; runGcR(FGc.aiWagonDrill(B4, d1)); var l4b = (B4.log || []).slice(n4b).join(' / ');
-      okGc('4b the second dragger takes the other side (' + did2 + ', shared ' + shared + '); the holder\'s next drag: ' + at1 + ' -> ' + h4.x + ',' + h4.y + ' (' + (/full speed/.test(l4b) ? 'full speed' : /half speed/.test(l4b) ? 'half speed' : 'no drag') + '), nearest of the ranks ' + nr1 + ' -> ' + near4() + ' ft, the second beside it ' + (GGc.dist(d2, h4) <= 5),
-        did2 === true && shared && (/full speed/.test(l4b) || nr1 <= 5 || near4() <= nr1) && GGc.dist(d2, h4) <= 5);
-      h4.hp = 6; h4.ko = false; RUc.startTurn(d1); B4.active = d1; var did3 = runGcR(FGc.aiWagonDrill(B4, d1));
-      okGc('4c the hero up again (6 HP): the dragger lets go (' + !(h4.conds.grappled && h4.conds.grappled.by === d1.id) + ') and takes the pike up (' + !!d1.attacks.pike + ', reach ' + d1.reach + '); its turn goes on as a piker\'s (' + did3 + ')',
-        !(h4.conds.grappled && h4.conds.grappled.by === d1.id) && !!d1.attacks.pike && d1.reach === 10 && did3 === false);
+      okGc('4 a hero down 15 ft from the dragger is left where he fell: its turn a piker\'s (' + did1 + '); the pike in hand ' + !!d1.attacks.pike + ' (reach ' + d1.reach + '); nobody holds him ' + !h4.conds.grappled + '; the body ' + at0 + ' -> ' + h4.x + ',' + h4.y + ', nearest of the ranks ' + nr0 + ' -> ' + near4() + ' ft; "' + l4a.replace(/R\d+ /g, '').slice(0, 200) + '"',
+        did1 === false && !!d1.attacks.pike && d1.reach === 10 && !d1.pikeDown && !h4.conds.grappled && at0 === h4.x + ',' + h4.y && !/WAGON DRILL|takes hold|drags|hooks the net/.test(l4a));
+      RUc.startTurn(d2); B4.active = d2; var did2 = runGcR(FGc.aiWagonDrill(B4, d2)); B4.sweep();
+      okGc('4b the second dragger leaves him too (' + did2 + '): nobody holds him ' + !h4.conds.grappled + ', its pike in hand ' + !!d2.attacks.pike, did2 === false && !h4.conds.grappled && !!d2.attacks.pike && at0 === h4.x + ',' + h4.y);
+      h4.hp = 6; h4.ko = false; B4.sweep(); FGc.netOn(B4, d2, h4); ordGc(B4, [d1, by4('b1'), by4('sb'), by4('b2')]); var n4c = (B4.log || []).length; RUc.startTurn(d1); B4.active = d1; var did3 = runGcR(FGc.aiWagonDrill(B4, d1)); B4.sweep(); var l4c = (B4.log || []).slice(n4c).join(' / ');
+      okGc('4c the same hero up at 6 HP and in a net: the hook takes the net (' + did3 + ', on the hook ' + !!(h4.conds.grappled && h4.conds.grappled.hook) + '), hauled toward the ranks ' + nr0 + ' -> ' + near4() + ' ft; the pike in hand ' + !!d1.attacks.pike + '; "' + l4c.replace(/R\d+ /g, '').slice(0, 240) + '"',
+        did3 === true && !!(h4.conds.grappled && h4.conds.grappled.by === d1.id && h4.conds.grappled.hook) && !!d1.attacks.pike && near4() < nr0 && /hooks the net on/.test(l4c) && /hauls/.test(l4c));
       // 4d. the watched wagon at 3, seeds 1-N: the drill as it falls in a whole fight (informational)
       var NW4 = +get('wseeds', '6'), rows4 = [];
       for (var s4 = 1; s4 <= NW4; s4++) {
         D.seed = s4; var Bw = new D.Battle({ ladder: true, fight: 'snootwagon', level: 3, watch: true, bench: true }); D.battle = Bw; Bw.enter(); var r4 = drive(Bw), L4 = Bw.log || [];
         var cnt = function (re) { return L4.filter(function (s) { return re.test(s); }).length; };
         if (get('dbg', '') === String(s4)) repGc.log = L4.filter(function (s) { return /Dragger|WAGON|drags|goes down|falls|dies|dead/.test(s); }).slice(0, 90);
-        rows4.push('s' + s4 + ' ' + r4 + ' R' + Bw.round + ': downs ' + cnt(/ goes down|falls\b/) + ', taken hold ' + cnt(/WAGON DRILL/) + ', drags ' + cnt(/drags .* toward/) + ', shared ' + cnt(/takes the other side/) + ', let go ' + cnt(/takes the pike up again/));
+        rows4.push('s' + s4 + ' ' + r4 + ' R' + Bw.round + ': downs ' + cnt(/ goes down|falls\b/) + ', the net hooked ' + cnt(/hooks the net on .*WAGON DRILL/) + ', hauls ' + cnt(/hauls .* on the hook/) + ', the hook off ' + cnt(/'s hook (lets go|has nothing|is off)|the hook is off |takes the hook off/)); // (11-26: the hook's hold)
       }
       okGc('4d the watched wagon at 3 (informational): ' + rows4.join('; '), true);
     } catch (eGc) { repGc.errors.push(String(eGc && eGc.stack || eGc).slice(0, 900)); }
@@ -32548,8 +32635,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     // each fight's beats: [name, the line that shows it]
     var LADY = function (who, spells) { return new RegExp('Patrol Lady \\(' + who + '\\)[^:]*: (' + spells + ')\\b'); };
     var BEATS = [
-      [['the NET', /\bNET\b.*Wagon Drill: thrown/], ['the HOOK', /HOOK.*Wagon Drill/], ['Wagon Drill\'s hold', /takes hold of .*WAGON DRILL|takes the other side of .*Wagon Drill/], ['shields set', /sets shields, facing/]],
-      [['a Drillyard play', /TAKE THE LEGS|SPOOK|STRIKE BACK/], ['shields set', /sets shields, facing/], ['the NET', /\bNET\b.*Wagon Drill: thrown/], ['the HOOK', /HOOK.*Wagon Drill/], ['Wagon Drill\'s hold', /takes hold of .*WAGON DRILL|takes the other side of .*Wagon Drill/]],
+      [['the NET', /\bNET\b.*Wagon Drill: thrown/], ['the HOOK', /HOOK.*Wagon Drill/], ['shields set', /sets shields, facing/]],
+      [['a Drillyard play', /TAKE THE LEGS|SPOOK|STRIKE BACK/], ['shields set', /sets shields, facing/], ['the NET', /\bNET\b.*Wagon Drill: thrown/], ['the HOOK', /HOOK.*Wagon Drill/]],
       [['the Fiend\'s own spells', LADY('the Fiend', 'BURNING HANDS|COMMAND|SCORCHING RAY|FIREBALL|STINKING CLOUD|HELLISH REBUKE')]],
       [['shields set', /sets shields, facing/], ['pikes set', /sets (the [a-z ]+|pikes) behind/], ['a crossbow shot', /Crossbow Trooper > .*Crossbow/], ['the wall broken (flanked, or missiles)', /breaks from the wall/]],
       [['the ambush seen coming', /SEEN COMING: the ambush is off/], ['the ambush unseen', null]], // (unseen: the AMBUSH roll with no SEEN COMING after it -- js/postures.js P.seenComing)
@@ -32563,7 +32650,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var txt = lines.map(function (l) { return String(l).replace(/\{\/?[a-z]*\}/g, ''); });
       reachedF[fi]++;
       BEATS[fi].forEach(function (b, j) { var hit = b[1] ? txt.some(function (l) { return b[1].test(l); }) : null; if (fi === 4 && j === 1) hit = txt.some(function (l) { return /^R0 AMBUSH: their Stealth/.test(l); }) && !txt.some(function (l) { return BEATS[4][0][1].test(l); }); if (hit) seenF[fi][j]++; });
-      if (fi <= 1 && txt.some(function (l) { return / drags .* into the patrol's flank/.test(l); })) dragsF[fi]++; // (the drag itself, the turn after the hold: a rate, not a check -- a dragger at 12 HP rarely lives to it)
+      if (fi <= 1 && txt.some(function (l) { return /hooks the net on .*WAGON DRILL/.test(l); })) dragsF[fi]++; // (the drag itself, the turn after the hold: a rate, not a check -- a dragger at 12 HP rarely lives to it)
       if (fi === 3 && txt.some(function (l) { return /re-forms the wall to face them/.test(l); })) reformF++; // (the re-form: a rate -- every foe behind the wall or on its flank at once, which the AI's party seldom does)
     };
     var dragsF = [0, 0], reformF = 0;
@@ -32636,7 +32723,8 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       if (!onlyF) {
         okF(repF.runs.every(function (r) { return /^done/.test(r); }), 'PLAYED THROUGH, ' + nF + ' runs by the AI\'s party, every fight on its floor with its foes as built and the rests as set: ' + repF.runs.join('; '));
         // the beats two fights share, read across both: the draggers in fights 1 and 2 (both squads carry two), the mender in 6 and 7 (she rides with those ladies) -- each seen in one
-        var JOINT = [{ names: ['the NET', 'the HOOK', 'Wagon Drill\'s hold'], fights: [0, 1], label: 'the draggers, fights 1 and 2', why: ' -- his "27 - we\'re building a module with those guys in it?"' },
+        // (11-26: the hold is a rate now, with the haul -- it goes on only where a rank can strike the netted one before its turn, js/features.js THE HOOK'S HOLD; the report's line)
+        var JOINT = [{ names: ['the NET', 'the HOOK'], fights: [0, 1], label: 'the draggers, fights 1 and 2', why: ' -- his "27 - we\'re building a module with those guys in it?"' },
                      { names: ['the Doubling or the Hand on the Neck', 'Hold Person or a Healing Word'], fights: [5, 6], label: 'the mender, fights 6 and 7', why: '' }];
         var jointOf = function (i, nmJ) { return JOINT.some(function (J) { return J.fights.indexOf(i) >= 0 && J.names.indexOf(nmJ) >= 0; }); };
         JOINT.forEach(function (J) {
@@ -32653,7 +32741,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     if (errs.length) repF.errors = repF.errors.concat(errs);
     repF.report = ['THE FARE HOME: the beats (seen in runs that reached the fight)'].concat(Object.keys(repF.beats).map(function (k) { return '  ' + k + ': ' + repF.beats[k]; }),
-      ['  (Wagon Drill\'s drag into the flank, a rate: fight 1 ' + dragsF[0] + ' of ' + reachedF[0] + ', fight 2 ' + dragsF[1] + ' of ' + reachedF[1] + '; the wall re-formed to its flank, fight 4 ' + reformF + ' of ' + reachedF[3] + ')'],
+      ['  (Wagon Drill\'s hook on a net, a rate: fight 1 ' + dragsF[0] + ' of ' + reachedF[0] + ', fight 2 ' + dragsF[1] + ' of ' + reachedF[1] + '; the wall re-formed to its flank, fight 4 ' + reformF + ' of ' + reachedF[3] + ')'],
       ['the fights (won / lost / other, rounds)'], Object.keys(repF.fights).map(function (k) { var f = repF.fights[k]; return '  ' + k + ': ' + f.won + ' / ' + f.lost + ' / ' + f.other + ', ' + f.rounds + ' rounds'; }), ['the runs: ' + repF.runs.join('; ')]);
     D.store.get = stGF; D.store.set = stSF; D.push = push0F; D.features.throwNet = tn0F; D.features.hook = hk0F;
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);

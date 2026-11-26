@@ -214,6 +214,7 @@
     return { p: p, d: d, sneak: sneak, net: e.net };
   }
   // the best weapon plan: from the squares it can walk to this turn, the target and weapon worth most
+  TX.HOOK_WORTH = 40; // (the deciding weight: his "the footmen and sergeants to focus dragged heroes")
   function weaponPlans(B, u, fs) {
     var T = u.turn, out = [];
     if (!T.action && !T.attacksLeft) return out;
@@ -227,6 +228,8 @@
     // `prot`: a shield-bearer of its side within 5 ft of the one attacked, who sees the attacker)
     var guards = u.style === 'protection' && u.src && u.src.equip && u.src.equip.shield && u.reaction !== 0 ? alliesOf(B, u).filter(function (w) { return w !== u && !w.object; }) : [];
     var guardOf = function (e) { var v = 0; guards.forEach(function (w) { if (G.dist(u, w, e.x, e.y) > 5) return; G.foesNear(w, w.x, w.y, 5).forEach(function (f) { v = Math.max(v, TX.dpr(f) * 0.25); }); }); return v; };
+    // (the one on a fellow's hook, 11-26: struck from where it stands; walked to only when no one else of theirs stands in its reach -- as the footman's, js/features.js F.hookPrey)
+    var hookBusy = D.features && D.features.onHook ? G.foesNear(u, u.x, u.y, G.reachOf(u)).some(function (w) { return !w.object && !D.features.onHook(w); }) : false, hookFree = function (e) { return e === here || !hookBusy; };
     var squares = [here];
     Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y) && !(M.globeLeaveHarm && M.globeLeaveHarm(B, u, e.x, e.y))) squares.push(e); }); // (never out of the globe that freed it: what it holds off takes hold again -- 11-14, the AI lane §2.8)
     weapons(u).forEach(function (wp) {
@@ -242,6 +245,9 @@
           var s = swing(B, u, t, wp, e.x, e.y), dmg = n * s.p * s.d + s.p * s.sneak;
           if (u.combo && wp === u.combo[0]) dmg = u.combo.slice(0, n).reduce(function (a, w) { var sw = swing(B, u, t, w, e.x, e.y); return a + sw.p * sw.d; }, 0); // (claw, claw, bite: each swing its own dice)
           var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)) - TX.accountCost(B, u, t, n, s.p); // (a Flame Tongue alight burns a troll: TX.worth, 10-05) (Called to Account: the radiant each hit on anyone but the caller costs it)
+          // (THE RANKS FINISH WHAT THE HOOK HOLDS, 11-26 -- the study of the drag's lean 2, his "the footmen and sergeants to focus dragged heroes": a trained rank, not a dragger,
+          // with one on a fellow's hook that this blow can reach counts it far the better blow (TX.HOOK_WORTH) -- js/features.js F.hookHeldFor; the footmen's is js/ai.js the brute)
+          if (hookFree(e) && D.features && D.features.hookHeldFor && D.features.hookHeldFor(B, u, t)) sc += TX.HOOK_WORTH;
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not; harmful ground on the way and where it ends,
           // in hit points (`harm`, `stayHp`: js/grid.js G.reach, js/ai.js harmful ground -- 11-18)
           sc -= e.cost / 30 + (e.harm || 0) + (e.stayHp || 0) + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0) + (e === here ? 0 : oaOf(e)) - (guards.length ? guardOf(e) : 0);

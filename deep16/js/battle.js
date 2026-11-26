@@ -1158,9 +1158,11 @@
   };
   Battle.prototype.letGo = function (g, w, why) {
     if (!w || !w.conds.grappled) return;
+    var hk = !!w.conds.grappled.hook; // (a dragger's hook on the net: js/features.js THE HOOK'S HOLD, 11-26 -- the one let go is in the net still, so never "free")
     delete w.conds.grappled; if (g && g.grappling === w.id) { delete g.grappling; Battle.gripFor(g); }
     if (w.conds.restrained && w.conds.restrained.pin) delete w.conds.restrained; if (g && g.conds.restrained && g.conds.restrained.pin) delete g.conds.restrained; // (a pin ends with the grapple: Grappler)
     var nm = w.side === 'foe' ? Battle.nm(w, true) : w.name;
+    if (hk) { var gn = g ? g.name : 'the dragger'; this.card([why === 'hookdown' ? '{g}(' + nm + ' is down: ' + gn + '\'s hook lets go -- the net stays on){/}' : why === 'hooknet' ? '{g}(the net is off ' + nm + ': ' + gn + '\'s hook has nothing){/}' : why === 'reach' ? '{g}(' + nm + ' is out of the pike\'s reach: ' + gn + '\'s hook is off){/}' : why === 'incap' ? '{g}(' + gn + ' can hold no longer: the hook is off ' + nm + '){/}' : '{y}' + gn + '{/} takes the hook off ' + nm + '.'], 180); return; }
     if (why === 'release') this.card(['{y}' + g.name + '{/} lets go of ' + nm + '.'], 160);
     else if (why === 'escape') this.card(['{o}' + nm + ' breaks ' + (g ? g.name + '\'s' : 'the') + ' hold.{/}'], 180);
     else if (why === 'reach') this.card(['{g}(' + nm + ' is out of ' + (g ? g.name + '\'s' : 'the') + ' reach: the grapple ends){/}'], 180);
@@ -1186,9 +1188,10 @@
       if (off(s)) self.units.forEach(function (w) { if (w !== s && w.conc && w.conc.on && w.conc.on.indexOf(s) >= 0 && w.conc.on.every(off)) D.magic.endConc(self, w, w.conc.on.length > 1 ? 'every one it held is gone' : 'nothing left to hold'); });
       if (incap && s.holding && s.holding.length) self.release(s);
       // a hero's grapple ends when the grappler is incapacitated, or when the one held is out of its reach (SRD 5.1, grappled: "if an effect removes the grappled creature from the reach") -- 10-15
-      // (one down at 0 and held by a dragger is its cargo, held still -- WAGON DRILL, js/features.js F.aiWagonDrill, 11-25: "One dragger moves a grappled or unconscious body"; the
-      // SRD's grapple does not end when the one held drops. Any other grip on one at 0 ends as before)
-      if (s.conds.grappled) { var gS = self.units.filter(function (x) { return x.id === s.conds.grappled.by; })[0], gIn = !gS || gS.dead || gS.fled || gS.left || gS.hp <= 0 || gS.conds.paralyzed || gS.conds.stunned || gS.conds.asleep || gS.conds.incapacitated; var goneG = gone && !(!s.dead && !s.fled && !s.left && gS && D.features && D.features.wagonDrill && D.features.wagonDrill(gS)); if (goneG || gIn) self.letGo(gS, s, goneG ? 'gone' : 'incap'); else if (G.dist(gS, s) > G.reachOf(gS)) self.letGo(gS, s, 'reach'); }
+      // (a dragger's HOOK holds the NET on one awake -- js/features.js THE HOOK'S HOLD, 11-26, his "the hook-hold and draggers lose interest at 0 hp, but healed from 0 folks still
+      // have a net to deal with": the one held down at 0, the hook lets go there and then and the net stays on; the net off, the hook has nothing. From 11-25 to then one at 0 held
+      // by a dragger stayed its cargo)
+      if (s.conds.grappled) { var gS = self.units.filter(function (x) { return x.id === s.conds.grappled.by; })[0], gIn = !gS || gS.dead || gS.fled || gS.left || gS.hp <= 0 || gS.conds.paralyzed || gS.conds.stunned || gS.conds.asleep || gS.conds.incapacitated; var hookG = !!s.conds.grappled.hook; if (gone || gIn) self.letGo(gS, s, gone ? (hookG && gS && !s.dead && !s.fled && !s.left ? 'hookdown' : 'gone') : 'incap'); else if (hookG && !(s.conds.restrained && s.conds.restrained.net)) self.letGo(gS, s, 'hooknet'); else if (G.dist(gS, s) > G.reachOf(gS)) self.letGo(gS, s, 'reach'); }
       // and a creature's grip (restrained { grapple, by }: the chuul's pincer, the roper's tendril, a hug) the moment the one held is out of the holder's reach -- a shove, a
       // push, a step it was moved -- not at the holder's next turn (10-21, his 10-19 question "if chull grapple vivian and is shoved 5ft is vivian dragged 5 ft?": the SRD 5.1,
       // no -- the shove moves only the one shoved -- and the grapple ends when "an effect removes the grappled creature from the reach of the grappler"). The swirl and Whelm hold
@@ -1349,7 +1352,8 @@
     if (u.conds.restrained && !u.conds.restrained.pin && u.conds.restrained.kind !== 'stone') out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     // ESCAPE THE HOLD (SRD 5.1, Escaping a Grapple: "A grappled creature can use its action to escape ... your Strength (Athletics) or Dexterity (Acrobatics) check contested by the
     // grappler's Strength (Athletics)") -- a hero held awake by a dragger's Wagon Drill (js/features.js, nets-1125: till then only one at 0 was held); a pin is BREAK FREE's
-    if (u.conds.grappled && !(u.conds.restrained && u.conds.restrained.pin)) out.push({ id: 'escapegrip', label: 'ESCAPE THE HOLD', cost: 'A', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', icon: 'free', note: 'your action: your Athletics or Acrobatics against the holder\'s Athletics -- free, you may stand and walk' });
+    // (not from a dragger's hook: it holds the net, and the net's own BREAK FREE above is the way out -- js/features.js THE HOOK'S HOLD, 11-26)
+    if (u.conds.grappled && !u.conds.grappled.hook && !(u.conds.restrained && u.conds.restrained.pin)) out.push({ id: 'escapegrip', label: 'ESCAPE THE HOLD', cost: 'A', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', icon: 'free', note: 'your action: your Athletics or Acrobatics against the holder\'s Athletics -- free, you may stand and walk' });
     // FREE FROM THE NET (SRD 5.1, the net: "A creature can use its action to make a DC 10 Strength check, freeing itself or another creature within its reach"): a friend's
     var netFr = D.features && D.features.freeNetFor ? D.features.freeNetFor(this, u) : [];
     if (netFr.length) out.push({ id: 'freenet', label: 'FREE FROM THE NET', cost: 'A', icon: 'free', tool: 'freenet', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC 10: the net off ' + netFr[0].name + ' (or 5 slashing to the net, AC 10)' });
@@ -2230,7 +2234,7 @@
         if (plE) { var raE = D.roll(plE.dice); this.card(['{y}' + u.name + '{/}\'s arm in the ooze: ' + plE.dice + ' ' + RU.fmtRolls(raE.rolls) + ' = {r}' + raE.total + '{/} ' + plE.type], 220); this.hurt(u, raE.total, plE.type, {}); }
         yield 30; return;
       }
-      case 'escapegrip': { if (u.conds.grappled && T.action > 0 && !T.attacksLeft) yield* D.ai.escapeGrip(this, u); return; } // ESCAPE THE HOLD (SRD 5.1, Escaping a Grapple -- js/ai.js escapeGrip; nets-1125)
+      case 'escapegrip': { if (u.conds.grappled && !u.conds.grappled.hook && T.action > 0 && !T.attacksLeft) yield* D.ai.escapeGrip(this, u); return; } // ESCAPE THE HOLD (SRD 5.1, Escaping a Grapple -- js/ai.js escapeGrip; nets-1125)
       case 'freenet': { var nw = c.target; if (nw && D.features && D.features.freeNetFor(this, u).indexOf(nw) >= 0 && !u.conds.restrained) yield* D.features.freeNet(this, u, nw); return; } // FREE FROM THE NET (SRD 5.1, the net's DC 10 STR check -- js/features.js F.freeNet; nets-1125)
       case 'breaktendril': { // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
         // the one it holds (at disadvantage on STR checks while held: `weak`) or anyone beside; Athletics, as breakFree and PULL IT OFF read it. 10-02
@@ -2360,6 +2364,7 @@
     for (var i = trail.length - 2; i >= 0 && !spot; i--) { var q = trail[i]; if (G.canStand(heldM, q[0], q[1]) && G.dist(u, heldM, null, null, q[0], q[1]) <= G.reachOf(u) && !(q[0] === u.x && q[1] === u.y)) spot = q; }
     if (!spot) { this.letGo(u, heldM, 'reach'); return; }
     heldM.tween = { fx: heldM.x, fy: heldM.y, fz: G.gzAt(heldM, heldM.x, heldM.y), t: 0, dur: this.pace(STEP_FRAMES, true), mode: 'walk' }; heldM.x = spot[0]; heldM.y = spot[1];
+    if (heldM.conds.grappled.hook) { yield STEP_FRAMES; return; } // (a dragger's hook hauls it: the haul says so itself -- js/features.js THE HOOK'S HOLD, 11-26)
     this.card(['{y}' + u.name + '{/} drags ' + (heldM.side === 'foe' ? Battle.nm(heldM, true) : heldM.name) + ' along.'], 160); yield STEP_FRAMES;
   };
   function* moveAlong0(u, path, o) {

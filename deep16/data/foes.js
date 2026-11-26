@@ -318,6 +318,9 @@
   // each (`net`, the SRD 5.1's: thrown 5/15, +4 -- DEX 2 and the fighter's proficiency with a martial ranged weapon -- a hit restrains, DC 10 STR to get free, 5 slashing to the net,
   // AC 10), and the pike a hooked one (the same SRD pike's numbers; its hook the Shove to knock prone at its 10 ft -- js/features.js F.hook). The drill takes the prone and the
   // netted as it takes the downed (F.aiWagonDrill)
+  // THE HOOK'S HOLD (2026-11-26, the seat fable-party-1125; RULED, Griz: "Turn off dragging 0 hp folk but otherwise these lean", "my hunch is saying only the netted"): the
+  // pike is kept and its hook takes the NET on one awake in it -- no hand on a body, none at 0, no second dragger; the net thrown at one prone ahead of the pike rank
+  // (js/features.js THE HOOK'S HOLD). What the lines above say of the downed, the dropped pike and the cestus hold stood from 11-25 to then
   dragger: {
     name: 'Dragger', type: 'humanoid', sheet: 'dragger_p2', humanoid: true, soldiering: true, wagonDrill: true, cr: '1/4', ac: 15, armor: 'studded leather', hp: 12, speed: 30, size: 1, reach: 10, // (reach 10: the pike's, its opportunity attacks too -- SRD 5.1 Reach)
     abil: { str: 15, dex: 14, con: 14, int: 9, wis: 11, cha: 10 }, init: 2, perception: 10, athletics: 4,
@@ -328,7 +331,7 @@
     },
     net: { atk: 4, range: [5, 15] }, // (the SRD 5.1 net, one, thrown once a fight -- js/features.js F.throwNet; nets-1125)
     multi: 1, secondWind: '1d10+1',
-    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill built 11-25 (js/features.js F.aiWagonDrill); the net (SRD 5.1, thrown 5/15) and the pike\'s hook (ours: the SRD Shove to knock prone at its reach) 11-25 on his "lane the draggers get nets a hooked piked, and with a prone-inducing move, drag prone not 0 hp"; his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
+    src: 'dominion-patrol-the-fare-home.pdf THE DRAGGERS (fighter 1: AC 15 studded harness and Defense, HP 12 1d10+2, Athletics +4, Acrobatics +4, pike +4 1d10+2 reach 10 ft, cestus +4 1d4+2); Second Wind 1d10+1 the SRD fighter 1\'s; Wagon Drill built 11-25 (js/features.js F.aiWagonDrill); the net (SRD 5.1, thrown 5/15) and the pike\'s hook (ours: the SRD Shove to knock prone at its reach) 11-25 on his "lane the draggers get nets a hooked piked, and with a prone-inducing move, drag prone not 0 hp"; since 11-26 the pike kept and its hook hauling only the net on one awake in it, none at 0 (js/features.js THE HOOK\'S HOLD), his "only the netted"; his sheet dragger_p2 -- SENSES (ours, 11-10): Stealth none, its DEX check (+2), a youth in a studded harness in a drilled rank; passive Perception 10, because 10 + WIS +0'
   },
   // THE SERGEANTS (the page's two, "who despise each other"; Kat's book, serial-castegut 01:29, "two sergeants, who between them are conducting a war"): built by
   // the class (js/classes.js NPC.NAMED) so the SRD's Champion is whole -- Improved Critical, Second Wind, Action Surge and the style. Their plate and its AC are the

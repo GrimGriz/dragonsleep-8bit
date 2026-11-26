@@ -269,7 +269,7 @@
     // the bestiary's own turn-taking (js/traits.js): the broodmother in the rock
     var handled = u.side === 'foe' && D.traits && D.traits.turn ? yield* D.traits.turn(B, u) : false;
     if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
-    if (D.features && D.features.aiWagonDrill && !u.classAI && (yield* D.features.aiWagonDrill(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; } // (WAGON DRILL, the Dominion's draggers: the downed first -- js/features.js, 11-25)
+    if (D.features && D.features.aiWagonDrill && !u.classAI && (yield* D.features.aiWagonDrill(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; } // (WAGON DRILL, the Dominion's draggers: the hook on a net, the net at one prone, the knock-down -- js/features.js THE HOOK'S HOLD, 11-26; the downed first from 11-25 to then)
     if (D.features && D.features.aiWall && !u.classAI) yield* D.features.aiWall(B, u); // (a trained shield-bearer's wall: set, push, leave -- Soldiering, js/features.js, 11-20; a class NPC's runs in TX.FIRST)
     if (D.aidark) yield* D.aidark.first(B, u); // (the AI's own light, 11-13: put out when it wants the dark, struck -- the action -- when the dark is one-sided against it; js/aidark.js)
     if (u.traces) yield* traces(B, u);
@@ -1343,6 +1343,11 @@
     if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; grudgeU = gr; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
+    // THE RANKS FINISH WHAT THE HOOK HOLDS (11-26, the study of the drag's lean 2 -- RULED, Griz: "Turn off dragging 0 hp folk but otherwise these lean"; his 11-25 "the footmen
+    // and sergeants to focus dragged heroes"): a footman with one of the other side on a fellow dragger's hook where it can strike this turn strikes that one (js/features.js
+    // F.hookPrey: in its reach where it stands, or within its walk if it holds no line and no one else stands in its reach). A sergeant, built by its class, weighs the same in
+    // js/tactics.js weaponPlans
+    if (!grudge && D.features && D.features.hookPrey) { var hkP = D.features.hookPrey(B, u, hs); if (hkP) hs = [hkP]; }
     // her man down (10-05, Griz: "and lady giant (rages?) and goes for window if her man goes down"): the roof guard takes up his work -- the glass hers now, whoever stands in her reach
     // on the way struck first (the mission's own rule, below), and the trolls that guarded him guard no one. Said once. And she rages (Griz, the same evening: "yeah, regular rage she
     // shouldn't have - storyline can cite unknown deific intervention or lady giant hormones"): the barbarian's Rage the grid already runs (features.js F.rageCond's shape) -- +2 on her
@@ -1684,6 +1689,9 @@
       var grudgeP = grudgeU && !atk.needsHeld ? pool.filter(function (w) { return w === grudgeU && G.dist(u, w) <= G.reachOf(u, atk.reach); }) : []; // (the one it turned on, in reach: him, over the vital one and the quarry -- 11-08, his record: "The Cloaker turns on Aurdin.", then bit Vivian with Aurdin in its tail's reach)
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       if (B.fight && B.fight.quarry && !atk.needsHeld) { var qp = pool.filter(function (w) { return w.id === B.fight.quarry && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (qp.length) pool = qp; } // (a fight's quarry, in reach: him first -- GreyFang in his pit, 10-08: "The Harbinger hunts him down")
+      // (THE RANKS FINISH WHAT THE HOOK HOLDS, 11-26: a footman's blow goes to the one on a fellow dragger's hook in this attack's reach, over the weakest -- js/features.js
+      // F.hookHeldFor; the turn's own walk to that one is above, F.hookPrey)
+      if (!atk.needsHeld && D.features && D.features.hookHeldFor) { var hkQ = pool.filter(function (w) { return D.features.hookHeldFor(B, u, w) && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (hkQ.length) pool = hkQ; }
       if (grudgeP.length) pool = grudgeP;
       // (attached and riding -- the SRD's cloaker once its bite takes hold, the darkmantle: "can attack no other creature except the target", SRD 5.1 -- the rest of the
       // routine at the one it rides, nobody else: the bench of 11-08 had its tail at a wizard 10 ft off the turn its bite fastened on the rogue)

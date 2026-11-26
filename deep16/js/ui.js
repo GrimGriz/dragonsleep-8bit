@@ -2888,7 +2888,7 @@
     if (w.conds.divineFavor) c.push('{y}favor{/}');
     if (w.conds.sacred) c.push('{y}sacred +' + w.conds.sacred.atk + '{/}');
     if (w.conds.helped) c.push('{w}helped{/}');
-    if (w.conds.grappled) c.push('{w}grappled{/}'); // (a hero's grapple: its speed 0 -- 10-15)
+    if (w.conds.grappled) c.push(w.conds.grappled.hook ? '{w}on a hook{/}' : '{w}grappled{/}'); // (a hero's grapple: its speed 0 -- 10-15) (a dragger's hook on its net: js/features.js THE HOOK'S HOLD, 11-26)
     if (w.grappling && D.battle && D.Battle.heldBy(D.battle, w)) c.push('{w}grappling{/}');
     if (w.conds.restrained && !(w.conds.stoning && w.conds.restrained.kind === 'stone')) c.push(w.conds.restrained.grapple ? '{w}held{/}' + (w.conds.restrained.tendril ? '{g} (tendril ' + w.conds.restrained.tendril.hp + '/' + w.conds.restrained.tendril.max + '){/}' : '') : '{w}webbed{/}'); // (Flesh to Stone's hold says stone, below; the roper's tendril and what is left of it, 10-02)
     if (w.conds.stunned) c.push('{p}stunned{/}');
