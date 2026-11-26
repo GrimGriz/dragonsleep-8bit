@@ -1324,6 +1324,35 @@
     if (D.Battle.ropeSq(B, u, L.at[0], L.at[1], L.foot)) yield* B.exec(u, { do: 'rope', x: L.at[0], y: L.at[1], foot: L.foot });
     return true;
   }
+  // the walk to a drop (the brute's, 11-26 -- THE DROP WORTH A SWING, in it): of the heroes out of its reach that its move brings into it, the one whose drop is worth most
+  // over staying. Its routine's melee blows (the multiattack as it stands), each landing or not: the chance they take w's hit points (every way the blows can fall, at most
+  // sixteen), and what they should deal. A drop under one chance in three is no reason to walk; nor is one when it would likely drop the one beside it anyway
+  function dropWalk(B, u, hs, near) {
+    var TX = D.tactics, T = u.turn, at = u.attacks || {}, names = Object.keys(at), routine = Array.isArray(u.multi) ? u.multi.slice() : [];
+    if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
+    var blows = routine.map(function (k) { return at[k]; }).filter(function (a) { return a && !a.ranged && a.dice && !a.needsHeld && !a.holdOnly; }).slice(0, 4);
+    if (!blows.length) return null;
+    var hitOf = function (a, w) { return TX.pHit(a.atk || 0, RU.ac(w), 0); }, dmgOf = function (a) { return TX.avg(a.dice) + (a.mod || 0); };
+    var exp = function (w) { return blows.reduce(function (s, a) { return s + hitOf(a, w) * dmgOf(a); }, 0); };
+    var pDrop = function (w) {
+      var p = 0, n = blows.length;
+      for (var m = 1; m < (1 << n); m++) { var pr = 1, d = 0; for (var j = 0; j < n; j++) { var h = hitOf(blows[j], w); if (m & (1 << j)) { pr *= h; d += dmgOf(blows[j]); } else pr *= 1 - h; } if (d >= w.hp) p += pr; }
+      return p;
+    };
+    var val = function (w) { var pd = pDrop(w); return { pd: pd, v: pd * TX.worth(w.hp, w) + (1 - pd) * TX.worth(Math.min(exp(w), Math.max(0, w.hp - 1)), w) }; };
+    var stay = val(near[0]); if (stay.pd >= 0.5) return null;
+    var rm = G.reach(u, T.move), rch = reachOf(u, hs), best = null;
+    hs.forEach(function (w) {
+      if (near.indexOf(w) >= 0 || !G.standing(w) || w.object) return;
+      var go = val(w); if (go.pd < 0.34) return;
+      var e = approach(u, w, rm, rch); if (!e || (e.x === u.x && e.y === u.y) || G.dist(u, w, e.x, e.y) > rch) return;
+      var toll = TX.walkToll(B, u, rm, e); if (toll * 2 >= u.hp) return;
+      var gain = go.v - toll * (1 + toll / Math.max(1, u.hp)) - (e.cost || 0) / 30;
+      if (gain > stay.v + 1 && (!best || gain > best.gain)) best = { e: e, w: w, gain: gain, toll: toll, pd: go.pd, stay: stay.v };
+    });
+    return best;
+  }
+  AI.dropWalk = dropWalk;
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false, grudgeU = null;
     // one of ours at an edge with a drop of 10 ft or more straight behind it, in reach: the SRD's Shove first, one attack of the routine, and over it goes; the rest of the routine
@@ -1564,6 +1593,20 @@
     // battleaxe is for one who comes to it. No shot from here (none in range and sight): the old way below, it closes in. In his BUGBEAR AMBUSH fight 2 (11-22) the four loosed no
     // bolt in nine rounds: a foe with a blade beside its bow walked in and swung, and volleyed only when no one was in reach after the walk
     if (!tgt && u.standShoot && ranged.length && !grudge && T.action && !T.attacksLeft && !(u.hang && G.hanging(u)) && (yield* volley(B, u))) return;
+    // THE DROP WORTH A SWING (2026-11-26, the seat ai-1126 -- Griz, on his Fare Home record: "noted a foe taking like 5 turns vs ingriths AC over moving 10ft (taking an AOO) and
+    // striking aurdin down - not sure that's a bad call, but as a spectator ...", then, on the lean that a foe that can drop someone this turn accepts one opportunity attack
+    // to do it, "5 - yes, weighed"). With one in its reach it has only ever struck the weakest there. Now, before its blows: one of theirs out of its reach but within its
+    // walk that its routine would likely drop (dropWalk, below) is weighed against the blows where it stands -- what the drop is worth by its odds, less the swings the walk
+    // draws (js/tactics.js TX.walkToll: each reach it leaves, each blow readied for it) counted the heavier the more of its own hit points they are, and never when they
+    // could be half of what it has left. Not one set in a wall or holding the rank, bound, holding someone, taunted, hunting a quarry or a grudge -- nor one that swallows
+    // (js/engulf.js: the mound with Barley folded in it "breaks from Barley for Aurdin" on the bench; its play is its own)
+    if (tgt && !grudge && T.action && T.move > 0 && D.tactics && D.tactics.walkToll && !u.bound && !u.conds.taunted && !u.conds.restrained && !u.conds.grappled && !(u.holding || []).length && !(D.engulf && D.engulf.cfg && D.engulf.cfg(u)) && !u.whelm && !u.slam && !(B.fight && B.fight.quarry) && !T.rankHeld && !(D.features && D.features.wallSet && D.features.wallSet(u)) && !(u.hang && G.hanging(u))) {
+      var dw = dropWalk(B, u, hs, near);
+      if (dw) {
+        B.card(['{g}' + the(B, u) + ' breaks from ' + (near[0].side === 'party' ? near[0].name : the(B, near[0])) + ' for ' + (dw.w.side === 'party' ? dw.w.name : the(B, dw.w)) + ', who a blow could drop.{/}'], 200); yield 8;
+        yield* walkTo(B, u, dw.e); if (u.dead || u.hp <= 0) return;
+      }
+    }
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       // the roof guard's own lane up the face (a fight's foe `climbAt`, [x0, x1]: the columns she goes up by -- 10-05 night, Griz: "how often Hallvor goes over and stands by the door
@@ -1618,7 +1661,9 @@
         // (THE COPE's wait, 11-25: a walker with one it could reach in a stride but no room beside it -- bodies, or its own side, on every square -- waits at the nearest free
         // square with its blow readied for the first that comes into its reach (SRD 5.1, the Ready action), where it paced. A flier circles as before (11-14); a throw went first)
         var kW = D.postures.readyAtk(u);
-        B.card(['{g}' + the(B, u) + ' waits for an opening: no room beside ' + (tgt.side === 'party' ? tgt.name : the(B, tgt)) + '.{/}'], 200); yield 10;
+        // (not said of a pike holding the rank: it has not looked for room beside anyone -- its card is "takes the rank behind the shields", js/features.js F.aiWall. In his Fare
+        // Home record of 11-26 a Pike Trooper "waits for an opening: no room beside Bruin" with Bruin 35 ft off)
+        if (!T.rankHeld) { B.card(['{g}' + the(B, u) + ' waits for an opening: no room beside ' + (tgt.side === 'party' ? tgt.name : the(B, tgt)) + '.{/}'], 200); yield 10; }
         yield* B.exec(u, { do: 'ready', pick: 'attack', atk: kW }); return;
       }
       else if (!ranged.length) { B.card(['{g}' + the(B, u) + (belowIt(u, tgt) ? ' holds the edge: no one below in reach.' : G.winged(u) && G.dist(u, tgt) <= T.move + reachOf(u, hs) + 10 ? ' circles, waiting for an opening: no room beside anyone.' : ' paces: it cannot get at anyone.') + '{/}']); yield 20; } // (at the lip over the fight, held to the roof: said as what it is doing -- 10-05)
