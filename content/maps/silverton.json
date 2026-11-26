@@ -200,13 +200,6 @@
 "hire": "aurdin"
 },
 {
-"id": "pete",
-"x": 20,
-"y": 34,
-"look": "worker2",
-"dir": "down"
-},
-{
 "id": "guard1",
 "x": 3,
 "y": 8,

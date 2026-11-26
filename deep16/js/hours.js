@@ -1054,7 +1054,6 @@
   H16.phaseOf = function (h) { var b = H16.band(h); return b === 'dawn' || b === 'morning' ? 'early' : b === 'midday' || b === 'afternoon' ? 'day' : b; };
   H16.hourNow = function (q, B) { return D.mines && D.mines.hourNow ? D.mines.hourNow(q, B) : 12; }; // (THE WORLD's under the house; a test door's &hour=, else noon)
   H16.STREET = { // (who moves with the turn: `away` the turns they are off the street; a turn's own spot, a v6 pin and feet east, south)
-    pete: { away: ['dusk', 'night'] }, // (to the Hex's bar: the Hex's own Pete, js/hex.js)
     idony: { away: ['night'] }, signy: { away: ['night'] }, towns4: { away: ['night'] }, towns6: { away: ['night'] }, towns7: { away: ['night'] }, towns8: { away: ['night'] },
     brennock: { dusk: { pin: '22', d: [-25, 20] }, away: ['night'] },
     gull: { dusk: { pin: '25', d: [45, 20] }, night: { pin: '25', d: [45, 20] } }, // (the Rows' end, the night crews gathering)
@@ -1571,7 +1570,7 @@
   // warrens-five-words-1029, barber-davos-territory
   var PETE_AFTER = [{ 'if': 'flag:fiveDone', say: ['Five came up. Edric wrote them in, every one.', 'He doesn\'t say six any more. He doesn\'t say much.'] }];
   Object.assign(C.TALK16, {
-    pete: PETE_AFTER, warrenspete: PETE_AFTER,
+    warrenspete: PETE_AFTER,
     barber: [{ say: ['Shave, tooth, stitch. The house\'s fighters are Davos Kren\'s. I taught him the needle.', 'Fight nights I sit at the Hex\'s door for what the house won\'t pay for. Three coppers, and I don\'t write it down.'] }]
   });
   H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)',
@@ -1685,7 +1684,7 @@
     { hours: 1, id: 'papa', near: 'papa', lead: 'barley', label: 'PAPA AND LYMEN AT THE HEX\'S DOOR: Barley alone', note: 'Lymen in the door with Papa; the talk on a portrait screen over the street -- Papa\'s portrait speaking, Lymen bottom left with his lines in the bubble (click each); then the cards: the Company in the JOURNAL, pinned, and Finding Work with its four places.' },
     { hours: 1, id: 'papaviv', near: 'papa', lead: 'vivian', label: 'PAPA AND LYMEN AT THE HEX\'S DOOR: Vivian alone', note: 'The same talk with Vivian leading: Lymen bottom left, and after Papa\'s word on the few standing around, Vivian\'s own drawn face bottom right looking in (pt_vivian, art-wanted 37; 11-05).' },
     { hours: 1, id: 'papaly', near: 'papa', lead: 'lymen', label: 'PAPA AND LYMEN: Lymen leading', note: 'Lymen himself in front of Papa: "Then go and find some." -- Barley, Marta\'s girl, the farm boy named; the Company opens.' },
-    { hours: 1, id: 'journal', near: 'pete', lead: 'barley', label: 'THE JOURNAL BY WORDS: Warrens Pete, then the town\'s talk', note: 'A click on Pete: THE MISSING FIVE, its card, pinned -- Edric first. Then the Hand (the Cradles), Gull (the Cull), the factor\'s man (Finding Work). M > JOURNAL; THE TALK.' },
+    { hours: 1, id: 'journal', door: 'inn:cassia', hexAt: [6, 18], lead: 'barley', label: 'THE JOURNAL BY WORDS: Warrens Pete in the Hex, then the town\'s talk', note: 'In at the Hex beside Warrens Pete, by the west bar (11-26: the one Pete). A click on him: his portrait, THE MISSING FIVE, its card, pinned -- Edric first. Then the Hand (the Cradles), Gull (the Cull), the factor\'s man (Finding Work). M > JOURNAL; THE TALK.' },
     { hours: 1, id: 'lucia', door: 'shop:lucia', lead: 'aurdin', label: 'LUCIA AT MAMA\'S: Aurdin\'s first visit, CONSULT', note: 'In at the door, E at the counter: her word to Aurdin (the calling herbs), THE SHELVES / CONSULT / LEAVE; CONSULT on a whole party.' },
     { hours: 1, id: 'swann', door: 'keeper:sylvia', lead: 'vivian', silver: 20, t: 31, label: 'SWANN, 5 SP: the morning of Day 2', note: 'In at her booth: READ (5 SP). Nothing in the JOURNAL: she opens Finding Work and pins it, her line, the plain next step -- and once, "An old thing walks."' },
     { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. Step off the doorway and watch: every seven seconds the front one goes in, comes back out with a loaf, and walks down the street to another door; the line steps up, someone new joins behind. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT: the bells, bell to bell.' },
@@ -1732,6 +1731,7 @@
     if (bt.pit) Hs.cur.pitWord = 1; // (the Pit's word at its hour, taken by this staged game: H16.pitOpen)
     if (bt.sit) H16.night(null, bt.sit, [rec.flags]); // (a night's sitting with its cutscene first, as at a rest)
     if (bt.hex3) H16.toHex3 = true;
+    if (bt.hexAt) H16.restAt = { hex: bt.hexAt.slice() }; // (in at the Hex's front doors and on to the square beside someone on its ground floor -- the journal beat's Warrens Pete, 11-26: H16.restAtPlay)
   };
   H16.show = function (q) { return new C.ServicesShow(q, H16.SHOW_BEATS, '{y}SILVERTON\'S HOURS AND WORDS, 10-28{/} -- a NEW GAME staged; the rest is yours (a show)'); };
   // THE RESTS AND THE WAITS, shown (deep16/?restshow -- the eyes rows' door, 11-05, the rests-and-waits seat): a NEW GAME's four, hurt, staged at each place a rest is had --

@@ -296,7 +296,7 @@
   // Skylights' townsfolk wear (battle.js townsfolk) until the art desk's townsfolk are cut (ART-52), the gate hand a guard
   T.PLACE = {
     guard1: { at: 'gate:west', d: [10, 10] }, marta: { pin: '22', d: [-10, 0] }, gull: { pin: '25' }, kael: { pin: '26' }, brennock: { pin: '27' }, vera: { pin: '28' },
-    oldhob: { pin: '25', d: [25, 15] }, papa: { at: 'hexFront', d: [-12, 8] }, vivian: { pin: '23', d: [0, -20] }, aurdinChapel: { pin: '30', d: [10, 0] }, pete: { pin: '18' },
+    oldhob: { pin: '25', d: [25, 15] }, papa: { at: 'hexFront', d: [-12, 8] }, vivian: { pin: '23', d: [0, -20] }, aurdinChapel: { pin: '30', d: [10, 0] }, // (no Warrens Pete on the street since 11-26: the Hex's alone, his "instead of the one standing outside by Gull (which to remove)")
     idony: { pin: '5', d: [20, 10] }, signy: { pin: '26', d: [-30, 25] }, elsbethCandles: { pin: '23', d: [40, -15] },
     towns1: { pin: '11', d: [0, -50] }, towns2: { pin: '12', d: [-20, -60] }, towns3: { pin: '14', d: [0, -40] }, towns4: { pin: '32', d: [-40, 0] },
     towns5: { pin: '28', d: [30, 30] }, towns6: { pin: '24', d: [-40, 0] }, towns7: { pin: '35', d: [0, -60] }, towns8: { pin: '16', d: [0, 40] }
