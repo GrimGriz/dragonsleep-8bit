@@ -73,10 +73,11 @@
         if (shownA && D.spr.anim(u.sheet, shownA) && (!LOOPS[shownA] || shownA !== s.anim)) see(B, u, shownA);
         s.anim = shownA;
       }
-      if (down && !s.down && D.spr.anim(u.sheet, 'hurt')) see(B, u, 'hurt');
+      var dc = !!u.dead && !!D.spr.anim(u.sheet, 'deathcollapse'); // (a death of its own: the skeleton's DEATH COLLAPSE, js/ui.js -- 11-26, ART-170)
+      if (down && !s.down && (dc || D.spr.anim(u.sheet, 'hurt'))) see(B, u, dc ? 'deathcollapse' : 'hurt');
       s.down = down;
       var pr = !!u.conds.prone && !down;
-      if (pr && !s.prone && D.spr.proneFrame(u.sheet) >= 0) see(B, u, 'prone');
+      if (pr && !s.prone && D.spr.proneFrame(u.sheet) >= 0) { see(B, u, 'prone'); if (D.spr.proneRow(u.sheet) === 'hurt' && D.spr.anim(u.sheet, 'deathcollapse')) see(B, u, 'hurt'); } // (where its death is its own row, its Fall plays only as it is knocked down)
       if (!pr && s.prone && !down && D.spr.anim(u.sheet, 'getup')) see(B, u, 'getup'); // (up again: js/ui.js plays its own get-up off the prone clock)
       s.prone = pr;
       var lrow = D.spr.anim(u.sheet, 'rofl') ? 'rofl' : D.spr.anim(u.sheet, 'laugh') ? 'laugh' : null; // (js/ui.js plays a rofl row first, then a laugh row)
@@ -122,7 +123,7 @@
   // ?rows=willemglass_p2 and ?rows=torvald_p2, plays both -- 11-25, the seat module-1125, on the desk's "fix them")
   SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}, ob = SH.othersBlows(sheet, kind), shf = kind && D.FOES[kind] && D.FOES[kind].shift; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && r !== 'towolf' && r !== 'shove' && r !== 'keepback' && r !== 'pikerank' && r !== 'push' && r !== 'traces' && r !== 'sitdown' && !(r === 'shift' && !shf) && !(r === 'sit' && !(kind && D.FOES[kind] && D.FOES[kind].yields)) && !(an[r] && (an[r].same || an[r].held)) && !ob[r] && !(/^air./.test(r) && an[r.slice(3)]); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
-  function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
+  function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || r === 'deathcollapse' || (u.showSeen || {})[r]; }); }
 
   // ------------------------------------------------------------------ the director: the creature's turns (js/battle.js run hands them here; D.ai.turn
   // itself is left as it is -- dev/bench16.js reads its source for a rule)
@@ -588,7 +589,7 @@
       S.foes.forEach(function (u, k) { var a = asked[k]; if (a && a.sheet) { u.sheet = a.sheet; u.name = named(a.sheet); u.rowKind = a.sheet; } }); // (a sheet asked by name: the stand-in wears it)
       // (its `attack` row left out where every blow has a row of its own: there it is only the fallback, a copy -- the show's tally says the same)
       var copyOnly = function (u) { var ks = Object.keys(u.attacks || {}); return ks.length && ks.every(function (k) { var a = u.attacks[k]; return a.spell || D.spr.anim(u.sheet, String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')); }); };
-      (S.beside ? S.foes.slice(0, 1) : S.foes).forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); }); }); // (beside: the first one's rows, played on all)
+      (S.beside ? S.foes.slice(0, 1) : S.foes).forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); if (r === 'deathcollapse' && !S.beside && D.spr.proneFrame(u.sheet) >= 0) S.list.push({ u: u, row: r, lying: true }); }); }); // (beside: the first one's rows, played on all; a death of its own a second time, destroyed while it lies -- the skeleton's, 11-26)
       S.zoom0 = D.iso.zoom || 1; // (close in, by its size: a row is judged at the size of a figure, not of the floor -- the wheel takes it in or out)
       S.list.sort(function (a, b) { return S.foes.indexOf(a.u) - S.foes.indexOf(b.u) || (a.row === 'idle' ? -1 : b.row === 'idle' ? 1 : 0); });
       B.req = null; B.co = loop();
@@ -600,6 +601,8 @@
     }
     function card(it, how) {
       var a = D.spr.anim(it.u.sheet, it.row), n = a ? a.frames + ' frames at ' + (a.fps || 8) + ' fps' : 'its fall frame';
+      var beat = it.lying ? 'Knocked flat, then destroyed where it lies: the pile at once.' : it.row === 'deathcollapse' ? 'Destroyed standing: it falls to its pile.' : it.row === 'hurt' && D.spr.anim(it.u.sheet, 'deathcollapse') ? 'Its Fall is its knockdown: down, and up again.' : null; // (a death of its own, 11-26: the skeleton's)
+      if (beat) how = beat;
       B.clearCards();
       if (B.one) { // (the one gallery's column, js/onegallery.js: no key line here, it has its own)
         var ls = ['{y}' + it.u.name.toUpperCase() + '{/}', (S.i + 1) + ' / ' + S.list.length + '   {y}' + it.row.toUpperCase() + '{/}', '{g}' + n + '{/}', '{g}facing ' + D.spr.FACINGS[S.face] + '{/}'];
@@ -687,7 +690,9 @@
       card(it, sg ? sg.say + (S.real ? ' (the dice as they fall: F pins them)' : '') : B.one ? 'The row alone.' : null);
       if (sg) { yield 12; yield* sg.go(); return; }
       yield 12;
-      if (r === 'hurt') { u.hp = 0; u.dead = true; u.deadT = B.t; u.anim = 'idle'; u.animT = B.t; }
+      if (it.lying) { u.conds.prone = true; yield Math.ceil(D.spr.duration(u.sheet, D.spr.proneRow(u.sheet)) * 1.2); u.hp = 0; u.dead = true; u.deadT = B.t; u.animT = B.t; } // (knocked flat, and destroyed where it lies: js/ui.js holds the pile at once)
+      else if (r === 'hurt' && D.spr.anim(u.sheet, 'deathcollapse')) { u.conds.prone = true; S.upAt = B.t + 100; } // (its Fall is its knockdown alone, its death its own row: down and up again, the prone's way -- the skeleton's, 11-26)
+      else if (r === 'hurt' || r === 'deathcollapse') { u.hp = 0; u.dead = true; u.deadT = B.t; u.anim = 'idle'; u.animT = B.t; }
       else if (r === 'prone') { u.conds.prone = true; S.upAt = B.t + 100; } // (down on its side, then up again by itself -- the input below keeps the clock, so a key is never lost)
       else if (r === 'still' || r === 'roost' || r === 'braid') { u.woken = false; u.acted = false; }
       else if (r === 'burrow') { u.under = true; u.anim = 'burrow'; u.animT = B.t; }

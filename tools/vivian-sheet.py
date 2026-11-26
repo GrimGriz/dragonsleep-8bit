@@ -121,6 +121,30 @@ def to1x(rgb, mask, k, avoid=None):
     return o
 
 
+def to1x_mode(rgb, mask, k, avoid=None):
+    """to1x with `down` 'mode' (a look's): every source pixel snapped to the 64 first, then each 1x pixel the colour most of its block's figure pixels hold --
+    thin light shapes keep their colour where the box's mean mixes them into the dark between them (the skeleton's bones and ribs went brown, 11-26)"""
+    h, w = mask.shape; nw, nh = max(1, round(w * k)), max(1, round(h * k))
+    al = np.asarray(Image.fromarray((mask * 255).astype(np.uint8)).resize((nw, nh), Image.BOX)).astype(np.float32) / 255
+    q = np.clip(rgb, 0, 255).astype(np.uint8).reshape(-1, 3)
+    pk = (q[:, 0].astype(np.int64) << 16) | (q[:, 1].astype(np.int64) << 8) | q[:, 2]
+    uq, inv = np.unique(pk, return_inverse=True)
+    sn = pix.snap((np.stack([(uq >> 16) & 255, (uq >> 8) & 255, uq & 255], -1).astype(np.float32) / 255)[None], avoid if avoid is not None else AVOID)[0]
+    sk = (sn[:, 0].astype(np.int64) << 16) | (sn[:, 1].astype(np.int64) << 8) | sn[:, 2]
+    cu, ci = np.unique(sk, return_inverse=True)
+    pal = ci[inv.reshape(-1)].reshape(h, w)                      # (each source pixel's colour of the 64, as an index into cu)
+    blk = ((np.arange(h) * nh // h)[:, None] * nw + (np.arange(w) * nw // w)[None, :])
+    cnt = np.bincount((blk * len(cu) + pal)[mask], minlength=nh * nw * len(cu)).reshape(nh, nw, len(cu))
+    best = cu[cnt.argmax(-1)]
+    solid = (al >= 0.5) & (cnt.sum(-1) > 0)
+    o = np.zeros((nh + 2, nw + 2, 4), np.uint8)
+    s2 = np.zeros((nh + 2, nw + 2), bool); s2[1:-1, 1:-1] = solid
+    o[1:-1, 1:-1][solid, :3] = np.stack([(best >> 16) & 255, (best >> 8) & 255, best & 255], -1)[solid].astype(np.uint8); o[s2, 3] = 255
+    e = np.zeros_like(s2); e[1:, :] |= s2[:-1, :]; e[:-1, :] |= s2[1:, :]; e[:, 1:] |= s2[:, :-1]; e[:, :-1] |= s2[:, 1:]
+    o[e & ~s2, :3] = OUTL; o[e & ~s2, 3] = 255
+    return o
+
+
 def cut(look):
     L = LOOKS[look]
     pages, crops, pageof, gnd, cwin = {}, {}, {}, {}, {}
@@ -185,7 +209,7 @@ def cut(look):
     for c, (rgb, m) in crops.items():
         if RS is not None:
             rgb = RS.reskin(np.clip(rgb, 0, 255).astype(np.uint8), m, **L['reskin']).astype(np.float32)
-        o = to1x(rgb, m, scale[pageof[c]], L.get('avoid'))
+        o = (to1x_mode if L.get('down') == 'mode' else to1x)(rgb, m, scale[pageof[c]], L.get('avoid'))
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
         if (c[1], c[2]) in L.get('ground', GROUND):   # (`ground`: a look's own lying frames -- katarina_p2's fall and prone)
             cx = ndimage.center_of_mass(al)[1]
@@ -202,6 +226,9 @@ def cut(look):
         fs = [f for f in range(8) if (f, name, 0) in cells]
         reach = max(max(cx, o.shape[1] - cx) for f in fs for i in range(n) for (o, cx, foot) in [cells[(f, name, i)]])
         fw = int(2 * np.ceil(reach + 2)); ax = fw // 2
+        if L.get('fw'):   # (`fw`: a look kept in its old sheet's cell, every row as wide -- the skeleton's two drawn looks in skeleton_p1's 96, 11-26; a frame past it is a fault)
+            assert fw <= L['fw'], (look, name, fw, L['fw'])
+            fw = L['fw']; ax = fw // 2
         blk = np.zeros((8 * FH, n * fw, 4), np.uint8)
         for f in fs:
             for i in range(n):

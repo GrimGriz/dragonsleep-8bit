@@ -3907,6 +3907,107 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preK);
     return;
   }
+  // THE SKELETON'S TWO LOOKS (mode=skel1126; 11-26, the cutter seat cutter-1126-skel, the art desk's ART-170 -- Griz: "two skeletons (randomly assigned when skeletons call for
+  // combat - i had it make two variants)"): one block, data/foes.js `skeleton`, and its two drawn sheets; the look picked by js/battle.js Battle.lookOf off the fight's dice as they
+  // stand -- the same seed the same looks, and no roll drawn for it -- both seen on the ladder's crypt and the class floor; the shortsword's blade and the shortbow's arrow on frame 4
+  // (`release` 3) by the page's own frame loop (Battle.frame) at the paces 1 (fast), 1.25 (the default), 2.5 (the stream) and 4 (the slowest); knocked down, the Fall to its frame 6,
+  // held, and up through it backwards (js/sprites.js S.PRONE 5); destroyed standing, DEATH COLLAPSE from its frame 1 to the pile, held; destroyed lying, the pile at once (js/ui.js)
+  if (get('mode', '') === 'skel1126') {
+    var repSK = { checks: [], errors: [] }, d0SK = D.d, P0SK = D.PACE, pj0SK = D.fx.projectile, sd0SK = D.spr.draw, LKS = ['skeleton_helmed_p2', 'skeleton_bare_p2'];
+    function okSK(what, v) { repSK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkSK(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; Bx.sheetGate = null; return Bx; }
+    function skOf(Bx) { return Bx.units.filter(function (u) { return u.kind === 'skeleton'; }); }
+    // the frame it draws: the row and the frame js/ui.js hands to D.spr.draw, read as js/sprites.js reads them
+    var cvSK = document.createElement('canvas'); cvSK.width = 640; cvSK.height = 480; var cxSK = cvSK.getContext('2d');
+    function drawnSK(Bx, u) {
+      var got = null; D.spr.draw = function (ctx, sheet, anim, f, t, x, y, o) { if (sheet === u.sheet && !got) got = { anim: anim, t: t, once: !!(o && o.once), frame: o ? o.frame : null }; return 48; };
+      try { var ob = D.ui.unitObj(Bx, u); if (ob) ob.draw(cxSK); } finally { D.spr.draw = sd0SK; }
+      if (!got) return { anim: null, fr: null };
+      var a = D.spr.anim(u.sheet, got.anim), n = Math.floor(got.t * (a.fps || 8) / 60);
+      return { anim: got.anim, fr: got.frame != null ? Math.max(0, Math.min(a.frames - 1, got.frame)) : got.once ? Math.min(a.frames - 1, n) : n % a.frames };
+    }
+    function seq(Bx, u, t0, ticks) { return ticks.map(function (k) { Bx.t = t0 + k; var s = drawnSK(Bx, u); return s.anim === null ? '-' : (s.anim === 'idle' ? 'idle' : s.anim.charAt(0) + s.fr); }); }
+    try {
+      var DK = D.FOES.skeleton;
+      // 1. the block and its two sheets: the rows, the old cell and anchor, the blows' release, the prone frame on the Fall (no `prone` row)
+      okSK('1 the block: sheet ' + DK.sheet + ', looks ' + (DK.looks || []).join(', ') + '; vulnerable ' + (DK.vulnerable || []).join() + ', immune ' + (DK.immune || []).join(), DK.sheet === LKS[0] && (DK.looks || []).join() === LKS.join() && (DK.vulnerable || []).join() === 'bludgeoning' && (DK.immune || []).join() === 'poison');
+      LKS.forEach(function (k) {
+        var sh = D.SHEETS[k], an = sh && sh.anims, want = [['idle', 4], ['walk', 8], ['shortsword', 6], ['shortbow', 6], ['flinch', 4], ['hurt', 6], ['deathcollapse', 6]];
+        okSK('1 ' + k + ': ' + (an ? want.map(function (p) { return p[0] + ' ' + (an[p[0]] ? an[p[0]].frames : 0); }).join(', ') : 'none') + '; cell ' + (sh && sh.fw) + 'x' + (sh && sh.fh) + ', anchor ' + (sh && sh.ax) + ',' + (sh && sh.ay) + '; release ' + (an && an.shortsword.release) + ' and ' + (an && an.shortbow.release) + '; attack is ' + (an && an.attack && an.attack.same) + '; prone ' + D.spr.proneRow(k) + ' ' + D.spr.proneFrame(k),
+          !!an && want.every(function (p) { return an[p[0]] && an[p[0]].frames === p[1]; }) && sh.fw === 96 && sh.fh === 96 && sh.ax === 48 && sh.ay === 84 && an.shortsword.release === 3 && an.shortbow.release === 3 && an.attack && an.attack.same === 'shortsword' && !an.prone && D.spr.proneRow(k) === 'hurt' && D.spr.proneFrame(k) === 5);
+      });
+      // 2. the pick: off the dice as they stand, none drawn; the same seed the same looks; both looks, about even, over 200 seeds
+      var Bp = mkSK('?npc=skeleton&lvl=3&vs=fighter:3'), CR = [[7, 2], [11, 3], [14, 2], [16, 5]];
+      function four(seed) { D.seed = seed; var s0 = D.seed, ls = CR.map(function (at, i) { return Bp.makeFoe({ id: 'sk' + (i + 1), kind: 'skeleton', at: at }).sheet; }); return { ls: ls, drew: D.seed !== s0 }; }
+      var a1 = four(4242), a2 = four(4242), nH = 0, nAll = 0, mixed = 0, drew = 0;
+      for (var sd = 1; sd <= 200; sd++) { var fz = four(sd); if (fz.drew) drew++; fz.ls.forEach(function (l) { nAll++; if (l === LKS[0]) nH++; }); if (fz.ls.indexOf(LKS[0]) >= 0 && fz.ls.indexOf(LKS[1]) >= 0) mixed++; }
+      okSK('2 the pick draws no die (' + drew + ' of 200 seeds moved the dice), the same seed the same four (' + a1.ls.map(function (l) { return l.split('_')[1]; }).join() + ' twice: ' + (a1.ls.join() === a2.ls.join()) + ')', drew === 0 && !a1.drew && a1.ls.join() === a2.ls.join());
+      okSK('2 over 200 seeds, ' + nH + ' of ' + nAll + ' helmed (' + Math.round(100 * nH / nAll) + '%); the crypt\'s four mixed in ' + mixed + ' of 200', nH > nAll * 0.4 && nH < nAll * 0.6 && mixed > 150);
+      okSK('2 a skeleton made with its own sheet keeps it (' + Bp.makeFoe({ id: 'skx', kind: 'skeleton', sheet: 'skeleton_p1' }).sheet + '); a block with one look keeps its sheet (' + Bp.makeFoe({ id: 'g1', kind: 'goblin' }).sheet + ')',
+        Bp.makeFoe({ id: 'skx', kind: 'skeleton', sheet: 'skeleton_p1' }).sheet === 'skeleton_p1' && Bp.makeFoe({ id: 'g1', kind: 'goblin' }).sheet === D.FOES.goblin.sheet);
+      // 3. the ladder's crypt by its door (?fight=crypt&lvl=3&seed=, js/main.js: the seed set before the fight is made) -- both looks on a seed, the same looks and the same fight
+      // run twice; and the class floor's four (?npc=skeleton x4, the Pocket DM's way in)
+      function cryptSK(seed) { D.seed = seed; var Bx = new D.Battle({ ladder: true, fight: 'crypt', level: 3, bench: true }); D.battle = Bx; Bx.enter(); Bx.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); return Bx; }
+      var seedC = null; for (var sc = 1; sc <= 40 && seedC == null; sc++) { var lsC = skOf(cryptSK(sc)).map(function (u) { return u.sheet; }); if (lsC.indexOf(LKS[0]) >= 0 && lsC.indexOf(LKS[1]) >= 0) seedC = sc; }
+      var C1 = cryptSK(seedC), lk1 = skOf(C1).map(function (u) { return u.id + ' ' + u.sheet.split('_')[1]; }).join(', '), r1 = drive(C1), log1 = (C1.logEntries || []).map(function (e) { return e.text; }).join('|');
+      var C2 = cryptSK(seedC), lk2 = skOf(C2).map(function (u) { return u.id + ' ' + u.sheet.split('_')[1]; }).join(', '), r2 = drive(C2), log2 = (C2.logEntries || []).map(function (e) { return e.text; }).join('|');
+      okSK('3 the crypt, seed ' + seedC + ': ' + lk1 + '; run twice the same looks (' + (lk1 === lk2) + ') and the same fight (' + r1 + ', ' + r2 + ', the logs ' + (log1 === log2 ? 'alike' : 'apart') + ', ' + log1.length + ' chars)', seedC != null && lk1 === lk2 && r1 === r2 && log1 === log2 && log1.length > 200);
+      var killed = skOf(C1).filter(function (u) { return u.dead; }).length;
+      okSK('3 the crypt fought to its end: ' + r1 + ', ' + killed + ' of 4 skeletons destroyed', killed >= 1);
+      var Bn = null, seedN = null; for (var sn = 1; sn <= 40 && seedN == null; sn++) { D.seed = sn; Bn = mkSK('?npc=skeleton,skeleton,skeleton,skeleton&lvl=3&vs=fighter:3,cleric:3,wizard:3,rogue:3'); var lsN = skOf(Bn).map(function (u) { return u.sheet; }); if (lsN.indexOf(LKS[0]) >= 0 && lsN.indexOf(LKS[1]) >= 0) seedN = sn; }
+      okSK('3 the class floor\'s four (?npc=), seed ' + seedN + ': ' + skOf(Bn).map(function (u) { return u.sheet.split('_')[1]; }).join(', '), seedN != null);
+      // 4. the blows on frame 4, by the page's frame loop at each pace: the blade's hit and the arrow's leaving, both looks
+      [1, 1.25, 2.5, 4].forEach(function (P) {
+        LKS.forEach(function (lk) {
+          [['shortsword', 1], ['shortbow', 6]].forEach(function (bw) {
+            D.PACE = P;
+            var Bx = mkSK('?npc=skeleton&lvl=3&vs=fighter:3'), a = skOf(Bx)[0], f = Bx.units.filter(function (u) { return u.side === 'party'; })[0];
+            a.sheet = lk; f.hp = f.maxhp = 400; f.conds = {}; a.x = f.x; a.y = Math.max(1, f.y - bw[1]); D.grid.setup(D.grid.map, Bx.units); D.rules.startTurn(a); Bx.active = a;
+            D.d = function (n) { return n === 20 ? 19 : 1; };
+            var at = null, rowSK = null, h0 = Bx.hurt;
+            D.fx.projectile = function (who) { if (who === a && at == null) at = Bx.t - a.animT; return pj0SK.apply(this, arguments); };
+            Bx.hurt = function (u) { if (u === f && at == null && bw[0] === 'shortsword') at = Bx.t - a.animT; return h0.apply(this, arguments); };
+            try {
+              Bx.co = (function* () { yield* Bx.attack(a, f, a.attacks[bw[0]]); })(); Bx.req = null; Bx.wait = 0;
+              for (var k = 0; k < 900 && Bx.co && at == null; k++) { if (Bx.req && Bx.req.prompt) Bx.answer(Bx.req.prompt.opts[0].value); Bx.frame(); if (!rowSK && a.anim && a.anim !== 'idle') rowSK = a.anim; }
+            } finally { D.fx.projectile = pj0SK; Bx.hurt = h0; D.d = d0SK; }
+            var r = D.spr.anim(lk, rowSK || 'idle'), fr = at != null && r ? Math.floor(at * (r.fps || 8) / 60) : null;
+            okSK('4 pace ' + P + ', ' + lk.split('_')[1] + ', the ' + bw[0] + ': its row ' + rowSK + ', the ' + (bw[0] === 'shortbow' ? 'arrow leaves' : 'blade lands') + ' ' + at + ' ticks in, on frame ' + (fr == null ? '-' : fr + 1) + ' of 6 (index ' + fr + ')', rowSK === bw[0] && fr === 3);
+          });
+        });
+      });
+      D.PACE = P0SK;
+      // 5. knocked down and up: the Fall to its frame 6 (index 5), held; up through it backwards, then standing
+      LKS.forEach(function (lk) {
+        var Bx = mkSK('?npc=skeleton&lvl=3&vs=fighter:3'), s = skOf(Bx)[0]; s.sheet = lk; s.conds = {}; Bx.t = 1000; drawnSK(Bx, s);
+        s.conds.prone = true; var dn = seq(Bx, s, 1000, [0, 8, 15, 23, 30, 38, 60, 400]);
+        delete s.conds.prone; var up = seq(Bx, s, 1500, [0, 8, 15, 23, 30, 45]);
+        okSK('5 ' + lk.split('_')[1] + ' knocked down: ' + dn.join(' ') + '; up: ' + up.join(' '), dn.join(' ') === 'h0 h1 h2 h3 h4 h5 h5 h5' && up.join(' ') === 'h4 h3 h2 h1 h0 idle');
+      });
+      // 6. destroyed standing: DEATH COLLAPSE from its frame 1 at the blow that destroys it, once, held on the pile; destroyed lying: the pile at once, never the standing guard
+      LKS.forEach(function (lk) {
+        var Bx = mkSK('?npc=skeleton&lvl=3&vs=fighter:3'), s = skOf(Bx)[0]; s.sheet = lk; s.conds = {}; Bx.t = 2000; drawnSK(Bx, s);
+        Bx.hurt(s, 999, 'bludgeoning', {}); var t0 = s.deadT, st = seq(Bx, s, t0, [0, 6, 12, 18, 24, 30, 60, 3000]);
+        okSK('6 ' + lk.split('_')[1] + ' destroyed standing (dead ' + s.dead + ', at ' + (t0 === 2000) + '): ' + st.join(' '), s.dead && t0 === 2000 && st.join(' ') === 'd0 d1 d2 d3 d4 d5 d5 d5');
+        var B2 = mkSK('?npc=skeleton&lvl=3&vs=fighter:3'), s2 = skOf(B2)[0]; s2.sheet = lk; s2.conds = {}; B2.t = 3000; drawnSK(B2, s2);
+        s2.conds.prone = true; seq(B2, s2, 3000, [0, 20, 60]);
+        B2.hurt(s2, 999, 'bludgeoning', {}); var t2 = s2.deadT, ly = seq(B2, s2, t2, [0, 1, 6, 12, 30, 3000]);
+        okSK('6 ' + lk.split('_')[1] + ' destroyed lying (dead ' + s2.dead + ', lying ' + s2.proneLook + '): ' + ly.join(' '), s2.dead && s2.proneLook && ly.join(' ') === 'd5 d5 d5 d5 d5 d5');
+      });
+      // 7. the show wants both deaths' rows: the Fall (seen as it is knocked down) and DEATH COLLAPSE (seen as it is destroyed); the attack row the shortsword's, not twice
+      LKS.forEach(function (lk) { var w = D.show.wanted(lk, 'skeleton'); okSK('7 the show wants ' + lk + ': ' + w.join(', '), w.indexOf('hurt') >= 0 && w.indexOf('deathcollapse') >= 0 && w.indexOf('prone') >= 0 && w.indexOf('attack') < 0); });
+      // ... and plays each twice, the two skeletons on the test ground in one look (?show=skeleton&sheet=: two of one look, so each row is that sheet's twice)
+      LKS.forEach(function (lk) {
+        D.seed = 7919; var BS = D.show.fight('?show=skeleton&lvl=3&sheet=' + lk, { bench: true }); D.battle = BS; BS.enter(); var rS = drive(BS), tS = (BS.showTally || {})[lk] || {}, wS = D.show.wanted(lk, 'skeleton');
+        okSK('7 the show of ' + lk + ' ends ' + rS + ': ' + wS.map(function (r) { return r + ' ' + (tS[r] || 0); }).join(', '), rS === 'won' && wS.every(function (r) { return (tS[r] || 0) >= 2; }));
+      });
+    } catch (eSK) { repSK.errors.push(String(eSK && eSK.stack || eSK).slice(0, 900)); }
+    D.d = d0SK; D.PACE = P0SK; D.fx.projectile = pj0SK; D.spr.draw = sd0SK;
+    if (errs.length) repSK.errors = repSK.errors.concat(errs.slice(0, 5));
+    var preSK = document.createElement('pre'); preSK.id = 'out'; preSK.textContent = 'BENCH16 ' + JSON.stringify(repSK);
+    document.body.appendChild(preSK);
+    return;
+  }
   // the goblin's Hide (mode=goblinhide1007; 10-07, Griz: "4 yes", the bestiary lane's item: SRD 5.1 Nimble Escape, "the Disengage or Hide action as a bonus action on each of its turns" -- the
   // grid had built the Disengage only): a goblin out of reach of the party shoots, then Hides with its BONUS (its action stays the shot's) where no foe's watch would find it, or steps to such
   // a square within the move it has left; one beside a hero still Disengages and does not hide; no second Hide in a turn, none restrained; the sheet's hide row plays at the Hide and the drawn

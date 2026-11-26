@@ -103,7 +103,10 @@
     src: 'SRD 5.1 Wolf (CR 1/4); content/monsters.json wolf. Pack Tactics is read; the bite\'s knockdown (STR 11, prone) is read (09-27)'
   },
   skeleton: {
-    name: 'Skeleton', type: 'undead', sheet: 'skeleton_p1', cr: '1/4', ac: 13, hp: 13, speed: 30, size: 1, reach: 5, darkvision: 60,
+    // (two drawn looks of one block, 11-26 -- Griz: "two skeletons (randomly assigned when skeletons call for combat - i had it make two variants)": the art desk's ART-170,
+    //  the Helmed Swordsman and the Bare-Skulled Bowman; `looks`, one picked by the fight's dice each time one is made with no `sheet` of its own -- js/battle.js
+    //  Battle.lookOf. `sheet` is the one a shelf or a list shows. skeleton_p1, the KayKit render, retired: no block wears it)
+    name: 'Skeleton', type: 'undead', sheet: 'skeleton_helmed_p2', looks: ['skeleton_helmed_p2', 'skeleton_bare_p2'], cr: '1/4', ac: 13, hp: 13, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 10, dex: 14, con: 15, int: 6, wis: 8, cha: 5 }, init: 2, perception: 9,
     saves: { str: 0, dex: 2, con: 2, int: -2, wis: -1, cha: -3 },
     attacks: {
@@ -111,7 +114,7 @@
       shortbow: { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [80, 320], ranged: true }
     },
     multi: 1, vulnerable: ['bludgeoning'], immune: ['poison'], condImmune: ['poisoned', 'exhaustion'],
-    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield), shortbow +4 1d6+2 80/320 (loosed when nothing is in reach: ai.js volley; 10-02 runner). Vulnerable and immune are read (battle.js typed(), 09-27); condition immunities poisoned and exhaustion (SRD 5.1, 10-02 runner)'
+    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword and shortbow drawn on both its looks (ART-170, 11-26), shortbow +4 1d6+2 80/320 (loosed when nothing is in reach: ai.js volley; 10-02 runner). Vulnerable and immune are read (battle.js typed(), 09-27); condition immunities poisoned and exhaustion (SRD 5.1, 10-02 runner)'
   },
   troll: {
     name: 'Troll', type: 'giant', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, climbs: 15, size: 2, reach: 5, darkvision: 60, // (climbs 15 since 10-05, Griz: "1 and 2" -- three turns up the Edifice's 45 ft, not five; before that 10: ours, not the SRD's -- it digs its claws into the stone, 10 ft a turn, and clings; Griz, 10-04 night: "a slow climb speed, like they're forcefully digging their way into the walls")

@@ -2083,6 +2083,10 @@
         if (down) {
           if (fledUp) { anim = has('walk') ? 'walk' : 'idle'; o.alpha = Math.max(0, 1 - (B.t - (u.deadT || 0)) / 50); } // (got away: walking off, fading -- no fall, no tint)
           else if (u.headless && has('headless')) { anim = 'headless'; o.once = true; } // (GreyFang's end, js/trophy.js, 10-08: his Fall without the head, its last frame held)
+          // (a death of its own -- the skeleton's DEATH COLLAPSE, ART-170, 11-26: the standing guard gives at knees and hips and falls to a pile of bones and gear):
+          // dead, a sheet with a `deathcollapse` row plays it once from the defeat (u.deadT) and holds the pile; one already lying when it is destroyed holds the
+          // pile at once and never stands up into it. Its fall and get-up while it lives stay the Fall (`hurt`, sprites.js S.PRONE)
+          else if (u.dead && has('deathcollapse')) { anim = 'deathcollapse'; o.once = true; if (u.deadT != null) t = B.t - u.deadT; if (u.proneLook) o.frame = D.spr.anim(u.sheet, 'deathcollapse').frames - 1; }
           else if (prow === 'prone' && u.proneLook) { anim = 'prone'; o.frame = pf; } // (down while it lies: it stays as it lies)
           else if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }

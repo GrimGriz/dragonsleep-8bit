@@ -224,7 +224,7 @@
       });
     });
     if (((this.fight && this.fight.arrive && this.fight.arrive.waves) || []).some(function (wv) { return wv.flee; })) Battle.FOLK.forEach(kind); // (the street's people a wave sends running: Battle.townsfolk, 10-27)
-    kinds.forEach(function (k) { add(soon, D.FOES[k] && D.FOES[k].sheet); });
+    kinds.forEach(function (k) { add(soon, D.FOES[k] && D.FOES[k].sheet); ((D.FOES[k] || {}).looks || []).forEach(function (n) { add(soon, n); }); }); // (every look a kind may be called in: the skeleton's two, Battle.lookOf)
     return { now: now, soon: soon.filter(function (n) { return now.indexOf(n) < 0; }) };
   };
 
@@ -384,11 +384,22 @@
     if (d.caster) { var cs = d.caster; u.known = cs.known.slice(); u.slots = cs.slots.slice(); u.slotsMax = cs.slots.slice(); u.spellDC = cs.dc; u.spellAtk = cs.atk; u.castAb = cs.ab; u.lvl = cs.lvl; u.prof = Math.ceil(1 + cs.lvl / 4); u.classAI = true; u.weave = null; }
     return u;
   };
+  // a block's look, one of its `looks` where it has two or more (11-26, the skeleton's two drawn looks -- Griz: "two skeletons (randomly assigned when skeletons
+  // call for combat - i had it make two variants)"): every unit made with no `sheet` of its own -- a fight's, a ladder's, the gallery's stage, a wave, the Pocket
+  // DM's -- takes one, read off the fight's dice as they stand (D.seed, js/core.js) mixed with the unit's id and square, and not drawn from them: a seeded bench, a
+  // show with its seed pinned and a replay pick the same looks, and no roll after the pick moves. data/foes.js `sheet` stays the one a shelf or a list shows
+  Battle.lookOf = function (f, d) {
+    var L = d && d.looks; if (!L || L.length < 2) return d && d.sheet;
+    var s = String(f.id || '') + '@' + (f.at ? f.at.join(',') : ''), h = (D.seed | 0) ^ 0x2545f491;
+    for (var i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+    h ^= h >>> 16; h = Math.imul(h, 0x45d9f3b); h ^= h >>> 16;
+    return L[(h >>> 0) % L.length];
+  };
   Battle.prototype.makeFoe0 = function (f, d) {
     return {
       // the creature type (RULED 09-28: on every sheet) and the challenge rating (Turn Undead's destroying reads it)
       // (`f.sheet`: a fight's own figure for one of its units, its numbers the kind's -- Bloodsnout's four in the Line Guard's spear figure, 11-19, Griz: "put them in guard_p2 for now")
-      id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: f.sheet || d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
+      id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: f.sheet || Battle.lookOf(f, d), type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
       // (f.hp: a fight's own number for one -- GreyFang's pit, where the Harbinger is there to be stomped, 10-08)
       hp: f.hp || d.hp, maxhp: f.hp || d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)
