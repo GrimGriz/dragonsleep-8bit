@@ -33483,8 +33483,12 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
           okF(sums.every(function (n) { return n > 0; }), J.label + ' (' + J.fights.reduce(function (a, i) { return a + reachedF[i]; }, 0) + ' fought): ' + J.names.map(function (nmJ, k) { return nmJ + ' ' + sums[k]; }).join(', ') + J.why);
         });
         okF(rowsF.net > 0 && rowsF.hook > 0, 'the dragger\'s own rows played: NET ' + rowsF.net + 'x, HOOK ' + rowsF.hook + 'x (deep16/art/dragger_p2 net and hook, the art desk\'s ART-168)');
+        // (A RATE, NOT A CHECK -- 2026-11-26, the window, on the full gate's RED with ABOUT FACE: two beats come in fewer than half of a fight's plays, so three runs miss
+        // one about one gate in three whatever the code -- measured `only=4 runs=12` and `only=9 runs=12`: the wall broken or turned 4 of 12 before the day's work and 6 of 12
+        // after it, the mound's Engulf 3 of 12 and 4 of 12. They print with the fight's line and gate nothing; `only=<n> runs=12` is the read that proves them)
+        var RATE_F = { 'the wall broken or turned (flanked, or missiles)': 1, 'the mound\'s Engulf': 1 };
         BEATS.forEach(function (bs, i) {
-          var miss = bs.filter(function (b, j) { return !seenF[i][j] && !(i === 4) && !jointOf(i, b[0]); }).map(function (b) { return b[0]; });
+          var miss = bs.filter(function (b, j) { return !seenF[i][j] && !(i === 4) && !jointOf(i, b[0]) && !RATE_F[b[0]]; }).map(function (b) { return b[0]; });
           var amb = i === 4 ? (seenF[4][0] + seenF[4][1] > 0) : true;
           okF(reachedF[i] > 0 && !miss.length && amb, 'fight ' + (i + 1) + ', ' + fh.slots[i].name + ': ' + bs.map(function (b, j) { return b[0] + ' ' + seenF[i][j] + '/' + reachedF[i]; }).join(', ') + (miss.length ? ' -- never: ' + miss.join(', ') : ''));
         });
