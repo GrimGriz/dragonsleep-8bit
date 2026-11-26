@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-26
 
+- 2026-11-26 · shipped · the house · `main:live` at `1890129b24baba3cc0f8da3da0686395d811837b` by exact hash (`b0d8b1a4..1890129b`, a fast-forward, 61 commits; the desk's full gate GREEN 437 on `fad86926`, the PATCHLOG commit after it; GitHub's full gate GREEN on it): the desk's three batches of 11-25/26 · *"after batch 3 lands, main to live and close"*
 - 2026-11-26 · `7eda1b14`, `9cf74ccd` · the Pocket DM and the races · THE FARE HOME, the Pocket DM's second module: this week's new things in nine fights for four at 3rd -- the Dominion's squads and wagons, the garrison's wall, the bugbear ambush, the cube and the mound (module-1125) · *"how bout a Pocket DM module based on all the new stuff added this week?"*; *"good on the leans, build module"*
 - 2026-11-26 · `4d91fd1b` · ruled · the Pocket DM and the races · THE FARE HOME's three bench-led changes kept; Wagon Drill's drag left to the AI, judged in his playthroughs (module-1125) · *"1 - leans"*, *"2 - don't force it, the AI weighs its options as I understand it, we'll look at the playthroughs next session"*
 - 2026-11-26 · `c0a6e356`, `32cae00c` · eyes on the screen · The show: a creature built by its class swings its weapon (the mender's mace twice); the dragger's net and hook unheld, thrown and pulled twice in its show (module-1125) · *"28 - have the module building seat look at it before building the module"*, *"27 - we're building a module with those guys in it?"*
