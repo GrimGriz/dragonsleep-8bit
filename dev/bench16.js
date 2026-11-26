@@ -26552,6 +26552,116 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preIS);
     return;
   }
+  // THE FEAST, 11-26 (mode=feast1126; the Thanksgiving seat, on Griz's "Special Thanksgiving LobstaMonkee Fight (as they exist in the gameshow)" and "if we can get them as
+  // 'abberations' and into the pocket DM with your map on the pocket DM, I should be able to build the module"): js/feast.js and its three blocks -- every one an aberration on
+  // the ABERRATIONS, OOZES, ETC. shelf, its sheet's rows, the Harvest Bowl among the Pocket DM's floors; the Jacket Bruiser's punch-grapple, its Fold In as the second punch, the
+  // bake at its turn's start, the way out, its Split Jacket into the mash (the captive out, 52 HP, the p2 sheet once the split has played); the Gallows Gobbler's gobble, its
+  // fright kept past the end of the gobbler's turn and saved off at the frightened one's own, its recharge; the Cranberry Can's spill as sauce-grease; and two whole fights
+  // on the Bowl, the Lobstamonkees against the feast
+  if (get('mode', '') === 'feast1126') {
+    var repF = { checks: [], errors: [], notes: [] }, d0F = D.d;
+    function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var drainF = function (g) { var r, n = 0, v; do { r = g.next(v); v = undefined; if (!r.done && r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } while (!r.done && n++ < 5000); return r.value; };
+    var pinF = function (d20, d6) { D.d = function (n) { return n === 20 && d20 != null ? d20 : n === 6 && d6 != null ? d6 : d0F.apply(this, arguments); }; };
+    var saidF = function (B) { var s = []; var c0 = B.card; B.card = function (l) { s.push((l || []).join(' ').replace(/\{\w\}|\{\/\}/g, '')); return c0.apply(this, arguments); }; return { s: s, off: function () { B.card = c0; } }; };
+    var fightF = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; };
+    var kindF = function (B, k) { return B.units.filter(function (u) { return u.kind === k; }); };
+    try {
+      var FE = D.feast, JB0 = D.FOES.jacketbruiser, GG0 = D.FOES.gallowsgobbler, CC0 = D.FOES.cranberrycan;
+      okF('F0 js/feast.js loaded; the three blocks, each an aberration (' + [JB0, GG0, CC0].map(function (f) { return f ? f.name + ' ' + f.type + ' CR ' + f.cr : 'NONE'; }).join(', ') + ')',
+        !!FE && !!JB0 && !!GG0 && !!CC0 && JB0.type === 'aberration' && GG0.type === 'aberration' && CC0.type === 'aberration' && JB0.cr === '4' && GG0.cr === '5' && CC0.cr === '1/2' && GG0.size === 3 && JB0.size === 2 && CC0.sizeClass === 'S');
+      var PDF = D.pocketdm, etcF = PDF && PDF.SHOPS.filter(function (s) { return s.id === 'etc'; })[0], shelfF = etcF ? PDF.shelf(etcF) : [];
+      okF('F1 on the Pocket DM\'s ABERRATIONS, OOZES, ETC. shelf: ' + ['jacketbruiser', 'gallowsgobbler', 'cranberrycan'].map(function (k) { return k + ' ' + (shelfF.indexOf(k) >= 0 ? PDF.fmt(PDF.price(k)) : 'MISSING'); }).join(', '),
+        ['jacketbruiser', 'gallowsgobbler', 'cranberrycan'].every(function (k) { return shelfF.indexOf(k) >= 0; }));
+      var idsF = D.Pocket && D.Pocket.prototype.mapIds ? D.Pocket.prototype.mapIds.call({}) : [];
+      okF('F2 the Harvest Bowl among the Pocket DM\'s floors (' + (idsF.indexOf('harvestbowl') >= 0) + '; ' + (PDF ? PDF.sizeOf('harvestbowl') + ' squares to stand on, ' + PDF.bandOf('harvestbowl')[1] + ', ' + PDF.landOf('harvestbowl') : '-') + ')',
+        idsF.indexOf('harvestbowl') >= 0 && (!PDF || PDF.bandOf('harvestbowl')[1] === 'LARGE'));
+      var wantF = {
+        jacketbruiser_p1: { idle: 4, walk: 8, punch: 6, engulf: 6, hold: 4, flinch: 4, split: 6 },
+        jacketbruiser_p2: { idle: 4, walk: 6, hurl: 6, flinch: 4, hurt: 6, prone: 1, chunk: 4 },
+        gallowsgobbler_p1: { idle: 4, walk: 8, lefttalon: 6, righttalon: 6, gobble: 6, flinch: 4, hurt: 6, prone: 1 },
+        cranberrycan_p1: { idle: 4, walk: 8, shot: 6, spill: 6, flinch: 4, hurt: 6, prone: 1, berry: 1 }
+      };
+      var offF = [];
+      Object.keys(wantF).forEach(function (s) { var an = D.SHEETS[s] && D.SHEETS[s].anims; Object.keys(wantF[s]).forEach(function (r) { if (!an || !an[r] || an[r].frames !== wantF[s][r]) offF.push(s + '.' + r); }); });
+      okF('F3 the four sheets\' rows at their counts' + (offF.length ? ' -- off: ' + offF.join(', ') : ''), !offF.length);
+      // THE JACKET BRUISER: the punch's grapple, the Fold In as the second, the bake, the way out
+      var BJ = fightF('?npc=jacketbruiser&vs=fighter:5,cleric:5&lvl=5&map=harvestbowl'), JB = kindF(BJ, 'jacketbruiser')[0], pJ = BJ.units.filter(function (u) { return u.side === 'party'; });
+      var FJ = pJ[0], CJ = pJ[1];
+      JB.x = 20; JB.y = 12; FJ.x = 22; FJ.y = 12; CJ.x = 24; CJ.y = 16; D.grid.setup(D.grid.map, BJ.units);
+      [FJ, CJ].forEach(function (w) { w.hp = w.maxhp = 200; delete w.conds.restrained; });
+      pinF(18, 4); BJ.active = JB; D.rules.startTurn(JB); var sJ = saidF(BJ);
+      drainF(BJ.attack(JB, FJ, JB.attacks.punch)); var g1 = FJ.conds.restrained;
+      drainF(BJ.attack(JB, CJ, JB.attacks.punch)); sJ.off(); var eJ = FJ.conds.engulfed;
+      okF('J1 the first punch grapples the fighter (grappled only ' + !!(g1 && g1.only) + ', DC ' + (g1 && g1.dc) + '); the second is the FOLD IN on the held one, not a punch at the cleric (' + (eJ ? 'ENGULFED ' + eJ.kind : 'not inside') + ', blinded ' + !!FJ.conds.blinded + ', the cleric ' + CJ.hp + '/200) -- "' + (sJ.s.filter(function (l) { return /closes its jacket/.test(l); })[0] || '').slice(0, 90) + '"',
+        !!(g1 && g1.only && g1.dc === 14) && !!(eJ && eJ.kind === 'jacket') && !!FJ.conds.blinded && CJ.hp === 200 && JB.engulfing);
+      okF('J2 inside: not drawn (' + (D.ui && D.ui.unitObj ? (D.ui.unitObj(BJ, FJ) === null ? 'hidden' : 'DRAWN') : '-') + '), no line from the cleric to it (' + (D.engulf.sealedFrom(CJ, FJ) ? 'sealed' : 'OPEN') + ')',
+        (!D.ui || !D.ui.unitObj || D.ui.unitObj(BJ, FJ) === null) && D.engulf.sealedFrom(CJ, FJ));
+      var hJ = FJ.hp; pinF(10, 4); drainF(D.engulf.turnStart(BJ, JB)); D.d = d0F;
+      okF('J3 the bake at its turn\'s start: 2d6 fire (pinned 4s: 8) -- ' + hJ + ' to ' + FJ.hp, hJ - FJ.hp === 8);
+      BJ.active = FJ; D.rules.startTurn(FJ); pinF(20, 4); var sJ2 = saidF(BJ); drainF(D.magic.breakFree(BJ, FJ)); sJ2.off(); D.d = d0F;
+      okF('J4 out by its action: engulfed ' + !!FJ.conds.engulfed + ', restrained ' + !!FJ.conds.restrained + ', blinded ' + !!FJ.conds.blinded + ' -- "' + (sJ2.s.filter(function (l) { return /seam|vines/.test(l); })[0] || '').slice(0, 80) + '"',
+        !FJ.conds.engulfed && !FJ.conds.restrained && !FJ.conds.blinded && sJ2.s.some(function (l) { return /seam of the jacket/.test(l); }));
+      // SPLIT JACKET
+      pinF(18, 4); BJ.active = JB; D.rules.startTurn(JB); drainF(BJ.attack(JB, FJ, JB.attacks.punch)); drainF(BJ.attack(JB, FJ, JB.attacks.punch)); D.d = d0F;
+      var inJ = !!FJ.conds.engulfed, sJ3 = saidF(BJ); BJ.hurt(JB, JB.hp + 40, 'slashing', {}); sJ3.off();
+      okF('J5 SPLIT JACKET: the blow past 0 leaves the mash (dead ' + !!JB.dead + ', ' + JB.hp + '/' + JB.maxhp + ' HP, AC ' + D.rules.ac(JB) + ', speed ' + JB.speed + ', attacks ' + Object.keys(JB.attacks).join(',') + '), the captive out (was inside ' + inJ + '; now inside ' + !!FJ.conds.engulfed + ', restrained ' + !!FJ.conds.restrained + ') -- "' + (sJ3.s.filter(function (l) { return /bursts/.test(l); })[0] || '').slice(0, 70) + '"',
+        inJ && !JB.dead && JB.hp === 52 && JB.maxhp === 52 && D.rules.ac(JB) === 11 && JB.speed === 20 && !!JB.attacks.hurl && !FJ.conds.engulfed && !FJ.conds.restrained && JB.splitDone);
+      var shJ0 = JB.sheet, nJ = 0; while (JB.sheet === shJ0 && nJ++ < 400) { BJ.t += 1; if (JB.mashAt != null && BJ.t >= JB.mashAt) D.feast.mashNow(BJ, JB); }
+      okF('J6 the split row plays on the baked sheet, then the mash wears jacketbruiser_p2 (' + shJ0 + ' to ' + JB.sheet + ' after ' + nJ + ' frames)', shJ0 === 'jacketbruiser_p1' && JB.sheet === 'jacketbruiser_p2' && nJ > 10);
+      BJ.hurt(JB, JB.hp + 1, 'slashing', {});
+      okF('J7 the mash falls for good (dead ' + !!JB.dead + ')', !!JB.dead);
+      // THE GALLOWS GOBBLER: the gobble, its fright kept past the gobbler's turn, the save at the frightened one's own turn end, the recharge
+      var BG = fightF('?npc=gallowsgobbler&vs=fighter:5,cleric:5,wizard:5&lvl=5&map=harvestbowl'), GG = kindF(BG, 'gallowsgobbler')[0], pG = BG.units.filter(function (u) { return u.side === 'party'; });
+      GG.x = 19; GG.y = 11; pG[0].x = 23; pG[0].y = 12; pG[1].x = 21; pG[1].y = 16; pG[2].x = 30; pG[2].y = 25; D.grid.setup(D.grid.map, BG.units);
+      pG.forEach(function (w) { w.hp = w.maxhp = 200; delete w.conds.frightened; }); GG.hp = GG.maxhp = 300;
+      pinF(2, 4); BG.active = GG; D.rules.startTurn(GG); var sG = saidF(BG); drainF(FE.gobbleNow(BG, GG)); sG.off(); D.d = d0F;
+      var frG = pG.map(function (w) { return !!(w.conds.frightened && w.conds.frightened.gobble && w.conds.frightened.by === GG.id); });
+      okF('G1 GALLOWS GOBBLE (pinned 2s): the two within 30 ft frightened (' + frG.slice(0, 2).join(', ') + '), the one 70 ft off not (' + frG[2] + '); spent ' + !!GG.gobbleSpent,
+        frG[0] && frG[1] && !frG[2] && GG.gobbleSpent);
+      GG.turn.action = 0; drainF(D.ai.turn(BG, GG));
+      okF('G2 its fright outlasts the end of the gobbler\'s own turn (the AI\'s sweep): ' + pG.slice(0, 2).map(function (w) { return !!w.conds.frightened; }).join(', '), !!pG[0].conds.frightened && !!pG[1].conds.frightened);
+      pinF(20, 4); D.magic.endTurn(BG, pG[0]); pinF(2, 4); D.magic.endTurn(BG, pG[1]); D.d = d0F;
+      okF('G3 the save at the frightened one\'s own turn end: a 20 frees the fighter (' + !pG[0].conds.frightened + '), a 2 keeps the cleric afraid (' + !!pG[1].conds.frightened + ')', !pG[0].conds.frightened && !!pG[1].conds.frightened);
+      GG.gobbleSpent = true; pinF(10, 4); D.rules.startTurn(GG); var stillG = GG.gobbleSpent; pinF(10, 5); D.rules.startTurn(GG); D.d = d0F; // (spent afresh first: G2's AI turn began with its own recharge roll)
+      okF('G4 the recharge at its turn\'s start: a 4 keeps it spent (' + stillG + '), a 5 brings it back (' + !GG.gobbleSpent + ')', stillG && !GG.gobbleSpent);
+      GG.hp = 1; BG.hurt(GG, 5, 'slashing', {}); D.magic.endTurn(BG, pG[1]);
+      okF('G5 the gobbler down: the cleric\'s fright ends with it (' + !pG[1].conds.frightened + ')', !!GG.dead && !pG[1].conds.frightened);
+      // THE CRANBERRY CAN: the spill
+      var BC = fightF('?npc=cranberrycan&vs=fighter:5,cleric:5&lvl=5&map=harvestbowl'), CC = kindF(BC, 'cranberrycan')[0], pC = BC.units.filter(function (u) { return u.side === 'party'; });
+      CC.x = 12; CC.y = 20; pC[0].x = 20; pC[0].y = 20; pC[1].x = 21; pC[1].y = 20; D.grid.setup(D.grid.map, BC.units);
+      var aimC = FE.spillAim(BC, CC);
+      pinF(2, 4); BC.active = CC; D.rules.startTurn(CC); drainF(FE.spillNow(BC, CC, aimC)); D.d = d0F;
+      var gC = (BC.grounds || []).filter(function (g) { return g.sauce; })[0];
+      okF('C1 SAUCE SPILL (pinned 2s): aimed to catch both (' + (aimC && aimC.foes) + '), the sauce laid as grease (' + (gC ? gC.kind + ' DC ' + gC.dc + ', ' + gC.sq.length + ' squares, ' + gC.till + ' rounds, difficult ' + gC.difficult : 'NONE') + '), both prone (' + pC.map(function (w) { return !!w.conds.prone; }).join(', ') + '), spent ' + !!CC.spillSpent,
+        !!aimC && aimC.foes === 2 && !!gC && gC.kind === 'grease' && gC.dc === 12 && gC.sq.length === 4 && gC.till === 10 && pC.every(function (w) { return !!w.conds.prone; }) && CC.spillSpent);
+      var pjC = D.fx.projectile(CC, pC[0], 'row:berry');
+      okF('C2 its berry flies as drawn (an FX of ' + (pjC && pjC.kind) + ', blocking ' + !!(pjC && pjC.blocking) + ')', !!pjC && pjC.kind === 'proj');
+      // two whole fights on the Bowl: the Lobstamonkees at level 5 against the turkey, the potato and three cans, the class AI on both sides
+      var tabF = [], endF = true;
+      [2611, 2612].forEach(function (sd) {
+        D.seed = sd; var BW = fightF('?npc=gallowsgobbler,jacketbruiser,cranberrycan,cranberrycan,cranberrycan&vs=denny:5,beholda:5,rascal:5,goose:5&lvl=5&map=harvestbowl&watch&foeat=20,4;33,8;7,7;9,7;11,7');
+        var resW = drive(BW); tabF.push(resW + ' R' + BW.round); if (resW !== 'won' && resW !== 'lost') endF = false;
+      });
+      okF('W1 two whole fights on the Bowl (the four at level 5, the class AI on both sides): ' + tabF.join(', ') + ' -- every one ended ' + endF, endF);
+      // THE FEAST, the module (his "if it's cheaper, just build a 3-wave of various lackies followed by the turkey fight"): comes with the game, its four slots on the Bowl, its
+      // rests, and each slot fought through by the four at its level (fresh each: the carry between slots is the module engine's own, benched by module1017 and fare1125)
+      var MF = (D.MODULES || []).filter(function (m) { return m.id === 'feast'; })[0];
+      var restsF = MF ? MF.slots.slice(0, 3).map(function (s) { var r = s.rest || {}; return r.long ? 'L' : r.short !== false ? 'S' : '-'; }).join(' ') : '';
+      okF('M1 THE FEAST comes with the Pocket DM: ' + (MF ? MF.slots.length + ' fights for ' + MF.party.n + ' at ' + MF.party.lvl + ', every one on the Bowl (' + MF.slots.every(function (s) { return s.map === 'harvestbowl'; }) + '), every foe in the bestiary, rests ' + restsF + ', the last the Gobbler' : 'NONE'),
+        !!MF && MF.slots.length === 4 && MF.party.lvl === 5 && MF.slots.every(function (s) { return s.map === 'harvestbowl' && s.foes.every(function (k) { return !!D.FOES[k]; }) && String(s.name).length <= 40; }) && restsF === '- - S' && MF.slots[3].foes[0] === 'gallowsgobbler');
+      var tabM = [], endM = true;
+      if (MF) MF.slots.forEach(function (s, i) {
+        D.seed = 2620 + i; var BM = fightF('?npc=' + s.foes.join(',') + '&vs=denny:5,beholda:5,rascal:5,goose:5&lvl=5&map=harvestbowl&watch');
+        var resM = drive(BM); tabM.push((i + 1) + ' ' + resM + ' R' + BM.round); if (resM !== 'won' && resM !== 'lost') endM = false;
+      });
+      okF('M2 each of its fights on the Bowl, fresh, the four Lobstamonkees at 5th on the class AI: ' + tabM.join(', ') + ' -- every one ended ' + endM, !!MF && endM && tabM.length === 4);
+    } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
+    D.d = d0F;
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   // THE POCKET DM'S CONSTRUCTS, 11-26 (mode=constructs1126; the cutter seat cutter-1126-constructs, on Griz's "there are 3 in Fresh, two for the Pocket DM stores"): the
   // rug of smothering by the SRD (data/foes.js rugofsmothering, js/constructs.js, tools/rugofsmothering-sheet.py) -- its block and sheet, Smother's grip with no damage on
   // the hit, the 2d6 + 3 at the start of the HELD one's turn, Damage Transfer odd and even and not through its immunity, one at a time and Medium or smaller, the AI holding

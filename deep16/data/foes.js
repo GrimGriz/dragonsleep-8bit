@@ -1174,6 +1174,52 @@
     guardian: { regen: 10 },
     src: 'SRD 5.1 Shield Guardian (CR 7, 2,900 XP, Large construct; AC 17 natural armor, 142 HP (15d10+60), speed 30; STR 18 DEX 8 CON 18 INT 7 WIS 10 CHA 3; blindsight 10, darkvision 60, passive Perception 10): Multiattack, two Fists +7 2d6+4 bludgeoning; immune to poison, and charmed, exhaustion, frightened, paralyzed, poisoned; Regeneration (10 at the start of its turn from 1 HP up, js/constructs.js). A brute on his word (11-26): its amulet -- Bound, the Shield reaction, Spell Storing -- not given yet, a grid seat\'s; nor its language (understands commands, cannot speak)'
   },
+  // THE FEAST (11-26, the Thanksgiving seat; Griz: "Special Thanksgiving LobstaMonkee Fight (as they exist in the gameshow)", then "if we can get them as 'abberations' and into
+  // the pocket DM with your map on the pocket DM, I should be able to build the module"): the art desk's three, ours and not the SRD's -- each block its STATBLOCK.md as the
+  // art desk wrote it (deep16/_src/<id>/2026-11-26-<NAME>-COMBAT/), every one an ABERRATION on his word (the art desk had a plant, a monstrosity and a construct: the type is
+  // all that moved), so the three stand together on the Pocket DM's ABERRATIONS, OOZES, ETC. shelf. Their rules js/feast.js; their sheets tools/jacketbruiser-sheet.py,
+  // tools/gallowsgobbler-sheet.py, tools/cranberrycan-sheet.py (cut 11-26); their floor data/maps.js harvestbowl.
+  jacketbruiser: {
+    name: 'Jacket Bruiser', type: 'aberration', sheet: 'jacketbruiser_p1', cr: '4', ac: 15, armor: 'natural armor', hp: 68, speed: 25, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 18, dex: 8, con: 16, int: 3, wis: 10, cha: 5 }, init: -1, perception: 10,
+    saves: { str: 4, dex: -1, con: 3, int: -4, wis: 0, cha: -3 },
+    // Jacket Punch grapples on a hit (Medium or smaller, escape DC 14, grappled only) while it has no captive; the second punch of its turn is the Fold In when it holds one (js/feast.js)
+    attacks: { punch: { name: 'Jacket Punch', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 5, grapple: { dc: 14, max: 1, size: 'M', only: true }, foldIn: true } },
+    multi: ['punch', 'punch'],
+    // FOLD IN: inside the split jacket -- blinded, restrained, total cover; 2d6 fire at the start of each of its turns; out by an action, STR (Athletics) or DEX (Acrobatics) against
+    // DC 14; one at a time (js/engulf.js, kind 'jacket')
+    engulf: { kind: 'jacket', size: 'M', max: 1, room: 1, escape: 14, blind: true, cover: true, start: { dice: '2d6', mod: 0, type: 'fire' } },
+    // SPLIT JACKET: the first time the baked form reaches 0, the mash at full hit points in its square (js/feast.js; the XP the block's once, when the mash falls)
+    split: {
+      sheet: 'jacketbruiser_p2', ac: 11, hp: 52, speed: 20, init: 1,
+      abil: { str: 14, dex: 12, con: 14, int: 3, wis: 10, cha: 5 }, saves: { str: 2, dex: 1, con: 2, int: -4, wis: 0, cha: -3 },
+      attacks: { hurl: { name: 'Steaming Chunk', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', extra: '1d6', extraType: 'fire', range: [30, 90], ranged: true, fx: 'row:chunk' } },
+      multi: ['hurl', 'hurl']
+    },
+    src: 'the art desk\'s JACKET-BRUISER (11-26, its STATBLOCK.md; ours, not the SRD\'s), an aberration on Griz\'s word (the art desk\'s Large plant): CR 4 (1,100 XP once, for both forms); Large, two consecutive forms on a 2 x 2 footprint, darkvision 60, passive Perception 10. BAKED: AC 15 (natural armor), 68 HP (8d10 + 24), speed 25; STR 18 DEX 8 CON 16 INT 3 WIS 10 CHA 5; Multiattack, two Jacket Punches +6 2d6+4 bludgeoning, a hit grappling a Medium or smaller (escape DC 14) when it has no captive; the second punch may be Fold In on the grappled one: blinded, restrained, total cover, 2d6 fire at the start of each of its turns, out by an action (STR (Athletics) or DEX (Acrobatics) DC 14). SPLIT JACKET: the first time at 0, its skin bursts, the captive out, the MASH at full HP in its space (excess lost; initiative, conditions and spent actions kept). MASHED: AC 11, 52 HP (7d10 + 14), speed 20; STR 14 DEX 12 CON 14; Double Helping, two Steaming Chunks +4 range 30/90, 1d6+2 bludgeoning plus 1d6 fire'
+  },
+  gallowsgobbler: {
+    name: 'Gallows Gobbler', type: 'aberration', sheet: 'gallowsgobbler_p1', cr: '5', ac: 14, armor: 'natural armor', hp: 115, speed: 40, size: 3, reach: 10,
+    abil: { str: 20, dex: 14, con: 20, int: 3, wis: 14, cha: 10 }, init: 2, perception: 15,
+    saves: { str: 5, dex: 2, con: 5, int: -4, wis: 2, cha: 0 },
+    // two talons, each its own roll and target, each its own row (the left and right foot: the art desk's rakes, swapped on the mirrored facings -- tools/gallowsgobbler-sheet.py)
+    attacks: {
+      lefttalon: { name: 'Left Talon', atk: 8, dice: '2d10', mod: 5, type: 'slashing', reach: 10 },
+      righttalon: { name: 'Right Talon', atk: 8, dice: '2d10', mod: 5, type: 'slashing', reach: 10 }
+    },
+    multi: ['lefttalon', 'righttalon'],
+    gobble: { name: 'Gallows Gobble', ft: 30, ab: 'wis', dc: 16, recharge: 5 }, // (its whole action, Recharge 5-6: each enemy within 30 ft that can hear it, WIS DC 16 or frightened of it a minute, the save again at each of its turn ends -- js/feast.js)
+    src: 'the art desk\'s GALLOWS-GOBBLER (11-26, its STATBLOCK.md; ours, not the SRD\'s), an aberration on Griz\'s word (the art desk\'s Huge monstrosity): CR 5 (1,800 XP); Huge, 15 x 15 ft (3 x 3 squares); AC 14 (natural armor), 115 HP (10d12 + 50), speed 40; STR 20 DEX 14 CON 20 INT 3 WIS 14 CHA 10; Perception +5, passive Perception 15. Multiattack, a Left Talon and a Right Talon in either order, each target chosen separately: +8, reach 10 ft, 2d10+5 slashing. Gallows Gobble (Recharge 5-6), its whole action: each enemy within 30 ft that can hear it, DC 16 WIS or frightened of it for 1 minute, the save repeated at the end of each of its turns'
+  },
+  cranberrycan: {
+    name: 'Cranberry Can', type: 'aberration', sheet: 'cranberrycan_p1', cr: '1/2', ac: 14, armor: 'tin shell', hp: 22, speed: 20, size: 1, sizeClass: 'S', reach: 5,
+    abil: { str: 8, dex: 14, con: 12, int: 3, wis: 10, cha: 6 }, init: 2, perception: 10,
+    saves: { str: -1, dex: 2, con: 1, int: -4, wis: 0, cha: -2 },
+    attacks: { shot: { name: 'Cranberry Shot', atk: 4, dice: '1d8', mod: 2, type: 'bludgeoning', range: [30, 90], ranged: true, fx: 'row:berry' } }, // (the berry flies as drawn: js/feast.js)
+    multi: 1, immune: ['poison'], condImmune: ['poisoned'],
+    spill: { name: 'Sauce Spill', range: 60, dc: 12, recharge: 5, rounds: 10 }, // (Recharge 5-6: a 10-ft square within 60 ft, the 2014 Grease at DC 12 in cranberry sauce, ten rounds, no concentration -- js/feast.js)
+    src: 'the art desk\'s CRANBERRY-CAN (11-26, its STATBLOCK.md; ours, not the SRD\'s), an aberration on Griz\'s word (the art desk\'s Small construct): CR 1/2 (100 XP); Small; AC 14 (tin shell), 22 HP (5d6 + 5), speed 20; STR 8 DEX 14 CON 12 INT 3 WIS 10 CHA 6; immune to poison and the poisoned condition; passive Perception 10. Cranberry Shot: +4, range 30/90, 1d8+2 bludgeoning. Sauce Spill (Recharge 5-6): a point within 60 ft, a 10-ft square centred on it slick with sauce for 1 minute, difficult terrain; DC 12 DEX or prone for those in it, and for any who enter it or end a turn there -- the 2014 Grease, one 2 x 2 patch for 10 rounds, no concentration'
+  },
   // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
   // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet
   // tools/harpy-sheet.py (the art desk's ART-14 SE and NE, ART-56 S, E and N). Its club plays `attack`, its claws `claw`.

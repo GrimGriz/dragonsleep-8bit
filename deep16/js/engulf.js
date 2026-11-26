@@ -115,9 +115,10 @@
     w.anim = 'idle'; w.animT = B.t;
     if (D.spr.anim(h.sheet, 'engulf')) { h.anim = 'engulf'; h.animT = B.t; }
     D.sfx('poison'); if (FX()) FX().sparkle(w, c.kind === 'cube' ? 'blue' : 'moss', 16);
-    var riders = c.kind === 'mound' ? 'BLINDED, RESTRAINED, no air' : 'RESTRAINED, no air';
-    B.card(['{r}' + the(h) + '{/} ' + (c.kind === 'mound' ? 'folds over ' : 'takes in ') + nameOf(w) + ': {o}ENGULFED{/} -- ' + riders + '.  {g}(' +
+    var riders = c.kind === 'mound' ? 'BLINDED, RESTRAINED, no air' : c.kind === 'jacket' ? 'BLINDED, RESTRAINED, total cover' : 'RESTRAINED, no air';
+    B.card(['{r}' + the(h) + '{/} ' + (c.kind === 'mound' ? 'folds over ' : c.kind === 'jacket' ? 'closes its jacket round ' : 'takes in ') + nameOf(w) + ': {o}ENGULFED{/} -- ' + riders + '.  {g}(' +
       (c.kind === 'mound' ? 'grappled, escape DC ' + c.escape + '; a DC ' + c.start.dc + ' CON save at the start of each of its turns or ' + c.start.dice + '+' + c.start.mod + ' ' + c.start.type
+        : c.kind === 'jacket' ? c.start.dice + ' ' + c.start.type + ' at the start of each of its turns; out by an action, STR (Athletics) or DEX (Acrobatics) against DC ' + c.escape // (the Jacket Bruiser's Fold In, js/feast.js, 11-26)
         : c.start.dice + ' ' + c.start.type + ' at the start of each of its turns; out by a DC ' + c.escape + ' STR check, or pulled out by one beside it') + '){/}'], o.quick ? 160 : 320);
     yield o.quick ? 10 : 30;
     return true;
@@ -169,10 +170,10 @@
           (sv.ok ? '{n}SAVED{/}' : st.dice + '+' + st.mod + ' ' + RU.fmtRolls(roll.rolls) + ' = {r}' + n + '{/} ' + st.type)], 320);
         if (!sv.ok) { D.sfx('hit'); if (FX()) FX().slash(w, D.PAL.ramps.red[4]); B.hurt(w, n, st.type, {}); }
       } else { // (the cube: the acid, no save)
-        var ra = D.roll(st.dice), na = ra.total + (st.mod || 0);
+        var ra = D.roll(st.dice), na = ra.total + (st.mod || 0), jk = c.kind === 'jacket'; // (jk: the Jacket Bruiser's baking, js/feast.js -- 11-26)
         if (D.spr.anim(h.sheet, 'digest')) { h.anim = 'digest'; h.animT = B.t; }
-        B.card(['{r}' + the(h) + '{/} digests ' + nameOf(w) + ': ' + st.dice + ' ' + RU.fmtRolls(ra.rolls) + ' = {r}' + na + '{/} ' + st.type + '.  {g}(out by a DC ' + c.escape + ' STR check, or pulled out by one beside it){/}'], 320);
-        D.sfx('poison'); if (FX()) FX().sparkle(w, 'moss', 12); B.hurt(w, na, st.type, {});
+        B.card(['{r}' + the(h) + '{/} ' + (jk ? 'bakes ' + nameOf(w) + ' inside its jacket' : 'digests ' + nameOf(w)) + ': ' + st.dice + ' ' + RU.fmtRolls(ra.rolls) + ' = {r}' + na + '{/} ' + st.type + '.  {g}(' + (jk ? 'out by an action, STR (Athletics) or DEX (Acrobatics) against DC ' + c.escape : 'out by a DC ' + c.escape + ' STR check, or pulled out by one beside it') + '){/}'], 320);
+        D.sfx(jk ? 'hit' : 'poison'); if (FX()) FX().sparkle(w, jk ? 'fire' : 'moss', 12); B.hurt(w, na, st.type, {});
       }
       yield 30;
     }

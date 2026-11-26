@@ -524,6 +524,11 @@
         }
         if ((t + i * 7 + h * 60) % 60 < 4) px(c, sx, sy - sh + 1, P('stone', 7), 1);
       }
+    } else if (g.kind === 'grease' && g.sauce) { // the Cranberry Can's Sauce Spill (js/feast.js, 11-26): the art desk's glossy sauce tile on the square, a red sheen till it has come
+      var stI = D.feast && D.feast.sauceImg ? D.feast.sauceImg() : null;
+      if (stI) c.drawImage(stI, Math.round(s.x - 32), Math.round(s.y - 16));
+      else { D.iso.rhombus(c, x, y, D.iso.map.gz(x, y), 2); c.globalAlpha = 0.55; c.fillStyle = P('red', 2); c.fill(); c.globalAlpha = 1; }
+      var gs = ((t * 0.5 + h * 60) % 60) / 60; c.globalAlpha = 0.6 * Math.sin(Math.PI * gs); px(c, s.x - 14 + gs * 28, s.y - 3 + gs * 4, P('red', 4), 2); c.globalAlpha = 1;
     } else if (g.kind === 'grease') { // Grease: a dark sheen, a glint sliding over it
       D.iso.rhombus(c, x, y, D.iso.map.gz(x, y), 2); c.globalAlpha = 0.45; c.fillStyle = P('stone', 1); c.fill(); c.globalAlpha = 1;
       var gl = ((t * 0.5 + h * 60) % 60) / 60; c.globalAlpha = 0.6 * Math.sin(Math.PI * gl); px(c, s.x - 14 + gl * 28, s.y - 3 + gl * 4, P('bone', 1), 2); px(c, s.x - 12 + gl * 28, s.y - 2 + gl * 4, P('silver', 5)); c.globalAlpha = 1;

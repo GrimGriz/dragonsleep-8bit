@@ -80,5 +80,24 @@
         intro: 'A heap of the Glowseep gets up and walks. Whatever it folds in, it carries.',
         runes: [{ foes: ['shamblingmound'], at: [8, 7], post: 'ambush' }] } // (lying in the bog on the party's way: its first two slams from hiding, the pair that engulfs)
     ]
+  },
+  // THE FEAST (2026-11-26, the Thanksgiving seat -- Griz: "if it's cheaper, just build a 3-wave of various lackies followed by the turkey fight"): the Lobstamonkees' Thanksgiving
+  // special on the Harvest Bowl (data/maps.js harvestbowl), the art desk's three (data/foes.js, js/feast.js). Three waves of the feast's lackeys back to back -- the pantry's cans,
+  // the ovens' Jacket Bruiser, second helpings -- then a short rest, and the Gallows Gobbler with two cans. Four at 5th: the whole feast at once (the turkey, a bruiser and three
+  // cans) fell to the four Lobstamonkees at 5th in 7 and 10 rounds on the bench (mode=feast1126). THE SEAT'S CALLS, his to overrule: the waves and their foes, no rest between
+  // the three, the short rest before the turkey, the 5th level; the names and lines are drafts (invented.json pocket-module-the-feast)
+  {
+    id: 'feast', name: 'THE FEAST', by: 'the Pocket DM', party: { n: 4, lvl: 5 },
+    about: 'The Lobstamonkees\' Thanksgiving special in the Harvest Bowl: three waves of the feast\'s lackeys back to back, a breather, then the Gallows Gobbler. Four fights for four at 5th.',
+    slots: [
+      { name: 'Wave one: the pantry', map: 'harvestbowl', foes: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'],
+        intro: 'The pantry door bangs open. Four cans of cranberry sauce waddle out.', rest: { short: false } },
+      { name: 'Wave two: the ovens', map: 'harvestbowl', foes: ['jacketbruiser', 'cranberrycan', 'cranberrycan'],
+        intro: 'The ovens open. Something baked climbs out, and it wants a hug.', rest: { short: false } },
+      { name: 'Wave three: second helpings', map: 'harvestbowl', foes: ['jacketbruiser', 'cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'],
+        intro: 'Second helpings. Nobody asked for second helpings.', rest: { short: true } },
+      { name: 'The Gallows Gobbler', map: 'harvestbowl', foes: ['gallowsgobbler', 'cranberrycan', 'cranberrycan'],
+        intro: 'The gallows creak. This year\'s bird was never pardoned.' }
+    ]
   }
 ];
