@@ -51,7 +51,7 @@
     pyro: { sheet: 'pt_pyro', script: 'pyro', allFaces: true }, // (Pyro, King of Solskaft, at his vault doors: the art desk's ART-141, cut 11-12 by cutter-pyro, tools/portrait-sheet.py pyro -- idle 6, attentive, welcoming, grave, stern, grieved; wired 11-12 by the inn seat on the lanes desk's relay: his word at the doors on his face, js/solskaft.js C.SCRIPTS.pyro -- his meeting is the story build's)
     hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
-    barber: { sheet: 'pt_barber', wait: '' },
+    barber: { sheet: 'pt_barber', wait: '', script: 'barber' }, // (Venn's stitching since 11-26: C.SCRIPTS.barber)
     marin: { sheet: 'pt_marin', wait: '' }, kasten: { sheet: 'pt_kasten', shop: 'kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now"; Kasten Wheal the chandler sells by his first-game shop since 10-22, his 10-21 close: "shops and the rest of NPC portraits next session")
     lucia: { sheet: 'pt_lucia', name: 'Lucia', shop: 'lucia' }, // (Mama's Pharmakaiea's keeper -- the first game's shop names her; the town's keeper table says "Mama"; her first-game shelf since 10-22, Griz: "yes", on "Lucia also sells in 8 bit, dome whorls and calling herbs maybe?")
     sylvia: { sheet: 'pt_sylvia', own: true }, // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
@@ -87,7 +87,7 @@
     // the Hex's two hatches onto the concourse (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor" -- js/hex.js HX.PEOPLE): Higertha
     // at Mama's, her shelves (Higertha is the register's reserved: no words of hers, the scene's line only); the cold-food concession's hired youth, its own shelf (C.SHOP16)
     // (her own shelf since 10-28 later, C.SHOP16.higertha: his "Lucia is mama and is saying Higertha's line" -- the first game's "Mama mixes, I sell" is the hatch's, not Mama's)
-    higertha: { name: 'Higertha', shop: 'higertha', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch' }
+    higertha: { name: 'Higertha', shop: 'higertha', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch', sheet: 'pt_genman' } // (the concession's hand the generic man in his own clothes since 11-26, on his own face and figure: C.GENERIC below -- RULED 11-22, his "concession hand as generic NPC and generic NPC portrait")
   };
   // the unnamed in costume (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"):
   // two people, the generic man and woman (pt_genman, pt_genwoman -- tools/portrait-sheet.py; the townsfolk's man and woman, folkman_p1 and folkwoman_p1), each unnamed id
@@ -98,7 +98,7 @@
     gambler2: ['woman', 'gambler'], bartenderS: ['man', 'barkeep'], bartenderE: ['woman', 'barkeep'], towns3: ['man', 'hired'], ropewar: ['woman', 'hired'], towns5: ['man', 'shaft'],
     crew1: ['man', 'shaft'], crew2: ['woman', 'shaft'], scraper1: ['man', 'scraper'], scraper2: ['woman', 'scraper'], scrapeboss: ['woman', 'crewboss'], drivecrew: ['man', 'drivespear'],
     guard1: ['man', 'guard'], dunmoreLine: ['woman', 'guard'], towns6: ['woman', 'clerk'], towns7: ['man', 'agent'], seepcrew1: ['woman', 'lightcrew'], seepcrew2: ['man', 'lightcrew'],
-    seepcrew3: ['man', 'lightcrew'] };
+    seepcrew3: ['man', 'lightcrew'], concession: ['man', 'idle'] };
   Object.keys(C.GENERIC).forEach(function (id) { var g = C.GENERIC[id]; if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_gen' + g[0], look: g[1] === 'idle' ? null : g[1], wait: '' }; });
   // a shop of the second game's own (not the first game's content/shops.json): the cold-food concession's -- the house's not-hot side, no oven (the realm's the-hex.md, CANON
   // 09-13), so the pies cold, a silver apiece; it buys nothing (invented.json hex-concession). Into DS.DATA.shops where the counter's shelves read them
@@ -422,6 +422,27 @@
     var st = this.st, it = DS.DATA.items[id];
     take(st, id, k); st.silver(this.offer(it, id) * k); D.sfx('coin');
     this.msg = this.remark(id) || pick(this.shop.boughtText || ['Done.']); this.setFace('work'); // (his acquisition: unwrapped, looked over, set on the counter)
+  };
+  // PERCY SELLS WHAT THE PARTY SELLS HIM (RULED 11-22, the house lane's townsfolk-claims item 3, his "have him sell, reselling what barley sells him (available increases when
+  // party sells)"): each part he buys goes on his shelf at its price beside the Dome Whorl, his stock growing as the party sells -- kept in the save (flags.percyStock,
+  // 'id:n,...'); bought off the shelf, it comes off. The guano and sulfur paper his words price (content/npcs.json percy) is on it once the party has sold him guano
+  C.percyStock = function (st) { var o = {}; String((st && st.flags.percyStock) || '').split(',').forEach(function (kv) { var a = kv.split(':'); if (a[0] && +a[1] > 0) o[a[0]] = +a[1]; }); return o; };
+  C.percyStockSet = function (st, o) { st.flags.percyStock = Object.keys(o).filter(function (k) { return o[k] > 0; }).map(function (k) { return k + ':' + o[k]; }).join(','); };
+  var rowsP0 = Counter.prototype.rows, buyP0 = Counter.prototype.buy, sellP0 = Counter.prototype.sell;
+  Counter.prototype.rows = function () {
+    var r = rowsP0.apply(this, arguments); if (this.shopId !== 'percy' || this.tab !== 'buy') return r;
+    var self = this, st = this.st, stock = C.percyStock(st);
+    Object.keys(stock).forEach(function (id) { var it = DS.DATA.items[id]; if (!it) return; var p = self.price(id); r.push({ id: id, label: it.name + ' x' + stock[id], right: p + ' sp', off: p > st.silver() }); });
+    return r;
+  };
+  Counter.prototype.buy = function (id, n) {
+    var stock = this.shopId === 'percy' ? C.percyStock(this.st) : null; if (!stock || !stock[id] || (this.shop.items || []).indexOf(id) >= 0) return buyP0.apply(this, arguments);
+    n = Math.min(n || 1, stock[id]); var s0 = this.st.silver(); buyP0.call(this, id, n);
+    if (this.st.silver() < s0) { stock[id] -= n; C.percyStockSet(this.st, stock); }
+  };
+  Counter.prototype.sell = function (id, k) {
+    sellP0.apply(this, arguments);
+    var it = DS.DATA.items[id]; if (this.shopId === 'percy' && it && it.kind === 'part') { var stock = C.percyStock(this.st); stock[id] = (stock[id] || 0) + (k || 1); C.percyStockSet(this.st, stock); }
   };
   // the first game's equip-it-now (js/scenes.js Shop.go): a two-hander takes the shield off, a shield will not go on beside one, what was worn goes to the pack
   Counter.prototype.equip = function (h, id) {
@@ -1154,6 +1175,21 @@
     down.forEach(function (u) { u.ko = false; u.hp = Math.max(1, Math.floor(u.maxhp / 2)); if (u.hp > 0) u.dead = false; if (u.src) { u.src.ko = false; u.src.hp = u.hp; } });
     D.sfx('heal');
     yield sc.say(L('leech.done'));
+  };
+  // VENN STITCHES (RULED 11-22, the house lane's townsfolk-claims item 5, his "Approve Venn lean": "Venn stitches -- his own kit used on a hero down at 0 (up at 1 HP) out of a
+  // fight, 2 sp a hero (a skilled hireling's hour, rounded up); 'shave, tooth' stay words"): the barber's word, then -- one of the party down at 0 -- STITCH or LEAVE, each one
+  // down up at 1 hit point, an hour on the town's clock as Davos's. The words the seat's drafts (invented.json venn-stitch-1126)
+  C.VENN = { each: 2, ask: '"Down, are they? I can stitch that. Two silver a body, and they get up -- not much more than up." {names}: {n} silver.', done: 'Venn works quick and quiet out of his kit. Up, all of them, barely: one hit point each.' };
+  C.SCRIPTS.barber = function* (sc, B) {
+    var st = sc.st, R0 = B && B.roam, bodies = R0 && R0.members ? R0.members.filter(function (u) { return u.src; }) : st.party.filter(function (h) { return !h.dead; }), down = bodies.filter(function (u) { return !u.dead && (u.hp <= 0 || u.ko); });
+    var said = C.words(B, 'barber'); if (said.length) yield sc.say(said, 'welcoming');
+    if (!down.length) return;
+    var cost = C.VENN.each * down.length;
+    if ((yield sc.ask([C.VENN.ask.replace('{names}', down.map(function (u) { return u.name; }).join(', ')).replace('{n}', cost)], ['STITCH', 'LEAVE'], 'concerned')) !== 0) return;
+    if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor')); return; }
+    st.silver(-cost); D.sfx('coin'); if (D.hours && D.hours.took) D.hours.took(sc, 'stitch');
+    down.forEach(function (u) { u.ko = false; u.hp = 1; if (u.src) { u.src.ko = false; u.src.hp = 1; } });
+    D.sfx('heal'); yield sc.say([C.VENN.done], 'welcoming');
   };
   // the Weigh-House (S.hessle): his word and the board heard; what is brought paid at the scales -- the ettercap's fangs (500 sp), the cloaker's tail (the drawer's 400), true
   // word on the Snoot (the anchor-pin, 500), Amara's order (500, "not for any board") -- renown for the two beasts (EV.renown's MAJOR; no weapon in kind since 10-29, below); then what still

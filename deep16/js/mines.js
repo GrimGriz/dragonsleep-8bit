@@ -1478,4 +1478,8 @@
 
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table
   if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam', sheet: 'pt_edric' }; // (his face at his own counter: ART-123-EDRIC, 10-29)
+  // EDRIC'S SHELF (RULED 11-22, the Warrens lane's townsfolk-claims item 1, his "Is Edric supposed to sell something, never saw a shelf.."): after his book -- the first
+  // booking, the five, the book closed, as ever first -- the Tally-House's greeting and THE SHELVES / LEAVE: the House's draught at a silver (content/shops.json tally)
+  var edricScene0 = M.SCENES.edric;
+  M.SCENES.edric = function* (sc, B) { yield* edricScene0(sc, B); var sh = DS.DATA.shops && DS.DATA.shops.tally; if (!sh || typeof sc.shelves !== 'function') return; while ((yield sc.ask([sh.greeting], ['THE SHELVES', 'LEAVE'], 'welcoming')) === 0) yield sc.shelves('tally'); };
 })();

@@ -4,7 +4,7 @@
     "items": ["club", "quarterstaff", "dagger", "spear", "mace", "handaxe", "shortsword", "scimitar", "longsword", "flail", "warhammer", "battleaxe", "maul", "greataxe", "greatsword", "shortbow", "lightcrossbow", "padded", "robes", "leather", "hide", "chainshirt", "ringmail", "scalemail", "chainmail", "shield"],
     "src": "the-lab/pit-maps/shops-silverton.json pin 20 (spear, mace, shield; blunted anything); the shortbow and the light crossbow 11-25, the town's weapon counter (Griz: the shop review's three moves, \"Lane these.\" -- the seat nets-1125); urtusk-children-prerolls.pdf p.6 (chain mail and shield out of the show-armourer's shop)" },
   "kessler": { "name": "The Pawnbroker", "keeper": "Kessler", "look": "kessler", "greeting": "A third of value on the pledge, interest by the week. No questions that matter.",
-    "items": ["rapier", "lightcrossbow", "shortbow", "studded", "splint", "potion", "longsword1", "staff1"], "prices": { "potion": 375, "longsword1": 1875, "staff1": 1875, "splint": 1500 },
+    "items": ["rapier", "lightcrossbow", "shortbow", "studded", "splint", "potion", "longsword1", "staff1"], "prices": { "potion": 375, "longsword1": 1875, "staff1": 1875, "splint": 1500 }, "buyRate": 0.33,
     "src": "the-lab/pit-maps/shops-silverton.json pin 8 (unredeemed pledges at half to three-quarters PHB)" },
   "calla": { "name": "Apothecary", "keeper": "Calla Voss", "look": "calla", "greeting": "Healer's kits, antitoxin, theriac, purges. Honest remedies above the counter.",
     "items": ["simples", "kit", "antitoxin"], "src": "the-lab/pit-maps/shops-silverton.json pin 9" },

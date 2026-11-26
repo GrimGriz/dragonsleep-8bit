@@ -1571,7 +1571,7 @@
   var PETE_AFTER = [{ 'if': 'flag:fiveDone', say: ['Five came up. Edric wrote them in, every one.', 'He doesn\'t say six any more. He doesn\'t say much.'] }];
   Object.assign(C.TALK16, {
     warrenspete: PETE_AFTER,
-    barber: [{ say: ['Shave, tooth, stitch. The house\'s fighters are Davos Kren\'s. I taught him the needle.', 'Fight nights I sit at the Hex\'s door for what the house won\'t pay for. Three coppers, and I don\'t write it down.'] }]
+    barber: [{ say: ['Shave, tooth, stitch. The house\'s fighters are Davos Kren\'s. I taught him the needle.', 'Fight nights I sit at the Hex\'s door for what the house won\'t pay for. Two silver a stitch, and I don\'t write it down.'] }]
   });
   H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)',
     'hessle.greet': 'Fifty gold for true word; ten a fortnight for watch kept; sworn before notary. It\'s on the board outside my door: take a paper down.', // (10-29: the board on the wall outside -- H16.BOARD)
@@ -1620,7 +1620,7 @@
     kessler: ['Bring me what you don\'t need and I\'ll buy it: a third of what it\'s worth, no questions that matter. Whatever you carry back off the road, I\'ll look at.'],
     lisbet: ['Warding chalk: the night crews buy it by the stick to mark the old shafts. Charms are for luck. I make no promises about either.'],
     vilar: ['Weapons and armour. Better armour makes you harder to hit, and a better blade hits harder. The Hex\'s fighters buy here: show-steel that bites as well as it shines.'],
-    percy: ['Road harvest: what you cut off the things you kill -- a gland, a tongue, a wing. I render it into jars the wizards and the alchemists pay for, and I pay you a fifth.'],
+    percy: ['Road harvest: what you cut off the things you kill -- a gland, a tongue, a wing. I render it into jars the wizards and the alchemists pay for, and I pay you a fifth.', 'What you sell me goes on the shelf at its price, for whoever needs it next. A skein of the Gulch\'s silk is what a wizard ties for Rope Trick.'],
     ned: ['Wizards need odd things for their spells, and somebody has to jar and label them. I copy spell pages too, for a price.'],
     lucia: ['A potion mends you in a swallow; antitoxin takes the poison out. The calling herbs are for a wizard calling a familiar, and nobody else in Silverton mixes them.'],
     concession: ['Cold pies for the crowd. Nothing cooks in here: the hot food\'s Marta\'s, out on the street.'],

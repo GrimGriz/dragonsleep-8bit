@@ -20747,6 +20747,35 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var lnC = HH6.restSheets(ptyC), hdC = ptyC.map(function (h) { return h.hdLeft; }), lnC2 = HH6.restSheets(ptyC);
       okT(ptyC.length === 4 && ptyC.every(function (h, i) { return h.lvl === 4 && hdC[i] === 4; }) && lnC.filter(function (l) { return /a house rule/.test(l); }).length === 1 && !lnC2.some(function (l) { return /a house rule/.test(l); }),
         'C a long rest at level 4 (dice left 0, 1, 3, 4): after, ' + ptyC.map(function (h, i) { return h.name + ' ' + hdC[i] + '/' + h.lvl; }).join(', ') + '; said: "' + lnC.filter(function (l) { return /hit di/.test(l); }).join(' / ') + '"; again with none spent: ' + (lnC2.some(function (l) { return /a house rule/.test(l); }) ? 'SAID AGAIN' : 'nothing said'));
+      // D. THE SHOPS AND SERVICES (the house lane's and the Warrens lane's townsfolk claims of 11-22, RULED): Kessler buys at a third; Edric's shelf after his book; the
+      //    concession's hand the generic man; Venn stitches the downed up at 1 HP, 2 sp a hero; Percy sells what the party sells him, and names the silk for Rope Trick
+      var IT6 = window.DS.DATA.items, SH6 = window.DS.DATA.shops;
+      var playC = function (B, gen, picks) { // (a talk's screens read and answered: an ask by the first of `picks` that matches an option, else LEAVE; returns the words and the counter)
+        var sc = null, said = []; driveT(gen, function () { var s = D.top(); if (s instanceof CT6.Counter) sc = s; return !!sc; }, 600);
+        for (var k = 0; sc && k < 60 && D.top() === sc; k++) { var w = sc.wait || {}; if (sc.shop) break; said = said.concat(w.say || w.ask || []);
+          var bs = sc.buttons(), want = w.opts ? (picks || []).map(function (re) { return bs.filter(function (b) { return b.go === 'opt' && re.test(b.label || ''); })[0]; }).filter(Boolean)[0] : null;
+          var nb = want || bs.filter(function (b) { return b.go === 'next' || b.go === 'ok'; })[0] || bs.filter(function (b) { return b.go === 'opt' && /LEAVE/.test(b.label || ''); })[0]; if (!nb) break;
+          if (want) picks = picks.filter(function (re) { return !re.test(want.label); }); sc.press(nb); for (var u2 = 0; u2 < 3 && D.top() === sc; u2++) sc.update(); }
+        return { sc: sc, said: said.join(' ') }; };
+      var mkC = function (B, id) { var sc = new CT6.Counter(B, { id: id, name: id, script: function (s) { return (function* () { yield s.say(['.']); })(); } }); return sc; };
+      var BD = floorT('?roam=silverton&hour=10&lvl=3'), stD = CT6.state(BD); stD.silver(500);
+      var cK = mkC(BD, 'kessler'); cK.openShelves('kessler'); CT6.give(stD, 'rope', 1); var offK = cK.offer(IT6.rope, 'rope'), s0K = stD.silver(); cK.sell('rope', 1);
+      okT(SH6.kessler.buyRate === 0.33 && offK === Math.floor(IT6.rope.price * 0.33) && stD.silver() - s0K === offK, 'D1 Kessler buys at a third (' + SH6.kessler.buyRate + '): Rope & Grapple (' + IT6.rope.price + ' sp) offered ' + offK + ' sp, paid ' + (stD.silver() - s0K) + ' (a half would be ' + Math.floor(IT6.rope.price / 2) + ')');
+      var cP = mkC(BD, 'percy'); cP.openShelves('percy'); CT6.give(stD, 'gulchsilk', 2); cP.sell('gulchsilk', 2); cP.tab = 'buy'; var rP = cP.rows().map(function (r) { return r.label + ' ' + r.right; }), s0P = stD.silver();
+      cP.buy('gulchsilk', 1); var rP2 = cP.rows().map(function (r) { return r.label; }), paidP = s0P - stD.silver(); cP.buy('gulchsilk', 1); var rP3 = cP.rows().map(function (r) { return r.label; }), aboutP = (HT6.ABOUT.percy || []).join(' ');
+      okT(rP.indexOf('Gulch Silk x2 ' + IT6.gulchsilk.price + ' sp') >= 0 && paidP === IT6.gulchsilk.price && rP2.indexOf('Gulch Silk x1') >= 0 && !rP3.some(function (l) { return /Gulch Silk/.test(l); }) && rP3.some(function (l) { return /Dome Whorl/.test(l); }) && /Rope Trick/.test(aboutP),
+        'D2 Percy, sold two skeins of Gulch Silk: his shelf ' + rP.join('; ') + ' -- one bought back for ' + paidP + ' sp (' + rP2.join('; ') + '), the second (' + rP3.join('; ') + '); his TELL ME ABOUT IT: "' + aboutP.slice(-110) + '"');
+      var memD = BD.roam.members.filter(function (u) { return u.src; }), downD = memD.slice(0, 2); downD.forEach(function (u) { u.hp = 0; u.ko = true; u.src.hp = 0; u.src.ko = true; });
+      var s0V = stD.silver(), pV = playC(BD, CT6.talk(BD, 'barber'), [/STITCH/]); while (D.top() !== BD && D.scenes.length > 1) D.pop();
+      okT(CT6.VENDORS.barber.script === 'barber' && downD.length === 2 && downD.every(function (u) { return u.hp === 1 && !u.ko && u.src.hp === 1; }) && s0V - stD.silver() === 4 && /Two silver a body/.test(pV.said) && /Two silver a stitch/.test(pV.said),
+        'D3 Venn with ' + downD.map(function (u) { return u.name; }).join(' and ') + ' down: "' + pV.said.slice(0, 330) + '" -- after, ' + downD.map(function (u) { return u.name + ' ' + u.hp + ' HP'; }).join(', ') + ', paid ' + (s0V - stD.silver()) + ' sp');
+      var cC = mkC(BD, 'concession');
+      okT(cC.sheet === 'pt_genman' && !cC.look && CT6.GENERIC.concession && CT6.folkFig('concession') === 'folkman_p1' && CT6.VENDORS.concession.shop === 'concession', 'D4 the concession\'s hand: his face ' + cC.sheet + ' (his own clothes: look ' + cC.look + '), his figure ' + CT6.folkFig('concession') + ', his shelf ' + CT6.VENDORS.concession.shop);
+      var BE = floorT('?roam=warrens&hour=9&lvl=3&flags=tallyMet,fiveKnown,skarnOk'), trE = (RT6.def.src8.triggers || []).filter(function (t) { return t.npc === 'edric' && t.town === 'talk'; })[0], stE = CT6.state(BE); stE.silver(50);
+      var pE = trE ? playC(BE, TT6.fire(BE, trE), [/THE SHELVES/]) : { said: 'NO EDRIC' }, rE = pE.sc && pE.sc.shop ? pE.sc.rows().map(function (r) { return r.label + ' ' + r.right; }) : [], s0E = stE.silver(); if (pE.sc && pE.sc.shop) pE.sc.buy('draught', 1); var gotE = stE.inv.filter(function (s) { return s.id === 'draught'; }).length;
+      while (D.top() !== BE && D.scenes.length > 1) D.pop();
+      okT(!!trE && /Doses out, weights in/.test(pE.said) && rE.indexOf('Draught 1 sp') >= 0 && s0E - stE.silver() === 1 && gotE === 1,
+        'D5 Edric at the tally-house after his book: "' + pE.said.slice(-170) + '" -- THE SHELVES: ' + rE.join('; ') + '; a draught bought (' + (s0E - stE.silver()) + ' sp, in the pack ' + gotE + ')');
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.store.get = stGT; D.store.set = stST;
     var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
