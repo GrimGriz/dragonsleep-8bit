@@ -20813,6 +20813,18 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var BG = floorT('?roam=webgulch&hour=10&lvl=3'), muG = RT6.def && RT6.def.music;
       okT(!!SG6 && SG6.loop && lnG.length >= 3 && lnG.every(function (x) { return x === lnG[0] && x === 128; }) && muG === 'gulch' && !RT6.FIGHT_TUNES.gulch,
         'G the gulch\'s roam song: ' + (SG6 ? 'a loop of ' + lnG.join('/') + ' sixteenths (eight bars)' : 'MISSING') + '; Web Gulch\'s floor plays ' + muG + '; not a fight\'s tune (' + !RT6.FIGHT_TUNES.gulch + ')');
+      // H. THE BREAD-LINERS AT GULL'S CORNER (Silverton's lane's later answers item 1, his "bread-liners with their bread should probably loiter on the corner for some time..."):
+      //    the street laid in the early hours has the crowd the hour has made, by Gull, loaves in hand, a word each; none by midday; on the street one out of Aldwin's with a
+      //    loaf walks there and stands
+      var crowdAt = function (h) { var B = floorT('?roam=silverton&hour=' + h + '&lvl=3'), g = B.units.filter(function (u) { return u.npc === 'gull'; })[0], cs = B.units.filter(function (u) { return /^breadcorner\d/.test(u.npc || ''); });
+        return { B: B, n: cs.length, near: !!g && cs.every(function (u) { return Math.max(Math.abs(u.x - g.x), Math.abs(u.y - g.y)) <= 12; }), loaf: cs.every(function (u) { return u.loaf && /Gull's corner/.test(u.name); }), cs: cs }; };
+      var c6 = crowdAt(6), c10 = crowdAt(10), c12 = crowdAt(12), c8 = crowdAt(8), wC8 = c8.cs.length ? CT6.words(c8.B, c8.cs[0].npc).join(' ') : ''; // (08:00 laid last: the street the tick walks below)
+      okT(c6.n === 0 && c8.n === 3 && c8.near && c8.loaf && c10.n === 5 && c10.near && c12.n === 0 && /Gull|hire|Bread|silver|Warrens|wait|dusk/.test(wC8),
+        'H1 Gull\'s corner, the crowd laid by the hour: 06:00 ' + c6.n + ', 08:00 ' + c8.n + ' (by Gull ' + c8.near + ', loaves ' + c8.loaf + ', "' + wC8 + '"), 10:00 ' + c10.n + ', midday ' + c12.n);
+      var BB = c8.B; BB.roam.mode = 'walk'; D.battle = BB; var n0 = c8.n, kB = 0; while (kB++ < 30000 && BB.units.filter(function (u) { return /^breadcorner\d/.test(u.npc || ''); }).length === n0) { BB.t++; HT6.breadTick(BB); }
+      var csB = BB.units.filter(function (u) { return /^breadcorner\d/.test(u.npc || ''); }), newB = csB[csB.length - 1], gB = BB.units.filter(function (u) { return u.npc === 'gull'; })[0];
+      okT(csB.length === n0 + 1 && !!newB && newB.loaf && !!gB && Math.max(Math.abs(newB.x - gB.x), Math.abs(newB.y - gB.y)) <= 12 && !!trigT('talk:' + newB.npc),
+        'H2 on the street at 08:00, the line moving: one out of Aldwin\'s with a loaf walks to Gull\'s corner and stands (' + kB + ' frames): the crowd ' + n0 + ' -> ' + csB.length + (newB ? ', at ' + newB.x + ',' + newB.y + ' (Gull at ' + (gB && gB.x + ',' + gB.y) + '), a word of its own ' + !!trigT('talk:' + newB.npc) : ''));
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.store.get = stGT; D.store.set = stST;
     var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
@@ -23736,11 +23748,11 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
         if (s6.leg === 4 && u6 && B6.units.indexOf(u6) < 0 && !u6.loaf) gone6 = true;
         if (gone6 && s6.leg === 0) break;
       }
-      var doorEnd6 = !!end6 && Object.keys(RSn.def.marks.doors).some(function (k) { var q = RSn.def.marks.doors[k]; return k !== 'chapel:aldwin' && q && q[0] === end6[0] && q[1] === end6[1]; });
+      var doorEnd6 = !!end6 && (Object.keys(RSn.def.marks.doors).some(function (k) { var q = RSn.def.marks.doors[k]; return k !== 'chapel:aldwin' && q && q[0] === end6[0] && q[1] === end6[1]; }) || B6.units.some(function (u) { return /^breadcorner\d/.test(u.npc || '') && u.x === end6[0] && u.y === end6[1]; })); // (or Gull's corner, while it has room: one of the crowd there since 11-26 -- mode=town1126 H)
       var sq1 = ln6().map(function (u) { return u.x + ',' + u.y; }).sort().join(' '), mv6 = ln6().filter(function (u) { return at6[u.npc] !== u.x + ',' + u.y; }).length;
       var tr6 = ln6().every(function (u) { var t = (RSn.def.src8.triggers || []).filter(function (x) { return x.town === 'talk' && x.npc === u.npc; })[0]; return !!t && t.rect[0] === u.x && t.rect[1] === u.y; });
-      okSn('the bread line at Aldwin\'s (' + RSn.def.phase + ', legs ' + leg6.join('>') + ' in ' + fr6 + ' frames): the front one up to the chapel door (' + door6 + ') and in (' + in6 + '); out with a loaf (' + loaf6 + ', drawn ' + drawn6 + '), ' + walk6 + ' squares down the street to another door (' + doorEnd6 + ' at ' + end6 + ') and in (' + gone6 + '); then four in the line\'s four places (' + (sq0 === sq1) + '), ' + mv6 + ' moved up, each one\'s word on its square (' + tr6 + ')',
-        RSn.def.phase === 'early' && door6 && in6 && loaf6 && drawn6 === 1 && walk6 >= 4 && doorEnd6 && gone6 && ln6().length === 4 && sq0 === sq1 && mv6 >= 3 && tr6);
+      okSn('the bread line at Aldwin\'s (' + RSn.def.phase + ', legs ' + leg6.join('>') + ' in ' + fr6 + ' frames): the front one up to the chapel door (' + door6 + ') and in (' + in6 + '); out with a loaf (' + loaf6 + ', drawn ' + drawn6 + '), ' + walk6 + ' squares down the street to another door or Gull\'s corner (' + doorEnd6 + ' at ' + end6 + ') and in (' + gone6 + '); then four in the line\'s four places (' + (sq0 === sq1) + '), ' + mv6 + ' moved up, each one\'s word on its square (' + tr6 + ')',
+        RSn.def.phase === 'early' && door6 && in6 && loaf6 && drawn6 >= 1 && walk6 >= 4 && doorEnd6 && gone6 && ln6().length === 4 && sq0 === sq1 && mv6 >= 3 && tr6);
       // 6. THE DUSK KEEPERS AND VERA (his "Out at dusk merchants - same inside text, vera doesn't actually sell and claims to")
       var B7 = houseSn('barley'), kd7 = 0; while (RSn.def.phase !== 'dusk' && kd7++ < 6) { H6Sn.wait(B7); driveSn(H6Sn.waitPlay(B7), null, 200); }
       var out7 = Object.keys(H6Sn.EVENING).map(function (id) { return [id, talkSn(B7, id).join(' / ')]; });

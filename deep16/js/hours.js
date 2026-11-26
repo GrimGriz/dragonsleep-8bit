@@ -1123,6 +1123,7 @@
     var add = function (id, w, kind) { def.people.push({ id: id, at: w, kind: kind || 'crewman', face: [0, 1], look: null, hire: null }); trig.push({ id: 'talk:' + id, on: 'use', rect: w.concat([1, 1]), town: 'talk', npc: id }); };
     if (ph === 'dusk') Object.keys(H16.EVENING).forEach(function (id) { var w = spot(H16.EVENING[id]); if (w) add(id, w); });
     if (ph === 'early') H16.BREAD.d.forEach(function (dd, k) { var w = spot(H16.BREAD, dd); if (w) add('breadline' + k, w, 'bandit'); });
+    if (ph === 'early') { var nCo = H16.cornerAt(def.hour); for (var kc = 0; kc < nCo; kc++) { var wc = spot(H16.CORNER, H16.CORNER.d[kc]); if (wc) add('breadcorner' + kc, wc, 'bandit'); } } // (the bread-liners at Gull's corner by the hour: H16.CORNER)
     def.night = ph === 'night'; def.dusk = ph === 'dusk'; // (the street's own picture of the hour: H16.paintNight -- not the floor's dark, which the town's top view draws as black)
     var lights = [], lit = function (q, id, r) { if (q) lights.push({ id: 'town:' + id, kind: 'map', x: q[0], y: q[1], bright: r || 10, dim: r || 10, color: 'fire', flame: true, town: true }); };
     if (def.night) {
@@ -1383,7 +1384,7 @@
   if (D.hex && D.hex.bout) { var bout0 = D.hex.bout; D.hex.bout = function* (B) { var r = yield* bout0.apply(this, arguments); H16.pass(B, (D.world && D.world.FIGHT_HOURS) || 0.25); return r; }; }
   // the town's lights laid with its people (the floor's first laying, and a relay's)
   var people0 = T.people;
-  T.people = function (B) { people0.apply(this, arguments); (B.units || []).forEach(function (u) { if (/^breadline\d/.test(u.npc || '')) u.name = 'In the bread line'; }); H16.light(B); };
+  T.people = function (B) { people0.apply(this, arguments); (B.units || []).forEach(function (u) { if (/^breadline\d/.test(u.npc || '')) u.name = 'In the bread line'; if (/^breadcorner\d/.test(u.npc || '')) { u.name = H16.CORNER.name; u.loaf = true; } }); H16.light(B); };
   [['Bread at six. Don\'t push.'], ['He gives it to everyone. Even the proud, at quarter past.'], ['Shift\'s at seven. Bread first.'], ['Mind the line. It moves.']].forEach(function (s, k) { C.TALK16['breadline' + k] = [{ say: s }]; });
   // THE LINE MOVES (10-29 night, Griz: "Breadline is good except it says that it moves and doesn't yet" -- the story seat's lean, built, a call standing: the line moves, the
   // word kept): in the early hours, every H16.BREAD.every frames on the street, the one at the front steps up to the chapel door and goes in, the rest each step up a place, and
@@ -1391,10 +1392,20 @@
   // THEY GET THEIR BREAD AND LEAVE (10-30, Griz on the seat's call: "solid, i assume they get their bread and leave" -- RULED): the one at the door goes in, comes back out with a
   // loaf in hand, and walks down the street to the nearest other door and in at it (home, or the shift); later someone new comes up behind the line (the same figure again, out of
   // sight first: the line's four are one look). The legs: 0 to the door and the rest up, 1 inside, 2 out with the loaf, 3 the walk away, 4 the newcomer
+  // THEY LOITER AT GULL'S CORNER (RULED 11-22, Silverton's lane's later answers item 1, his "Gull - bread-liners with their bread should probably loiter on the corner for some
+  // time..."): the morning's bread-liners take their loaves to Gull's day-labour corner at the end of the Shaft Rows (pin 25) and stand about there, waiting on his two silver
+  // a labourer, till the bells go for midday and the street is laid for the day without them. The street laid in the early hours has the crowd that the hour has made -- none
+  // before half past six, one more each forty minutes, five at most (H16.cornerAt) -- and on the street each one who comes out of Aldwin's with a loaf walks to the corner while
+  // it has room, and stays (H16.breadTick's leg 3), else on to a door as before. Their words the seat's drafts (invented.json bread-corner-1126)
+  H16.CORNER = { pin: '25', d: [[-30, 12], [-18, 26], [-4, 34], [12, 30], [30, 22]], name: 'At Gull\'s corner' };
+  H16.cornerAt = function (h) { return h == null ? 0 : Math.max(0, Math.min(H16.CORNER.d.length, Math.floor((h - 6.5) * 1.5) + 1)); };
+  H16.CORNER_SAYS = [['Bread first. Then we see if Gull\'s hiring.'], ['Two silver a labourer for the day, he says. Somebody gets hired. Somebody always does.'], ['Not the Warrens. Not today.'], ['He takes the big ones first. I\'ll wait.'], ['Eat it slow. It\'s all you get till dusk.']];
+  for (var kcs = 0; kcs < 10; kcs++) C.TALK16['breadcorner' + kcs] = [{ say: H16.CORNER_SAYS[kcs % H16.CORNER_SAYS.length] }];
   H16.BREAD.every = 420; H16.BREAD.step = 14; H16.BREAD.inside = 120; H16.BREAD.away = [6, 40]; // (away: the nearest other door at least this far from the chapel's, by a walk no longer)
   H16.breadTick = function (B) {
     var R = D.roam, def = R && R.def, R0 = B && B.roam; if (!def || !def.hours || def.room || def.hexIn || !R0 || !B.units || !B.map) return;
     var line = B.units.filter(function (u) { return /^breadline\d/.test(u.npc || '') && !u.dead; }), dq = def.marks && def.marks.doors && def.marks.doors['chapel:aldwin'], P = H16.BREAD;
+    var corner = B.units.filter(function (u) { return /^breadcorner\d/.test(u.npc || '') && !u.dead; });
     line.forEach(function (u) { if (u.walkTill != null && B.t >= u.walkTill) { u.anim = 'idle'; u.animT = B.t; u.walkTill = null; } });
     var st = R0.bread;
     if (st && st.u && line.some(function (u) { return u !== st.u && u.npc === st.npc; })) st = null; // (the street laid again under it: the line's own new four, the one out of it gone with the old)
@@ -1427,8 +1438,9 @@
       if (!free(dq[0], dq[1])) { st.t = B.t + 30; return; }
       u.x = dq[0]; u.y = dq[1]; u.tween = null; u.loaf = true; B.units.push(u);
       var M = def.marks.doors, cands = Object.keys(M).filter(function (k) { return k !== 'chapel:aldwin' && M[k] && Math.max(Math.abs(M[k][0] - dq[0]), Math.abs(M[k][1] - dq[1])) >= P.away[0]; }).map(function (k) { return M[k]; });
-      cands.sort(function (a, b) { return dist(a) - dist(b); }); st.path = null; st.to = null;
-      for (var c = 0; c < cands.length && c < 6 && !st.path; c++) { var pth = H16.route(B.map, dq, cands[c], taken); if (pth.length >= P.away[0] && pth.length <= P.away[1]) { st.path = pth.slice(); st.to = cands[c]; } } // (H16.route: the squares after the door, up to the other, round the line; a "path" shorter than the door's distance is its no-way)
+      cands.sort(function (a, b) { return dist(a) - dist(b); }); st.path = null; st.to = null; st.corner = false;
+      if (corner.length < H16.CORNER.d.length && H16.cornerSq) { var cq = H16.cornerSq(B, corner.length); if (cq) { var cp = H16.route(B.map, dq, cq, taken); if (cp.length >= 2 && cp.length <= 3 * P.away[1]) { st.path = cp.slice(); st.to = cq; st.corner = true; } } } // (to Gull's corner while it has room: H16.CORNER)
+      for (var c = 0; c < cands.length && c < 6 && !st.path && !st.corner; c++) { var pth = H16.route(B.map, dq, cands[c], taken); if (pth.length >= P.away[0] && pth.length <= P.away[1]) { st.path = pth.slice(); st.to = cands[c]; } } // (H16.route: the squares after the door, up to the other, round the line; a "path" shorter than the door's distance is its no-way)
       if (!st.path) st.path = []; // (no door in reach: back inside the way it came)
       st.leg = 3; st.t = B.t + 10;
     } else if (st.leg === 3) { // (down the street, a square a step; in at the door at the walk's end)
@@ -1438,6 +1450,7 @@
         nx = st.path[0];
       }
       if (nx) { st.path.shift(); move(u, nx, false); st.t = B.t + P.step; return; }
+      if (st.corner) H16.toCorner(B, u, corner.length); // (at Gull's corner: one of the crowd now, the loaf in hand -- the line's figure goes on round to come up behind it again)
       u.loaf = false; off(u); st.leg = 4; st.t = B.t + Math.round(P.every / 2);
     } else { // (a newcomer up behind, from the square past the back of the line)
       var bk = st.back, best = null;
@@ -1446,6 +1459,18 @@
       u.x = (best || bk)[0]; u.y = (best || bk)[1]; u.tween = null; B.units.push(u); move(u, bk); st.leg = 0; st.u = null; st.npc = null; st.t = B.t + P.every;
     }
     D.grid.setup(B.map, B.units);
+  };
+  // a square of Gull's corner for the crowd's next (k: how many stand there already): the laid street's own spot for it, read off the town's pin as H16.lay does
+  H16.cornerSq = function (B, k) {
+    var def = D.roam.def, L = T.laidF && T.laidF[def.ft], p0 = L && L.v6pins && L.v6pins[H16.CORNER.pin], dd = H16.CORNER.d[k]; if (!p0 || !dd) return null;
+    var used = {}, ox = def.cut ? def.cut[0] : 0, oy = def.cut ? def.cut[1] : 0; B.units.forEach(function (u) { used[(u.x + ox) + ',' + (u.y + oy)] = 1; });
+    var sq = T.openNear(L, p0[0] + dd[0], p0[1] + dd[1], used); return sq ? [sq[0] - ox, sq[1] - oy] : null;
+  };
+  // one of the crowd made of the bread-liner who walked there: the figure as it stands, its own word (C.TALK16.breadcornerN), its loaf
+  H16.toCorner = function (B, u, k) {
+    var c = {}; for (var key in u) c[key] = u[key];
+    c.npc = 'breadcorner' + (k + 5); c.name = H16.CORNER.name; c.loaf = true; c.tween = null; c.anim = 'idle'; c.animT = B.t; c.walkTill = null;
+    B.units.push(c); D.roam.def.src8.triggers.push({ id: 'talk:' + c.npc, on: 'use', rect: [c.x, c.y, 1, 1], town: 'talk', npc: c.npc });
   };
   // the loaf in the hand of the one walking off with it: a crust drawn at the hands, over the street (the floor's figures have no carried thing)
   H16.paintLoaves = function (ctx, B) {
