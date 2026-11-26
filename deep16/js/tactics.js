@@ -145,13 +145,14 @@
   // the chance breakFree's check makes its DC: the better of STR (Athletics) and DEX (Acrobatics) against a grip, STR against a web, with the edges each has (as breakFree looks)
   TX.pEscape = function (u) {
     var r = u.conds.restrained; if (!r) return 1;
+    var dc = r.net && D.features && D.features.netDC ? D.features.netDC(u) : r.dc; // (the net on a dragger's hook: 14 -- js/features.js THE NET ON THE HOOK, 11-26)
     var grip = r.grapple || r.kind === 'tentacles', en0 = u.conds.enlarged, best = 0;
     ['str', 'dex'].forEach(function (ab) {
       if (ab === 'dex' && !grip) return;
       var ce = RU.checkEdges(u, ab), s = ab === 'str';
       var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (s && r.weak) || (s && en0 && en0.down)) || ce.dis.length > 0;
       var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0) - RU.shaken(u);
-      var p = clamp((21 - (r.dc - bonus)) / 20, 0, 1); p = adv && !dis ? 1 - (1 - p) * (1 - p) : dis && !adv ? p * p : p;
+      var p = clamp((21 - (dc - bonus)) / 20, 0, 1); p = adv && !dis ? 1 - (1 - p) * (1 - p) : dis && !adv ? p * p : p;
       if (p > best) best = p;
     });
     return best;

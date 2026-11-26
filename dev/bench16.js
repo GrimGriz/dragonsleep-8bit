@@ -20810,6 +20810,27 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       B5.letGo(g1, h5, 'release'); ordD(B5, [g1, h5]); var l5b = turnD(B5, g1, [15, 15, 15, 15]);
       okD('5 a dragger holding: no blow (' + !/Dragger > /.test(l5) + '), where it stood ' + (at5 === g1.x + ',' + g1.y) + ', the hold kept ' + kept5 + '; with no hook on him and no rank to strike first, the pike: "' + l5b.slice(0, 110) + '"',
         !/Dragger > /.test(l5) && at5 === g1.x + ',' + g1.y && kept5 && /Dragger > .*Hooked Pike/.test(l5b));
+      // 7. THE NET ON THE HOOK, DC 14 (the lanes desk, 11-26 -- his "up the net DC to 14 when the net is hooked (dragger can't attack while holding netted hook)"): one netted
+      // and on the west dragger's hook, his Athletics 0 -- BREAK FREE at 13 caught, at 14 free; off the hook a 10 frees him; a friend's FREE FROM THE NET the same DC; the AI's
+      // odds at 14 below its odds at 10; and the dragger holding takes no opportunity attack on one who walks out of its pike's reach (the same walk, the hook off: it does)
+      var mk7 = function (hooked) { var B = mkD(), d = byD(B, 'bd1'), P = heroesD(B), h = P[0], f = P[1]; awayD(B, [h, f]); setD(B, [[h, d.x, d.y + 2], [f, d.x + 1, d.y + 2]]); Fd.netOn(B, d, h); d.netGone = true; if (hooked) hookD(d, h); h.athletics = 0; f.athletics = 0; B.units.forEach(function (w) { ['poisoned', 'frightened'].forEach(function (c) { delete w.conds[c]; }); }); return { B: B, d: d, h: h, f: f }; };
+      var bf7 = function (S, who, die) { RUd.startTurn(who); S.B.active = who; q20d = [die, die]; runD(who === S.h ? D.magic.breakFree(S.B, who) : Fd.freeNet(S.B, who, S.h)); q20d = []; S.B.active = null; return !(S.h.conds.restrained && S.h.conds.restrained.net); };
+      var A7 = mk7(true), dcOn7 = Fd.netDC(A7.h), pOn7 = D.tactics.pEscape(A7.h), free13 = bf7(A7, A7.h, 13), free14 = bf7(A7, A7.h, 14);
+      var C7 = mk7(false), dcOff7 = Fd.netDC(C7.h), pOff7 = D.tactics.pEscape(C7.h), free10 = bf7(C7, C7.h, 10);
+      var E7 = mk7(true), fr13 = bf7(E7, E7.f, 13), fr14 = bf7(E7, E7.f, 14);
+      okD('7 the net on the hook: DC ' + dcOn7 + ' (off the hook ' + dcOff7 + '); BREAK FREE at 13 free ' + free13 + ', at 14 free ' + free14 + '; off the hook at 10 free ' + free10 + '; a friend\'s pull at 13 ' + fr13 + ', at 14 ' + fr14 + '; the AI\'s odds ' + pOn7.toFixed(2) + ' on the hook, ' + pOff7.toFixed(2) + ' off',
+        dcOn7 === 14 && dcOff7 === 10 && !free13 && free14 && free10 && !fr13 && fr14 && pOn7 < pOff7);
+      var oa7 = function (hooked) {
+        var S = mk7(hooked), d = S.d, w = S.f, n = (S.B.log || []).length; S.B.units.forEach(function (x) { if (x.side !== 'party' && x !== d) { x.hp = 0; x.dead = true; x.x = 0; x.y = 0; } }); // (the dragger's swing alone: the rest of the patrol out)
+        setD(S.B, [[w, d.x + 1, d.y]]); d.reaction = 1; RUd.startTurn(w); S.B.active = w; ordD(S.B, [w, d]);
+        var to = null; for (var dx = 4; dx <= 6 && !to; dx++) { var sq = GGd.map.at(d.x + dx, d.y); if (sq && sq.walk && GGd.dist(d, { x: d.x + dx, y: d.y }) > GGd.armOf(d)) to = [d.x + dx, d.y]; }
+        if (!to) return { l: 'no square to walk to', oa: null };
+        runD(S.B.exec(w, { do: 'move', x: to[0], y: to[1] })); S.B.active = null; var l = logD(S.B, n);
+        return { l: l, oa: new RegExp(d.name.replace(/[()]/g, '\\$&') + ': an opportunity attack').test(l), busy: Fd.hookBusy(S.B, d) };
+      };
+      var o7a = oa7(true), o7b = oa7(false);
+      okD('7b the dragger holding (hookBusy ' + o7a.busy + ') takes no opportunity attack: ' + !o7a.oa + ' ("' + String(o7a.l).slice(0, 90) + '"); the hook off, it does: ' + o7b.oa + ' ("' + String(o7b.l).slice(0, 90) + '")',
+        o7a.busy === true && o7a.oa === false && o7b.oa === true);
       // 6. the watched wagon at 3, seeds 1-N: the drill as it falls in a whole fight (informational)
       var NWd = +get('wseeds', '6'), rowsD = [];
       for (var sD = 1; sD <= NWd; sD++) {

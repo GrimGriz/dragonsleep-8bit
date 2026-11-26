@@ -1923,7 +1923,7 @@
   //   NO HAND ON THE BODY: the pike is never dropped; no one is held by hand, awake or down; no second dragger takes the other side. One at 0 is no one's cargo.
   //   THE HOOK'S HOLD (ours, as THE HOOK is): the pike's hook catches the NET on one awake in it, within the pike's 10 ft -- the Attack action, no contest (the hook takes the
   //   net, not the body). Held on the hook the netted one comes with the dragger as it walks, at half speed (SRD 5.1, moving a grappled creature), toward the patrol's footmen
-  //   and sergeants, till it lies in a rank's reach; there the dragger holds it. A dragger with one on its hook makes no attack. The way out is the net's own -- BREAK FREE, a
+  //   and sergeants, till it lies in a rank's reach; there the dragger holds it. A dragger with one on its hook makes no attack (its opportunity attacks neither, and the net's DC is 14 while it holds: THE NET ON THE HOOK, below, 11-26). The way out is the net's own -- BREAK FREE, a
   //   friend's FREE FROM THE NET, 5 slashing to it: the net off, the hook has nothing (js/battle.js, the sweep) -- or the dragger down or unable to act, or the one held moved
   //   out of the pike's reach. At 0 the hook lets go and the draggers lose interest; the net stays on, and one healed has it still to deal with (and may be hooked again).
   //   ONLY WHERE IT PAYS (the study's lean 3): the hook goes on, and stays on, only while a footman or sergeant can strike the one held -- where it lies, or where this turn's
@@ -1972,13 +1972,14 @@
   F.freeNetFor = function (B, u) { return B.units.filter(function (w) { return w !== u && F.netted(w) && !G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u); }); };
   F.freeNet = function* (B, u, w) {
     var r = w && w.conds.restrained; if (!r || !r.net || !u.turn || !(u.turn.action > 0)) return false;
+    var dc = F.netDC(w); // (14 while a dragger's hook holds the net: THE NET ON THE HOOK, 11-26)
     var en = u.conds.enlarged, ce = RU.checkEdges(u, 'str'), adv = !!(en && !en.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (en && en.down)) || ce.dis.length > 0;
     var a = D.d(20), b = D.d(20), d20 = adv && !dis ? Math.max(a, b) : dis && !adv ? Math.min(a, b) : a;
     var own = u.athletics, bonus = (own != null ? own : D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0)) - RU.shaken(u), tot = d20 + bonus; // (Athletics, as breakFree and PULL OUT read it)
     u.turn.action = 0; RU.spendHelp(u); u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
-    B.card([(u.side === 'foe' ? '{r}' + Nm(B, u) : '{y}' + u.name) + '{/} pulls at the net on ' + nm(B, w) + ': STR d20 ' + d20 + (adv !== dis ? (adv ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(bonus) + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still caught{/}')], 260);
-    D.sfx(tot >= r.dc ? 'confirm' : 'miss'); yield 20; u.anim = 'idle';
-    if (tot >= r.dc) { B.webGone(w, 'pulled off'); return true; }
+    B.card([(u.side === 'foe' ? '{r}' + Nm(B, u) : '{y}' + u.name) + '{/} pulls at the net on ' + nm(B, w) + ': STR d20 ' + d20 + (adv !== dis ? (adv ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(bonus) + ' = ' + tot + ' vs DC ' + dc + (dc > r.dc ? ' {g}(the net on the hook){/}' : '') + '  ' + (tot >= dc ? '{n}FREE{/}' : '{g}still caught{/}')], 260);
+    D.sfx(tot >= dc ? 'confirm' : 'miss'); yield 20; u.anim = 'idle';
+    if (tot >= dc) { B.webGone(w, 'pulled off'); return true; }
     return false;
   };
   // THE HOOK: the Shove to knock prone at the pike's reach (js/ai.js shoveOff, how 'prone')
@@ -2106,6 +2107,13 @@
   }
   F.hookPick = hookPick;
   F.onHook = function (w) { return !!(w && w.conds && w.conds.grappled && w.conds.grappled.hook); };
+  // THE NET ON THE HOOK, DC 14 (2026-11-26, the lanes desk -- RULED, Griz, to the lanes desk: "up the net DC to 14 when the net is hooked (dragger can't attack while holding netted hook)"): while a dragger's hook holds the
+  // net, the net's own way out -- BREAK FREE (js/magic.js breakFree), a friend's FREE FROM THE NET (F.freeNet) -- is a DC 14 Strength check, not the SRD's 10 (ours: the hook
+  // draws the net taut), and the AI's odds read the same (js/tactics.js pEscape); off the hook, 10 again. The 5 slashing to the net stays the SRD's. The dragger pays for it:
+  // holding, it makes no attack -- not on its turn (F.aiWagonDrill), and no opportunity attack (js/battle.js, the walk's provokers: F.hookBusy). Bench mode=drag1126 check 7
+  F.HOOK_NET_DC = 14;
+  F.netDC = function (w) { var r = w && w.conds && w.conds.restrained; if (!r) return 0; return r.net && F.onHook(w) ? Math.max(r.dc, F.HOOK_NET_DC) : r.dc; };
+  F.hookBusy = function (B, u) { var c = F.cargoOf(B, u); return !!(c && c.conds.grappled && c.conds.grappled.hook); };
   // THE RANKS FINISH WHAT THE HOOK HOLDS (the study's lean 2): for a footman or a sergeant -- trained, not a dragger -- the one of the other side on a fellow's hook that it can
   // strike this turn: in its reach where it stands, or, if it holds no line and no other foe stands in its reach, within its walk. Null for anyone else
   F.hookHeldFor = function (B, u, w) { var hd = F.onHook(w) ? B.units.filter(function (x) { return x.id === w.conds.grappled.by; })[0] : null; return !!(hd && u && hd.side === u.side && hd !== u && !hd.dead && hd.hp > 0 && !w.dead && w.hp > 0 && F.soldiering(u) && !F.wagonDrill(u)); };
@@ -2130,7 +2138,7 @@
       if (T.action > 0 && cargoOne(w, u) && !w.conds.grappled && G.dist(u, w) <= hookArm(u)) {
         T.action = 0; T.attacksLeft = 0; u.facing = B.faceTo(u, w); u.anim = D.spr && D.spr.anim(u.sheet, 'hook') ? 'hook' : 'attack'; u.animT = B.t;
         w.conds.grappled = { by: u.id, hook: true }; u.grappling = w.id; D.sfx('confirm');
-        B.card(['{y}' + u.name + '{/} hooks the net on ' + nm(B, w) + ': {o}WAGON DRILL{/}  {g}(the Attack; held on the pike\'s hook at ' + hookArm(u) + ' ft and hauled at half speed -- the net off, and the hook has nothing){/}'], 240);
+        B.card(['{y}' + u.name + '{/} hooks the net on ' + nm(B, w) + ': {o}WAGON DRILL{/}  {g}(the Attack; held on the pike\'s hook at ' + hookArm(u) + ' ft and hauled at half speed; the net DC ' + F.HOOK_NET_DC + ' while it holds -- the net off, and the hook has nothing){/}'], 240);
         yield 10; u.anim = 'idle';
         yield* haul(B, u, w, true);
         T.move = 0;

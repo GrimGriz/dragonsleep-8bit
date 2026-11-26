@@ -2390,7 +2390,8 @@
             && G.dist(w, u) <= G.armOf(w) && G.dist(w, u, null, null, nx, ny) > G.armOf(w) && !(w.conds.hidden && false) // (a reach weapon's opportunity attack at 10 ft: G.armOf, 10-30)
             && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
             && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u) // (a creature you can see: not into or out of darkness; and never at its charmer)
-            && !(!w.acted && D.features && D.features.openingNight && D.features.openingNight(u)); // (Opening Night, Cutthroat's 9th: none from one that has not had its first turn -- 11-03)
+            && !(!w.acted && D.features && D.features.openingNight && D.features.openingNight(u))
+            && !(D.features && D.features.hookBusy && D.features.hookBusy(selfO, w)); // (a dragger holding one on its hook makes no attack, an opportunity attack neither: js/features.js THE NET ON THE HOOK, 11-26 -- his "up the net DC to 14 when the net is hooked (dragger can't attack while holding netted hook)") (Opening Night, Cutthroat's 9th: none from one that has not had its first turn -- 11-03)
         });
         for (var k = 0; k < prov.length; k++) {
           var w = prov[k], take = true;

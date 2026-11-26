@@ -1280,6 +1280,7 @@
     // ends only by its save at the end of the next turn (SRD 5.1, the basilisk's gaze; 10-21, his "turning to stone added a 'break free' option ... struggling against web")
     if (!u.conds.restrained || u.conds.restrained.kind === 'stone') return;
     var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, grip = (r.grapple && !r.str) || r.kind === 'tentacles', en0 = u.conds.enlarged; // (r.weak: the roper's tendril, js/traits.js) (r.str: out of the gelatinous cube, "a DC 12 Strength check" -- no Acrobatics: js/engulf.js, 11-25)
+    var dc = r.net && D.features && D.features.netDC ? D.features.netDC(u) : r.dc; // (a dragger's hook on the net: DC 14 -- js/features.js THE NET ON THE HOOK, 11-26)
     // a STR check: Enlarge is advantage on it, Reduce disadvantage (SRD), against poisoned, frightened and the weak grip's disadvantage
     // ... and Enhance Ability on the ability it raised, Heat Metal's burning armour on every check (rules.js checkEdges). One ability's check, looked at:
     // its bonus (the modifier, the proficiency of the skill its class has) and the edges on it -- 10-01: a grip's pick between STR (Athletics) and DEX
@@ -1296,11 +1297,11 @@
     var edge = adv && !dis && ce.adv.length ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : dis && !adv && ce.dis.length ? ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}' : '';
     var tot = d + lk.bonus;
     u.turn.action = 0; RU.spendHelp(u); // (a friend's Help on it, spent on this check -- 10-01c)
-    var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
+    var luck = RU.darkLuck(u, dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     // (11-21, the reader of his 11-20 record: "The Willem tears at the web: STR d20 18 = 17" -- a named foe's own name with no article (Battle.nm), and the check's bonus shown between the die and the sum)
-    B.card([(u.side === 'foe' ? '{r}' + D.Battle.nm(u, true) + '{/}' : '{y}' + u.name + '{/}') + (r.engulf ? (r.str ? ' heaves against the ooze: ' : ' wrenches at the vines: ') : r.grapple ? ' wrenches at the grip: ' : r.net ? ' heaves at the net: ' : r.kind === 'vines' ? ' tears at the vines: ' : r.kind === 'tentacles' ? ' wrestles the tentacles: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (lk.bonus ? (lk.bonus > 0 ? ' +' : ' ') + lk.bonus : '') + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
-    if (tot < r.dc && D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due: a failed check, a Due -- 10-30)
-    if (tot >= r.dc) {
+    B.card([(u.side === 'foe' ? '{r}' + D.Battle.nm(u, true) + '{/}' : '{y}' + u.name + '{/}') + (r.engulf ? (r.str ? ' heaves against the ooze: ' : ' wrenches at the vines: ') : r.grapple ? ' wrenches at the grip: ' : r.net ? ' heaves at the net: ' : r.kind === 'vines' ? ' tears at the vines: ' : r.kind === 'tentacles' ? ' wrestles the tentacles: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (lk.bonus ? (lk.bonus > 0 ? ' +' : ' ') + lk.bonus : '') + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + dc + (dc > r.dc ? ' {g}(the net on the hook){/}' : '') + '  ' + (tot >= dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    if (tot < dc && D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due: a failed check, a Due -- 10-30)
+    if (tot >= dc) {
       // (torn free: it goes on through the web this turn, with what the turn would have left it -- the walking startTurn set (Haste's double, Slow's half, Ray of Frost's
       // 10 ft off; moveFull, above), less what it has already walked (turn.moved) -- not its bare speed; a dancer none, as before. 10-01)
       delete u.conds.restrained; var T0 = u.turn; T0.move = u.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : u.speed) - (T0.moved || 0)); T0.webSaved = true;
