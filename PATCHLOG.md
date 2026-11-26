@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-26
 
+- 2026-11-26 · shipped · the house · `main:live` at `e0c542e43a7a70f6d41056080cbc026a77b090a9` by exact hash (`bf4fc133..e0c542e4`, a fast-forward, 31 commits; the full gate GREEN on it, the runway's quick gate GREEN): the desk's batch of 11-26 -- the skeletons' two looks, the rug and the guardian, the Pocket DM's fixes, Silverton's words and claims, one Jory and one Hob · *"archive the finished seats, main to live when everything wraps then close please"*
 - 2026-11-26 · `7f6c625c` · the Warrens and galleries · One Jory, the mouth camp's, with a line of his own, the pens' copy cut; one Old Hob, the deep stalls' cut too (town-1126) · *"Leans approved"*
 - 2026-11-26 · `eac98bae`, `4633692d` · the bestiary · The skeleton in two drawn looks, one picked at random each time skeletons come to a fight; destroyed it falls to a pile of bones, knocked down it gets up; the KayKit figure retired (ART-170, cutter-1126-skel) · *"two skeletons (randomly assigned when skeletons call for combat - i had it make two variants)"*
 - 2026-11-26 · `5ba0e352`, `86b81297` · the bestiary · The rug of smothering in the Pocket DM's stores by the SRD: Smother wraps one Medium or smaller, 2d6+3 each of its turns, blows at the rug shared with the one inside (ART-171, cutter-1126-constructs) · *"there are 3 in Fresh, two for the Pocket DM stores"*
