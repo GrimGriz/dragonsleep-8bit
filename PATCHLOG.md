@@ -2,6 +2,10 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. **The gate warns, never RED, on a new line past 400 characters** (RULED 2026-11-17, Griz: *"warning"*; `dev/check.py`, the lines in a tree that `origin/main` doesn't have): trim the what, never his words. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-11-27
+
+- 2026-11-27 · `acc56460` · the game show · A taunted shooter shoots the one who taunted it when he is in its sight and range (the Feast's cans shot Rascal past Denny's taunt), and no "has no clear shot" after a Sauce Spill; `taunt1127` in both gates · *"review the fight records just saved to play records - particularly denny taunt vs cranberries"*
+
 ## 2026-11-26
 
 - 2026-11-26 · `002b62d6`, `341e071d` · the game show · RETRY THE WAVE after a loss: back to the wave's save, the loss's score taken back, and the lamp's turn and the chest before the wave comes; `gsretry1126` in both gates · *"do we allow retry on loss, restoring with time to get sponsor items after a fail?"*; *"try insert a chest opportunity before the retry wave begins"*
