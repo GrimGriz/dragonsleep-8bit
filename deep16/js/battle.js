@@ -3782,7 +3782,8 @@
     var rageNow = false;
     if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; rageNow = true; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }
     // Split (the black pudding): slashing or lightning on one of Medium size or more with 10 HP or more halves it into two
-    if (u.split && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
+    // (`split: true` only -- the Jacket Bruiser's `split` is its mash's block, js/feast.js: since 11-26 a blade on the baked one halved it into two, his 11-27 "it split like an ooze")
+    if (u.split === true && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
     // resistance halves a blow once, however many say so (SRD 5.1: "Multiple instances of resistance or vulnerability that affect the same
     // damage type count as only one instance" -- 10-03, the review seat's find: a raging barbarian under Warding Bond took a quarter)
     var resisted = false, n0 = n, whyN = '', self = this;

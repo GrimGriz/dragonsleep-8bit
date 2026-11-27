@@ -69,10 +69,10 @@
       '{g}(Split Jacket: the mash at ' + s.hp + ' HP, AC ' + s.ac + ', speed ' + s.speed + '; two Steaming Chunks at range; its turn kept){/}'], 380);
     B.cache = null;
   };
-  F.mashNow = function (B, u) { if (!u.split) return; u.sheet = u.split.sheet; delete u.mashAt; if (u.anim === 'split' || !u.anim) { u.anim = 'idle'; u.animT = B ? B.t : 0; } };
+  F.mashNow = function (B, u) { if (!u.split || typeof u.split !== 'object') return; u.sheet = u.split.sheet; delete u.mashAt; if (u.anim === 'split' || !u.anim) { u.anim = 'idle'; u.animT = B ? B.t : 0; } };
   var ref0 = TR.refuse;
   TR.refuse = function (B, u, n) {
-    if (u && u.split && !u.splitDone && u.hp <= 0 && !u.dead && u.side === 'foe') { F.splitJacket(B, u); return true; }
+    if (u && u.split && typeof u.split === 'object' && !u.splitDone && u.hp <= 0 && !u.dead && u.side === 'foe') { F.splitJacket(B, u); return true; } // (an object: the mash's block -- the black pudding's and the ochre jelly's `split: true` is their SRD Split, js/battle.js; since 11-26 they burst into a mash of no hit points at 0 and never fell)
     return ref0 ? ref0.apply(this, arguments) : false;
   };
   // the mash's sheet once the split has played (the frames run on, the bench's too: Battle.prototype.update)

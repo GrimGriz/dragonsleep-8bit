@@ -547,6 +547,32 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preRC);
     return;
   }
+  // TWO SPLITS BY ONE NAME, 11-27 (mode=split1127; Griz: "it split like an ooze or a jelly or something, from a big tato into two medium sized ones"): the black pudding's
+  // Split (js/battle.js hurt, the block's `split: true`) and the Jacket Bruiser's Split Jacket (js/feast.js, its `split` the mash's block) read the one field. 1 a slashing
+  // blow on the baked bruiser leaves one bruiser; 2 the pudding still splits on slashing; 3 the pudding at 0 falls, no Split Jacket; 4 the ochre jelly the same; 5 the
+  // bruiser at 0 still bursts into its mash
+  if (get('mode', '') === 'split1127') {
+    var repSJ = { checks: [], errors: [], notes: [] };
+    var okSJ = function (what, v) { repSJ.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    try {
+      var BSJ = D.npcFight('?npc=jacketbruiser,pudding,ochrejelly&vs=fighter:5&lvl=5', {}); D.battle = BSJ; BSJ.enter(); var kSJ = 0; while (!BSJ.order.length && kSJ++ < 400) BSJ.co.next(); BSJ.dark = false;
+      var oneSJ = function (k) { return BSJ.units.filter(function (u) { return u.kind === k; })[0]; }, upSJ = function () { return BSJ.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0; }).length; };
+      var jb = oneSJ('jacketbruiser'), pd = oneSJ('pudding'), oj = oneSJ('ochrejelly');
+      var n1a = upSJ(); BSJ.hurt(jb, 12, 'slashing'); var n1b = upSJ();
+      okSJ('1 12 slashing on the baked Jacket Bruiser (' + jb.hp + ' of ' + jb.maxhp + ' HP left): foes up ' + n1a + ' -> ' + n1b + (n1b > n1a ? ' -- IT SPLIT LIKE A PUDDING' : ''), n1b === n1a && !jb.mashed);
+      var n2a = upSJ(); BSJ.hurt(pd, 12, 'slashing'); var n2b = upSJ();
+      okSJ('2 12 slashing on the Black Pudding: foes up ' + n2a + ' -> ' + n2b + ' (the SRD\'s Split)', n2b === n2a + 1);
+      pd.hp = 5; BSJ.hurt(pd, 10, 'bludgeoning');
+      okSJ('3 the pudding at 5 HP takes 10 bludgeoning: hp ' + pd.hp + (pd.mashed ? ', AND IT BURST INTO A MASH' : ''), typeof pd.hp === 'number' && pd.hp <= 0 && !pd.mashed);
+      oj.hp = 5; BSJ.hurt(oj, 10, 'bludgeoning');
+      okSJ('4 the Ochre Jelly at 5 HP takes 10 bludgeoning: hp ' + oj.hp + (oj.mashed ? ', AND IT BURST INTO A MASH' : ''), typeof oj.hp === 'number' && oj.hp <= 0 && !oj.mashed);
+      jb.hp = 5; BSJ.hurt(jb, 10, 'bludgeoning');
+      okSJ('5 the bruiser at 5 HP takes 10: ' + (jb.mashed ? 'the mash at ' + jb.hp + ' HP' : 'NO MASH (hp ' + jb.hp + ')'), !!jb.mashed && jb.hp === (jb.split && jb.split.hp));
+    } catch (eSJ) { repSJ.errors.push(String(eSJ && eSJ.stack || eSJ).slice(0, 900)); }
+    var preSJ = document.createElement('pre'); preSJ.id = 'out'; preSJ.textContent = 'BENCH16 ' + JSON.stringify(repSJ);
+    document.body.appendChild(preSJ);
+    return;
+  }
   // A TAUNTED SHOOTER, 11-27 (mode=taunt1127; Griz, on play-records/deep16-play-record-2026-11-26-1802.json, THE FEAST: "review the fight records ... particularly denny taunt
   // vs cranberries" -- three cans taunted by Denny shot Rascal). A Cranberry Can on the class floor with two heroes in its 30 ft: 1 untaunted, it shoots the lower AC; 2 taunted by
   // the other, it shoots him (js/ai.js volley: at him when he is in its sight and range); 3 its taunter down, the pool stands; 4 its action spent on a Sauce Spill, it says no
