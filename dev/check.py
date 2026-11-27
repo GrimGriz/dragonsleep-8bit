@@ -112,6 +112,11 @@ def script(cmd):
     return [' '.join(cmd) + ': ' + l[:300] for l in bad]
 
 
+SLOW_FIRST = ['inn1104', 'walkpoison1113', 'walkbarn1113', 'winters1105', 'walk1113', 'rowboat1118', 'inn1118', 'inn1116', 'secondact1104', 'hunger1114']
+# (2026-11-27, Griz: "can you 3 today?" -- the desk's lean 3, "inn1104 gets split or trimmed so the gate can finish faster": the gate's ten slowest
+# modes on 11-27, slowest first, start first, so none starts late and runs on alone after the rest are done; inn1104 sat 184th of 375 and took 346 s.
+# A mode that grows slow joins this list; a name here that no gate runs is skipped.)
+
 PATCHLOG_LINE_MAX = 400  # (a line is a line, RULED 10-06 -- 20 of the first 55 ran past 400 characters)
 
 
@@ -143,15 +148,17 @@ def main(argv):
     full = 'all' in argv
     seat = 'seat' in argv and not full
     jobs = [('spells', spells, None)] + [('fight', fight, p) for p in QUICK_FIGHTS] + [('mode ' + m, mode, m) for m in (ALL_MODES if full else QUICK_MODES + (SEAT_MODES if seat else []))]
+    jobs.sort(key=lambda j: SLOW_FIRST.index(j[2]) if j[1] is mode and j[2] in SLOW_FIRST else len(SLOW_FIRST))  # (the slow walks first; the sort is stable, so the rest keep their order)
     t0 = time.time()
-    took = []  # (2026-11-27, Griz: "full gates take 30 minute all the time. what's the longest process we're asking from it" -- each check's own seconds, four at a time, so a slow one is slower beside three others)
+    took = []  # (2026-11-27, Griz: "full gates take 30 minute all the time. what's the longest process we're asking from it" -- each check's own seconds, four at a time, so a slow one is slower beside three others; and when it started)
     def timed(name, f):
         t1 = time.time()
         r = f()
-        took.append((time.time() - t1, name))
+        took.append((time.time() - t1, name, t1 - t0))
         return (name, r)
     with ThreadPoolExecutor(4) as ex:
         res = list(ex.map(lambda j: timed(j[0], (lambda: j[1](j[2])) if j[2] is not None else j[1]), jobs))
+    t_mid = time.time()
     scripts = QUICK_SCRIPTS + (ALL_SCRIPTS if full else []) # (the quick gate runs the eyes probe too, 10-06)
     with ThreadPoolExecutor(4) as ex: # (four at a time since 10-06: the 8-bit bench and the probes each write a page of their own now, not one by a fixed name)
         res += list(ex.map(lambda c: timed(' '.join(c), lambda: script(c)), scripts))
@@ -167,7 +174,8 @@ def main(argv):
         for line in long_lines:
             say('  ' + line)
     took.sort(reverse=True)
-    print('slowest: ' + ', '.join('%s %.0f s' % (n, s) for s, n in took[:10]))
+    print('slowest: ' + ', '.join('%s %.0f s (from %.0f)' % (n, s, a) for s, n, a in took[:10]))
+    print('the fights and modes %.0f s, then the scripts %.0f s' % (t_mid - t0, time.time() - t_mid))
     print('%s  (%d checks, %.0f s)' % ('RED' if red else 'GREEN', len(jobs), time.time() - t0))
     sys.exit(1 if red else 0)
 
