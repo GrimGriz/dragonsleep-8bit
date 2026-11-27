@@ -35944,7 +35944,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       var SR2 = GSR2.run;
       okRT('R3 the resumed run is at wave 3 with 2 held (wave ' + (SR2 && SR2.wi + 1) + ', held ' + (SR2 && SR2.held) + ', the lamp ' + (SR2 && SR2.lamp ? SR2.lamp.hp + '/' + SR2.lampMax : '-') + ')', !!SR2 && SR2.wi === 2 && SR2.held === 2 && !!SR2.lamp && SR2.lamp.hp === 70);
       okRT('R4 before wave 3 came: gather, the lamp\'s turn, the chest, scatter -- no bed (' + (trailAtFoes ? trailAtFoes.join(' > ') : 'NO WAVE in ' + fR + ' frames') + ')', !!trailAtFoes && trailAtFoes.join() === 'gather,lamp,chest,scatter');
-      okRT('R5 the retry\'s flag spent (' + !GSR2.retried + '), the wave in by its sides (' + Object.keys((SR2.foes || []).reduce(function (m, u) { m[u.gsSide + ':' + u.kind] = 1; return m; }, {})).join(', ') + ')', !GSR2.retried && (SR2.foes || []).length === 5);
+      okRT('R5 the retry\'s flag spent (' + !GSR2.retried + '), the wave in by its sides (' + Object.keys((SR2.foes || []).reduce(function (m, u) { m[u.gsSide + ':' + u.kind] = 1; return m; }, {})).join(', ') + ')', !GSR2.retried && (SR2.foes || []).length === (function () { var w3 = GSR2.wave.SPECIALS.feast.waves[2]; return (w3.west || []).length + (w3.east || []).length + (w3.stage || []).length; })()); // (the count from wave 3's own list: 5 till 11-27, 4 since the both-gates waves)
     } catch (eRT) { repRT.errors.push(String(eRT && eRT.stack || eRT).slice(0, 900)); }
     D.store.get = stGRT; D.store.set = stSRT;
     var preRT = document.createElement('pre'); preRT.id = 'out'; preRT.textContent = 'BENCH16 ' + JSON.stringify(repRT);
