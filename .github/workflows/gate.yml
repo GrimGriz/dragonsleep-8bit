@@ -13,7 +13,7 @@ on:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45 # (30 till 2026-11-27: runs took 21 to 26 minutes and 100be857's was cut off at 30; Griz: "changing to 45 is fine this turn")
     steps:
       - uses: actions/checkout@v4
         with:

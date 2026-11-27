@@ -144,11 +144,17 @@ def main(argv):
     seat = 'seat' in argv and not full
     jobs = [('spells', spells, None)] + [('fight', fight, p) for p in QUICK_FIGHTS] + [('mode ' + m, mode, m) for m in (ALL_MODES if full else QUICK_MODES + (SEAT_MODES if seat else []))]
     t0 = time.time()
+    took = []  # (2026-11-27, Griz: "full gates take 30 minute all the time. what's the longest process we're asking from it" -- each check's own seconds, four at a time, so a slow one is slower beside three others)
+    def timed(name, f):
+        t1 = time.time()
+        r = f()
+        took.append((time.time() - t1, name))
+        return (name, r)
     with ThreadPoolExecutor(4) as ex:
-        res = list(ex.map(lambda j: (j[0], j[1](j[2]) if j[2] is not None else j[1]()), jobs))
+        res = list(ex.map(lambda j: timed(j[0], (lambda: j[1](j[2])) if j[2] is not None else j[1]), jobs))
     scripts = QUICK_SCRIPTS + (ALL_SCRIPTS if full else []) # (the quick gate runs the eyes probe too, 10-06)
     with ThreadPoolExecutor(4) as ex: # (four at a time since 10-06: the 8-bit bench and the probes each write a page of their own now, not one by a fixed name)
-        res += list(ex.map(lambda c: (' '.join(c), script(c)), scripts))
+        res += list(ex.map(lambda c: timed(' '.join(c), lambda: script(c)), scripts))
     jobs += scripts
     red = [line for _, lines in res for line in lines]
     for name, lines in res:
@@ -160,6 +166,8 @@ def main(argv):
         say('WARN  PATCHLOG.md: %d new line%s past %d characters -- a line is a line (the hash, one sentence of what, his words); trim the what, never his words' % (len(long_lines), '' if len(long_lines) == 1 else 's', PATCHLOG_LINE_MAX))
         for line in long_lines:
             say('  ' + line)
+    took.sort(reverse=True)
+    print('slowest: ' + ', '.join('%s %.0f s' % (n, s) for s, n in took[:10]))
     print('%s  (%d checks, %.0f s)' % ('RED' if red else 'GREEN', len(jobs), time.time() - t0))
     sys.exit(1 if red else 0)
 
