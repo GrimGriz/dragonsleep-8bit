@@ -547,6 +547,39 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preRC);
     return;
   }
+  // A TAUNTED SHOOTER, 11-27 (mode=taunt1127; Griz, on play-records/deep16-play-record-2026-11-26-1802.json, THE FEAST: "review the fight records ... particularly denny taunt
+  // vs cranberries" -- three cans taunted by Denny shot Rascal). A Cranberry Can on the class floor with two heroes in its 30 ft: 1 untaunted, it shoots the lower AC; 2 taunted by
+  // the other, it shoots him (js/ai.js volley: at him when he is in its sight and range); 3 its taunter down, the pool stands; 4 its action spent on a Sauce Spill, it says no
+  // "has no clear shot" after (js/ai.js shooter)
+  if (get('mode', '') === 'taunt1127') {
+    var repTT = { checks: [], errors: [], notes: [] }, d0TT = D.d, stripTT = function (s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, ''); }, GTT = D.grid;
+    var okTT = function (what, v) { repTT.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    var runTT = function (B, u) { var n0 = (B.log || []).length; D.rules.startTurn(u); B.active = u; var g = D.ai.turn(B, u), v, q = 0, st; while (q++ < 20000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } B.active = null; return stripTT((B.log || []).slice(n0).join(' | ')); };
+    var mkTT = function (q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); var k = 0; while (!B.order.length && k++ < 400) B.co.next(); B.dark = false; return B; };
+    var placeTT = function (B, list) { list.forEach(function (p) { p[0].x = p[1]; p[0].y = p[2]; p[0].conds = {}; p[0].fz = null; p[0].left = false; }); B.units.forEach(function (w) { if (list.every(function (p) { return p[0] !== w; })) w.left = true; }); GTT.setup(GTT.map, B.units.filter(function (w) { return !w.left; })); B.cache = null; };
+    try {
+      var B1 = mkTT('?npc=cranberrycan&vs=fighter:3,wizard:3&lvl=3'), oneTT = function (f) { return B1.units.filter(f)[0]; };
+      var cn = oneTT(function (u) { return u.kind === 'cranberrycan'; }), ft = oneTT(function (u) { return u.cls === 'fighter'; }), wz = oneTT(function (u) { return u.cls === 'wizard'; });
+      var acF = D.rules.ac(ft), acW = D.rules.ac(wz), at = function (l, w) { return l.indexOf('> ' + w.name) >= 0; };
+      var stage = function (taunt, spill, wx, wy, fx, fy) {
+        placeTT(B1, [[cn, 4, 8], [wz, wx, wy], [ft, fx, fy]]); cn.spillSpent = !spill; cn.turn = null; cn.hp = cn.maxhp; ft.hp = ft.maxhp; wz.hp = wz.maxhp;
+        if (taunt) cn.conds.taunted = { by: ft.id, name: ft.name, till: { who: ft.id, at: 'end', n: 2 }, endText: '{who} is no longer taunted.' };
+      };
+      D.d = function (n) { return n === 20 ? 15 : n === 6 ? 1 : d0TT.apply(this, arguments); }; // (a hit; the spill's recharge never back)
+      stage(false, false, 8, 8, 9, 10); var l1 = runTT(B1, cn);
+      stage(true, false, 8, 8, 9, 10); var l2 = runTT(B1, cn);
+      stage(true, false, 8, 8, 9, 10); ft.hp = 0; var l3 = runTT(B1, cn); ft.hp = ft.maxhp;
+      stage(false, true, 8, 8, 9, 8); var l4 = runTT(B1, cn);
+      okTT('1 the can at 4,8, the ' + wz.name + ' (AC ' + acW + ') 20 ft off and the ' + ft.name + ' (AC ' + acF + ') 25 ft, untaunted: it shoots ' + (at(l1, wz) ? 'the ' + wz.name : at(l1, ft) ? 'THE ' + ft.name.toUpperCase() : 'NO ONE') + ' -- ' + l1.slice(0, 160), acW < acF && at(l1, wz) && !at(l1, ft));
+      okTT('2 taunted by the ' + ft.name + ': it shoots ' + (at(l2, ft) ? 'the ' + ft.name : at(l2, wz) ? 'THE ' + wz.name.toUpperCase() + ' PAST THE TAUNT' : 'NO ONE') + ' -- ' + l2.slice(0, 160), at(l2, ft) && !at(l2, wz));
+      okTT('3 taunted, the ' + ft.name + ' down: the pool stands, it shoots ' + (at(l3, wz) ? 'the ' + wz.name : 'NOT THE ' + wz.name.toUpperCase()) + ' -- ' + l3.slice(0, 160), at(l3, wz));
+      okTT('4 the two side by side, its spill ready: ' + (/SAUCE SPILL/.test(l4) ? 'it spills' : 'NO SPILL') + ', and ' + (/no clear shot/.test(l4) ? 'SAYS IT HAS NO CLEAR SHOT' : 'says nothing of a shot') + ' -- ' + l4.slice(0, 200), /SAUCE SPILL/.test(l4) && !/no clear shot/.test(l4));
+    } catch (eTT) { repTT.errors.push(String(eTT && eTT.stack || eTT).slice(0, 900)); }
+    D.d = d0TT;
+    var preTT = document.createElement('pre'); preTT.id = 'out'; preTT.textContent = 'BENCH16 ' + JSON.stringify(repTT);
+    document.body.appendChild(preTT);
+    return;
+  }
   // THE AI FROM HIS FARE HOME RECORD, 11-26 (mode=ai1126; the seat ai-1126 -- Griz, on play-records/deep16-play-record-2026-11-26-0955.json, sixteen fights: "try to build and
   // get on live"). Each staged on the class floor and the choice read: 1 a hurt caster's step off a foe is weighed -- it does not walk into the opportunity attack, and steps
   // when the swing is spent; 2 a blow at another costs the Called to Account it holds; 3 a walk is priced for a reach it passes through and a blow readied for it; 4 a potion

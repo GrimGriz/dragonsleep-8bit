@@ -700,7 +700,7 @@
     if (!keys.length) {
       var rks = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }), see0 = visibleFrom(u, u.x, u.y, aimable()), bestS = -1;
       rks.forEach(function (k) {
-        var a = u.attacks[k], tg = see0.filter(function (w) { return G.range(u, w) <= a.range[1]; }).sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return;
+        var a = u.attacks[k], inR = see0.filter(function (w) { return G.range(u, w) <= a.range[1]; }), tg = (u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, inR)) || inR.sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return; // (taunted: the weapon weighed at him -- the volley below)
         var p1 = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(tg) - a.atk)) / 20)), pp = G.range(u, tg) > a.range[0] ? p1 * p1 : p1, sc = pp * D.tactics.avg(a.dice) + pp * (a.mod || 0);
         if (sc > bestS + 1e-9) { bestS = sc; keys = [k]; }
       });
@@ -714,7 +714,8 @@
       var atk = u.attacks[keys[i]]; if (!atk) break; // (its last dagger thrown the throw before: battle.js spendThrow takes it off the sheet)
       var seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.range(u, w) <= atk.range[1]; });
       if (!seen.length) break;
-      yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
+      var tauntAt = u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, seen); // (taunted: at him when he is in its sight and range, else the pool stands -- js/mpmon.js; his record 11-26, THE FEAST: three cans taunted by Denny shot Rascal)
+      yield* B.attack(u, tauntAt || seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
       if (u.dead || u.hp <= 0) break;
     }
     return true;
@@ -749,7 +750,7 @@
       });
       if (pick && (pick.x !== u.x || pick.y !== u.y)) { yield* walkTo(B, u, pick); if (u.dead || u.hp <= 0) return; }
     }
-    if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 20; }
+    if (!(yield* volley(B, u)) && T.action) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 20; } // (its action spent before the routine -- the can's Sauce Spill, js/feast.js -- is no missed shot: his record 11-26 said "no clear shot" after each spill)
   }
   // Blinding Spittle (SRD 5.1 Gibbering Mouther, recharge 5-6): "spits a chemical glob at a point it can see within 15 feet of it ... Each creature within 5 feet of the
   // flash must succeed on a DC 13 Dexterity saving throw or be blinded until the end of the mouther's next turn" -- at the one of them with the most of theirs about it (10-06)
