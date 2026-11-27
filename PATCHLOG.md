@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-27
 
+- 2026-11-27 · `83b4075c` · the grid's rules · A wall's caller keeps the shields its plan was made for, so its mates no longer set a second wall where it left them (on live since `5a3a9b99`); bench mode `sides1126`, the Fare Home's Dominion against its dwarves · *"parked commit and updating the records seems like stuff we might try to squeeze in"*
 - 2026-11-27 · `1b5fad70` · the game show · A blade or lightning no longer halves the baked Jacket Bruiser into two (the pudding's Split read its mash's field), and the black pudding and ochre jelly fall at 0 again; `split1127` in both gates · *"it split like an ooze or a jelly or something, from a big tato into two medium sized ones"*
 - 2026-11-27 · `6ced9497`, `c2ca81dd` · the game show · THE FEAST at 4th: a potato and cans at each gate in turn (two potatoes at once wiped 5 of 6), the lamp no one's mark and unhurt, the cans stepping in to 30 ft; won 4 of 6 on the bench · *"cans only"*; *"Bench against lvl 4 lobstamonkees and try to get to where potatoes and cranberries come in together on both sides"*; *"make it invul not remove lamp"*
 - 2026-11-27 · seen · the game show · THE FEAST as a show (`eyes-feast-show-1126` cut for `eyes-feast-show-1127`): his play of 11-26 in `deep16-play-record-2026-11-26-1802.json` · *"review the fight records just saved to play records - particularly denny taunt vs cranberries"*
