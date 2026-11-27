@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-27
 
+- 2026-11-27 · shipped · main:live at `2eeda1c2` -- the wall caller fix (`83b4075c`) and the gate's changes · *"Yes, ship it"*
 - 2026-11-27 · `457a050f` · the second game's house · The gate starts its ten slowest modes first (`inn1104` had sat 184th of 375): the full gate 658 s against 754, `inn1104` done at 310 s and no longer the long pole -- the modes' own total is (602 s) · *"can you 3 today?"*
 - 2026-11-27 · `3072c053` · the second game's house · GitHub's full gate may run 45 minutes (was 30; one run was cut off), and the gate prints its ten slowest checks -- the first: `inn1104` 346 s, `walkpoison1113` 207 s, `walkbarn1113` 179 s · *"what's the longest process we're asking from it - changing to 45 is fine this turn"*
 - 2026-11-27 · `83b4075c` · the grid's rules · A wall's caller keeps the shields its plan was made for, so its mates no longer set a second wall where it left them (on live since `5a3a9b99`); bench mode `sides1126`, the Fare Home's Dominion against its dwarves · *"parked commit and updating the records seems like stuff we might try to squeeze in"*
