@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-27
 
+- 2026-11-27 · `457a050f` · the second game's house · The gate starts its ten slowest modes first (`inn1104` had sat 184th of 375): the full gate 658 s against 754, `inn1104` done at 310 s and no longer the long pole -- the modes' own total is (602 s) · *"can you 3 today?"*
 - 2026-11-27 · `3072c053` · the second game's house · GitHub's full gate may run 45 minutes (was 30; one run was cut off), and the gate prints its ten slowest checks -- the first: `inn1104` 346 s, `walkpoison1113` 207 s, `walkbarn1113` 179 s · *"what's the longest process we're asking from it - changing to 45 is fine this turn"*
 - 2026-11-27 · `83b4075c` · the grid's rules · A wall's caller keeps the shields its plan was made for, so its mates no longer set a second wall where it left them (on live since `5a3a9b99`); bench mode `sides1126`, the Fare Home's Dominion against its dwarves · *"parked commit and updating the records seems like stuff we might try to squeeze in"*
 - 2026-11-27 · `1b5fad70` · the game show · A blade or lightning no longer halves the baked Jacket Bruiser into two (the pudding's Split read its mash's field), and the black pudding and ochre jelly fall at 0 again; `split1127` in both gates · *"it split like an ooze or a jelly or something, from a big tato into two medium sized ones"*
