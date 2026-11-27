@@ -104,11 +104,15 @@
     // THE FINALE, A POTATO AND A LONG REST (11-26, Griz: "yeah, potato and a long rest - especially with novice players i figure they'll burn everything before the boss fight"):
     // the turkey's wave brings a Jacket Bruiser out of the ovens too, and the rest before it is the long one (`rests`: the rest after each wave but the last -- the night at the
     // cots: whole again, hit dice back, the lamp mended; no level comes of it, the XP being half the tier's by then)
-    feast: { name: 'THE FEAST', lvl: 3, rests: ['short', 'short', 'long'], longLine: 'the night at the cots, and the lamp trimmed and filled again.', waves: [ // (lvl 3: the bench of 11-26, mode=gsfeast1126 on &auto -- level 2 wiped twice, 3 won twice once by a hair (three down to the Gobbler), 4 and 5 won with none down; before the finale's potato and long rest)
-      { west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'The pantry door bangs open: four cans of cranberry sauce waddle out!' },
-      { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan'], card: 'The ovens open. Something baked climbs out -- and the pantry sends more sauce.' },
-      { east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan', 'cranberrycan', 'cranberrycan'], card: 'Second helpings. Nobody asked for second helpings.' },
-      { stage: ['gallowsgobbler'], east: ['jacketbruiser'], west: ['cranberrycan', 'cranberrycan'], boss: 'gallowsgobbler', card: 'THE GALLOWS GOBBLER. The gallows creak: this year\'s bird was never pardoned -- and the ovens open one last time.' }
+    // POTATOES AND CANS FROM BOTH GATES, AT 4TH (11-27, Griz on his Feast record: "Bench against lvl 4 lobstamonkees and try to get to where potatoes and cranberries come in
+    // together on both sides"; the lamp `lampSafe`, his "make it invul not remove lamp"; the cans close to 30 ft, data/foes.js `closes`). Benched at 4 (gsfeast1126, &auto, no
+    // chest items): two potatoes in one wave wiped 5 of 6 -- with a can at each gate 2 of 3, alone 3 of 3, even from full hit points -- so one potato a wave, its gate turned
+    // between waves, the cans at both: won 4 of 6, waves 1-3 at most one down, the finale the decider (the wins 0-1 down)
+    feast: { name: 'THE FEAST', lvl: 4, lampSafe: true, rests: ['short', 'short', 'long'], longLine: 'the night at the cots, and the lamp trimmed and filled again.', waves: [ // (lvl 3 on 11-26, the bench then: level 2 wiped twice, 3 won twice once by a hair, 4 and 5 won with none down -- with the lamp drawing blows and the cans at the pantry)
+      { west: ['cranberrycan', 'cranberrycan'], east: ['cranberrycan', 'cranberrycan'], card: 'Both gates bang open: cans of cranberry sauce waddle in from either side!' },
+      { west: ['cranberrycan', 'cranberrycan'], east: ['jacketbruiser', 'cranberrycan'], card: 'The ovens open: something baked climbs out with a can of sauce -- and the pantry sends two more.' },
+      { west: ['jacketbruiser', 'cranberrycan'], east: ['cranberrycan', 'cranberrycan'], card: 'Second helpings, from the other end of the table: potato and sauce by the pantry, more sauce by the ovens. Nobody asked for second helpings.' },
+      { stage: ['gallowsgobbler'], east: ['jacketbruiser'], boss: 'gallowsgobbler', card: 'THE GALLOWS GOBBLER. The gallows creak: this year\'s bird was never pardoned -- and the ovens open one last time.' }
     ] }
   };
   WV.special = function () { return GS.special && WV.SPECIALS[GS.special.key] || null; };
@@ -192,6 +196,9 @@
     var L = { id: 'lamp', name: 'the lamp', kind: 'object', object: true, spellProof: true, side: 'party', x: tw[0], y: tw[1], size: 1, hp: S.lampHP, maxhp: hp, ac: WV.CFG.lampAC, baseAC: WV.CFG.lampAC,
       threshold: 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {},
       speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
+    // (a special's `lampSafe`: the lamp is no one's mark and cannot be hurt -- js/ai.js heroesAll `bystander`, grid.js `noArea`, battle.js hurt `unhurt`; Griz 11-27 on THE FEAST,
+    // "remove the lamp as a target that distracts the monsters (make it invul not remove lamp)": his record had 15 of the cans' 45 shots at it)
+    var spL = WV.special && WV.special(); if (spL && spL.lampSafe) { L.bystander = true; L.noArea = true; L.unhurt = true; }
     B.units.push(L); S.lamp = L; G.setup(G.map, B.units);
     return L;
   }

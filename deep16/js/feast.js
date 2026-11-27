@@ -28,7 +28,7 @@
   if (!Battle || !TR || !E || !G || !RU) return;
   var F = D.feast = {};
   var FX = function () { return D.fx; };
-  ['sizeClass', 'gobble', 'spill', 'split'].forEach(function (k) { if (TR.FIELDS.indexOf(k) < 0) TR.FIELDS.push(k); });
+  ['sizeClass', 'gobble', 'spill', 'split', 'closes'].forEach(function (k) { if (TR.FIELDS.indexOf(k) < 0) TR.FIELDS.push(k); });
   function Nm(B, u) { return B.theOf ? B.theOf(u, true) : u.name; }
   function nm(B, u) { return u.side === 'foe' ? Nm(B, u) : u.name; }
   function clone(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }

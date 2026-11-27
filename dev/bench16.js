@@ -550,7 +550,7 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
   // A TAUNTED SHOOTER, 11-27 (mode=taunt1127; Griz, on play-records/deep16-play-record-2026-11-26-1802.json, THE FEAST: "review the fight records ... particularly denny taunt
   // vs cranberries" -- three cans taunted by Denny shot Rascal). A Cranberry Can on the class floor with two heroes in its 30 ft: 1 untaunted, it shoots the lower AC; 2 taunted by
   // the other, it shoots him (js/ai.js volley: at him when he is in its sight and range); 3 its taunter down, the pool stands; 4 its action spent on a Sauce Spill, it says no
-  // "has no clear shot" after (js/ai.js shooter)
+  // "has no clear shot" after (js/ai.js shooter); 5 no one in its 30 ft, it steps in before it shoots (`closes`, the cans only); 6 a bystander nothing hurts, as the lamp
   if (get('mode', '') === 'taunt1127') {
     var repTT = { checks: [], errors: [], notes: [] }, d0TT = D.d, stripTT = function (s) { return String(s || '').replace(/\{\/?[a-z]*\}/g, ''); }, GTT = D.grid;
     var okTT = function (what, v) { repTT.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
@@ -574,6 +574,13 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       okTT('2 taunted by the ' + ft.name + ': it shoots ' + (at(l2, ft) ? 'the ' + ft.name : at(l2, wz) ? 'THE ' + wz.name.toUpperCase() + ' PAST THE TAUNT' : 'NO ONE') + ' -- ' + l2.slice(0, 160), at(l2, ft) && !at(l2, wz));
       okTT('3 taunted, the ' + ft.name + ' down: the pool stands, it shoots ' + (at(l3, wz) ? 'the ' + wz.name : 'NOT THE ' + wz.name.toUpperCase()) + ' -- ' + l3.slice(0, 160), at(l3, wz));
       okTT('4 the two side by side, its spill ready: ' + (/SAUCE SPILL/.test(l4) ? 'it spills' : 'NO SPILL') + ', and ' + (/no clear shot/.test(l4) ? 'SAYS IT HAS NO CLEAR SHOT' : 'says nothing of a shot') + ' -- ' + l4.slice(0, 200), /SAUCE SPILL/.test(l4) && !/no clear shot/.test(l4));
+      // 5. (11-27, his "cans only") `closes`: none within its 30 ft -- the Wizard 50 ft off -- it steps in before it shoots (js/ai.js shooter; data/foes.js cranberrycan)
+      stage(false, false, 14, 8, 15, 11); var d5a = GTT.range(cn, wz), l5 = runTT(B1, cn), d5b = GTT.range(cn, wz);
+      okTT('5 the can (closes ' + cn.closes + ') with the ' + wz.name + ' ' + d5a + ' ft off and no one in its 30: it ends ' + d5b + ' ft from it and ' + (at(l5, wz) ? 'shoots it' : 'SHOOTS NOT IT') + ' -- ' + l5.slice(0, 160), cn.closes === true && d5a > 30 && d5b <= 30 && at(l5, wz));
+      // 6. (11-27, his "make it invul not remove lamp") a bystander that nothing hurts -- the Feast's lamp, js/waves.js lampSafe: never its mark, and a blow on it takes nothing
+      stage(false, false, 8, 8, 9, 10); wz.bystander = true; wz.unhurt = true; var l6 = runTT(B1, cn), hp6 = wz.hp; B1.hurt(wz, 12, 'fire'); var hp6b = wz.hp; delete wz.bystander; delete wz.unhurt;
+      var sp6 = D.gameshow && D.gameshow.wave && D.gameshow.wave.SPECIALS && D.gameshow.wave.SPECIALS.feast;
+      okTT('6 the ' + wz.name + ' a bystander nothing hurts (as the Feast\'s lamp, lampSafe ' + (sp6 && sp6.lampSafe) + '): it shoots ' + (at(l6, ft) ? 'the ' + ft.name : at(l6, wz) ? 'THE ' + wz.name.toUpperCase() : 'no one') + ', and 12 fire on it leaves ' + hp6b + ' of ' + hp6 + ' -- ' + l6.slice(0, 120), !!sp6 && sp6.lampSafe === true && at(l6, ft) && !at(l6, wz) && hp6b === hp6);
     } catch (eTT) { repTT.errors.push(String(eTT && eTT.stack || eTT).slice(0, 900)); }
     D.d = d0TT;
     var preTT = document.createElement('pre'); preTT.id = 'out'; preTT.textContent = 'BENCH16 ' + JSON.stringify(repTT);

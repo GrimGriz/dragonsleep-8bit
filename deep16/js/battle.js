@@ -3762,6 +3762,7 @@
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
+    if (u.unhurt) return; // (one nothing hurts: the Feast's lamp -- js/waves.js lampUp `lampSafe`, 11-27)
     if (D.traits && D.traits.absorbs && D.traits.absorbs(this, u, n, type)) return; // (Lightning Absorption, the shambling mound: it heals instead -- js/traits.js, 11-14)
     if (this.castBy != null && this.castLevel != null && D.magic.accountAnswer) D.magic.accountAnswer(this, u, n); // (Called to Account: a called foe's spell that harms another -- js/grimoire.js, 10-30)
     var wasStill = !u.woken && !u.acted; // (a disguise this wound ends -- its Reveal plays below, not at its turn: js/ai.js wasStill)

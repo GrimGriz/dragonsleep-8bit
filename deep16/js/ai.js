@@ -715,7 +715,8 @@
       var seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.range(u, w) <= atk.range[1]; });
       if (!seen.length) break;
       var tauntAt = u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, seen); // (taunted: at him when he is in its sight and range, else the pool stands -- js/mpmon.js; his record 11-26, THE FEAST: three cans taunted by Denny shot Rascal)
-      yield* B.attack(u, tauntAt || seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
+      var longOf = function (w) { return u.closes && atk.range && G.range(u, w) > atk.range[0] ? 1 : 0; }; // (one that closes shoots one in its normal range first: `closes`, the shooter below)
+      yield* B.attack(u, tauntAt || seen.sort(function (p, q) { return longOf(p) - longOf(q) || RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
       if (u.dead || u.hp <= 0) break;
     }
     return true;
@@ -739,7 +740,9 @@
       return;
     }
     // (a shooter with eyes for the dark that a mark can see looks for a square where none of them sees it -- the SRD's unseen attacker: js/aidark.js AD.perch, 11-13)
-    if (G.foesNear(u, u.x, u.y, 5).length || !visibleFrom(u, u.x, u.y, hs).length || (D.aidark && D.aidark.wantsPerch(B, u, hs))) {
+    // (`closes` on its block: none it sees within its weapon's normal range, it steps in toward it before it shoots -- the Cranberry Can, 30/90: his Feast record of 11-26 had all
+    // 45 of its shots from 35 to 90 ft at disadvantage; Griz 11-27, "cans only")
+    if (G.foesNear(u, u.x, u.y, 5).length || !visibleFrom(u, u.x, u.y, hs).length || (D.aidark && D.aidark.wantsPerch(B, u, hs)) || (u.closes && !visibleFrom(u, u.x, u.y, hs).some(function (w) { return G.range(u, w) <= far; }))) {
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand) return;
