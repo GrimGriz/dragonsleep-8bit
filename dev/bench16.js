@@ -35954,7 +35954,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       repFS.frames = fF;
       var SE = GSF.run;
       repFS.checks.push((SE && SE.special === 'feast' && SE.tier === repFS.lvl ? 'ok   ' : 'FAIL ') + 'the run is THE FEAST at level ' + (SE && SE.tier) + ' (want ' + repFS.lvl + ')');
-      repFS.checks.push((Object.keys(sidesFS).sort().join() === 'east:jacketbruiser,stage:gallowsgobbler,west:cranberrycan' || !repFS.end || repFS.end.how !== 'won' ? 'ok   ' : 'FAIL ') + 'the foes came in by the Bowl\'s ways: ' + Object.keys(sidesFS).sort().join(', '));
+      // (11-27, the gate-holes review: since 6ced9497 a potato and cans come at each gate in turn, and this still wanted the cans west and the potatoes east alone -- it failed,
+      // and no gate ran the mode to say so. A run that was not won passed whatever came: now nothing may come by a way that is not the Bowl's, won or lost, and a won run saw all five.)
+      var waysFS = ['east:cranberrycan', 'east:jacketbruiser', 'stage:gallowsgobbler', 'west:cranberrycan', 'west:jacketbruiser'], cameFS = Object.keys(sidesFS).sort();
+      repFS.checks.push((cameFS.every(function (k) { return waysFS.indexOf(k) >= 0; }) && (cameFS.join() === waysFS.join() || !repFS.end || repFS.end.how !== 'won') ? 'ok   ' : 'FAIL ') + 'the foes came in by the Bowl\'s ways: ' + Object.keys(sidesFS).sort().join(', '));
       repFS.checks.push((repFS.end ? 'ok   ' : 'FAIL ') + 'the run ended (' + (repFS.end ? repFS.end.how + ' at wave ' + repFS.end.wave + ', ' + repFS.end.held + ' held' : 'NOT in ' + fF + ' frames') + ')');
     } catch (eFS) { repFS.errors.push(String(eFS && eFS.stack || eFS).slice(0, 900)); }
     D.store.get = stGFS; D.store.set = stSFS;
