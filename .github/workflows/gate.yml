@@ -13,7 +13,7 @@ on:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45 # (30 till 2026-11-27: runs took 21 to 26 minutes and 100be857's was cut off at 30; Griz: "changing to 45 is fine this turn")
+    timeout-minutes: 75 # (30 till 2026-11-27: runs took 21 to 26 minutes and 100be857's was cut off at 30; Griz: "changing to 45 is fine this turn"; 75 the same night, the desk's, with the checks capped at two at once below: half as many at a time may take near twice as long)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,4 +39,7 @@ jobs:
       - name: python dev/check.py all
         env:
           DEEP16_BROWSER_ARGS: --no-sandbox
+          # (two checks at once here, four at the desk: 2026-11-27, Griz, "assume you're right and cap how many checks run at once on github" -- two runs were
+          # killed with exit 143 a few minutes in, no check answered; dev/check.py reads it)
+          DEEP16_GATE_JOBS: '2'
         run: python dev/check.py all
