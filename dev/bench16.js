@@ -547,6 +547,31 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preRC);
     return;
   }
+  // VIVIAN'S SHORTBOW, 11-27 (mode=bow1127; Griz: "see if you can get her bow stuff cut ... and wired and on main before the live"; the art desk's VIVIAN-SHORTBOW, cut by
+  // tools/vivian-sheet.py into vivian_p2 and vivian_p3). 1 both sheets carry `shortbow`, 6 frames at 12 fps, the arrow off on drawing 4; 2 a Shortbow shot plays it (the
+  // blow's name is its row: js/battle.js attack) and waits the 15 ticks to its release; 3 the candle-knife still plays `attack`; 4 the same in Studded Leather (vivian_p3)
+  if (get('mode', '') === 'bow1127') {
+    var repBW = { checks: [], errors: [], notes: [] };
+    var okBW = function (what, v) { repBW.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    try {
+      var rowsBW = ['vivian_p2', 'vivian_p3'].map(function (s) { return D.spr.anim(s, 'shortbow'); });
+      okBW('1 vivian_p2 and vivian_p3 carry `shortbow`: ' + rowsBW.map(function (a) { return a ? a.frames + ' frames, ' + a.fps + ' fps, release ' + a.release : 'NONE'; }).join(' | '),
+        rowsBW.every(function (a) { return !!a && a.frames === 6 && a.fps === 12 && a.release === 3; }));
+      var BBW = D.npcFight('?npc=goblin,goblin&vs=barley,vivian&lvl=3', {}); D.battle = BBW; BBW.enter(); var kBW = 0; while (!BBW.order.length && kBW++ < 400) BBW.co.next(); BBW.dark = false;
+      var vBW = BBW.units.filter(function (u) { return /vivian/i.test(u.name); })[0], gBW = BBW.units.filter(function (u) { return u.side === 'foe'; })[0];
+      var bowBW = { name: 'Shortbow', atk: 5, dice: '1d6', mod: 3, type: 'piercing', ranged: true, range: [80, 320], kind: 'shortbow', fx: 'bolt' };
+      var shotBW = function () { vBW.anim = 'idle'; vBW.turn = {}; var it = BBW.attack(vBW, gBW, bowBW, {}), r = it.next(); return { anim: vBW.anim, wait: r.value }; };
+      var s2 = shotBW();
+      okBW('2 her Shortbow on ' + vBW.sheet + ' plays `' + s2.anim + '`, the arrow off after ' + s2.wait + ' ticks (want shortbow, 15)', vBW.sheet === 'vivian_p2' && s2.anim === 'shortbow' && s2.wait === 15);
+      vBW.anim = 'idle'; vBW.turn = {}; var itK = BBW.attack(vBW, gBW, vBW.weapon, {}); itK.next();
+      okBW('3 her ' + vBW.weapon.name + ' plays `' + vBW.anim + '` (want attack)', vBW.anim === 'attack');
+      vBW.sheet = 'vivian_p3'; var s4 = shotBW();
+      okBW('4 in Studded Leather (vivian_p3) the Shortbow plays `' + s4.anim + '`, off after ' + s4.wait + ' ticks', s4.anim === 'shortbow' && s4.wait === 15);
+    } catch (eBW) { repBW.errors.push(String(eBW && eBW.stack || eBW).slice(0, 900)); }
+    var preBW = document.createElement('pre'); preBW.id = 'out'; preBW.textContent = 'BENCH16 ' + JSON.stringify(repBW);
+    document.body.appendChild(preBW);
+    return;
+  }
   // NO TWO ROWS OF A SHELF READ THE SAME, 11-27 (mode=shelf1127; Griz, on three rows of the humanoid shelf all reading "Gnoll (Longbow)": "Good to fix the duplicate shop
   // labels, though I think the gnolls vary by clan (grey keeping, etc) and should be in the shop in case DM wants matching colors"; and "also remove combat children and
   // disguised as goblin children from purchaseable units"). 1 every shelf's rows read differently (js/pocketdm.js PD.shelfLabels); 2 the gnolls by clan and by sex, the

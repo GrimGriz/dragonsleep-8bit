@@ -51,6 +51,16 @@
    "ay": 61,
    "frames": 3,
    "fps": 2
+  },
+  "shortbow": {
+   "y": 2560,
+   "fw": 62,
+   "fh": 64,
+   "ax": 31,
+   "ay": 61,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
   }
  },
  "name": "Vivian",

@@ -37597,7 +37597,7 @@ true
 }
 },
 "vivian_p2": {
-"image": "art/vivian_p2.png?v=bf51caad96",
+"image": "art/vivian_p2.png?v=9e97086baf",
 "fw": 32,
 "fh": 64,
 "ax": 16,
@@ -37649,6 +37649,16 @@ true
 "ay": 61,
 "frames": 3,
 "fps": 2
+},
+"shortbow": {
+"y": 2560,
+"fw": 60,
+"fh": 64,
+"ax": 30,
+"ay": 61,
+"frames": 6,
+"fps": 12,
+"release": 3
 }
 },
 "name": "Vivian",
@@ -37659,7 +37669,7 @@ true
 "source": "drawn by the art desk (VIVIAN-ORIGINAL-OUTFIT-COMBAT-BATCH-A, 11-05, all five views -- it consolidates the 11-04 SE checkpoint, kept in _src/vivian/COMBAT-A-1104 -- and ART-MC-VIVIAN-COMBAT batch B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; SW W NW mirrored; worn in leather (js/save.js SV.LOOK.vivian.armor)"
 },
 "vivian_p3": {
-"image": "art/vivian_p3.png?v=8d956bc8cc",
+"image": "art/vivian_p3.png?v=a90aa7557c",
 "fw": 40,
 "fh": 64,
 "ax": 20,
@@ -37711,6 +37721,16 @@ true
 "ay": 61,
 "frames": 3,
 "fps": 2
+},
+"shortbow": {
+"y": 2560,
+"fw": 62,
+"fh": 64,
+"ax": 31,
+"ay": 61,
+"frames": 6,
+"fps": 12,
+"release": 3
 }
 },
 "name": "Vivian",

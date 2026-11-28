@@ -45,13 +45,20 @@ RELEASE = {'attack': 3}                    # (the blow lands on frame 4, zero-ba
 BG_TOL, HOLE = 30, 400
 AVOID = None
 LOOKS = {
-    'vivian_p2': dict(batches=('ORIGINAL-COMBAT-A-1105', 'COMBAT-B-1104'), name='Vivian',
+    'vivian_p2': dict(batches=('ORIGINAL-COMBAT-A-1105', 'COMBAT-B-1104', 'SHORTBOW-1126'), name='Vivian',
+                      rows=ROWS + [('shortbow', 12, 6)], release={'attack': 3, 'shortbow': 3},
+                      # shortbow (11-26): pages with no idle; each view's page scaled so its drawing 1 (bow low, arms down: nothing above the crown, nothing below the soles --
+                      # measured; the bow tips and the arrow rise over the head in 2-4) stands as tall as the view's idle 0 -- (row, frame, own frame)
+                      match={'shortbow': ('idle', 0, 0)},
+                      bootpivot=('shortbow',),
+                      thin={'shortbow': (0.12, 0.55)},   # (the bowstring and the arrow's shaft are 2-4 source px: kept as pale pixels, see to1x)
                       hold=['walk: the contacts still alike in some views, the lead boot repeating in S (the art desk\'s own notes; the fix asked, attempt 1 of 2)',
                             'S and N attack: check the blade reads toward the target at game size (the art desk\'s own note)'],
                       source='drawn by the art desk (VIVIAN-ORIGINAL-OUTFIT-COMBAT-BATCH-A, 11-05, all five views -- it consolidates the 11-04 SE checkpoint, kept in '
                              '_src/vivian/COMBAT-A-1104 -- and ART-MC-VIVIAN-COMBAT batch B, 11-04: her art-wanted section 37 identity), cut by tools/vivian-sheet.py; '
                              'SW W NW mirrored; worn in leather (js/save.js SV.LOOK.vivian.armor)'),
-    'vivian_p3': dict(batches=('3B-COMBAT-A-1105', '3B-COMBAT-B-1105'), name='Vivian',
+    'vivian_p3': dict(batches=('3B-COMBAT-A-1105', '3B-COMBAT-B-1105', 'SHORTBOW-1126'), name='Vivian',
+                      rows=ROWS + [('shortbow', 12, 6)], release={'attack': 3, 'shortbow': 3}, match={'shortbow': ('idle', 0, 0)}, thin={'shortbow': (0.12, 0.55)}, bootpivot=('shortbow',),   # (as vivian_p2's)
                       hold=['walk: the contacts are the art desk\'s candidates, the lead boot repeating in SE and S (its own note)',
                             'S and N attack: the blade sweeps across the screen at the contact; check it reads toward the target (its own note)',
                             'N and the back views: a studded panel at the lower back the outfit page does not show (its own note)'],
@@ -81,9 +88,12 @@ def windows(look):
     out = []
     for batch in LOOKS[look]['batches']:
         for r in csv.DictReader(open(os.path.join(SRC, batch, 'FRAME-MAP.csv'), encoding='utf-8-sig')):
+            if r.get('cutter_target') not in (None, '') and r['cutter_target'] != look:   # (SHORTBOW-1126: one CSV holds both looks, told apart by `cutter_target`)
+                continue
             box = tuple(int(col(r, *n)) for n in (('x0', 'left'), ('y0', 'top'), ('x1_exclusive', 'right_exclusive', 'x1'), ('y1_exclusive', 'bottom_exclusive', 'y1')))
             ri = r.get('runtime_index_0_based') or r.get('runtime_index')
-            out.append((batch, r['view'], col(r, 'row', 'action'), int(ri) if ri not in (None, '') else int(r['frame_1_based']) - 1, r['file'], box))   # (no runtime index: the one-based frame less one)
+            out.append((batch, col(r, 'view', 'facing'), col(r, 'row', 'action'), int(ri) if ri not in (None, '') else int(r['frame_1_based']) - 1,
+                        col(r, 'file', 'source'), box))   # (`facing` and `source` -- 'SOURCE/<page>.png' under the batch -- are the 11-26 spellings)   # (no runtime index: the one-based frame less one)
     return out
 
 
@@ -106,7 +116,9 @@ def figure(a, trim=False, box=None, tol=None):
     return np.isin(fl, keep)
 
 
-def to1x(rgb, mask, k, avoid=None):
+def to1x(rgb, mask, k, avoid=None, thin=None):
+    """`thin` (amin, cmin): a block the figure covers less than half but at least `amin`, whose figure colour is pale (every channel of 0..1 at least `cmin`), is kept
+    as a pixel of that colour, drawn after the outline -- a bowstring two source px wide is a third of a pixel at 1x, and the 0.5 cut loses it (shortbow, 11-26)"""
     h, w = mask.shape; nw, nh = max(1, round(w * k)), max(1, round(h * k))
     al = np.asarray(Image.fromarray((mask * 255).astype(np.uint8)).resize((nw, nh), Image.BOX)).astype(np.float32) / 255
     pm = rgb.astype(np.float32) * mask[..., None]
@@ -115,9 +127,13 @@ def to1x(rgb, mask, k, avoid=None):
     solid = al >= 0.5
     o = np.zeros((nh + 2, nw + 2, 4), np.uint8)
     s2 = np.zeros((nh + 2, nw + 2), bool); s2[1:-1, 1:-1] = solid
-    o[1:-1, 1:-1][solid, :3] = pix.snap(c, avoid if avoid is not None else AVOID)[solid]; o[s2, 3] = 255
+    sn = pix.snap(c, avoid if avoid is not None else AVOID)
+    o[1:-1, 1:-1][solid, :3] = sn[solid]; o[s2, 3] = 255
     e = np.zeros_like(s2); e[1:, :] |= s2[:-1, :]; e[:-1, :] |= s2[1:, :]; e[:, 1:] |= s2[:, :-1]; e[:, :-1] |= s2[:, 1:]
     o[e & ~s2, :3] = OUTL; o[e & ~s2, 3] = 255
+    if thin:
+        th = (al >= thin[0]) & ~solid & (c.min(-1) >= thin[1])
+        o[1:-1, 1:-1][th, :3] = sn[th]; o[1:-1, 1:-1][th, 3] = 255
     return o
 
 
@@ -209,14 +225,23 @@ def cut(look):
     for c, (rgb, m) in crops.items():
         if RS is not None:
             rgb = RS.reskin(np.clip(rgb, 0, 255).astype(np.uint8), m, **L['reskin']).astype(np.float32)
-        o = (to1x_mode if L.get('down') == 'mode' else to1x)(rgb, m, scale[pageof[c]], L.get('avoid'))
+        o = (to1x_mode if L.get('down') == 'mode' else to1x)(rgb, m, scale[pageof[c]], L.get('avoid'), *([L['thin'][c[1]]] if c[1] in L.get('thin', {}) and L.get('down') != 'mode' else []))
         al = o[..., 3] > 0; ys = np.where(al.any(1))[0]
         if (c[1], c[2]) in L.get('ground', GROUND):   # (`ground`: a look's own lying frames -- katarina_p2's fall and prone)
             cx = ndimage.center_of_mass(al)[1]
+        elif c[1] in L.get('bootpivot', ()):   # (`bootpivot`: rows centred by the middle of the boots, the lowest 6 rows' extent, not the torso -- the shortbow's bow held out to
+            bx = np.where(al[ys[-1] - 5:ys[-1] + 1].any(0))[0]   #  one side; the offset the view's idle 0 has between its boots' middle and its torso's is kept, below)
+            cx = (bx.min() + bx.max()) / 2.0
         else:
             top = al.copy(); top[ys[0] + int((ys[-1] - ys[0]) * 0.55):] = False
             cx = ndimage.center_of_mass(top)[1]
         cells[c] = (o, cx, int(round(gnd[c] * scale[pageof[c]])) + 1 if c in gnd else ys[-1])   # (the ground line in the 1x frame's rows: to1x's one-pixel outline above)
+    def bootmid(o):
+        a_ = o[..., 3] > 0; r_ = np.where(a_.any(1))[0][-1]; b_ = np.where(a_[r_ - 5:r_ + 1].any(0))[0]
+        return (b_.min() + b_.max()) / 2.0
+    for c in [c for c in cells if c[1] in L.get('bootpivot', ())]:   # (a `bootpivot` row's cx is its boots' middle less its view's idle 0's boots-to-torso offset: her feet stand
+        io, icx, _ = cells[(c[0], 'idle', 0)]                       #  where the idle's do -- planted through the row, no hop at the change of animation)
+        o, cx, foot = cells[c]; cells[c] = (o, cx - (bootmid(io) - icx), foot)
     for mf, src in MIRROR.items():
         for (f, row, i) in [c for c in list(cells) if c[0] == src]:
             o, cx, foot = cells[(f, row, i)]
