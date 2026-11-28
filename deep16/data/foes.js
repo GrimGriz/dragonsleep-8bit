@@ -1701,21 +1701,23 @@ window.D16.FOES.stonegiantm = Object.assign({}, window.D16.FOES.stonegiant, { sh
 // The Snoot mode's Gray Keeping units send them to the grid (snoot-mode/js/data.js GRAYBAND). `seatAs`: a fight's spots for the blue one seat them
 // (js/battle.js roster); the kind names start as theirs do, so whatever knows a gnoll by its kind knows these (grimoire.js M.gnoll). Off the DM's
 // shelves, one of each there (js/pocketdm.js PD.OUT).
-window.D16.FOES.gnollgray = Object.assign({}, window.D16.FOES.gnoll, { sheet: 'graykeeping_p2', seatAs: 'gnoll',
+// (ON the shelves again since 11-27, Griz: "I think the gnolls vary by clan (grey keeping, etc) and should be in the shop in case DM wants matching colors" -- each
+// told apart there by its `shelfTag`, js/pocketdm.js PD.shelfLabels; the matriarchs stay off)
+window.D16.FOES.gnollgray = Object.assign({}, window.D16.FOES.gnoll, { sheet: 'graykeeping_p2', seatAs: 'gnoll', shelfTag: 'Gray Keeping',
   src: window.D16.FOES.gnoll.src + '; the look of the Gray Keeping (graykeeping_p2, 10-15): the same block' });
 // THE WOMEN OF THE BANDS (11-15, Griz to the clock seat: "stat wise we need to add stronger female gnolls included in their group (save the harbingers)"; to the
 // Snoot seat: "some of the gnolls in the groups will have better stats (female) without different graphics", "one for every 6 males"): the gnoll's own sheet and
 // name, a heavier body (wiki/gnoll-hills.md: "females larger and fiercer"). The numbers are the seat's, RULED 11-15 (his "all are good"): Str 16 and Con 14 where the gnoll has
 // 14 and 11, 5d8+10 (32) hit points for its 22, +5 to hit and +3 damage for +4 and +2; all else the SRD gnoll's. Sent to the grid by the Snoot's bands
-// (snoot-mode/js/map.js forces: gnollfemale, gnollgrayfemale); not on the DM's shelves.
+// (snoot-mode/js/map.js forces: gnollfemale, gnollgrayfemale); on the DM's shelves as "Gnoll (woman)" and "Gnoll (Gray Keeping, woman)" (11-27: they had stood there unnamed, three rows reading "Gnoll (Longbow)").
 (function () {
   var g = window.D16.FOES.gnoll, at = {};
   Object.keys(g.attacks).forEach(function (k) { at[k] = Object.assign({}, g.attacks[k], { atk: g.attacks[k].atk + 1, mod: g.attacks[k].mod + 1 }); });
-  window.D16.FOES.gnollfemale = Object.assign({}, g, { cr: '1', hp: 32, seatAs: 'gnoll', abil: Object.assign({}, g.abil, { str: 16, con: 14 }), saves: Object.assign({}, g.saves, { str: 3, con: 2 }), attacks: at,
+  window.D16.FOES.gnollfemale = Object.assign({}, g, { cr: '1', hp: 32, seatAs: 'gnoll', shelfTag: 'woman', abil: Object.assign({}, g.abil, { str: 16, con: 14 }), saves: Object.assign({}, g.saves, { str: 3, con: 2 }), attacks: at,
     src: g.src + '; a woman of the band (11-15, his "stronger female gnolls"): Str 16, Con 14, 32 hp, +5 to hit and +3 damage -- ours, not the SRD' });
-  window.D16.FOES.gnollgrayfemale = Object.assign({}, window.D16.FOES.gnollfemale, { sheet: 'graykeeping_p2' });
+  window.D16.FOES.gnollgrayfemale = Object.assign({}, window.D16.FOES.gnollfemale, { sheet: 'graykeeping_p2', shelfTag: 'Gray Keeping, woman' });
 })();
-window.D16.FOES.gloryseekergray = Object.assign({}, window.D16.FOES.gloryseeker, { sheet: 'graykeeping_p2', seatAs: 'gloryseeker',
+window.D16.FOES.gloryseekergray = Object.assign({}, window.D16.FOES.gloryseeker, { sheet: 'graykeeping_p2', seatAs: 'gloryseeker', shelfTag: 'Gray Keeping',
   src: window.D16.FOES.gloryseeker.src + '; the young blood of the Gray Keeping (graykeeping_p2, 10-15: at the size of a gnoll, one gray sheet for both): the same block' });
 // the Gray Keeping's matriarch-clerics (10-16, Griz: "let's give one group a superhero matriarch and the other hero ... Give the superhero entangle?"; then
 // "all 8 leans are go"): the Snoot's death-watch on the moot ground and the tribe's band (snoot-mode/js/data.js gkw, gk2) send them to the grid. The
@@ -1787,7 +1789,7 @@ window.D16.FOES.commoner = {
   multi: 1,
   src: 'SRD 5.1 Commoner (CR 0, Medium humanoid; AC 10, 4 HP, speed 30): its Club +2, 1d4 bludgeoning. Drawn unarmed and running (the art desk\'s townsfolk, idle and run only): a club swung plays its idle'
 };
-window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sheet: 'folkwoman_p1',
+window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sheet: 'folkwoman_p1', shelfTag: 'woman', // (shelfTag: its row on the Pocket DM's shelf, js/pocketdm.js PD.shelfLabels -- 11-27)
   src: window.D16.FOES.commoner.src + '; the woman\'s look (folkwoman_p1, 10-27): the same block' });
 // KEEN SENSES (RULED 11-07, Griz: "they bothered to put it in text, should be reflected in their perception stat or something - compare theirs to other monsters"; js/rules.js
 // RU.keen): every sheet here whose SRD 5.1 block has a Keen trait, the senses it names -- hearing and smell find a hider, sight only where it sees one. The winter wolf's

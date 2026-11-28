@@ -547,6 +547,30 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preRC);
     return;
   }
+  // NO TWO ROWS OF A SHELF READ THE SAME, 11-27 (mode=shelf1127; Griz, on three rows of the humanoid shelf all reading "Gnoll (Longbow)": "Good to fix the duplicate shop
+  // labels, though I think the gnolls vary by clan (grey keeping, etc) and should be in the shop in case DM wants matching colors"; and "also remove combat children and
+  // disguised as goblin children from purchaseable units"). 1 every shelf's rows read differently (js/pocketdm.js PD.shelfLabels); 2 the gnolls by clan and by sex, the
+  // Gray Keeping's glory-seeker, the commoners; 3 the plain goblin plain again (the glamour's goblin had made it "Goblin (Shortbow)") and the two troopers apart; 4 the children and the glamour's goblin off every shelf
+  if (get('mode', '') === 'shelf1127') {
+    var repSH = { checks: [], errors: [], notes: [] };
+    var okSH = function (what, v) { repSH.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    try {
+      var PDs = D.pocketdm, allSH = {}, dupSH = [], onSH = {};
+      PDs.SHOPS.forEach(function (sh) {
+        var ls = PDs.shelf(sh, 'cheap'), lb = PDs.shelfLabels(ls), seen = {};
+        ls.forEach(function (k) { onSH[k] = 1; allSH[k] = lb[k]; if (seen[lb[k]]) dupSH.push(sh.id + ': ' + lb[k] + ' (' + seen[lb[k]] + ', ' + k + ')'); else seen[lb[k]] = k; });
+      });
+      okSH('1 no two rows of a shelf read the same' + (dupSH.length ? ' -- ' + dupSH.join('; ') : ' (' + Object.keys(allSH).length + ' rows)'), !dupSH.length);
+      okSH('2 the gnolls: ' + ['gnoll', 'gnollgray', 'gnollfemale', 'gnollgrayfemale', 'gloryseeker', 'gloryseekergray', 'commoner', 'commonerwoman'].map(function (k) { return allSH[k]; }).join(' | '),
+        allSH.gnoll === 'Gnoll' && allSH.gnollgray === 'Gnoll (Gray Keeping)' && allSH.gnollfemale === 'Gnoll (woman)' && allSH.gnollgrayfemale === 'Gnoll (Gray Keeping, woman)' &&
+        allSH.gloryseeker === 'Glory-Seeker' && allSH.gloryseekergray === 'Glory-Seeker (Gray Keeping)' && allSH.commoner === 'Commoner' && allSH.commonerwoman === 'Commoner (woman)');
+      okSH('3 as before: ' + [allSH.goblin, allSH.trooper, allSH.trooperxbow].join(' | '), allSH.goblin === 'Goblin' && !!allSH.trooper && !!allSH.trooperxbow && allSH.trooper !== allSH.trooperxbow);
+      okSH('4 off every shelf: the two children, the glamour\'s goblin, the matriarchs', ['commonerchild', 'keptchild', 'glamourgoblin', 'gnollmatriarch', 'gnollmatriarchguard'].every(function (k) { return !onSH[k] && !!D.FOES[k]; }));
+    } catch (eSH) { repSH.errors.push(String(eSH && eSH.stack || eSH).slice(0, 900)); }
+    var preSH = document.createElement('pre'); preSH.id = 'out'; preSH.textContent = 'BENCH16 ' + JSON.stringify(repSH);
+    document.body.appendChild(preSH);
+    return;
+  }
   // TWO SPLITS BY ONE NAME, 11-27 (mode=split1127; Griz: "it split like an ooze or a jelly or something, from a big tato into two medium sized ones"): the black pudding's
   // Split (js/battle.js hurt, the block's `split: true`) and the Jacket Bruiser's Split Jacket (js/feast.js, its `split` the mash's block) read the one field. 1 a slashing
   // blow on the baked bruiser leaves one bruiser; 2 the pudding still splits on slashing; 3 the pudding at 0 falls, no Split Jacket; 4 the ochre jelly the same; 5 the

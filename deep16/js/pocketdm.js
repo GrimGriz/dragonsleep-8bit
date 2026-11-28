@@ -103,7 +103,10 @@
   ];
   var TYPED = ['beast', 'monstrosity', 'humanoid', 'giant'];
   // (talmok, 11-19: the pit's sheet is the Hex's alone; the shelf's one Talmok is talmokroad, the greataxe -- Griz, "he'd be axe-wielding in pocket DM fights (if preventing doubles means one version)")
-  PD.OUT = ['keeperold', 'talmok', 'stonegiantm', 'gnollgray', 'gloryseekergray', 'gnollmatriarch', 'gnollmatriarchguard', 'werewolfpriest']; // (the werewolf as the priest, 11-14: the same block before its shift -- a story fight's, and the road's stay hybrid; the ladder's old Keeper; the stone giant's second look and the Gray Keeping's gnolls and matriarchs, the same blocks -- one of each on the shelf)
+  // (11-27, Griz: "I think the gnolls vary by clan (grey keeping, etc) and should be in the shop in case DM wants matching colors" -- the Gray Keeping's gnoll and
+  // glory-seeker back on the shelf, each row told apart by its `shelfTag`, data/foes.js; and "also remove combat children and disguised as goblin children from
+  // purchaseable units" -- the two children and the glamour's goblin off it)
+  PD.OUT = ['keeperold', 'talmok', 'stonegiantm', 'gnollmatriarch', 'gnollmatriarchguard', 'werewolfpriest', 'commonerchild', 'keptchild', 'glamourgoblin']; // (the werewolf as the priest, 11-14: the same block before its shift -- a story fight's, and the road's stay hybrid; the ladder's old Keeper; the stone giant's second look and the Gray Keeping's gnolls and matriarchs, the same blocks -- one of each on the shelf)
   PD.shelf = function (shop, sort) {
     var out = Object.keys(D.FOES).filter(function (k) {
       var f = D.FOES[k]; if (!f || /^fam_/.test(k) || f.object || PD.OUT.indexOf(k) >= 0) return false; // (CR 0 on the shelves since his 10-09, at 10 sp: a hyena in a unit)
@@ -505,7 +508,18 @@
   }
   function panel(ctx, x, y, w, h) { ctx.fillStyle = 'rgba(14,12,24,.84)'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); }
   function crOf(kind) { return String((PK.foe(kind) || {}).cr || '?'); }
-  function nameOf(kind) { return (PK.foe(kind) || {}).name || kind; }
+  function nameOf(kind) { var f = PK.foe(kind) || {}; return (f.name || kind) + (f.shelfTag ? ' (' + f.shelfTag + ')' : ''); } // (a receipt reads as its shelf row does: 11-27)
+  // A SHELF ROW'S NAME (11-27, Griz, on three rows all reading "Gnoll (Longbow)": "Good to fix the duplicate shop labels"): a kind with a `shelfTag` (data/foes.js: a
+  // clan's look, a woman of the band) reads "Name (tag)"; two untagged kinds of one name are told apart by their last blow, as before (the trooper and the crossbow)
+  PD.shelfLabels = function (list) {
+    var n = {}, out = {};
+    list.forEach(function (k) { var f = D.FOES[k]; if (!f.shelfTag) n[f.name] = (n[f.name] || 0) + 1; });
+    list.forEach(function (k) {
+      var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks).slice(-1)[0]]; // (its LAST blow: both troopers' first is the spear -- 11-12)
+      out[k] = f.shelfTag ? f.name + ' (' + f.shelfTag + ')' : n[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name;
+    });
+    return out;
+  };
   function cut(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 1 && D.textWidth(s + '..') > w) s = s.slice(0, -1); return s + '..'; }
   function clsOf(c) { return c && DS.R.CLASSES[c] ? DS.R.CLASSES[c].name : ''; }
   PD.shopById = function (id) { return PD.SHOPS.filter(function (s) { return s.id === id; })[0] || null; };
@@ -711,8 +725,7 @@
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     var have = {}; cp.bought.forEach(function (r) { have[r.kind] = (have[r.kind] || 0) + 1; }); cp.units.forEach(function (u) { PD.unitKinds(u).forEach(function (k) { have[k] = (have[k] || 0) + 1; }); });
     // two kinds of one name on a shelf (the trooper and the trooper with the crossbow) are told apart by their first blow
-    var nmN = {}; list.forEach(function (k) { var n = D.FOES[k].name; nmN[n] = (nmN[n] || 0) + 1; });
-    var label = function (k) { var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks).slice(-1)[0]] /* (its LAST blow: both troopers' first is the spear, and both rows read "Trooper (Spear)" -- 11-12) */; return nmN[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
+    var labels = PD.shelfLabels(list), label = function (k) { return labels[k]; }; // (a tagged kind by its tag: PD.shelfLabels, 11-27)
     // (the columns closer since 11-05: the picked creature's card stands on the right, past 290)
     D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}creature{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 236, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 258, 34, P('stone', 5));
     var b0 = this.btns.length, prow = [], pw = PD.picked(this, pkey);
@@ -724,7 +737,7 @@
         else { D.sfx('error'); self.say(r.why, 300); }
       }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a fight of yours pays twice its CR' });
       self.btn(ctx, '', 108, yy, 182, 13, function () { PD.setPick(self, pkey, k); }, { ghost: true, on: pw === k }); // (the row itself: the pick -- its BUY beside it still buys)
-      D.text(ctx, cut(label(k), 118), 112, yy + 3, pw === k ? P('gold', 4) : P('bone', 1));
+      D.text(ctx, cut(label(k), 122), 112, yy + 3, pw === k ? P('gold', 4) : P('bone', 1));
       D.text(ctx, crOf(k), 236, yy + 3, P('gold', 4));
       if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 262, yy + 3, P('moss', 2));
       if (f.bound) D.text(ctx, '{g}~{/}', 280, yy + 3, P('stone', 5)); // (water-bound: its card says "Keeps to the water")
