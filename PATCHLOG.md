@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-27
 
+- 2026-11-27 · `14494471` · the second game's house · The quick gate picks its own modes: `ALL_MODES`' names dated in the last seven days and `show` -- 49 modes and 135 s, where the hand-kept list had 339 of 375 and took 495 s; a new bench goes in `ALL_MODES` alone · *"yeah, let's see if we can do that and we'll watch if issues arrive during next week's usage"*
+- 2026-11-27 · `14494471` · the second game's house · The gate's holes: a mode that answers with no checks is RED (a misspelled name read GREEN); `gsfeast1126`, `merrick1116` and `glowseep1115` in the full gate; the Feast's stale ways check mended · *"fix what you found"*
 - 2026-11-27 · shipped · main:live at `2eeda1c2` -- the wall caller fix (`83b4075c`) and the gate's changes · *"Yes, ship it"*
 - 2026-11-27 · `457a050f` · the second game's house · The gate starts its ten slowest modes first (`inn1104` had sat 184th of 375): the full gate 658 s against 754, `inn1104` done at 310 s and no longer the long pole -- the modes' own total is (602 s) · *"can you 3 today?"*
 - 2026-11-27 · `3072c053` · the second game's house · GitHub's full gate may run 45 minutes (was 30; one run was cut off), and the gate prints its ten slowest checks -- the first: `inn1104` 346 s, `walkpoison1113` 207 s, `walkbarn1113` 179 s · *"what's the longest process we're asking from it - changing to 45 is fine this turn"*
