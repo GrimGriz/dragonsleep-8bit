@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-11-27
 
+- 2026-11-27 · `d9a1da18` · the menus · A hero's face in the M menu is fetched at once: it had waited behind every image load already out, so a hero who had not yet spoken (Vivian) had an empty slot · *"she showed on 'm' after i went in a shop, and again on the town map when I hit 'm' after"*
 - 2026-11-27 · `d4fc52b5` · the Pocket DM and the races · No two rows of a shelf read the same: a kind's `shelfTag` names its row ("Gnoll (woman)", "Commoner (woman)"), and the Gray Keeping's gnoll and glory-seeker are back on the shelf by their clan; bench `shelf1127` · *"Good to fix the duplicate shop labels, though I think the gnolls vary by clan (grey keeping, etc) and should be in the shop in case DM wants matching colors"*
 - 2026-11-27 · `d4fc52b5` · the Pocket DM and the races · The two children and the glamour's goblin are off the Pocket DM's shelves · *"also remove combat children and disguised as goblin children from purchaseable units"*
 - 2026-11-27 · ruled · the Pocket DM and the races · THE CAMPAIGN SIDE'S REWORK drafted and ruled piece by piece (`cloud-notes/pocket-dm-campaign-rework-plan-2026-11-27.md`): a roll laid by W, YOUR BINDINGS and UNBOUND, a shop trip as the unit, the card at 1x, the book and the GM on the map; to build, no seat till he says · *"all this is good regardless of the rest decided tonight"*
