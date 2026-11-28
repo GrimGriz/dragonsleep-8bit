@@ -1,37 +1,45 @@
 {
  "image": "art/guard_p1.png",
- "fw": 96,
- "fh": 96,
- "ax": 48,
- "ay": 84,
- "top": 64,
+ "fw": 44,
+ "fh": 64,
+ "ax": 22,
+ "ay": 61,
+ "top": 48,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
-   "frames": 8,
+   "fw": 44,
+   "fh": 64,
+   "ax": 22,
+   "ay": 61,
+   "frames": 4,
    "fps": 6
   },
   "walk": {
-   "y": 768,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
+   "y": 512,
+   "fw": 50,
+   "fh": 64,
+   "ax": 25,
+   "ay": 61,
    "frames": 8,
    "fps": 10
   },
   "attack": {
-   "y": 1536,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
-   "frames": 8,
-   "fps": 12
+   "y": 1024,
+   "fw": 62,
+   "fh": 64,
+   "ax": 31,
+   "ay": 61,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
   }
- }
+ },
+ "name": "Hired Sword",
+ "hold": [
+  "attack: printed 4 (zero-based 3), the contact, is the release; check in engine playback that the blade comes down there in every view (the art desk's notes: one descending strike)",
+  "walk: contacts 1 and 5 read less distinctly in E and rear NE (the foreshortening), and NE's shortened stride carries to NW (the art desk's own note)",
+  "attack row 6 frames against the old 8: check playback before changing any gameplay timing (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (RECOSTUME-1127, 11-27: the Hired Sword and Hired Blade on realistic proportions, all five views), cut by tools/hiredsword-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by the Hired Sword and the Hired Blade"
 }

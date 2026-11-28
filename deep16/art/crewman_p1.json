@@ -1,37 +1,44 @@
 {
  "image": "art/crewman_p1.png",
- "fw": 96,
- "fh": 96,
- "ax": 48,
- "ay": 84,
- "top": 57,
+ "fw": 28,
+ "fh": 64,
+ "ax": 14,
+ "ay": 61,
+ "top": 48,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
-   "frames": 8,
+   "fw": 28,
+   "fh": 64,
+   "ax": 14,
+   "ay": 61,
+   "frames": 4,
    "fps": 6
   },
   "walk": {
-   "y": 768,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
+   "y": 512,
+   "fw": 42,
+   "fh": 64,
+   "ax": 21,
+   "ay": 61,
    "frames": 8,
    "fps": 10
   },
   "attack": {
-   "y": 1536,
-   "fw": 96,
-   "fh": 96,
-   "ax": 48,
-   "ay": 84,
+   "y": 1024,
+   "fw": 54,
+   "fh": 64,
+   "ax": 27,
+   "ay": 61,
    "frames": 8,
-   "fps": 12
+   "fps": 12,
+   "release": 5
   }
- }
+ },
+ "name": "Crewman",
+ "hold": [
+  "rear NE walk: two separately drawn bands, a common scale and foot line; the lead-foot change between frames 1 and 5 is subtle in the overlapping legs -- check it in playback (the art desk's own note)",
+  "attack: the high wind-up is drawings 4-5, the first low chop drawing 6 (release 5); engine hit timing to be verified in playback (the art desk's own note)"
+ ],
+ "source": "drawn by the art desk (RECOSTUME-1127: the crewman on realistic proportions -- the ART-122 generic man's face, brown hair and beard, the slate-blue and leather kit and right-hand axe), cut by tools/crewman-sheet.py over tools/vivian-sheet.py; SW W NW mirrored; worn by Thug, Stable Fighter, Crewman and Card Bruiser"
 }

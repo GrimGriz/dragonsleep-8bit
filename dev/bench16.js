@@ -547,6 +547,26 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
     document.body.appendChild(preRC);
     return;
   }
+  // THE CHIBI FIGURES RE-COSTUMED, 11-27 (mode=costume1127; Griz: "outbox me an art dept request to costume the generic male NPC ... for CHIBIs currently in the pocket
+  // DM", the art desk's CREWMAN-P1 and GUARD-P1 back the same night, cut by tools/crewman-sheet.py and tools/hiredsword-sheet.py). 1 crewman_p1: idle 4, walk 8, attack 8
+  // with its chop on drawing 6, as tall as the folk man; 2 guard_p1: idle 4, walk 8, attack 6 with its blow on drawing 4; 3 the six creatures still wear them
+  if (get('mode', '') === 'costume1127') {
+    var repCO = { checks: [], errors: [], notes: [] };
+    var okCO = function (what, v) { repCO.checks.push((v ? 'ok   ' : 'FAIL ') + what); };
+    try {
+      var rowCO = function (s, a) { var r = D.spr.anim(s, a); return r ? r.frames + (r.release != null ? ' rel ' + r.release : '') : 'NONE'; };
+      var shC = D.SHEETS.crewman_p1, shG = D.SHEETS.guard_p1, shF = D.SHEETS.folkman_p1;
+      okCO('1 crewman_p1: idle ' + rowCO('crewman_p1', 'idle') + ', walk ' + rowCO('crewman_p1', 'walk') + ', attack ' + rowCO('crewman_p1', 'attack') + '; cell ' + shC.fh + ' high, feet at ' + shC.ay + ', top ' + shC.top,
+        rowCO('crewman_p1', 'idle') === '4' && rowCO('crewman_p1', 'walk') === '8' && rowCO('crewman_p1', 'attack') === '8 rel 5' && shC.fh === 64 && shC.ay === 61 && shC.top === 48 && shF.fh === 64);
+      okCO('2 guard_p1: idle ' + rowCO('guard_p1', 'idle') + ', walk ' + rowCO('guard_p1', 'walk') + ', attack ' + rowCO('guard_p1', 'attack') + '; cell ' + shG.fh + ' high, feet at ' + shG.ay + ', top ' + shG.top,
+        rowCO('guard_p1', 'idle') === '4' && rowCO('guard_p1', 'walk') === '8' && rowCO('guard_p1', 'attack') === '6 rel 3' && shG.fh === 64 && shG.ay === 61 && shG.top === 48);
+      var wearCO = ['thug', 'stablefighter', 'crewman', 'cardbruiser'].map(function (k) { return D.FOES[k] && D.FOES[k].sheet; }).concat(['hiredsword', 'merc'].map(function (k) { return D.FOES[k] && D.FOES[k].sheet; }));
+      okCO('3 the Thug, the Stable Fighter, the Crewman and the Card Bruiser wear crewman_p1; the Hired Sword and the Hired Blade guard_p1: ' + wearCO.join(' '), wearCO.slice(0, 4).every(function (s) { return s === 'crewman_p1'; }) && wearCO.slice(4).every(function (s) { return s === 'guard_p1'; }));
+    } catch (eCO) { repCO.errors.push(String(eCO && eCO.stack || eCO).slice(0, 900)); }
+    var preCO = document.createElement('pre'); preCO.id = 'out'; preCO.textContent = 'BENCH16 ' + JSON.stringify(repCO);
+    document.body.appendChild(preCO);
+    return;
+  }
   // VIVIAN'S SHORTBOW, 11-27 (mode=bow1127; Griz: "see if you can get her bow stuff cut ... and wired and on main before the live"; the art desk's VIVIAN-SHORTBOW, cut by
   // tools/vivian-sheet.py into vivian_p2 and vivian_p3). 1 both sheets carry `shortbow`, 6 frames at 12 fps, the arrow off on drawing 4; 2 a Shortbow shot plays it (the
   // blow's name is its row: js/battle.js attack) and waits the 15 ticks to its release; 3 the candle-knife still plays `attack`; 4 the same in Studded Leather (vivian_p3)
