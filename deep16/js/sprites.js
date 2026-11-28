@@ -46,7 +46,9 @@
     var C = D.counter, pt = C && C.HERO_PT && C.HERO_PT[name], ps = pt && D.SHEETS && D.SHEETS[pt];
     var k = (ps ? pt : name) + ':' + w + 'x' + hh; if (cache[k]) return cache[k];
     var want = ps ? pt : name;
-    if (!S.has(want)) { if (S.prefetch && !cache['?' + want]) { cache['?' + want] = 1; S.prefetch([want]); } return null; }
+    // (fetched at once, S.ensure, not S.prefetch: prefetch starts only after every load already out has landed, so a face nobody had shown yet -- Vivian's, who had not
+    // spoken -- stayed blank behind a town's sheets till they were all in; Griz, 11-27, his M menu with her slot empty: "she showed on 'm' after i went in a shop")
+    if (!S.has(want)) { if (!cache['?' + want]) { cache['?' + want] = 1; S.ensure([want]); } return null; }
     var cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
     if (ps) { var s = hh < 40 ? 0.5 : hh / ps.fh; C.drawPortraitAt(cv.getContext('2d'), pt, 'idle', 0, w / 2 - ps.fw * s / 2 + ps.ax * s, ps.ay * s, s); } // (the frame's middle on the slot's, its top at the slot's top)
     else S.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? S.drawnTop(name) + 2 : S.portraitY(name, 0, hh), { frame: 0 }); // (STATUS's portrait: the head in it, a tall one's too -- GreyFang's, 10-14)

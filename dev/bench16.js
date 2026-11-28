@@ -22984,8 +22984,10 @@ if (window.D16) window.D16.benchPage = true; // (a bench's page: the inn's night
       // hero's talking portrait where the art desk made one (js/counter.js C.HERO_PT) -- THE WORLD's menu (js/house.js), the grid's (js/ui.js gridHost), the Pocket DM camp's (js/pocket.js,
       // which had no figure at all). Asked with nothing loaded: what each one fetches is what it would draw
       var has0BG = D.spr.has, pre0BG = D.spr.prefetch, askedBG = [];
-      function asksBG(host, h) { askedBG = []; D.spr.has = function () { return false; }; D.spr.prefetch = function (n) { askedBG = askedBG.concat(n); return Promise.resolve(); };
-        try { var w = host.walker ? host.walker(h) : 'none', p = host.portrait ? host.portrait(h) : 'none'; return { walker: host.walker ? 'fn' : 'none', portrait: host.portrait ? 'fn' : 'none', asked: askedBG.slice() }; } finally { D.spr.has = has0BG; D.spr.prefetch = pre0BG; } }
+      // (11-27: S.menuFigure asks with S.ensure, at once -- S.prefetch waited behind every load already out, and Vivian's slot stood empty; either is an ask here)
+      var ens0BG = D.spr.ensure;
+      function asksBG(host, h) { askedBG = []; D.spr.has = function () { return false; }; D.spr.prefetch = D.spr.ensure = function (n) { askedBG = askedBG.concat(n); return Promise.resolve(); };
+        try { var w = host.walker ? host.walker(h) : 'none', p = host.portrait ? host.portrait(h) : 'none'; return { walker: host.walker ? 'fn' : 'none', portrait: host.portrait ? 'fn' : 'none', asked: askedBG.slice() }; } finally { D.spr.has = has0BG; D.spr.prefetch = pre0BG; D.spr.ensure = ens0BG; } }
       var Hh = D.house, rec2 = Hh.fresh(), cur2 = Hh.cur; Hh.cur = rec2; var sc2 = {};
       try { Hh.openMenu(sc2); var hs2 = sc2.pm.host, au2 = hs2.party().filter(function (h) { return h.id === 'aurdin'; })[0], a2 = asksBG(hs2, au2);
         okBG('2a THE WORLD\'s menu, Aurdin\'s slot and STATUS ask for ' + JSON.stringify(a2.asked) + ' (want his portrait, pt_aurdin_red -- he wears the Red Mantle out of robes)', a2.asked.indexOf('pt_aurdin_red') >= 0);
